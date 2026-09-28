@@ -37,6 +37,8 @@ async function compileWithPatch(
 test.describe('Preview render — ffmpeg-feature sugar on ffmpeg.wasm', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/templates/new');
+    // A new template opens on the starter picker; these checks start from the blank one.
+    await page.getByRole('dialog').getByRole('button', { name: 'Start blank' }).click();
   });
 
   test('a LUT look (lut3d) compiles on the WASM core', async ({ page }) => {

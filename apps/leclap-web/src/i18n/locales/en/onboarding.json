@@ -23,6 +23,8 @@
     "namePlaceholder": "e.g. {{name}}",
     "recorded": "Intro recorded",
     "reRecord": "Re-record",
+    "imported": "Clip imported",
+    "changeClip": "Change clip",
     "record": "Record",
     "upload": "Upload",
     "recordAria": "Record an intro with your camera",
@@ -43,8 +45,7 @@
   },
   "error": {
     "title": "That didn't work",
-    "fallback": "Something went wrong while creating your video.",
-    "continueToBuilder": "Continue to Templates"
+    "continueInStudio": "Continue in the studio"
   },
   "skipAria": "Skip onboarding"
 }

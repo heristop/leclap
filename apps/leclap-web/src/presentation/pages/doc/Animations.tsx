@@ -37,7 +37,7 @@ export const DocAnimations = () => (
       />
     </DocSection>
 
-    <DocSection id="options" title="Overlay options" kicker="inputs[].options">
+    <DocSection id="options" title="Overlay options" kicker="`inputs[].options`">
       <Prose className="mb-5">
         <p>
           <Code>position</Code> places the overlay (<Code>x:y</Code> output px) and <Code>scale</Code> sizes it (
@@ -62,7 +62,9 @@ export const DocAnimations = () => (
       <Sample code={snippets.animation} title="A draw-in border over an image background" />
     </DocSection>
 
-    <DocSection id="whole-video" title="Whole-video animations" kicker="global.animations">
+    <DocSection id="whole-video" title="Whole-video animations" kicker="`global.animations`">
+      {/* `<wbr />` after each slash below: the slash-joined option names otherwise form one unbreakable
+          run that pushes a phone-width page into sideways scroll. */}
       <Prose className="mb-5">
         <p>
           A section <Code>inputs[]</Code> overlay restarts at every section. To run an overlay{' '}
@@ -70,8 +72,12 @@ export const DocAnimations = () => (
           drifting light leak, a grain layer — declare it under <Code>global.animations[]</Code> instead. The engine
           composites these once over the <strong>final joined video</strong> (after sections are concatenated, before
           music is mixed), so the same mechanism that lets music span the whole video lets an animation span it too.
-          Each entry takes the same <Code>position</Code>/<Code>scale</Code>/<Code>opacity</Code>/<Code>rotation</Code>/
-          <Code>loop</Code>/<Code>persistent</Code> options as a section overlay, minus <Code>name</Code>/
+          Each entry takes the same <Code>position</Code>/<wbr />
+          <Code>scale</Code>/<wbr />
+          <Code>opacity</Code>/<wbr />
+          <Code>rotation</Code>/<wbr />
+          <Code>loop</Code>/<wbr />
+          <Code>persistent</Code> options as a section overlay, minus <Code>name</Code>/<wbr />
           <Code>type</Code>. A whole-video overlay sits above every section; the builder edits these in its{' '}
           <strong>Style &amp; audio</strong> step.
         </p>

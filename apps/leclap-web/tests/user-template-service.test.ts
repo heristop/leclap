@@ -102,6 +102,20 @@ describe('UserTemplateService', () => {
     expect(svc.list().map((t) => t.id)).toContain('user-dup');
   });
 
+  it('duplicate() takes the copy’s name from the caller, in the visitor’s language', () => {
+    const svc = new UserTemplateService(
+      memStorage(),
+      okValidator,
+      () => 1000,
+      () => 'user-dup'
+    );
+
+    const copy = svc.duplicate(sampleTemplate(), 'My Template (copie)');
+
+    expect(copy.name).toBe('My Template (copie)');
+    expect(copy.descriptor.meta?.name).toBe('My Template (copie)');
+  });
+
   it('duplicate() re-stamps the descriptor meta so the embedded identity follows the "(copy)" name', () => {
     const svc = new UserTemplateService(
       memStorage(),

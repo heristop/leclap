@@ -22,7 +22,7 @@ export const DocCaptions = () => (
       filter. Set the text and pick a style, position and alignment.
     </DocPageHeader>
 
-    <DocSection id="reference" title="Fields" kicker="caption">
+    <DocSection id="reference" title="Fields" kicker="`caption`">
       <RefTable
         id="caption"
         title="caption"
@@ -42,15 +42,15 @@ export const DocCaptions = () => (
       </Prose>
       <div className="space-y-5">
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-foreground">style</h3>
+          <h3 className="mb-2 font-mono text-sm font-semibold text-foreground">style</h3>
           <ChipList items={CAPTION_STYLES} />
         </div>
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-foreground">position</h3>
+          <h3 className="mb-2 font-mono text-sm font-semibold text-foreground">position</h3>
           <ChipList items={CAPTION_POSITIONS} />
         </div>
         <div>
-          <h3 className="mb-2 text-sm font-semibold text-foreground">align</h3>
+          <h3 className="mb-2 font-mono text-sm font-semibold text-foreground">align</h3>
           <ChipList items={CAPTION_ALIGNS} />
         </div>
       </div>

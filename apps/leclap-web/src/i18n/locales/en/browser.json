@@ -34,6 +34,8 @@
   "required": "Required",
   "statusOk": "All systems go — ready to render locally",
   "statusLimited": "Some features may be limited",
+  "ready": "Ready to render locally",
+  "checking": "Checking this browser…",
   "recommendations": "Recommendations",
   "updateBrowser": "Please update to {{browser}} {{version}}+ for optimal performance",
   "recommendBrowsers": "For best performance, use Chrome 88+, Firefox 79+, or Safari 14+",

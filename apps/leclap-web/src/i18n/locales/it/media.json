@@ -28,6 +28,7 @@
       "screenFailed": "Impossibile avviare la registrazione dello schermo su questo dispositivo."
     },
     "getReady": "Preparati…",
+    "action": "Azione!",
     "recordingIn": "Registrazione tra {{value}}",
     "wrapUp": "Concludi — {{remaining}}s rimasti",
     "timesUp": "Tempo scaduto",

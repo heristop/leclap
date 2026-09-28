@@ -23,6 +23,8 @@
     "namePlaceholder": "z. B. {{name}}",
     "recorded": "Intro aufgenommen",
     "reRecord": "Neu aufnehmen",
+    "imported": "Clip importiert",
+    "changeClip": "Clip wechseln",
     "record": "Aufnehmen",
     "upload": "Hochladen",
     "recordAria": "Ein Intro mit deiner Kamera aufnehmen",
@@ -43,8 +45,7 @@
   },
   "error": {
     "title": "Das hat nicht geklappt",
-    "fallback": "Beim Erstellen deines Videos ist etwas schiefgelaufen.",
-    "continueToBuilder": "Weiter zu den Vorlagen"
+    "continueInStudio": "Im Studio weitermachen"
   },
   "skipAria": "Onboarding überspringen"
 }

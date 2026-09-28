@@ -170,12 +170,12 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
       // before running, otherwise ffmpeg aborts with "No such file or directory".
       await this.bridgeInputsToMemfs(ffmpeg, args);
 
-      // Ensure the output's parent directory exists in MEMFS so ffmpeg can write
-      // a full-path output (e.g. /tmp/build/<segment>_output.mp4).
+      // Ready the output path in MEMFS: its parent directories, so ffmpeg can write a full-path output
+      // (e.g. /tmp/build/<segment>_output.mp4), and no stale file an earlier command left there.
       const outputPath = FFmpegWasmAdapter.resolveOutputPath(args);
 
       if (outputPath !== undefined) {
-        await this.ensureMemfsDir(ffmpeg, outputPath);
+        await this.readyMemfsOutput(ffmpeg, args, outputPath);
       }
 
       await ffmpeg.exec(args);
@@ -308,6 +308,28 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
     const last = args.at(-1);
 
     return last !== undefined && !last.startsWith('-') ? last : undefined;
+  }
+
+  /**
+   * Ready an output path in MEMFS: create its parent directories, and drop any file an earlier command
+   * left there. MEMFS outlives a render, so a stale file would pass for this command's output: a run that
+   * fails to write it would still have "produced" it, and a clip FFmpeg couldn't read would render as the
+   * previous render's clip. A path the command also reads is left alone.
+   */
+  private async readyMemfsOutput(ffmpeg: FFmpegWasm, args: string[], outputPath: string): Promise<void> {
+    await this.ensureMemfsDir(ffmpeg, outputPath);
+
+    const readsIt = args.some((arg, index) => arg === outputPath && args[index - 1] === '-i');
+
+    if (readsIt) {
+      return;
+    }
+
+    try {
+      await ffmpeg.deleteFile(outputPath);
+    } catch {
+      // Nothing there: the usual case.
+    }
   }
 
   /**

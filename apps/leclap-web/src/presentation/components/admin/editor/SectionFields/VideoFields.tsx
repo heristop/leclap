@@ -174,7 +174,7 @@ export const VideoFields = ({ section, orientation, variables, onChange, inputCl
   };
 
   return (
-    <div className="space-y-3 pl-7">
+    <div className="space-y-3">
       <ClipSourceControl section={section} source={source} onSelectSource={setClipSource} onChange={onChange} />
       <div className="grid gap-3 sm:grid-cols-2">
         <NumberField

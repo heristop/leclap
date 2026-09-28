@@ -200,21 +200,31 @@ export function LanguageSuggestion() {
       // A short landmark name, not the prompt: reusing the visible sentence makes a screen reader
       // announce it twice — once naming the region, once reading the paragraph.
       aria-label={copy.region}
-      className={cn(
-        'fixed inset-x-4 z-50 mx-auto max-w-md',
-        'bottom-[calc(1rem+env(safe-area-inset-bottom))]',
-        'animate-rise-in motion-reduce:animate-none'
-      )}
+      className={cn('fixed inset-x-4 z-50 mx-auto max-w-md', 'bottom-[calc(1rem+env(safe-area-inset-bottom))]')}
     >
-      {/* `glass-panel-dark` is the site's own surface treatment and — despite the name — is
-          theme-aware: --glass-bg/--glass-border are redefined in both theme blocks, so this reads as
-          frosted light glass in the light theme and smoked glass in the dark one.
+      {/* The card is a pane of frosted glass, and the frost has to be real: it floats over whatever
+          the page is, and over the policy pages or the docs their own paragraphs showed through behind
+          this one's sentence. Two things made that happen. The entrance used to run on the <aside>,
+          and an element carrying an opacity animation (held by `both`) is a backdrop root in Chromium,
+          so the blur below had nothing behind it to blur; it runs on the pane itself now. And the
+          site's `glass-panel-dark` is 62–72% opaque, fine over a hero, thin over body text: this is
+          the raised surface at 85% under a strong blur, which still lets the page tint the edges but
+          leaves no line of it readable, and goes solid under reduced transparency. `surface-2` and the
+          glass border are theme-aware, so it stays light glass in the light theme and smoked glass in
+          the dark one.
           No hover state on the card itself: nothing about it is clickable, and a surface that
           responds to the pointer promises an action it does not have.
           `--shadow-raised` rather than a neutral `shadow-xl`: it is the design system's own top step
           of elevation, and it is tinted lavender, so the card lifts off the page in the brand's hue
           instead of casting a grey rectangle. */}
-      <div className="glass-panel-dark relative rounded-2xl shadow-[var(--shadow-raised)]">
+      <div
+        className={cn(
+          'relative rounded-2xl border border-[var(--glass-border)] bg-surface-2/85 shadow-[var(--shadow-raised)]',
+          'backdrop-blur-xl backdrop-saturate-150',
+          '[@media(prefers-reduced-transparency:reduce)]:bg-surface-2 [@media(prefers-reduced-transparency:reduce)]:backdrop-blur-none',
+          'animate-rise-in motion-reduce:animate-none'
+        )}
+      >
         {/* Outside the content flow, in the corner the eye already checks for a way out, and
             optically centred on the title row beside it. Drawn at 36px — a 44px circle would out-weigh
             the title — and padded back out to a 44px hit area by `before`, so the thumb target meets

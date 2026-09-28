@@ -23,6 +23,8 @@
     "namePlaceholder": "es. {{name}}",
     "recorded": "Intro registrata",
     "reRecord": "Registra di nuovo",
+    "imported": "Clip importato",
+    "changeClip": "Cambia clip",
     "record": "Registra",
     "upload": "Carica",
     "recordAria": "Registra un’intro con la fotocamera",
@@ -43,8 +45,7 @@
   },
   "error": {
     "title": "Non ha funzionato",
-    "fallback": "Qualcosa è andato storto durante la creazione del tuo video.",
-    "continueToBuilder": "Vai ai Modelli"
+    "continueInStudio": "Continua nello studio"
   },
   "skipAria": "Salta l’onboarding"
 }

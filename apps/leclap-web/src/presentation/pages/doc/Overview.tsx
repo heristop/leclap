@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Seo } from '@/presentation/components/Seo';
 import { DocSection, Prose, Code, Callout, RefTable, CliGetStarted } from '@/presentation/components/doc/DocBlocks';
 import { docGroups } from '@/presentation/components/doc/schemaFields';
@@ -75,14 +76,7 @@ export const DocOverview = () => (
       <Prose className="mb-5">
         <p>
           <Code>global</Code> sets defaults inherited by every section and declares what a builder UI may expose to end
-          users. The audio sub-object has its own{' '}
-          <a
-            className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-300"
-            href="/doc/audio"
-          >
-            page
-          </a>
-          .
+          users. The audio sub-object has <Link to="/doc/audio">its own page</Link>.
         </p>
       </Prose>
       <div className="space-y-9">

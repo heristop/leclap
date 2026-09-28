@@ -9,7 +9,7 @@ import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { SlidersHorizontalIcon } from '@/presentation/components/icons/sliders-horizontal';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/presentation/components/ui';
+import { Select, SelectTrigger, SelectValue, SelectItem } from '@/presentation/components/ui';
 import type { Grade } from '../templateEditorModel';
 import {
   GRADE_DEFAULTS,
@@ -23,6 +23,7 @@ import {
 } from './lookFilters';
 import { PreviewSurface } from './PreviewSurface';
 import { RangeSlider } from './controls';
+import { EditorSelectContent } from './editor-select-content';
 
 // FFmpeg's built-in `curves` filter presets — grade.curvesPreset passes straight through to
 // `curves=preset=<name>` (see engine editor/presets/looks.ts), so only these names are valid.
@@ -154,14 +155,14 @@ export const GradePanel = ({ grade, onChange }: GradePanelProps) => {
                 <SelectTrigger aria-label={t('grade.curvesPreset')} className="w-full">
                   <SelectValue placeholder={t('grade.curvesNone')} />
                 </SelectTrigger>
-                <SelectContent>
+                <EditorSelectContent>
                   <SelectItem value={CURVES_NONE}>{t('grade.curvesNone')}</SelectItem>
                   {CURVES_PRESETS.map((preset) => (
                     <SelectItem key={preset} value={preset}>
                       {t(`grade.curves.${preset}`)}
                     </SelectItem>
                   ))}
-                </SelectContent>
+                </EditorSelectContent>
               </Select>
             </div>
           </div>

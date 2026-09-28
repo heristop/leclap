@@ -1,99 +1,128 @@
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useId } from 'react';
 import type { FramingGuideConfig } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import { DEFAULT_FRAMING_OPACITY } from '@/presentation/components/admin/templateEditorModel';
+import { guideLayers } from './framing-guide.logic';
 
 interface FramingGuideOverlayProps {
   guide: FramingGuideConfig;
+  // The take is rolling: the guide steps back so it doesn't sit on the person being filmed.
+  recording?: boolean;
 }
 
-// Horizontal dock for the silhouette — a comfortable inset off each edge so left / center / right
-// read as three distinct spots. Shared with the admin picker's mockup so the editor preview and the
-// live overlay agree on exactly where the silhouette sits.
-//
-// Position is in screen space — 'left' means the left edge of the live preview. The live <video>
-// applies -scale-x-100 when facing mode is 'user' (front camera), which mirrors the preview; because
-// we overlay on the same element the silhouette mirrors too, keeping 'left' on the user's left.
-// Horizontal placement of the bust. A wide 16:9 frame can afford a generous edge inset; a narrow
-// 9:16 frame needs tighter insets, otherwise a bust wide enough to be useful would span almost the
-// whole width and left/center/right would all look the same.
+// Where the bust's centre sits across the frame: on the left third, the middle or the right third, so
+// left / center / right read as three distinct spots in any frame shape. Screen space: the front camera's
+// preview is mirrored, and the guide is laid over that mirrored picture, so 'left' stays on the viewer's
+// left. Shared with the admin picker's mockup, which imports silhouetteDockClass, so the preview there and
+// the live overlay always agree.
 export const SILHOUETTE_POSITION_CLASS: Record<FramingGuideConfig['position'], string> = {
-  left: 'left-[15%]',
-  center: 'left-1/2 -translate-x-1/2',
-  right: 'right-[15%]',
+  left: 'left-1/3',
+  center: 'left-1/2',
+  right: 'left-2/3',
 };
 
-const SILHOUETTE_POSITION_CLASS_PORTRAIT: Record<FramingGuideConfig['position'], string> = {
-  left: 'left-[4%]',
-  center: 'left-1/2 -translate-x-1/2',
-  right: 'right-[4%]',
-};
+// The box the drawing lives in: the frame's full height, at the drawing's own aspect, centred on the
+// chosen spot — whatever overhangs the frame is clipped by it. Sized from the height, the bust keeps the
+// same scale in a 16:9, 1:1 or 9:16 frame (a head at ~40% of the height), which is why the frame shape no
+// longer changes it; the parameter stays for the admin mockup's call. On a phone's full-screen viewfinder
+// (~0.46) that head spans about two thirds of the width, which is what a selfie at arm's length looks like.
+export const silhouetteDockClass = (_isPortrait: boolean, position: FramingGuideConfig['position']): string =>
+  `absolute inset-y-0 aspect-[240/250] -translate-x-1/2 ${SILHOUETTE_POSITION_CLASS[position]}`;
 
-// The dock, tuned per frame shape so the live overlay and the admin mockup stay pixel-identical:
-// a tall 9:16 frame sizes the bust by WIDTH (so it leaves room to shift left/center/right); a wide
-// 16:9 frame sizes by height. Returned as the full dock class.
-export const silhouetteDockClass = (isPortrait: boolean, position: FramingGuideConfig['position']): string => {
-  if (isPortrait) {
-    return `absolute aspect-[120/124] w-[64%] bottom-[10%] ${SILHOUETTE_POSITION_CLASS_PORTRAIT[position]}`;
-  }
+// A webcam medium close-up, drawn as one continuous contour in a 240×250 box that spans the frame's
+// height: an egg-shaped head (78 wide, 100 crown-to-chin: ~0.78, 40% of the frame) with ~13% headroom and
+// the eye line near the upper third; a short neck (~0.6 of the head's width) flaring into the trapezius;
+// shoulders sloping out to ~2.4× the head's width, then the arms leaving through the bottom of the frame.
+// The chin sits inside the outline, as it does in a real frontal silhouette. The path closes far below
+// the box, so no base line ever shows on screen.
+const SILHOUETTE = [
+  'M120 32 C97 32 81 49 81 71 C81 87 84 99 90 107 C92.6 110.4 95.6 113.6 96.8 117.5',
+  'C97.4 121.5 97.2 125 95.8 128.5 C92.8 135.5 80.5 141.5 65 146.5 C49 151.5 37.5 159 31 172',
+  'C25.8 182.5 23 199 21 226 L18 400 L222 400 L219 226 C217 199 214.2 182.5 209 172',
+  'C202.5 159 191 151.5 175 146.5 C159.5 141.5 147.2 135.5 144.2 128.5 C142.8 125 142.6 121.5 143.2 117.5',
+  'C144.4 113.6 147.4 110.4 150 107 C156 99 159 87 159 71 C159 49 143 32 120 32 Z',
+].join(' ');
 
-  return `absolute aspect-[120/124] h-[66%] bottom-[12%] ${SILHOUETTE_POSITION_CLASS[position]}`;
-};
+// Far enough past the box to cover the widest frame around it; the frame's own overflow clips it.
+const BEYOND = { x: -2000, y: -2000, width: 4240, height: 4250 };
 
-// A light framing contour, NOT a solid avatar: a thin crisp white line you position yourself inside,
-// with the camera feed showing through. Drawn in layers — a soft dark edge for legibility on bright
-// feeds, an optional whisper of fill ('bust'), then the white contour. 'outline' is the contour alone.
-// ONE continuous head-and-shoulders contour as a single path — no internal crossing lines and no
-// stalk "neck": the head arc flows straight into broad, SHORT shoulders that sweep out to a wide
-// rounded chest and run off the bottom of the frame (no closing base line on screen).
-const SILHOUETTE = 'M42 60 A28 28 0 1 1 78 60 C92 66 116 94 118 130 L2 130 C2 94 28 66 42 60 Z';
+// Where the lines fade out as the arms leave the frame, so the guide doesn't end on a hard cut.
+const FADE = { x1: 0, y1: 196, x2: 0, y2: 250 };
 
-export const SilhouetteSvg = ({ opacity, style }: { opacity: number; style: 'bust' | 'outline' }) => (
-  <svg viewBox="0 0 120 124" className="h-full w-full" style={{ opacity }} aria-hidden="true" focusable="false">
-    {/* Soft dark edge so the white line stays legible over light/busy feeds. */}
-    <path d={SILHOUETTE} fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth="5" strokeLinejoin="round" />
-    {/* 'bust' adds a faint frosted fill to suggest the zone; 'outline' leaves the feed fully visible. */}
-    {style === 'bust' && <path d={SILHOUETTE} fill="rgba(255,255,255,0.12)" />}
-    {/* The contour itself: a clean, thin white line. */}
-    <path d={SILHOUETTE} fill="none" stroke="white" strokeWidth="2.25" strokeLinejoin="round" />
-  </svg>
-);
+// How much of the guide stays up while recording: a trace to re-centre on, not a line across the take.
+const RECORDING_PRESENCE = 0.15;
 
-// Track whether an element is taller than it is wide, so the silhouette can size itself to the
-// actual viewfinder shape rather than a single hard-coded fraction.
-const useIsPortrait = (ref: RefObject<HTMLElement | null>): boolean => {
-  const [isPortrait, setIsPortrait] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    const update = () => {
-      if (el) {
-        setIsPortrait(el.clientHeight > el.clientWidth);
-      }
-    };
-    const observer = new ResizeObserver(update);
-
-    if (el) {
-      update();
-      observer.observe(el);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [ref]);
-
-  return isPortrait;
-};
-
-export const FramingGuideOverlay = ({ guide }: FramingGuideOverlayProps) => {
-  const ref = useRef<HTMLDivElement>(null);
-  const isPortrait = useIsPortrait(ref);
+// Drawn in layers, each at the strength guideLayers derives from the template's opacity. 'bust' first
+// shades the frame OUTSIDE the contour, through a feathered mask, so the subject zone reads as the sweet
+// spot without a hard cutout and without touching the person in it. Then a soft dark halo, so the line
+// holds on bright and busy feeds, and the 2px light line itself, with round joins. The line doesn't scale
+// with the frame (a hairline in the admin mockup and on a desktop viewfinder alike); the halo and the
+// feather do, so they stay in proportion. 'outline' is the halo and line alone.
+export const SilhouetteSvg = ({ opacity, style }: { opacity: number; style: 'bust' | 'outline' }) => {
+  // useId's colons would need escaping inside url(#…), so keep the ids to plain characters.
+  const id = `framing-${useId().replace(/[^\w-]/g, '')}`;
+  const layers = guideLayers(opacity);
 
   return (
-    <div ref={ref} className="pointer-events-none absolute inset-0 z-10" aria-hidden="true">
-      <div className={silhouetteDockClass(isPortrait, guide.position)}>
-        <SilhouetteSvg opacity={guide.opacity ?? DEFAULT_FRAMING_OPACITY} style={guide.style ?? 'bust'} />
-      </div>
-    </div>
+    <svg viewBox="0 0 240 250" className="h-full w-full overflow-visible" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id={`${id}-line`} gradientUnits="userSpaceOnUse" {...FADE}>
+          <stop offset="0" stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity={0} />
+        </linearGradient>
+        <linearGradient id={`${id}-halo`} gradientUnits="userSpaceOnUse" {...FADE}>
+          <stop offset="0" stopColor="black" />
+          <stop offset="1" stopColor="black" stopOpacity={0} />
+        </linearGradient>
+        <filter id={`${id}-soft`} x="-10%" y="-10%" width="120%" height="140%">
+          <feGaussianBlur stdDeviation={0.7} />
+        </filter>
+        {style === 'bust' && (
+          <>
+            <filter id={`${id}-feather`} x="-20%" y="-20%" width="140%" height="160%">
+              <feGaussianBlur stdDeviation={5} />
+            </filter>
+            <mask id={`${id}-mask`} maskUnits="userSpaceOnUse" {...BEYOND}>
+              <rect {...BEYOND} fill="white" />
+              <path d={SILHOUETTE} fill="black" filter={`url(#${id}-feather)`} />
+            </mask>
+          </>
+        )}
+      </defs>
+      {style === 'bust' && <rect {...BEYOND} fill="black" fillOpacity={layers.dim} mask={`url(#${id}-mask)`} />}
+      <path
+        d={SILHOUETTE}
+        fill="none"
+        stroke={`url(#${id}-halo)`}
+        strokeOpacity={layers.halo}
+        strokeWidth={1.6}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        filter={`url(#${id}-soft)`}
+      />
+      <path
+        d={SILHOUETTE}
+        fill="none"
+        stroke={`url(#${id}-line)`}
+        strokeOpacity={layers.line}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
   );
 };
+
+// The live overlay over the camera preview. It is page chrome, never part of the recording. Once the
+// take starts it steps back quickly (a short fade, a cut under reduced motion) to a trace.
+export const FramingGuideOverlay = ({ guide, recording = false }: FramingGuideOverlayProps) => (
+  <div
+    className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-200 ease-out motion-reduce:transition-none"
+    style={{ opacity: recording ? RECORDING_PRESENCE : 1 }}
+    aria-hidden="true"
+  >
+    <div className={silhouetteDockClass(false, guide.position)}>
+      <SilhouetteSvg opacity={guide.opacity ?? DEFAULT_FRAMING_OPACITY} style={guide.style ?? 'bust'} />
+    </div>
+  </div>
+);

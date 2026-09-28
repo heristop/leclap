@@ -65,7 +65,10 @@ export const AgenticDeepDive = () => {
         />
         {pinned && (
           <div>
-            <div className="sticky top-[16vh] py-[8vh]">{card}</div>
+            {/* The card pins 24vh down while that leaves room for all of it (about 31.5rem, attachment line
+                included); a shorter window lifts it just enough to keep its foot, and the evidence's play
+                button, above the fold, never higher than just under the header. */}
+            <div className="sticky top-[max(calc(4.5rem_-_8vh),min(16vh,calc(92vh_-_31.5rem)))] py-[8vh]">{card}</div>
           </div>
         )}
       </div>
@@ -212,9 +215,11 @@ const PullRequestCard = ({
                 )}
               />
             </span>
+            {/* Hyphenated rather than truncated: a quarter of a phone-wide card is narrower than the longest
+                localized step ("Implementieren"), which would otherwise end in an ellipsis. */}
             <span
               className={cn(
-                'mt-2 block truncate text-[0.6rem] font-semibold uppercase tracking-[0.06em] transition-colors duration-500 sm:text-[0.65rem] sm:tracking-[0.14em]',
+                'mt-2 block hyphens-auto text-[0.6rem] font-semibold uppercase tracking-[0.06em] wrap-break-word transition-colors duration-500 sm:text-[0.65rem] sm:tracking-[0.14em]',
                 index === active ? 'text-foreground' : 'text-gray-500'
               )}
             >

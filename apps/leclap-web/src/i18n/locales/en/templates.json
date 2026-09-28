@@ -48,14 +48,11 @@
       "subtitle": "Fill in the required information to personalize your video"
     },
     "status": {
-      "required": "Required field",
       "completed": "Field completed",
       "maxChars": "Maximum {{count}} characters allowed",
-      "remaining": "{{count}} remaining",
       "counter": "{{count}}/{{max}}",
       "requiredMark": "required",
-      "fieldRequired": "This field is required",
-      "maxCharsLabel": "(max {{count}} chars)"
+      "fieldRequired": "This field is required"
     },
     "placeholder": {
       "firstName": "Enter your first name",
@@ -64,12 +61,6 @@
       "keyword": "Enter a keyword",
       "description": "Enter description...",
       "generic": "Enter {{label}}"
-    },
-    "validation": {
-      "completeTitle": "Form Complete!",
-      "completeMessage": "All required fields are filled. Ready to proceed.",
-      "incompleteTitle": "Form Incomplete",
-      "incompleteMessage": "Please fill in {{count}} remaining field(s)."
     },
     "noForm": {
       "title": "No Form Required",

@@ -72,13 +72,17 @@ export const MobileDeepDive = () => {
         />
         {pinned && (
           <div>
+            {/* The phone is pinned 18vh down, so its width also follows the viewport's height: at 340px it
+                stands 713px tall, taller than a laptop window leaves it, and it would stay cut off at the fold
+                for all four chapters. 36.5vh + 11px keeps its foot a couple of vh above the fold, and reaches
+                340px at a 900px-tall window. */}
             <div className="sticky top-[12vh] py-[6vh]">
               <Phone
                 clips={CLIPS}
                 active={active}
                 load={near}
                 label={t('mobile.phoneAria')}
-                className="w-full max-w-[340px]"
+                className="w-full max-w-[min(340px,calc(36.5vh_+_11px))]"
               />
             </div>
           </div>

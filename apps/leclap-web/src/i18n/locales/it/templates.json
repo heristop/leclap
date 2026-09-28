@@ -48,14 +48,11 @@
       "subtitle": "Compila le informazioni richieste per personalizzare il tuo video"
     },
     "status": {
-      "required": "Campo obbligatorio",
       "completed": "Campo completato",
       "maxChars": "Massimo {{count}} caratteri consentiti",
-      "remaining": "{{count}} rimasti",
       "counter": "{{count}}/{{max}}",
       "requiredMark": "obbligatorio",
-      "fieldRequired": "Questo campo è obbligatorio",
-      "maxCharsLabel": "(max {{count}} caratteri)"
+      "fieldRequired": "Questo campo è obbligatorio"
     },
     "placeholder": {
       "firstName": "Inserisci il tuo nome",
@@ -64,12 +61,6 @@
       "keyword": "Inserisci una parola chiave",
       "description": "Inserisci una descrizione...",
       "generic": "Inserisci {{label}}"
-    },
-    "validation": {
-      "completeTitle": "Form completo!",
-      "completeMessage": "Tutti i campi obbligatori sono compilati. Pronto a procedere.",
-      "incompleteTitle": "Form incompleto",
-      "incompleteMessage": "Compila {{count}} campo/i rimanente/i."
     },
     "noForm": {
       "title": "Nessun form richiesto",

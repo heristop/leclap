@@ -7,6 +7,7 @@ import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
 import { useIconHover, type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
 import { useTranslation } from 'react-i18next';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { Reveal } from '@/presentation/components/ui';
 import { SectionHeading } from '@/presentation/components/home/section-heading';
 
@@ -51,6 +52,12 @@ const FeatureItem = ({ id, Icon }: FeatureItemProps) => {
 // The page's coda: what the composer is, as a spec sheet under the same heading as every other section.
 export const FeaturesSection = () => {
   const { t } = useTranslation('home');
+  // The items of a row enter together, so the stagger runs across the row the grid actually lays out (one,
+  // two or three columns, at sm and lg): a three-column count on the two-column grid revealed some rows right
+  // to left.
+  const twoColumns = useMediaQuery('(min-width: 40rem)');
+  const threeColumns = useMediaQuery('(min-width: 64rem)');
+  const columns = 1 + Number(twoColumns) + Number(threeColumns);
 
   return (
     <section id="features" className="relative bg-background py-24 text-foreground sm:py-32">
@@ -65,7 +72,7 @@ export const FeaturesSection = () => {
         {features.map(({ id, Icon }, index) => (
           <li key={id}>
             <Reveal
-              delay={(index % 3) * 70}
+              delay={(index % columns) * 70}
               className="h-full ease-[var(--ease-out-expo)]"
               rootMargin="0px"
               threshold={0.2}

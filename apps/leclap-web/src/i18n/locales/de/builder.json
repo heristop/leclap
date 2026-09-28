@@ -37,6 +37,7 @@
     "music": "Musik",
     "background": "Hintergrundbild",
     "formatTitle": "Format",
+    "formatNote": "Von der Vorlage festgelegt",
     "aspect": {
       "portrait": "Vertikal 9:16",
       "landscape": "Querformat 16:9",
@@ -60,7 +61,7 @@
     "emptyClipTitle": "Noch kein Clip",
     "emptyClipHint": "Nimm im Inhalts-Panel auf oder lade etwas hoch, um es hier zu sehen.",
     "emptyFormTitle": "Noch nichts zum Vorschauen",
-    "emptyFormHint": "Fülle das Inhalts-Panel aus und deine Overlays erscheinen hier.",
+    "emptyFormHint": "Deine Antworten erscheinen in den Szenen, die sie verwenden.",
     "save": {
       "saving": "Speichern …",
       "saved": "Gespeichert",
@@ -89,23 +90,21 @@
     "progress": "Verarbeitungsfortschritt"
   },
   "compile": {
-    "preparing": "Render wird vorbereitet",
-    "rendering": "Rendering",
-    "complete": "Render abgeschlossen",
-    "failed": "Render fehlgeschlagen",
     "stop": "Render stoppen",
     "finishing": "Wird abgeschlossen …",
     "errorTitle": "Render fehlgeschlagen",
+    "errorHint": "Deine Szenen sind unversehrt. Versuch es noch mal oder prüf deine Clips.",
+    "backToEdit": "Zurück zur Bearbeitung",
     "clips": "Clips",
     "clipCount_one": "{{count}} Clip",
     "clipCount_other": "{{count}} Clips",
     "project": "Projekt"
   },
   "stepResult": {
-    "title": "Dein Video ist fertig!",
-    "subtitle": "Lade deine Kreation herunter und teile sie",
-    "editProject": "Dieses Video weiter bearbeiten",
-    "createAnother": "Noch ein Video erstellen"
+    "title": "Im Kasten!",
+    "subtitle": "In deinem Browser gerendert — deine Clips haben dieses Gerät nie verlassen.",
+    "editProject": "Weiter bearbeiten",
+    "createAnother": "Neues Video"
   },
   "stepForm": {
     "defaultTitle": "Deine Angaben",
@@ -120,7 +119,8 @@
     "take": "Aufnahme {{number}}",
     "use": "Aufnahme {{number}} verwenden",
     "remove": "Aufnahme {{number}} entfernen",
-    "addAnother": "Weitere Aufnahme machen"
+    "addAnother": "Weitere Aufnahme machen",
+    "addTake": "Aufnahme hinzufügen"
   },
   "edit": {
     "trim": "Schneiden",
@@ -128,7 +128,21 @@
     "videoAriaLabel": "Video wird bearbeitet",
     "resetTrim": "Schnitt zurücksetzen",
     "resetCrop": "Zuschnitt zurücksetzen",
-    "cropHint": "Ziehe den Rahmen oder seine Ecken, um zuzuschneiden."
+    "cropHint": "Ziehe den Rahmen oder seine Ecken, um zuzuschneiden.",
+    "trimHint": "Zieh an den Rändern eines Clips, um ihn zu kürzen · Teilen schneidet am Abspielkopf · ⋮ stellt das Tempo ein",
+    "play": "Abspielen",
+    "pause": "Pause",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "split": "Teilen",
+    "splitHere": "Hier teilen",
+    "deleteSegment": "Segment löschen",
+    "segmentOptions": "Segmentoptionen",
+    "speed": "Tempo",
+    "invert": "Umkehren",
+    "trimStart": "Schnittanfang",
+    "trimEnd": "Schnittende",
+    "segment": "Segment {{number}}, {{start}} bis {{end}}"
   },
   "hub": {
     "subtitle": "Fülle jeden Teil aus und erstelle dann dein Video",
@@ -155,7 +169,12 @@
       "label": "Qualität",
       "draft": "Entwurf",
       "standard": "Standard",
-      "high": "Hoch"
+      "high": "Hoch",
+      "hint": {
+        "draft": "Schnellster Render und eine kleinere Datei — zum Prüfen des Timings.",
+        "standard": "Ausgewogen zwischen Bild und Renderzeit.",
+        "high": "Schärfstes Bild; der Render dauert länger, die Datei wird größer."
+      }
     }
   }
 }

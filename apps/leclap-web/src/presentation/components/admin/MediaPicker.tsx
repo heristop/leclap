@@ -76,7 +76,10 @@ function filterByAllowed(items: MediaCredit[], allowedIds: string[] | undefined)
 }
 
 const noop = () => {};
-const pickerShellClass = 'rounded-xl border border-foreground/10 bg-surface-2/40 p-3';
+const pickerShellClass = '@container rounded-xl border border-foreground/10 bg-surface-2/40 p-3';
+// Columns follow the picker's own width, not the viewport's: in the ~20rem editor panel a viewport
+// breakpoint gave three ~85px tiles, truncating every title under a play button that covered the art.
+const libraryGridClass = 'grid grid-cols-2 gap-2 @md:grid-cols-3';
 
 // On-brand empty state for a library grid: a compact dashed brand panel with the kind's glyph, instead
 // of a bare line of grey text. Static (no motion), so it's reduced-motion safe by construction.
@@ -210,7 +213,7 @@ const SingleLibraryGrid = ({ kind, value, onChange, allowedIds }: SingleLibraryG
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div className={libraryGridClass}>
       {items.map((item) => {
         const selected = value?.source === 'library' && value.id === item.id;
         const pick = () => {
@@ -244,7 +247,7 @@ const MultiLibraryGrid = ({ kind, selectedIds, onToggleId, allowedIds }: MultiLi
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div className={libraryGridClass}>
       {items.map((item) => {
         const selected = selectedIds.includes(item.id);
         const toggle = () => {
@@ -279,7 +282,7 @@ const SingleByIdGrid = ({ kind, selectedId, onSelectId, allowedIds }: SingleById
   }
 
   return (
-    <div role="radiogroup" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div role="radiogroup" className={libraryGridClass}>
       {items.map((item) => {
         const selected = selectedId === item.id;
         const pick = () => {

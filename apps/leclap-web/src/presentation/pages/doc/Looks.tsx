@@ -1,4 +1,5 @@
 import { LOOK_PRESETS } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
+import { Link } from 'react-router-dom';
 import { Seo } from '@/presentation/components/Seo';
 import { DocSection, Prose, Code, ChipList, Tip, Sample } from '@/presentation/components/doc/DocBlocks';
 import { snippets } from '@/presentation/components/doc/snippets';
@@ -21,14 +22,7 @@ export const DocLooks = () => (
       <Prose className="mb-5">
         <p>
           Each preset is a curated combination of brightness, contrast, saturation and tone. Pick one as a starting
-          point, then refine with manual <Code>grade</Code> values — see{' '}
-          <a
-            className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-300"
-            href="/doc/grade"
-          >
-            colour grade
-          </a>
-          .
+          point, then refine with manual <Code>grade</Code> values — see <Link to="/doc/grade">colour grade</Link>.
         </p>
       </Prose>
       <ChipList items={LOOK_PRESETS} />

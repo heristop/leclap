@@ -8,15 +8,12 @@
     "description": "Wähle eine Vorlage und komponiere dein Video direkt im Browser – schneiden, zuschneiden, Musik hinzufügen und mit FFmpeg auf dem Gerät exportieren. Keine Uploads, keine Server."
   },
   "about": {
-    "title": "Über uns",
-    "description": "LeClap ist ein offener, browserbasierter cinematischer Video-Composer, angetrieben von WebAssembly und FFmpeg. Erfahre, was es ist und wer es gebaut hat."
+    "title": "Über das Projekt",
+    "description": "LeClap rendert aus einer JSON-Vorlage und deinem Material ein fertiges Video mit FFmpeg – im Terminal, im Browser oder auf dem Handy. Seine Geschichte und wer es baut."
   },
   "compareRemotion": {
     "title": "LeClap vs. Remotion — Video-Rendering auf dem Gerät im Vergleich",
     "description": "Beide erzeugen Video deterministisch aus Code. Remotion komponiert in React und braucht eine Browser-Engine; LeClap rendert eine JSON-Vorlage nativ auf dem Gerät. Ein ehrlicher Vergleich."
-  },
-  "templates": {
-    "title": "Builder"
   },
   "legal": {
     "title": "Impressum",

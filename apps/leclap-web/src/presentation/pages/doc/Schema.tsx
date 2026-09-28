@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { BookOpen, Code2 } from '@/presentation/components/icons';
 import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
@@ -10,6 +10,7 @@ const REPO = 'https://github.com/heristop/leclap';
 
 const RawSchema = () => {
   const [open, setOpen] = useState(false);
+  const panelId = useId();
   const json = JSON.stringify(templateDescriptorJsonSchema, null, 2);
 
   return (
@@ -20,6 +21,7 @@ const RawSchema = () => {
           setOpen((value) => !value);
         }}
         aria-expanded={open}
+        aria-controls={panelId}
         className="flex w-full items-center justify-between px-5 py-4 text-left"
       >
         <span className="text-sm font-medium text-foreground">
@@ -28,7 +30,7 @@ const RawSchema = () => {
         <ChevronDownIcon size={16} className={`text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open ? (
-        <div className="border-t border-divider p-4">
+        <div id={panelId} className="border-t border-divider p-4">
           <JsonBlock code={json} />
         </div>
       ) : null}

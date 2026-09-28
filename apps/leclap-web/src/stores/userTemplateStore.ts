@@ -81,9 +81,8 @@ export class UserTemplateService {
     this.persist(this.list().filter((t) => t.id !== id));
   }
 
-  duplicate(template: Template): StoredTemplate {
-    const name = `${template.name} (copy)`;
-
+  /** A copy under a new id. The caller names it in the visitor's language; the default is English. */
+  duplicate(template: Template, name = `${template.name} (copy)`): StoredTemplate {
     // The descriptor's embedded identity (meta.name) must follow the rename — the editor prefers
     // descriptor.meta over the wrapper, so a stale meta would reopen the copy under the old name.
     const descriptor = { ...template.descriptor, meta: { ...template.descriptor.meta, name } };

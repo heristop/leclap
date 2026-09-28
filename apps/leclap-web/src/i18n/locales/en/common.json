@@ -27,7 +27,6 @@
   "nav": {
     "home": "Home",
     "studio": "Studio",
-    "projects": "Projects",
     "templates": "Templates",
     "docs": "Docs",
     "about": "About",
@@ -50,7 +49,7 @@
     "accept": "Switch to {{language}}",
     "dismiss": "Dismiss"
   },
-  "footer": "All processing happens locally in your browser - your files never leave your device",
+  "footer": "All processing happens locally in your browser — your files never leave your device",
   "footerNav": {
     "label": "Legal links",
     "legal": "Legal Notice",
@@ -99,5 +98,12 @@
       "title": "Cut! Something broke on our side.",
       "message": "LeClap hit an error it didn't see coming. Projects you've saved stay in this browser, so reloading won't touch them."
     }
+  },
+  "compileError": {
+    "missingClip": "This template needs at least one clip.",
+    "unreadableClip": "One of your clips couldn’t be read: it may be damaged, or in a format this browser can’t open.",
+    "assemblyFailed": "The scenes couldn’t be put together into one video.",
+    "stopped": "The render was stopped.",
+    "unknown": "The render engine reported an error."
   }
 }

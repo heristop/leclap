@@ -6,10 +6,11 @@ import { userPartialService } from '@/services/userPartialService';
 import { listAvailablePartials, type AvailablePartial } from '@/services/templatePartialService';
 import type { StoredPartial } from '@/stores/userPartialStore';
 import type { EditorSection, EditorState } from '../templateEditorModel';
-import { draftStateFromPartial } from '../editor/partialDraft';
+import { draftStateFromPartial, partialFromDraftState } from '../editor/partialDraft';
 import { useEditorSectionOps } from '../editor/useEditorSectionOps';
 import { useEditorSelection, indexAfterReorder } from './useEditorSelection';
 import { defaultPartialDraft, persistDraft, removePartial } from './partialPersistence';
+import { uniquePartialId } from './partial-id.logic';
 
 // Partials only expose the scenes + basics tools (no media/format/variables/advanced).
 export type PartialToolId = 'scenes' | 'basics';
@@ -76,6 +77,19 @@ export function usePartialEditorState(initialDraft: TemplatePartial | null, t: T
     loadDraft(next, nextId);
   };
 
+  // New drafts never reuse a stored id: saving upserts by id, so a reused one would overwrite that partial.
+  const freshId = (base: string): string =>
+    uniquePartialId(
+      base,
+      localPartials.map((partial) => partial.id)
+    );
+
+  // A built-in is read-only, so its way forward is an editable local copy — of the draft as it stands,
+  // so tweaks made before reaching for the copy carry over. Unsaved until the author saves it.
+  const duplicateSelected = (): void => {
+    loadDraft(partialFromDraftState({ ...draftState, id: freshId(draftState.id) }), '');
+  };
+
   return {
     partials,
     selected,
@@ -90,12 +104,14 @@ export function usePartialEditorState(initialDraft: TemplatePartial | null, t: T
     activeTool,
     pickPartial,
     loadNew: () => {
-      loadDraft(defaultPartialDraft(), '');
+      const draft = defaultPartialDraft();
+      loadDraft({ ...draft, id: freshId(draft.id) }, '');
     },
     addEditorSection,
     reorderScenes,
     saveDraft,
     deleteSelected,
+    duplicateSelected,
     goBack: () => {
       Promise.resolve(navigate('/templates')).catch(() => {});
     },

@@ -8,19 +8,21 @@
     }
   },
   "page": {
-    "kicker": "Deine Vorlagen",
-    "heading": "Builder",
-    "subtitle": "Nutze ein Beispiel oder gestalte dein eigenes – in diesem Browser gespeichert.",
+    "kicker": "Vorlagen",
+    "heading": "Bau deine eigenen",
+    "subtitle": "Deine Vorlagen bleiben in diesem Browser – bereit zum Drehen im Studio.",
     "create": "Vorlage erstellen",
     "myTemplates": "Meine Vorlagen",
     "count": "({{count}})",
     "empty": {
-      "title": "Du hast noch keine Vorlagen erstellt.",
-      "subtitle": "Fang bei null an oder dupliziere unten ein Beispiel.",
-      "create": "Erstelle deine erste Vorlage"
+      "title": "Hier wohnen bald deine Vorlagen.",
+      "subtitle": "Starte mit einer leeren Leinwand oder dupliziere unten ein Beispiel und mach es zu deinem.",
+      "create": "Von Grund auf bauen"
     },
     "samples": "Beispielvorlagen",
-    "goToBuilder": "Zu den Vorlagen",
+    "samplesError": "Die Beispielvorlagen konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "goToBuilder": "Studio öffnen",
     "partials": "Partials",
     "contribute": {
       "title": "Eine Vorlage beitragen",
@@ -43,6 +45,12 @@
     "delete": "{{name}} löschen",
     "convertToPartial": "{{name}} in Partial umwandeln",
     "share": "{{name}} auf GitHub teilen",
+    "deleteDialog": {
+      "title": "Diese Vorlage löschen?",
+      "description": "„{{name}}“ wird aus diesem Browser entfernt. Das lässt sich nicht rückgängig machen.",
+      "cancel": "Behalten",
+      "confirm": "Vorlage löschen"
+    },
     "convertDialog": {
       "title": "In Partial umwandeln?",
       "description": "„{{name}}“ wird in eine wiederverwendbare Partial-Szene umgewandelt. Die ursprüngliche Vorlage wird nicht gelöscht – du kannst sie weiterhin aus der Liste bearbeiten.",
@@ -57,8 +65,9 @@
       "step2": "Öffne das Repo auf GitHub, erstelle einen neuen Branch, füge das JSON als neue Vorlagendatei ein und öffne dann einen Pull Request.",
       "copy": "JSON kopieren",
       "copied": "Kopiert!",
-      "openGithub": "GitHub öffnen →"
-    }
+      "openGithub": "GitHub öffnen"
+    },
+    "copyName": "{{name}} (Kopie)"
   },
   "orientationLabel": {
     "landscape": "Querformat",
@@ -71,8 +80,10 @@
     "advanced": "fortgeschritten"
   },
   "seo": {
+    "library": "Vorlagen",
     "edit": "Vorlage bearbeiten",
-    "create": "Eine Vorlage erstellen"
+    "create": "Eine Vorlage erstellen",
+    "buildFromScratch": "Von Grund auf bauen"
   },
   "editor": {
     "title": {
@@ -170,7 +181,8 @@
       "form": "Formularfelder",
       "color": "Farbhintergrund",
       "music": "Musikauswahl",
-      "image": "Hintergrundbild"
+      "image": "Hintergrundbild",
+      "partial": "Partial"
     },
     "card": {
       "dragToReorder": "Ziehen zum Umordnen",
@@ -206,7 +218,7 @@
       "description": "Die Datei ist kein gültiger Vorlagen-Deskriptor."
     },
     "save": "Vorlage speichern",
-    "saveAndFilm": "Speichern & filmen →",
+    "saveAndFilm": "Speichern & filmen",
     "cancel": "Abbrechen",
     "untitled": "Unbenannte Vorlage"
   },
@@ -233,6 +245,13 @@
     "partialNew": "Neues Partial",
     "partialDelete": "Partial löschen",
     "partialDescription": "Beschreibung",
+    "partialDescriptionPlaceholder": "Wiederverwendbares Intro",
+    "partialReadonly": "Eingebaute Partials sind schreibgeschützt. Dupliziere eins, um es anzupassen – deine Kopie wird in diesem Browser gespeichert.",
+    "partialDeleteDialog": {
+      "title": "Dieses Partial löschen?",
+      "description": "„{{name}}“ wird aus diesem Browser entfernt, und Vorlagen, die es nutzen, lassen sich erst wieder rendern, wenn du es ersetzt.",
+      "confirm": "Partial löschen"
+    },
     "partialBuiltin": "Eingebaut",
     "partialLocal": "Lokal",
     "partialSaveFailed": "Das Partial konnte nicht gespeichert werden.",
@@ -293,7 +312,6 @@
     "ariaLabel": "Rendere eine Vorschau dieser Vorlage mit Beispielmaterial",
     "title": "Vorschau-Render",
     "description": "Ein schneller Entwurf mit Beispielmaterial – Platzhalter-Clips stehen für deine Videoabschnitte.",
-    "failed": "Der Vorschau-Render ist fehlgeschlagen.",
     "download": "Entwurf herunterladen"
   },
   "validation": {

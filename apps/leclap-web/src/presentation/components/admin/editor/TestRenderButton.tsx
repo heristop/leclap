@@ -15,6 +15,8 @@ import {
   DialogDescription,
 } from '@/presentation/components/ui';
 import { coreCompilationService, type CompilationProgress } from '@/application/usecases/coreCompilationService';
+import { classifyCompileFailure, type CompileFailure } from '@/application/usecases/compile-failure';
+import { CompileFailureText } from '@/presentation/components/compile-failure-text';
 import { logger } from '@/lib/logger';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
 import { VideoPreview } from '@/presentation/components/VideoPreview';
@@ -46,7 +48,7 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
   const [rendering, setRendering] = useState(false);
   const [progress, setProgress] = useState<CompilationProgress>(idleProgress);
   const [result, setResult] = useState<RenderResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<CompileFailure | null>(null);
   // Guards against concurrent renders even if the button somehow fires twice.
   const inFlight = useRef(false);
   const lastUrl = useRef<string | null>(null);
@@ -64,7 +66,7 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
     inFlight.current = true;
     setRendering(true);
     setOpen(true);
-    setError(null);
+    setFailure(null);
     setResult(null);
     cleanupUrl();
     setProgress(idleProgress);
@@ -88,7 +90,7 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
       setResult({ url: compiled.url });
     } catch (error) {
       logger.error('Preview render failed:', error);
-      setError(error instanceof Error ? error.message : t('testRender.failed'));
+      setFailure(classifyCompileFailure(error));
     } finally {
       inFlight.current = false;
       setRendering(false);
@@ -104,7 +106,7 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
     if (!next) {
       cleanupUrl();
       setResult(null);
-      setError(null);
+      setFailure(null);
     }
   };
 
@@ -118,10 +120,14 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
           runRender().catch(() => {});
         }}
         disabled={disabled || rendering}
-        className="h-9 shrink-0 rounded-full px-4"
+        // Icon-only on phones, where the titlebar's action row can't also fit its label beside the saves;
+        // the aria-label names it either way.
+        className="h-9 shrink-0 rounded-full px-2.5 sm:px-4"
         aria-label={t('testRender.ariaLabel')}
+        title={t('testRender.preview')}
       >
-        <Clapperboard className="size-4" /> {rendering ? t('testRender.rendering') : t('testRender.preview')}
+        <Clapperboard className="size-4" />
+        <span className="hidden sm:inline">{rendering ? t('testRender.rendering') : t('testRender.preview')}</span>
       </Button>
 
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,12 +137,15 @@ export const TestRenderButton = ({ state, disabled = false }: TestRenderButtonPr
             <DialogDescription>{t('testRender.description')}</DialogDescription>
           </DialogHeader>
 
-          {error && (
+          {failure && (
             <div
               role="alert"
               className="flex items-start gap-2 rounded-xl border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-3.5 py-2.5 text-sm font-medium text-[var(--color-error)]"
             >
-              <AlertCircle className="mt-px size-4 shrink-0" /> {error}
+              <AlertCircle className="mt-px size-4 shrink-0" />
+              <p className="min-w-0">
+                <CompileFailureText failure={failure} />
+              </p>
             </div>
           )}
 

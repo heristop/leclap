@@ -1,33 +1,36 @@
 {
   "hero": {
-    "badge": "Privacy al primo posto · Nel tuo browser",
+    "eyebrow": "Composizione, non generazione",
     "title": "Cos’è LeClap",
-    "tagline": "Un compositore di video cinematografici che gira interamente nel tuo browser. Componi da modelli reali, renderizza con FFmpeg compilato in WebAssembly e scarica — niente server, niente upload, nessun limite."
+    "tagline": "LeClap trasforma un modello JSON e il tuo girato in un video finito. FFmpeg lo renderizza in un terminale, in una scheda del browser o su un telefono: nessuna IA genera nemmeno un fotogramma, e il tuo girato non viene mai caricato."
   },
   "cta": {
     "prompt": "Pronto a comporre il tuo primo video?",
-    "start": "Inizia a creare"
+    "start": "Inizia a creare",
+    "compare": "LeClap a confronto con Remotion"
   },
-  "stats": {
-    "browser": "Gira nel tuo browser",
-    "uploads": "File caricati",
-    "projects": "Progetti, sempre gratis"
-  },
-  "pillars": {
-    "private": {
-      "title": "Privato per design",
-      "description": "Le tue clip non lasciano mai il dispositivo. Niente upload, niente account, nessun server di mezzo."
-    },
-    "ffmpeg": {
-      "title": "Vero FFmpeg, in locale",
-      "description": "Lo stesso motore FFmpeg usato dalla libreria core, compilato in WebAssembly ed eseguito sulla tua macchina."
-    },
-    "templates": {
-      "title": "Basato sui modelli",
-      "description": "Componi da veri modelli JSON — filtri, overlay, transizioni e mixaggio audio inclusi."
+  "story": {
+    "eyebrow": "La storia finora",
+    "title": "Da una libreria Node a ogni schermo",
+    "lead": "LeClap è nato come pacchetto npm che compila un modello JSON in comandi FFmpeg. Fa ancora esattamente questo; tutto ciò che è venuto dopo è servito a eseguire quello stesso passaggio in più posti.",
+    "today": "Oggi",
+    "chapters": {
+      "origin": {
+        "title": "Entra un modello, esce un video",
+        "body": "La prima release di ffmpeg-video-composer: una libreria Node che legge un modello JSON, lo compila in comandi FFmpeg e li esegue."
+      },
+      "everywhere": {
+        "title": "Lo stesso modello su ogni schermo",
+        "body": "Il motore guadagna un punto d’ingresso per il browser, con FFmpeg compilato in WebAssembly, e uno per React Native, con FFmpeg compilato nell’app. Lo stesso giorno escono la CLI e il server MCP, ognuno nel proprio pacchetto."
+      },
+      "now": {
+        "title": "Un solo nome per tutto",
+        "body": "LeClap è lo studio in questo browser, l’app React Native, la CLI e il server MCP. Il motore esce ancora su npm con il suo primo nome, di una letteralità ammirevole: ffmpeg-video-composer."
+      }
     }
   },
   "author": {
+    "eyebrow": "Creato da",
     "name": "Alexandre Mogère",
     "handle": "@heristop",
     "bio": "Sviluppatore web di Parigi che crea strumenti per dare potere ai creator, e scrive di coding e IA su Zazen Code.",

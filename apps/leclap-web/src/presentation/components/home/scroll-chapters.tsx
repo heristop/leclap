@@ -151,9 +151,11 @@ export const ChapterList = ({
             >
               {String(index + 1).padStart(2, '0')}
             </p>
+            {/* Solid leading in English; the other languages open it so a wrapped line's accented capitals
+                (É, Ä, Ñ…) clear the letters above (see SectionHeading). */}
             <h3
               className={cn(
-                'mt-3 font-display text-4xl font-bold uppercase leading-none tracking-[-0.01em] text-balance transition-opacity duration-500 sm:text-5xl',
+                'mt-3 font-display text-4xl font-bold uppercase leading-none tracking-[-0.01em] text-balance transition-opacity duration-500 sm:text-5xl [&:not(:lang(en))]:leading-[1.16]',
                 !current && 'lg:opacity-50'
               )}
             >

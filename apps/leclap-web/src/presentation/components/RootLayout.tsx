@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useLayoutEffect } from 'react';
 import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { haptic } from '@/lib/haptics';
@@ -7,6 +7,7 @@ import { Footer } from '@/presentation/components/Footer';
 import { LanguageSuggestion } from '@/presentation/components/LanguageSuggestion';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { useNotFound } from '@/hooks/use-not-found';
+import { useDarkSurface } from '@/hooks/use-dark-surface';
 import { useSmoothScroll } from '@/hooks/use-smooth-scroll';
 
 // Onboarding pulls in the compile pipeline (and FFmpeg WASM); it only shows on the first studio
@@ -14,6 +15,30 @@ import { useSmoothScroll } from '@/hooks/use-smooth-scroll';
 const Onboarding = lazy(() =>
   import('@/presentation/components/Onboarding').then((module) => ({ default: module.Onboarding }))
 );
+
+// React Router resets the scroll on every page change, and the root's `scroll-behavior: smooth` played that
+// reset as a visible ~800 ms scroll to the top. This snaps it instead: scroll-behavior goes to auto for the
+// navigation's own scroll, and back to smooth on the next frame, for in-page anchors. It must render before
+// <ScrollRestoration />, so its layout effect runs first.
+const InstantRouteScroll = () => {
+  const { key } = useLocation();
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.style.scrollBehavior = 'auto';
+
+    const frame = requestAnimationFrame(() => {
+      root.style.scrollBehavior = '';
+    });
+
+    return () => {
+      cancelAnimationFrame(frame);
+      root.style.scrollBehavior = '';
+    };
+  }, [key]);
+
+  return null;
+};
 
 // The shared chrome (skip link, header, footer, onboarding) wraps every route via <Outlet />.
 // <ScrollRestoration /> gives native scroll behavior: top on forward navigations, restored position
@@ -31,6 +56,7 @@ export function RootLayout() {
   // studio — where orientation is useful — then never again, and never over a 404 that merely starts
   // like a studio address. openIfFirstTime() no-ops for bots and for anyone who has already seen it.
   const notFound = useNotFound();
+  const onDarkSurface = useDarkSurface();
 
   useEffect(() => {
     if (!notFound && location.pathname.startsWith('/studio')) {
@@ -57,6 +83,7 @@ export function RootLayout() {
 
   return (
     <>
+      <InstantRouteScroll />
       <ScrollRestoration />
       <div className="flex min-h-screen flex-col bg-background">
         <a
@@ -81,7 +108,10 @@ export function RootLayout() {
 
         {/* The footer owns the way back to the consent question — an answer nobody can revisit is not
             really a choice, and the bar itself is gone once given. */}
-        <Footer />
+        {/* Under the studio's dark app surfaces the footer goes dark too, instead of ending on a light band. */}
+        <div className={onDarkSurface ? 'dark' : undefined}>
+          <Footer />
+        </div>
       </div>
 
       {/* Offers the visitor's browser language instead of redirecting them (index.html). */}

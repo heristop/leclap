@@ -13,15 +13,27 @@ export interface ClappyRunnerProps {
   done?: boolean;
   /** Clappy's width in px. */
   size?: number;
+  /** Past the finish line, his eyes follow the pointer (Clappy: followPointer). On by default. */
+  followPointer?: boolean;
+  /** A click makes him clap, mid-run too (Clappy: clapOnClick). On by default. */
+  clapOnClick?: boolean;
   className?: string;
 }
 
 // The render loader, as the showcase film plays it: Clappy runs the lane above a progress bar, keeping pace
 // with its fill — feet trading places, arms pumping, the clapper clacking on each step, dust puffing behind —
 // and throws his arms up at the finish. He is the loader's one ambient mover, so he keeps running while a slow
-// segment holds the bar still: that is what says the render is still going. Under reduced motion he stands at
-// his place on the track instead. Decorative: the bar under him carries the progressbar role.
-export function ClappyRunner({ progress, done = false, size = 64, className }: ClappyRunnerProps) {
+// segment holds the bar still: that is what says the render is still going. His eyes stay on the track until
+// the finish, where they're free to follow the pointer. Under reduced motion he stands at his place on the
+// track instead. Decorative: the bar under him carries the progressbar role.
+export function ClappyRunner({
+  progress,
+  done = false,
+  size = 64,
+  followPointer = true,
+  clapOnClick = true,
+  className,
+}: ClappyRunnerProps) {
   const reduced = useReducedMotion() ?? false;
   const seconds = useAnimationClock(!done && !reduced);
   const { pose, bob, lean } = runnerFrame(seconds, { done, still: reduced });
@@ -45,7 +57,7 @@ export function ClappyRunner({ progress, done = false, size = 64, className }: C
               transformOrigin: '50% 92%',
             }}
           >
-            <Clappy size={size} {...pose} />
+            <Clappy size={size} {...pose} followPointer={followPointer && done} clapOnClick={clapOnClick} />
           </div>
         </motion.div>
       </div>

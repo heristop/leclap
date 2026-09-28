@@ -43,29 +43,54 @@
   },
   "progress": {
     "header": {
-      "title": "Processing Video",
-      "step": "Step {{current}} of {{total}}",
-      "timeRemaining": "~{{time}} remaining"
+      "title": "Rendering your video"
+    },
+    "stage": {
+      "initializing": "Starting the engine",
+      "editing": "Trimming your clips",
+      "preparing": "Loading your clips",
+      "configuring": "Setting up the project",
+      "processing": "Reading the template",
+      "compiling": "Rendering scenes",
+      "finalizing": "Wrapping up",
+      "complete": "Done",
+      "error": "Render failed"
+    },
+    "quip": {
+      "projector": "Warming up the projector…",
+      "reels": "Loading the reels…",
+      "pixels": "Wrangling pixels into place…",
+      "soundtrack": "Syncing the soundtrack…",
+      "dance": "Teaching your frames to dance…",
+      "splice": "Splicing in the good bits…",
+      "colors": "Tuning the colors…",
+      "magic": "Sprinkling a little cinematic magic…",
+      "transitions": "Smoothing every transition…",
+      "frames": "Polishing every last frame…",
+      "mix": "Mixing the final cut…",
+      "finish": "Cueing the dramatic finish…",
+      "carpet": "Rolling out the red carpet…",
+      "showtime": "Almost showtime…"
     },
     "metrics": {
       "private": "Private",
       "onDevice": "On-device",
       "elapsed": "Elapsed",
-      "progress": "Progress"
+      "left": "Left",
+      "estimating": "Estimating…",
+      "about": "~{{time}}"
     },
     "bar": {
-      "currentStepFallback": "Processing...",
       "ariaLabel": "Video processing progress"
     },
     "complete": {
-      "title": "Processing Complete!",
-      "description": "Your video has been processed and is ready for download."
+      "title": "Your video is ready"
     }
   },
   "export": {
     "preview": {
-      "videoAriaLabel": "Processed video preview",
-      "label": "Processed Video",
+      "videoAriaLabel": "Rendered video",
+      "label": "Rendered video",
       "pause": "Pause video",
       "play": "Play video",
       "mute": "Mute",
@@ -74,27 +99,15 @@
       "exitFullscreen": "Exit fullscreen",
       "enterFullscreen": "Enter fullscreen"
     },
-    "info": {
-      "fileSize": "File Size",
-      "format": "Format"
-    },
     "actions": {
-      "downloading": "Downloading... {{progress}}%",
-      "download": "Download Video",
-      "copied": "Copied!",
-      "copyLink": "Copy Link",
-      "share": "Share"
+      "download": "Download video",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "started": "Download started"
     },
-    "success": {
-      "title": "Video Processing Complete!",
-      "processed": "Your video has been processed",
-      "local": "All processing was done locally in your browser",
-      "noData": "No data was sent to external servers",
-      "downloadShare": "You can download and share your video now"
-    },
+    "fileType": "MP4 video",
     "share": {
-      "title": "Processed Video",
-      "text": "Check out this video I created with FFmpeg Video Composer!"
+      "text": "Made with LeClap — rendered right in my browser."
     }
   }
 }

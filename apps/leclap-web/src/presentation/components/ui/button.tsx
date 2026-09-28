@@ -14,7 +14,7 @@ const DISABLED_FILL =
   'disabled:[background-image:none] disabled:bg-surface-2 disabled:text-muted-foreground disabled:shadow-none disabled:ring-1 disabled:ring-foreground/10';
 
 const buttonVariants = cva(
-  'tap inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 disabled:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0',
+  'tap inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-semibold transition-[transform,box-shadow,background-color,color,border-color,opacity] duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 disabled:pointer-events-none [&_svg]:size-5 [&_svg]:shrink-0',
   {
     variants: {
       variant: {

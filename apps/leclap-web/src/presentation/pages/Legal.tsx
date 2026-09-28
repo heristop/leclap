@@ -1,15 +1,14 @@
 import { useTranslation } from 'react-i18next';
-import { Code2, FileCode, Info, Monitor } from '@/presentation/components/icons';
 import { PolicyPage, type PolicySection } from '@/presentation/components/PolicyPage';
 
 export const Legal = () => {
   const { t } = useTranslation('legal');
 
   const sections: PolicySection[] = [
-    { Icon: Code2, heading: t('sections.publisher.heading'), body: t('sections.publisher.body') },
-    { Icon: Monitor, heading: t('sections.hosting.heading'), body: t('sections.hosting.body') },
-    { Icon: Info, heading: t('sections.contact.heading'), body: t('sections.contact.body') },
-    { Icon: FileCode, heading: t('sections.ip.heading'), body: t('sections.ip.body') },
+    { id: 'publisher', heading: t('sections.publisher.heading'), body: t('sections.publisher.body') },
+    { id: 'hosting', heading: t('sections.hosting.heading'), body: t('sections.hosting.body') },
+    { id: 'contact', heading: t('sections.contact.heading'), body: t('sections.contact.body') },
+    { id: 'ip', heading: t('sections.ip.heading'), body: t('sections.ip.body') },
   ];
 
   return (
@@ -22,6 +21,7 @@ export const Legal = () => {
       intro={t('intro')}
       updated={t('updated')}
       sections={sections}
+      sibling={{ to: '/privacy', label: t('title', { ns: 'privacy' }) }}
     />
   );
 };

@@ -37,6 +37,7 @@
     "music": "Musica",
     "background": "Immagine di sfondo",
     "formatTitle": "Formato",
+    "formatNote": "Definito dal modello",
     "aspect": {
       "portrait": "Verticale 9:16",
       "landscape": "Orizzontale 16:9",
@@ -60,7 +61,7 @@
     "emptyClipTitle": "Ancora nessuna clip",
     "emptyClipHint": "Registra o carica nel pannello Contenuto per vederla qui.",
     "emptyFormTitle": "Niente da visualizzare in anteprima",
-    "emptyFormHint": "Compila il pannello Contenuto e i tuoi overlay appariranno qui.",
+    "emptyFormHint": "Le tue risposte compaiono nelle scene che le usano.",
     "save": {
       "saving": "Salvataggio…",
       "saved": "Salvato",
@@ -89,23 +90,21 @@
     "progress": "Avanzamento dell’elaborazione"
   },
   "compile": {
-    "preparing": "Preparazione del render",
-    "rendering": "Rendering",
-    "complete": "Render completato",
-    "failed": "Render non riuscito",
     "stop": "Ferma il render",
     "finishing": "Sto finendo…",
     "errorTitle": "Render non riuscito",
+    "errorHint": "Le tue scene sono al sicuro. Riprova, oppure torna a controllare le clip.",
+    "backToEdit": "Torna alla modifica",
     "clips": "Clip",
     "clipCount_one": "{{count}} clip",
     "clipCount_other": "{{count}} clip",
     "project": "Progetto"
   },
   "stepResult": {
-    "title": "Il tuo video è pronto!",
-    "subtitle": "Scarica e condividi la tua creazione",
-    "editProject": "Continua a modificare questo video",
-    "createAnother": "Crea un altro video"
+    "title": "Stop, buona!",
+    "subtitle": "Renderizzato nel tuo browser — le tue clip non hanno mai lasciato questo dispositivo.",
+    "editProject": "Continua a modificare",
+    "createAnother": "Nuovo video"
   },
   "stepForm": {
     "defaultTitle": "I tuoi dettagli",
@@ -120,7 +119,8 @@
     "take": "Ripresa {{number}}",
     "use": "Usa la ripresa {{number}}",
     "remove": "Rimuovi la ripresa {{number}}",
-    "addAnother": "Registra un’altra ripresa"
+    "addAnother": "Registra un’altra ripresa",
+    "addTake": "Aggiungi una ripresa"
   },
   "edit": {
     "trim": "Taglia",
@@ -128,7 +128,21 @@
     "videoAriaLabel": "Video in modifica",
     "resetTrim": "Reimposta il taglio",
     "resetCrop": "Reimposta il ritaglio",
-    "cropHint": "Trascina il riquadro o i suoi angoli per ritagliare."
+    "cropHint": "Trascina il riquadro o i suoi angoli per ritagliare.",
+    "trimHint": "Trascina i bordi di una clip per tagliarla · Dividi taglia sulla testina · ⋮ imposta la velocità",
+    "play": "Riproduci",
+    "pause": "Pausa",
+    "undo": "Annulla",
+    "redo": "Ripeti",
+    "split": "Dividi",
+    "splitHere": "Dividi qui",
+    "deleteSegment": "Elimina segmento",
+    "segmentOptions": "Opzioni del segmento",
+    "speed": "Velocità",
+    "invert": "Inverti",
+    "trimStart": "Inizio del taglio",
+    "trimEnd": "Fine del taglio",
+    "segment": "Segmento {{number}}, da {{start}} a {{end}}"
   },
   "hub": {
     "subtitle": "Compila ogni parte, poi crea il tuo video",
@@ -155,7 +169,12 @@
       "label": "Qualità",
       "draft": "Bozza",
       "standard": "Standard",
-      "high": "Alta"
+      "high": "Alta",
+      "hint": {
+        "draft": "Il render più rapido e un file più leggero, per controllare i tempi.",
+        "standard": "Equilibrio tra immagine e tempo di render.",
+        "high": "L’immagine più nitida; il render è più lento e il file più pesante."
+      }
     }
   }
 }

@@ -18,7 +18,7 @@ export const DocAudio = () => (
       music under speech. Per-section, <Code>options.audioFade</Code> shapes the in/out of each clip's audio.
     </DocPageHeader>
 
-    <DocSection id="mix" title="Final mix" kicker="global.audio">
+    <DocSection id="mix" title="Final mix" kicker="`global.audio`">
       <div className="space-y-9">
         <RefTable
           id="audio"
@@ -36,7 +36,7 @@ export const DocAudio = () => (
       <Sample code={snippets.audio} title="Global mix with ducking" />
     </DocSection>
 
-    <DocSection id="fades" title="Fade curves" kicker="options.audioFade">
+    <DocSection id="fades" title="Fade curves" kicker="`options.audioFade`">
       <Prose className="mb-5">
         <p>
           A section's <Code>options.audioFade</Code> has an <Code>in</Code> and <Code>out</Code>, each with a{' '}

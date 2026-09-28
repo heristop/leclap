@@ -73,3 +73,21 @@ npx @leclap/cli render before-after.json \
 Mapping two clips needs a `@leclap/cli` release newer than 0.2.4; earlier versions keep only the last `--video` (and `--field`) flag.
 
 For a real change, point the same two walkthroughs at your app on the base branch and on your branch, then attach `./build/pr-evidence.mp4` to the PR/MR like the single-walkthrough video.
+
+## Evidence-video agent skill
+
+[`evidence-skill/`](./evidence-skill) turns the before/after idea into an agent skill a team can copy into `.agents/skills/evidence-video/` of the app under review. `before-after.json` lets LeClap draw its own badges and lower thirds; the skill's `build.py` composes every card and panel with ffmpeg first, then hands them to LeClap for the crossfades, the watermark and the render. That buys three things:
+
+- a label panel beside each clip, with the BEFORE/AFTER badge, a title and a wrapped description, while the capture plays next to it, letterboxed rather than cropped;
+- copy wrapped on the font's measured glyph widths, with a hard stop (`Overflow: desc: 8 lines > 6 allowed`) instead of text running off the frame;
+- one house style: colours, fonts and geometry pinned in `template.json`, applied by the script, and the traps plus the capture and publish checklists in [`SKILL.md`](./evidence-skill/SKILL.md), so every change's video looks like the last one.
+
+It needs Python 3 (standard library only) and an ffmpeg with `drawtext`. On the demo shop:
+
+```bash
+node demo-shop/record.mjs --out build/evidence/raw
+python3 evidence-skill/build.py --content evidence-skill/content.example.json --work build/evidence \
+  --logo ../../apps/leclap-web/public/favicon.svg --leclap "npx @leclap/cli"
+```
+
+The video lands in `build/evidence/shop-123-evidence.mp4`, which git ignores.

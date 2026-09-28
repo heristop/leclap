@@ -115,7 +115,7 @@ export const DOC_ROUTES: readonly DocRoute[] = [
     path: '/doc/cli',
     title: 'Command line — LeClap CLI',
     description:
-      'Scaffold a LeClap project and render a template descriptor to mp4 from your terminal: init, render, diagnose, and how FFmpeg is resolved.',
+      'Scaffold a LeClap project and render a template descriptor to mp4 from your terminal: init, render, validate, diagnose, every render flag, and how FFmpeg is resolved.',
     priority: '0.7',
     changefreq: 'monthly',
   },
@@ -123,7 +123,7 @@ export const DOC_ROUTES: readonly DocRoute[] = [
     path: '/doc/mcp',
     title: 'MCP server — agent-callable video tools',
     description:
-      'Expose the LeClap engine to an AI agent over MCP: the tool surface, the authoring loop, configuration, and wiring it into Claude Desktop.',
+      'Expose the LeClap engine to an AI agent over MCP: the six tools and their arguments, the authoring loop, every flag and env var, containment rules, and wiring it into Claude Desktop or a project .mcp.json.',
     priority: '0.7',
     changefreq: 'monthly',
   },

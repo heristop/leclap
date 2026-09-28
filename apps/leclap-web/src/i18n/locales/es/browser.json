@@ -34,6 +34,8 @@
   "required": "Necesario",
   "statusOk": "Todo listo — preparado para renderizar en local",
   "statusLimited": "Algunas funciones pueden estar limitadas",
+  "ready": "Listo para renderizar en local",
+  "checking": "Comprobando el navegador…",
   "recommendations": "Recomendaciones",
   "updateBrowser": "Actualiza a {{browser}} {{version}}+ para un rendimiento óptimo",
   "recommendBrowsers": "Para un mejor rendimiento, usa Chrome 88+, Firefox 79+ o Safari 14+",

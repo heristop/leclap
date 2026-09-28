@@ -27,7 +27,6 @@
   "nav": {
     "home": "Inicio",
     "studio": "Studio",
-    "projects": "Proyectos",
     "templates": "Plantillas",
     "docs": "Docs",
     "about": "Acerca de",
@@ -99,5 +98,12 @@
       "title": "¡Corten! Algo ha fallado por nuestra parte.",
       "message": "LeClap se ha topado con un error que no esperaba. Tus proyectos guardados siguen en este navegador: recargar no los tocará."
     }
+  },
+  "compileError": {
+    "missingClip": "Esta plantilla necesita al menos un clip.",
+    "unreadableClip": "No se pudo leer uno de tus clips: puede que esté dañado o en un formato que este navegador no sabe abrir.",
+    "assemblyFailed": "No se pudieron unir las escenas en un solo vídeo.",
+    "stopped": "Se ha detenido el render.",
+    "unknown": "El motor de render ha devuelto un error."
   }
 }

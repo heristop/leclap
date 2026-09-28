@@ -17,7 +17,7 @@ export const DocMotion = () => (
       <Code>framingGuide</Code>, and stack solid or gradient <Code>layers[]</Code> over a background.
     </DocPageHeader>
 
-    <DocSection id="motion" title="Motion effects" kicker="motion[]">
+    <DocSection id="motion" title="Motion effects" kicker="`motion[]`">
       <Prose className="mb-5">
         <p>
           <Code>motion</Code> is an ordered array of effects applied in sequence. It's a discriminated union — each
@@ -34,7 +34,7 @@ export const DocMotion = () => (
       <Sample code={snippets.motion} title="Stacking motion effects" />
     </DocSection>
 
-    <DocSection id="speed" title="Retiming (slow-mo / fast-forward)" kicker="options.speed">
+    <DocSection id="speed" title="Retiming (slow-mo / fast-forward)" kicker="`options.speed`">
       <Prose className="mb-5">
         <p>
           <Code>options.speed</Code> retimes a clip as a PTS multiplier — <Code>2</Code> is half-speed slow motion,{' '}
@@ -46,7 +46,7 @@ export const DocMotion = () => (
       <Sample code={snippets.speed} title="A slow-motion clip" />
     </DocSection>
 
-    <DocSection id="framing-guide" title="Framing guide" kicker="project_video">
+    <DocSection id="framing-guide" title="Framing guide" kicker="`project_video`">
       <Prose className="mb-5">
         <p>
           <Code>framingGuide</Code> draws a silhouette overlay while the user records a <Code>project_video</Code> clip,
@@ -62,7 +62,7 @@ export const DocMotion = () => (
       <Sample code={snippets.framingGuide} title="A project_video with a framing guide" />
     </DocSection>
 
-    <DocSection id="layers" title="Background layers" kicker="color_background">
+    <DocSection id="layers" title="Background layers" kicker="`color_background`">
       <Prose className="mb-5">
         <p>
           <Code>layers[]</Code> composites solid or gradient panels over a <Code>color_background</Code> section —

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LayersIcon } from '@/presentation/components/icons/layers';
 import { FileTextIcon } from '@/presentation/components/icons/file-text';
@@ -5,29 +6,21 @@ import type { TemplatePartial } from '@leclap/creative-kit/partials';
 import { Monitor } from '@/presentation/components/icons';
 import { ShellChrome, ToolDock, ProgramMonitor, type ViewTab } from '@/presentation/components/editor-shell';
 import { ColorVariablesProvider } from '@/presentation/components/ui';
-import { SECTION_LABELS, type EditorSection } from '../templateEditorModel';
+import type { EditorSection } from '../templateEditorModel';
+import { ConfirmDialog } from '../confirm-dialog';
 import { EditorMonitor } from './EditorMonitor';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
-import { PartialTitlebar } from './PartialTitlebar';
+import { PARTIAL_PICKER_ID, PartialTitlebar } from './PartialTitlebar';
 import { PartialPanelSwitch } from './PartialPanelSwitch';
 import { usePartialEditorState } from './usePartialEditorState';
 import { useSectionSelection } from './useSectionSelection';
+import { sectionLabelKey, sectionTitle } from './section-label';
 
 const EDITABLE_PARTIAL_KINDS: readonly EditorSection['kind'][] = ['video', 'form', 'color', 'image'];
 
 interface PartialEditorShellProps {
   initialDraft?: TemplatePartial | null;
 }
-
-const sectionTitle = (section: EditorSection): string => {
-  if (section.kind === 'video') {
-    const text = section.overlays.find((o) => o.text.trim() !== '')?.text.trim();
-
-    if (text) return text;
-  }
-
-  return SECTION_LABELS[section.kind];
-};
 
 // The partials authoring editor re-housed in the same studio shell as the template creator. Reuses the
 // editor-shell kit (ShellChrome · ToolDock · ProgramMonitor · EditorMonitor · EditorSceneTimeline) and
@@ -37,6 +30,7 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
   const { t } = useTranslation('admin');
   const editor = usePartialEditorState(initialDraft, t);
   const { draftState, sel, ops, dispatch } = editor;
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   // Shared text-overlay selection for the current section, threaded to the center canvas and the left
   // inspector (the same lift as the template shell). Keyed by section index so it resets on scene swap.
@@ -74,8 +68,11 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
             }}
             onPick={editor.pickPartial}
             onNew={editor.loadNew}
-            onDelete={editor.deleteSelected}
+            onDelete={() => {
+              setConfirmingDelete(true);
+            }}
             onSave={editor.saveDraft}
+            onDuplicate={editor.duplicateSelected}
             onBack={editor.goBack}
             t={t}
           />
@@ -105,6 +102,7 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
               }}
               selection={sectionSelection.state}
               onSelectElement={sectionSelection.selectElement}
+              onDuplicate={editor.duplicateSelected}
             />
             {editor.error && (
               <p
@@ -117,7 +115,11 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
           </>
         }
         monitor={
-          <ProgramMonitor label={t('shell.preview')} meta={draftState.orientation} swapKey={String(sel.selectedIndex)}>
+          <ProgramMonitor
+            label={t('shell.preview')}
+            meta={t(`orientationLabel.${draftState.orientation}`)}
+            swapKey={String(sel.selectedIndex)}
+          >
             <EditorMonitor
               state={draftState}
               section={editor.selectedSection}
@@ -143,11 +145,26 @@ export const PartialEditorShell = ({ initialDraft = null }: PartialEditorShellPr
             onDelete={ops.removeSection}
             onReorder={editor.reorderScenes}
             onTransition={ops.setTransition}
-            sectionTitle={sectionTitle}
-            sectionKindLabel={(section) => SECTION_LABELS[section.kind]}
+            sectionTitle={(section) => sectionTitle(section, t)}
+            sectionKindLabel={(section) => t(sectionLabelKey(section.kind))}
             addKinds={EDITABLE_PARTIAL_KINDS}
           />
         }
+      />
+      <ConfirmDialog
+        open={confirmingDelete}
+        title={t('shell.partialDeleteDialog.title')}
+        description={t('shell.partialDeleteDialog.description', { name: editor.selected?.id ?? '' })}
+        cancelLabel={t('card.deleteDialog.cancel')}
+        confirmLabel={t('shell.partialDeleteDialog.confirm')}
+        onConfirm={() => {
+          editor.deleteSelected();
+          setConfirmingDelete(false);
+        }}
+        onCancel={() => {
+          setConfirmingDelete(false);
+        }}
+        focusFallback={() => document.getElementById(PARTIAL_PICKER_ID)}
       />
     </ColorVariablesProvider>
   );

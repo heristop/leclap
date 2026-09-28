@@ -28,6 +28,7 @@
       "screenFailed": "Bildschirmaufnahme konnte auf diesem Gerät nicht gestartet werden."
     },
     "getReady": "Mach dich bereit …",
+    "action": "Und bitte!",
     "recordingIn": "Aufnahme in {{value}}",
     "wrapUp": "Mach zum Schluss — noch {{remaining}} s",
     "timesUp": "Zeit ist um",

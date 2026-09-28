@@ -7,15 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { FONTS, isFontRef } from '@leclap/creative-kit/fonts';
 import { cn } from '@/lib/utils';
 import { fontLabel, type EditorState, type GlobalTextOverlay } from '../templateEditorModel';
-import {
-  Button,
-  ColorPicker,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/presentation/components/ui';
+import { Button, ColorPicker, Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { Check, Plus, X } from '@/presentation/components/icons';
 import { RangeSlider } from './controls';
@@ -27,6 +19,7 @@ import { EDITOR_INPUT_CLASS } from './editorStyles';
 import { overlaySectionChoices, toggleOverlaySection } from './global-overlay-sections';
 import { overlayDisplayText, withOverlayText } from './global-overlay-text';
 import { FONT_REF_OPTION, fontPickerValue } from './font-picker';
+import { EditorSelectContent } from './editor-select-content';
 
 type Position = NonNullable<GlobalTextOverlay['position']>;
 
@@ -280,7 +273,7 @@ const OverlayAdvanced = ({
             <SelectTrigger aria-label={t('globalOverlay.font')} className="w-full">
               <SelectValue placeholder={t('globalOverlay.fontDefault')} />
             </SelectTrigger>
-            <SelectContent>
+            <EditorSelectContent>
               <SelectItem value={FONT_DEFAULT}>{t('globalOverlay.fontDefault')}</SelectItem>
               {isFontRef(overlay.font) ? (
                 <SelectItem value={FONT_REF_OPTION} disabled>
@@ -292,7 +285,7 @@ const OverlayAdvanced = ({
                   {font.label}
                 </SelectItem>
               ))}
-            </SelectContent>
+            </EditorSelectContent>
           </Select>
         </div>
         <NumberField

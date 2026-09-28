@@ -2,9 +2,10 @@
   "remotion": {
     "badge": "Confronto onesto",
     "title": "LeClap vs Remotion",
-    "tagline": "Due modi di trasformare il codice in video, in modo deterministico. Remotion compone con componenti React e renderizza in Node o nel browser. LeClap compone da un modello JSON e integra FFmpeg nell’app stessa, così lo stesso modello si renderizza anche in modo nativo su un telefono. Ecco dove vince ciascuno — compreso dove vince Remotion.",
+    "tagline": "Due modi di trasformare il codice in video, in modo deterministico. Ecco dove vince ciascuno — compreso dove vince Remotion.",
     "table": {
       "heading": "Faccia a faccia",
+      "lead": "Remotion compone con componenti React e renderizza in Node o nel browser. LeClap compone da un modello JSON e integra FFmpeg nell’app stessa, così lo stesso modello si renderizza anche in modo nativo su un telefono.",
       "criterion": "Criterio",
       "leclap": "LeClap",
       "remotion": "Remotion",
@@ -39,7 +40,23 @@
     },
     "caveats": {
       "title": "Le avvertenze oneste",
-      "leclap": "Il determinismo di LeClap vale per piattaforma, non fra piattaforme diverse. Node e il browser seguono la via software in stile libx264; la build per il dispositivo è LGPL, quindi Android codifica con libopenh264 e iOS con h264_videotoolbox di Apple, entrambi guidati da un bitrate obiettivo. Anche l’insieme di filtri sul dispositivo è più stretto: boxblur viene abbandonato ed eq riscritto in lutyuv. Stesso modello, stessi tagli, stessi tempi — ma pixel diversi su ogni destinazione.",
+      "leclap": {
+        "lead": "Il determinismo di LeClap vale per piattaforma, non fra piattaforme diverse.",
+        "web": {
+          "target": "Node e il browser",
+          "encoder": "La via software in stile libx264."
+        },
+        "android": {
+          "target": "Android",
+          "encoder": "libopenh264, guidato da un bitrate obiettivo."
+        },
+        "ios": {
+          "target": "iOS",
+          "encoder": "h264_videotoolbox di Apple, guidato da un bitrate obiettivo."
+        },
+        "filters": "La build per il dispositivo è LGPL: da qui i due encoder sul telefono e un insieme di filtri più stretto — boxblur viene abbandonato ed eq riscritto in lutyuv.",
+        "close": "Stesso modello, stessi tagli, stessi tempi — ma pixel diversi su ogni destinazione."
+      },
       "remotion": "Il renderer nel browser di Remotion porta con sé l’avvertenza speculare: emula il layout su un canvas invece di fotografare una pagina, quindi non coincide pixel per pixel con il suo stesso output lato server."
     },
     "chooseRemotion": {
@@ -59,7 +76,7 @@
       },
       "web": {
         "title": "Il tuo pubblico è sul web",
-        "body": "Se i tuoi utenti hanno un browser compatibile con WebCodecs, il renderer lato client di Remotion ti dà già un rendering senza server. Il divario sull’app nativa descritto sotto semplicemente non ti riguarda."
+        "body": "Se i tuoi utenti hanno un browser compatibile con WebCodecs, il renderer lato client di Remotion ti dà già un rendering senza server. La riga della tabella sull’app nativa semplicemente non ti riguarda."
       }
     },
     "chooseLeClap": {
@@ -95,6 +112,7 @@
     },
     "cta": {
       "prompt": "Curioso di vedere com’è fatto davvero un modello JSON?",
+      "example": "Guarda un modello vero",
       "start": "Apri lo studio"
     }
   }

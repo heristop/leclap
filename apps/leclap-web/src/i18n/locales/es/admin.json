@@ -8,19 +8,21 @@
     }
   },
   "page": {
-    "kicker": "Tus plantillas",
-    "heading": "Editor",
-    "subtitle": "Usa un ejemplo o crea la tuya — se guarda en este navegador.",
+    "kicker": "Plantillas",
+    "heading": "Crea las tuyas",
+    "subtitle": "Las plantillas que creas se quedan en este navegador, listas para grabar en el estudio.",
     "create": "Crear plantilla",
     "myTemplates": "Mis plantillas",
     "count": "({{count}})",
     "empty": {
-      "title": "Aún no has creado ninguna plantilla.",
-      "subtitle": "Empieza desde cero o duplica un ejemplo de abajo.",
-      "create": "Crea tu primera plantilla"
+      "title": "Aquí vivirán tus plantillas.",
+      "subtitle": "Empieza con un lienzo en blanco o duplica un ejemplo de abajo y hazlo tuyo.",
+      "create": "Crear desde cero"
     },
     "samples": "Plantillas de ejemplo",
-    "goToBuilder": "Ir a Plantillas",
+    "samplesError": "No se pudieron cargar las plantillas de ejemplo.",
+    "retry": "Reintentar",
+    "goToBuilder": "Abrir el estudio",
     "partials": "Fragmentos",
     "contribute": {
       "title": "Contribuye con una plantilla",
@@ -43,6 +45,12 @@
     "delete": "Eliminar {{name}}",
     "convertToPartial": "Convertir {{name}} en fragmento",
     "share": "Compartir {{name}} en GitHub",
+    "deleteDialog": {
+      "title": "¿Eliminar esta plantilla?",
+      "description": "«{{name}}» se eliminará de este navegador. No se puede deshacer.",
+      "cancel": "Conservarla",
+      "confirm": "Eliminar plantilla"
+    },
     "convertDialog": {
       "title": "¿Convertir en fragmento?",
       "description": "«{{name}}» se convertirá en un fragmento de escena reutilizable. La plantilla original no se elimina: puedes seguir editándola desde la lista.",
@@ -57,8 +65,9 @@
       "step2": "Abre el repositorio en GitHub, crea una nueva rama, pega el JSON como un nuevo archivo de plantilla y abre un pull request.",
       "copy": "Copiar JSON",
       "copied": "¡Copiado!",
-      "openGithub": "Abrir GitHub →"
-    }
+      "openGithub": "Abrir GitHub"
+    },
+    "copyName": "{{name}} (copia)"
   },
   "orientationLabel": {
     "landscape": "horizontal",
@@ -71,8 +80,10 @@
     "advanced": "avanzado"
   },
   "seo": {
+    "library": "Plantillas",
     "edit": "Editar plantilla",
-    "create": "Crear una plantilla"
+    "create": "Crear una plantilla",
+    "buildFromScratch": "Crear desde cero"
   },
   "editor": {
     "title": {
@@ -170,7 +181,8 @@
       "form": "Campos del formulario",
       "color": "Fondo de color",
       "music": "Selección de música",
-      "image": "Imagen de fondo"
+      "image": "Imagen de fondo",
+      "partial": "Fragmento"
     },
     "card": {
       "dragToReorder": "Arrastra para reordenar",
@@ -206,7 +218,7 @@
       "description": "El archivo no es un descriptor de plantilla válido."
     },
     "save": "Guardar plantilla",
-    "saveAndFilm": "Guardar y grabar →",
+    "saveAndFilm": "Guardar y grabar",
     "cancel": "Cancelar",
     "untitled": "Plantilla sin título"
   },
@@ -233,6 +245,13 @@
     "partialNew": "Nuevo fragmento",
     "partialDelete": "Eliminar fragmento",
     "partialDescription": "Descripción",
+    "partialDescriptionPlaceholder": "Intro reutilizable",
+    "partialReadonly": "Los fragmentos integrados son de solo lectura. Duplica uno para hacerlo tuyo: tu copia se guarda en este navegador.",
+    "partialDeleteDialog": {
+      "title": "¿Eliminar este fragmento?",
+      "description": "«{{name}}» se eliminará de este navegador, y las plantillas que lo usan no se podrán renderizar hasta que lo sustituyas.",
+      "confirm": "Eliminar fragmento"
+    },
     "partialBuiltin": "Integrado",
     "partialLocal": "Local",
     "partialSaveFailed": "No se pudo guardar el fragmento.",
@@ -293,7 +312,6 @@
     "ariaLabel": "Renderiza una vista previa de esta plantilla con material de ejemplo",
     "title": "Renderizar vista previa",
     "description": "Un borrador rápido con material de ejemplo: clips de marcador de posición sustituyen a tus secciones de vídeo.",
-    "failed": "Falló el render de la vista previa.",
     "download": "Descargar borrador"
   },
   "validation": {

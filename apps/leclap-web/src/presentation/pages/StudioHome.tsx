@@ -4,12 +4,14 @@ import { StudioSurface } from '@/presentation/components/StudioSurface';
 import { KineticHeading } from '@/presentation/components/kinetic';
 import { TemplateSelector } from '@/presentation/components/TemplateSelector';
 import { BrowserCompatibility } from '@/presentation/components/BrowserCompatibility';
+import { ProjectsShelf } from '@/presentation/components/projects/projects-shelf';
 import { Seo } from '@/presentation/components/Seo';
 import type { Template } from '@/services/templateService';
 
-// The studio home: the template gallery on a dark app surface. Picking a template navigates to the
-// editor (`/studio/new?template=<id>`) with a View Transition; TemplateSelector tags the clicked card's
-// title so it morphs into the editor titlebar. For that morph to land, the editor title has to exist in
+// The studio home: the saved projects, then the template gallery, on a dark app surface — where a video
+// starts and where it's picked up again. Picking a template navigates to the editor
+// (`/studio/new?template=<id>`) with a View Transition; TemplateSelector tags the clicked card's title
+// so it morphs into the editor titlebar. For that morph to land, the editor title has to exist in
 // the very next frame — so we (a) warm the lazy editor chunk and (b) hand the full template through nav
 // state, letting the editor render its titlebar synchronously instead of after an async fetch.
 export const StudioHome = () => {
@@ -47,6 +49,7 @@ export const StudioHome = () => {
         path="/studio"
       />
       <BrowserCompatibility />
+      <ProjectsShelf />
       <TemplateSelector
         selectedTemplate={null}
         onTemplateSelected={onTemplateSelected}

@@ -9,7 +9,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Speckled Mug · Kiln &amp; Co.</title>
+    <title>Moo Mug · Kiln &amp; Co.</title>
     <style>
       :root {
         --bg: #faf7f2;
@@ -17,12 +17,11 @@
         --muted: #8a8178;
         --line: #e7dfd4;
         --brand: #b4532a;
-        --glaze: #e9dfcf;
-        --glaze-dark: #cdbfa8;
+        --glaze: #f5efe4;
+        --patch: #262120;
       }
       body[data-color='sage'] {
         --glaze: #c9d3bd;
-        --glaze-dark: #9aab88;
       }
       * {
         box-sizing: border-box;
@@ -173,6 +172,7 @@
         font-size: 14px;
         color: #544c45;
       }
+      /* a swatch is the colourway, not just the colour: its glaze with a patch on it */
       .swatch {
         width: 30px;
         height: 30px;
@@ -180,6 +180,11 @@
         border: 2px solid #fff;
         box-shadow: 0 0 0 1px var(--line);
         cursor: pointer;
+        background-color: var(--swatch);
+        background-image:
+          radial-gradient(11px 9px at 88% 22%, var(--spot, var(--patch)) 92%, transparent 100%),
+          radial-gradient(6px 5px at 66% 36%, var(--spot, var(--patch)) 92%, transparent 100%),
+          radial-gradient(8px 7px at 12% 90%, var(--spot, var(--patch)) 92%, transparent 100%);
       }
       .swatch.on {
         box-shadow: 0 0 0 2px var(--ink);
@@ -401,7 +406,7 @@
         </span>
       </div>
     </header>
-    <div class="crumbs">Shop / Mugs / Speckled Mug</div>
+    <div class="crumbs">Shop / Mugs / Moo Mug</div>
     <main>
       <section>
         <div class="hero" id="hero"></div>
@@ -414,13 +419,13 @@
       </section>
       <section>
         <div class="kicker">Stoneware · Handmade in Lisbon</div>
-        <h1>Speckled Mug</h1>
+        <h1>Moo Mug</h1>
         <div class="rating">★★★★★<span>128 reviews</span></div>
         <div class="price">€24</div>
         <div class="swatches">
-          <span class="swatch on" id="oat" style="background: #e9dfcf"></span>
-          <span class="swatch" id="sage" style="background: #9aab88"></span>
-          <span class="swatch" style="background: #3b3632"></span>
+          <span class="swatch on" id="oat" style="--swatch: #efe7da"></span>
+          <span class="swatch" id="sage" style="--swatch: #9aab88"></span>
+          <span class="swatch" style="--swatch: #3b3632; --spot: #f5efe4"></span>
           <span id="colorName">Oat</span>
         </div>
         <div class="buy">
@@ -429,8 +434,8 @@
         </div>
         <div class="perks">Free shipping over €50 · Ships in 2 days · 30-day returns</div>
         <p class="desc">
-          Wheel-thrown stoneware with an iron-speckled glaze. Holds 350 ml, comfortable handle, dishwasher safe. Every
-          piece is slightly different.
+          Wheel-thrown stoneware with hand-painted cow patches. Holds 350&nbsp;ml, comfortable handle, dishwasher safe.
+          Does not moo.
         </p>
         <div class="ship">
           Shipping calculated at checkout. Orders ship within 2 business days.<br />Returns accepted within 30 days in
@@ -445,7 +450,7 @@
       <div class="line">
         <div class="pic" id="linePic"></div>
         <div>
-          <div class="name">Speckled Mug</div>
+          <div class="name">Moo Mug</div>
           <div class="sub" id="lineSub">Oat · Qty 1</div>
         </div>
         <div class="amt">€24</div>
@@ -467,31 +472,55 @@
       const variant = new URLSearchParams(location.search).get('v') === 'after' ? 'after' : 'before';
       document.body.classList.add(variant);
 
-      // The mug, drawn with a little character: a chubby rounded cup with a soft outline, a gentle face
-      // and curly steam. The glaze colour follows the selected swatch.
-      const INK = '#5c4a3a';
+      // The Moo Mug: a pale glaze with hand-painted cow patches, a pink inside and a patch that runs
+      // onto the handle. The patches are clipped to the mug's outline so they wrap round its edges, over
+      // the rim and under the base, the way a painted print would. The glaze colour follows the selected
+      // swatch; the patches stay dark so every glaze still reads as a cow.
+      const PATCH = 'var(--patch)';
+      const BODY =
+        'M70 80 L75 226 C76 248 92 262 116 262 L184 262 C208 262 224 248 225 226 L230 80 A80 16 0 0 0 70 80 Z';
+      const HANDLE = 'M226 116 C276 106 280 212 222 206';
+      const SPOTS = [
+        // over the rim at the front left, running off the left edge
+        'M50 56 C74 50 100 52 120 60 C134 66 136 76 126 84 C119 90 128 98 120 106 C112 113 102 106 98 116 C94 126 102 136 94 146 C88 154 80 146 74 152 C66 160 58 152 50 150 Z',
+        // the big one on the right, wrapping round to the back
+        'M248 100 C238 102 230 110 218 108 C204 106 190 110 184 122 C178 134 186 144 180 154 C174 164 162 168 164 182 C166 196 180 198 188 208 C196 218 210 224 222 218 C232 214 240 222 248 226 Z',
+        // under the base
+        'M82 204 C92 198 101 208 112 204 C124 199 129 212 139 216 C149 220 156 231 151 243 C147 253 157 262 159 274 L78 274 C74 262 70 250 72 237 C74 224 74 210 82 204 Z',
+        // a fleck
+        'M192 240 C194 232 202 234 206 230 C211 226 216 232 213 238 C210 243 212 249 204 249 C198 249 190 247 192 240 Z',
+      ];
+      // Each copy gets its own ids: the page draws the mug six times, and url(#…) resolves to the first
+      // element in the document with that id.
+      let mugs = 0;
       const mug = (size) => {
+        mugs += 1;
+        const id = `mug-${mugs}`;
         return `<svg width="${size}" height="${size}" viewBox="0 0 300 300">
-          <ellipse cx="150" cy="268" rx="94" ry="11" fill="${INK}" opacity="0.1"/>
-          <path d="M220 118 C272 110 274 208 216 204" fill="none" stroke="${INK}" stroke-width="32" stroke-linecap="round"/>
-          <path d="M220 118 C272 110 274 208 216 204" fill="none" stroke="var(--glaze-dark)" stroke-width="19" stroke-linecap="round"/>
-          <path d="M70 90 C70 76 80 70 94 70 L206 70 C220 70 230 76 230 90 L226 212 C224 246 200 264 166 264 L134 264 C100 264 76 246 74 212 Z"
-            fill="var(--glaze)" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>
-          <path d="M200 74 C214 78 222 88 222 104 L218 212 C216 238 200 254 176 258 C196 244 204 224 205 200 L208 96 C208 86 206 79 200 74 Z"
-            fill="var(--glaze-dark)" opacity="0.55"/>
-          <path d="M88 104 C88 94 92 88 100 86" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0.7"/>
-          <ellipse cx="150" cy="78" rx="80" ry="15" fill="var(--glaze-dark)" stroke="${INK}" stroke-width="6"/>
-          <ellipse cx="150" cy="80" rx="66" ry="9" fill="#8a5a3c"/>
-          <ellipse cx="121" cy="172" rx="10" ry="12" fill="#3b2a22"/>
-          <ellipse cx="179" cy="172" rx="10" ry="12" fill="#3b2a22"/>
-          <circle cx="124.5" cy="167" r="4" fill="#fff"/>
-          <circle cx="182.5" cy="167" r="4" fill="#fff"/>
-          <ellipse cx="102" cy="194" rx="12" ry="7" fill="#e8a08f" opacity="0.4"/>
-          <ellipse cx="198" cy="194" rx="12" ry="7" fill="#e8a08f" opacity="0.4"/>
-          <path d="M141 190 Q150 198 159 190" fill="none" stroke="#3b2a22" stroke-width="4.5" stroke-linecap="round"/>
-          <path d="M116 52 C106 42 124 34 114 22" fill="none" stroke="#c9b9a6" stroke-width="5" stroke-linecap="round"/>
-          <path d="M186 52 C196 42 178 34 188 22" fill="none" stroke="#c9b9a6" stroke-width="5" stroke-linecap="round"/>
-          <path d="M150 54 C140 42 160 34 150 20" fill="none" stroke="#c9b9a6" stroke-width="5" stroke-linecap="round"/>
+          <defs>
+            <clipPath id="${id}-body"><path d="${BODY}"/></clipPath>
+            <mask id="${id}-handle" maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="300">
+              <path d="${HANDLE}" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round"/>
+            </mask>
+            <linearGradient id="${id}-inside" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#d9868b"/>
+              <stop offset="1" stop-color="#f4b9b6"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="150" cy="270" rx="92" ry="10" fill="${PATCH}" opacity="0.1"/>
+          <path d="${HANDLE}" fill="none" stroke="${PATCH}" stroke-width="30" stroke-linecap="round"/>
+          <g mask="url(#${id}-handle)">
+            <path d="${HANDLE}" fill="none" stroke="var(--glaze)" stroke-width="18" stroke-linecap="round"/>
+            <path d="M214 96 C240 92 262 100 270 124 C274 140 262 150 252 156 C242 162 234 150 222 150 Z" fill="${PATCH}"/>
+          </g>
+          <path d="${BODY}" fill="var(--glaze)"/>
+          <g clip-path="url(#${id}-body)">
+            ${SPOTS.map((spot) => `<path d="${spot}" fill="${PATCH}"/>`).join('')}
+            <path d="M196 70 L240 70 L240 270 L182 270 C204 250 212 230 212 204 L210 96 C210 84 204 76 196 70 Z" fill="#5a4632" opacity="0.13"/>
+            <path d="M88 108 C88 98 91 92 98 89" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0.75"/>
+          </g>
+          <path d="${BODY}" fill="none" stroke="${PATCH}" stroke-width="5" stroke-linejoin="round"/>
+          <ellipse cx="150" cy="80" rx="70" ry="11.5" fill="url(#${id}-inside)" stroke="${PATCH}" stroke-width="3.5"/>
         </svg>`;
       };
       document.getElementById('hero').innerHTML = mug(380);

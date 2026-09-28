@@ -6,6 +6,7 @@ import { AgenticDeepDive } from '@/presentation/components/home/agentic-deep-div
 import { CinematicHero } from '@/presentation/components/home/cinematic-hero';
 import { FilmSection } from '@/presentation/components/home/film-section';
 import { MobileDeepDive } from '@/presentation/components/home/mobile-deep-dive';
+import { RenderTrack } from '@/presentation/components/home/render-track';
 
 // The landing follows the visitor's theme like the rest of the site: a lavender-grey page in light, near-black
 // in dark. What stays dark in both is what is a screen: the hero's monitor over its film, the video frames and
@@ -30,6 +31,9 @@ export const Home = () => (
 
       {/* Deep dive: agentic development, chapters beside a pinned pull request, then its film. */}
       <AgenticDeepDive />
+
+      {/* The render track — scrolling is the render: Clappy runs the loader's lane into the finished render. */}
+      <RenderTrack />
 
       {/* Showcase — an actual in-browser render */}
       <HomeShowcase />

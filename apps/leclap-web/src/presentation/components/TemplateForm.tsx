@@ -7,6 +7,7 @@ import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import { UserIcon } from '@/presentation/components/icons/user';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
+import { resolveTranslation } from '@/lib/i18nText';
 import { Input } from '@/presentation/components/ui';
 
 interface FormField {
@@ -41,7 +42,7 @@ const getFieldType = (field: FormField): 'text' | 'textarea' => {
   return 'text';
 };
 
-const getFieldPlaceholder = (field: FormField, t: TFunction<'templates'>): string => {
+const getFieldPlaceholder = (field: FormField, label: string, t: TFunction<'templates'>): string => {
   const name = field.name.toLowerCase();
 
   if (name.includes('firstname')) return t('form.placeholder.firstName');
@@ -53,8 +54,6 @@ const getFieldPlaceholder = (field: FormField, t: TFunction<'templates'>): strin
   if (name.includes('keyword')) return t('form.placeholder.keyword');
 
   if (name.includes('description')) return t('form.placeholder.description');
-
-  const label = field.label.en || field.label.fr || Object.values(field.label)[0];
 
   return t('form.placeholder.generic', { label: label.toLowerCase() });
 };
@@ -136,86 +135,34 @@ interface FieldStatusProps {
   maxChars: number | null;
 }
 
+// The line under a field says only what the field itself doesn't: an error when there is one, a quiet
+// check once it's filled, and the character budget. "Required field" under every empty input (with the
+// asterisk already on its label) and a "Form complete!" banner below them (with the scene's own check
+// and the titlebar meter already counting) were the same fact said three times.
 const FieldStatus = ({ hasError, errorMessage, errorId, value, charCount, maxChars }: FieldStatusProps) => {
   const { t } = useTranslation('templates');
   const nearLimit = maxChars !== null && maxChars - charCount < 10;
+  const filled = value.trim() !== '';
 
   return (
-    <div className="flex justify-between items-center">
-      {hasError ? (
-        <span id={errorId} className="text-sm text-red-800 dark:text-red-400">
+    <div className="flex min-h-5 items-center justify-between gap-3">
+      {hasError && (
+        <span id={errorId} className="text-sm text-[var(--color-error)]">
           {errorMessage}
         </span>
-      ) : (
-        <span className="text-sm text-gray-500">
-          {value.trim() === '' ? (
-            t('form.status.required')
-          ) : (
-            <span className="inline-flex items-center gap-1 text-green-800 dark:text-green-400">
-              <Check className="w-3.5 h-3.5" /> {t('form.status.completed')}
-            </span>
-          )}
+      )}
+      {!hasError && filled && (
+        <span role="img" aria-label={t('form.status.completed')} className="inline-flex text-success-foreground">
+          <Check className="size-4" aria-hidden="true" />
         </span>
       )}
+      {!hasError && !filled && <span />}
 
       {maxChars !== null && (
-        <span className={clsx('text-xs tabular-nums', nearLimit ? 'text-red-800 dark:text-red-400' : 'text-gray-500')}>
+        <span className={clsx('text-xs tabular-nums', nearLimit ? 'text-[var(--color-error)]' : 'text-gray-500')}>
           {t('form.status.counter', { count: charCount, max: maxChars })}
         </span>
       )}
-    </div>
-  );
-};
-
-interface FormValidationSummaryProps {
-  isValid: boolean;
-  fields: FormField[];
-  formData: Record<string, string>;
-}
-
-const FormValidationSummary = ({ isValid, fields, formData }: FormValidationSummaryProps) => {
-  const { t } = useTranslation('templates');
-  const remaining = fields.filter((f) => !formData[f.name]?.trim()).length;
-
-  return (
-    <div
-      className={clsx(
-        'p-4 rounded-xl border transition-all duration-300 backdrop-blur-sm',
-        isValid
-          ? 'bg-green-500/10 border-green-500/40 dark:bg-green-900/20 dark:border-green-500/30'
-          : 'bg-yellow-500/10 border-yellow-500/40 dark:bg-yellow-900/20 dark:border-yellow-500/30'
-      )}
-    >
-      <div className="flex items-center space-x-3">
-        <div
-          className={clsx(
-            'p-2 rounded-lg shadow-lg',
-            isValid ? 'bg-green-600 shadow-green-500/20' : 'bg-yellow-600 shadow-yellow-500/20'
-          )}
-        >
-          <FileTextIcon size={16} className="text-white" />
-        </div>
-        <div>
-          <h4
-            className={clsx(
-              'font-semibold',
-              isValid ? 'text-green-800 dark:text-green-400' : 'text-yellow-800 dark:text-yellow-400'
-            )}
-          >
-            {isValid ? t('form.validation.completeTitle') : t('form.validation.incompleteTitle')}
-          </h4>
-          <p
-            className={clsx(
-              'text-sm',
-              isValid ? 'text-green-800/90 dark:text-green-200/70' : 'text-yellow-800/90 dark:text-yellow-200/70'
-            )}
-          >
-            {isValid
-              ? t('form.validation.completeMessage')
-              : t('form.validation.incompleteMessage', { count: remaining })}
-          </p>
-        </div>
-      </div>
     </div>
   );
 };
@@ -229,18 +176,20 @@ interface FormFieldItemProps {
 }
 
 const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFieldItemProps) => {
-  const { t } = useTranslation('templates');
+  const { t, i18n } = useTranslation('templates');
   const fieldId = useId();
   const errorId = useId();
   const IconComponent = getFieldIcon(field.name);
-  const placeholder = getFieldPlaceholder(field, t);
-  const label = field.label.en || field.label.fr || Object.values(field.label)[0];
+  // The author's label in the viewer's language, when the template carries one.
+  const label = resolveTranslation(field.label, i18n.language) ?? field.name;
+  const placeholder = getFieldPlaceholder(field, label, t);
   const value = formData[field.name] || '';
   const hasError = Boolean(errors[field.name]);
   const maxChars = field.maxLength ?? null;
 
   return (
     <div className="space-y-2 fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+      {/* The character budget lives in the counter under the field, not repeated beside the label. */}
       <label
         htmlFor={fieldId}
         className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -250,9 +199,6 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
         <span className="text-brand-600 dark:text-brand-300" aria-label={t('form.status.requiredMark')}>
           *
         </span>
-        {field.maxLength && (
-          <span className="text-xs text-gray-500">{t('form.status.maxCharsLabel', { count: field.maxLength })}</span>
-        )}
       </label>
 
       <FieldInput
@@ -323,13 +269,6 @@ export const TemplateForm = ({ template, onFormDataChange, formData, sectionName
     onFormDataChange({ ...formData, [fieldName]: value });
   };
 
-  const isFormValid = () =>
-    fields.every((field) => {
-      const value = formData[field.name] || '';
-
-      return value.trim() !== '' && !errors[field.name];
-    });
-
   if (fields.length === 0) {
     return (
       <div className="fade-in p-6 bg-brand-500/[0.06] border border-brand-500/30 dark:bg-brand-500/10 rounded-xl">
@@ -350,7 +289,7 @@ export const TemplateForm = ({ template, onFormDataChange, formData, sectionName
     <div className="space-y-8">
       {!sectionName && <FormHeader />}
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {fields.map((field, index) => (
           <FormFieldItem
             key={field.name}
@@ -362,8 +301,6 @@ export const TemplateForm = ({ template, onFormDataChange, formData, sectionName
           />
         ))}
       </div>
-
-      <FormValidationSummary isValid={isFormValid()} fields={fields} formData={formData} />
     </div>
   );
 };

@@ -4,6 +4,7 @@ import {
   type CompilationConfig,
   type MediaChoices,
 } from '@/application/usecases/coreCompilationService';
+import { classifyCompileFailure, type CompileFailure } from '@/application/usecases/compile-failure';
 import { type Template } from '@/services/templateService';
 import { type VideoEdit } from '@/domain/valueObjects/videoEdits';
 import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
@@ -25,7 +26,7 @@ interface ProcessingState {
   isProcessing: boolean;
   progress: ProcessingProgress;
   processedVideo: ProcessedVideo | null;
-  error: string | null;
+  error: CompileFailure | null;
 }
 
 export interface ProcessedVideo {
@@ -107,17 +108,17 @@ function handleProcessingError(
 ) {
   logger.error('Video compilation error:', error);
   haptic('error');
-  const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during video compilation';
+  const failure = classifyCompileFailure(error);
   setState((prev) => ({
     ...prev,
-    error: errorMessage,
+    error: failure,
     isProcessing: false,
     progress: { ...prev.progress, stage: 'Error' },
   }));
   startTransition(() => {
     setOptimisticState({
       isProcessing: false,
-      error: errorMessage,
+      error: failure,
       progress: { ...currentOptimisticProgress, stage: 'Error' },
     });
   });
@@ -135,15 +136,21 @@ export const useVideoProcessing = () => {
     })
   );
 
-  const abortController = useRef<AbortController | null>(null);
-  // Set when the user hits Stop, so the rejection the cancelled compile throws is treated as a clean
-  // stop (return to the ready state) rather than a failure with an error banner.
-  const cancelledRef = useRef<boolean>(false);
-  // Read the flag through a closure: cancelProcessing() flips it during the await, but TS narrows the
-  // ref to `false` from the in-scope reset and carries that across the await, so an inline read in the
-  // catch would be seen as "always false". A closure read returns the declared boolean type instead.
-  const wasCancelled = () => cancelledRef.current;
+  // Each render gets a ticket; Stop, or a newer render, voids it. The engine only halts at a segment
+  // boundary, so a voided render can still report progress, finish or fail well after the viewer moved
+  // on, and none of that may land on the screen.
+  const ticket = useRef(0);
+  const inFlight = useRef(false);
   const startTime = useRef<number>(0);
+
+  // Take a ticket for a new render; the check it hands back says whether that ticket still holds.
+  const takeTicket = () => {
+    ticket.current += 1;
+    const run = ticket.current;
+    inFlight.current = true;
+
+    return () => run === ticket.current;
+  };
 
   const updateProgress = (update: Partial<ProcessingProgress>) => {
     applyProgressUpdate(update, optimisticState.progress, Date.now() - startTime.current, setState, setOptimisticState);
@@ -161,7 +168,7 @@ export const useVideoProcessing = () => {
     const requiresUpload = (templateWithFormData.descriptor.sections ?? []).some((s) => s.type === 'project_video');
 
     if (Object.keys(clipsBySection).length === 0 && requiresUpload) {
-      setState((prev) => ({ ...prev, error: 'Please select at least one video file.' }));
+      setState((prev) => ({ ...prev, error: { kind: 'missingClip', detail: '' } }));
 
       return;
     }
@@ -188,36 +195,42 @@ export const useVideoProcessing = () => {
     });
 
     setState((prev) => ({ ...prev, isProcessing: true, error: null, processedVideo: null }));
-    abortController.current = new AbortController();
-    cancelledRef.current = false;
+    const isCurrent = takeTicket();
     startTime.current = Date.now();
 
     try {
-      const result = await coreCompilationService.compileVideo(compilationConfig, updateProgress);
+      const result = await coreCompilationService.compileVideo(compilationConfig, (update) => {
+        if (isCurrent()) updateProgress(update);
+      });
+
+      if (!isCurrent()) {
+        URL.revokeObjectURL(result.url);
+
+        return;
+      }
       setState((prev) => ({ ...prev, processedVideo: result, isProcessing: false }));
       haptic('success');
     } catch (error) {
-      // A user-initiated stop rejects the compile too — swallow it: cancelProcessing() already reset
-      // to a clean, restartable state, so surfacing it as an error would be misleading.
-      if (wasCancelled()) {
+      // A stopped render rejects too: cancelProcessing() already reset to a clean, restartable state,
+      // so surfacing it as an error would be misleading.
+      if (!isCurrent()) {
         return;
       }
       handleProcessingError(error, optimisticState.progress, setState, setOptimisticState);
     } finally {
-      abortController.current = null;
+      if (isCurrent()) inFlight.current = false;
     }
   };
 
   const cancelProcessing = () => {
-    const controller = abortController.current;
-
-    if (!controller) {
+    if (!inFlight.current) {
       return;
     }
-    cancelledRef.current = true;
-    // Signal the engine to halt at the next segment boundary, then tear down the local controller.
+    ticket.current += 1;
+    inFlight.current = false;
+    // The engine halts at its next segment boundary; the voided ticket keeps whatever it still says off
+    // the screen.
     coreCompilationService.cancel();
-    controller.abort();
     haptic('warning');
     // Reset to the ready state (no error) so the user can immediately restart compilation.
     const reset = { isProcessing: false, error: null, progress: initialProgress };

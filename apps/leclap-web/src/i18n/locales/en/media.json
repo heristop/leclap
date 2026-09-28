@@ -28,6 +28,7 @@
       "screenFailed": "Couldn’t start screen recording on this device."
     },
     "getReady": "Get ready…",
+    "action": "Action!",
     "recordingIn": "Recording in {{value}}",
     "wrapUp": "Wrap up — {{remaining}}s left",
     "timesUp": "Time’s up",

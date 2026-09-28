@@ -16,7 +16,7 @@ export const MusicFields = ({ section, onChange }: MusicFieldsProps) => {
   const { t } = useTranslation('admin');
 
   return (
-    <div className="space-y-3 pl-7">
+    <div className="space-y-3">
       <p className="text-xs text-gray-500 dark:text-gray-400">{t('musicSection.pickTracks')}</p>
       <MediaPicker
         kind="music"

@@ -1,25 +1,24 @@
 import type { RefObject } from 'react';
-import {
-  Video as VideoIcon,
-  Check,
-  Download,
-  ArrowRight,
-  RotateCcw,
-  X,
-  Clapperboard,
-} from '@/presentation/components/icons';
+import { Video as VideoIcon, Check, Download, ArrowRight, RotateCcw, X } from '@/presentation/components/icons';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
 import { UploadIcon } from '@/presentation/components/icons/upload';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { ProgressDisplay } from '@/presentation/components/ProgressDisplay';
-import { ClappyCheer } from '@/presentation/components/clappy';
+import { ClappyCheer, ClappyReaction } from '@/presentation/components/clappy';
 import { VideoPreview } from '@/presentation/components/VideoPreview';
 import { StopButton } from '@/presentation/components/StopButton';
 import { Button, Input } from '@/presentation/components/ui';
 import { useBrowserSupport } from '@/hooks/useBrowserSupport';
 import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService';
+import type { CompileFailure } from '@/application/usecases/compile-failure';
+import { CompileFailureText } from '@/presentation/components/compile-failure-text';
+import type { ClipSource } from '@/presentation/components/onboarding.logic';
+
+// Every step's heading carries the id the dialog is labelled by, and takes focus when its step opens
+// (Onboarding.tsx): a script-focused heading draws no ring, like the error pages' headings.
+const TITLE_FOCUS = 'outline-none';
 
 const WELCOME_FEATURES = [
   { id: 'record', icon: VideoIcon },
@@ -28,11 +27,13 @@ const WELCOME_FEATURES = [
 ] as const;
 
 interface WelcomeStepProps {
+  /** The id of this step's heading, which names the dialog. */
+  titleId: string;
   onStart: () => void;
   onDone: () => void;
 }
 
-export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
+export const WelcomeStep = ({ titleId, onStart, onDone }: WelcomeStepProps) => {
   const { t } = useTranslation('onboarding');
   const { checks, checking, ready } = useBrowserSupport();
   let startLabel = t('welcome.unsupported');
@@ -47,14 +48,21 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
 
   return (
     <div className="text-center">
-      <div className="fade-in inline-flex p-4 brand-gradient rounded-2xl shadow-lg shadow-brand-900/40 mb-5 animate-glow">
-        <Clapperboard className="w-8 h-8 text-white" />
-      </div>
+      {/* Clappy waves hello: he pops in, throws a hand up, waves three times and leaves it up (reduced motion
+          shows him already waving). Decorative, like every Clappy: the heading says hello. */}
+      <ClappyReaction reaction="wave" size={96} className="mb-3" />
+      {/* The brand word takes the page-aware gradient: the animated one fades through pastel yellow, which
+          all but vanishes on the light panel. */}
       <h2
-        className="fade-in mb-2 px-8 font-display text-2xl font-bold text-balance text-foreground sm:px-0 sm:text-3xl"
+        id={titleId}
+        tabIndex={-1}
+        className={clsx(
+          'fade-in mb-2 px-8 font-display text-2xl font-bold text-balance text-foreground sm:px-0 sm:text-3xl',
+          TITLE_FOCUS
+        )}
         style={{ animationDelay: '80ms' }}
       >
-        {t('welcome.title')} <span className="text-gradient-animated">{t('brand', { ns: 'common' })}</span>
+        {t('welcome.title')} <span className="brand-gradient-text">{t('brand', { ns: 'common' })}</span>
       </h2>
       <p className="fade-in text-gray-300 mb-6" style={{ animationDelay: '160ms' }}>
         {t('welcome.subtitle')}
@@ -118,24 +126,33 @@ export const WelcomeStep = ({ onStart, onDone }: WelcomeStepProps) => {
 };
 
 interface CreateStepProps {
+  /** The id of this step's heading, which names the dialog. */
+  titleId: string;
   name: string;
   onNameChange: (value: string) => void;
   sampleName: string;
   videoFile: File | null;
+  /** Where the clip came from: its row says so, and replacing it goes back the same way. */
+  clipSource: ClipSource;
   canCreate: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
+  /** Create, which focus moves to once a clip is ready. */
+  createRef: RefObject<HTMLButtonElement | null>;
   onOpenCamera: () => void;
   onFilePicked: (event: React.ChangeEvent<HTMLInputElement>) => void;
   onCreate: () => void;
 }
 
 export const CreateStep = ({
+  titleId,
   name,
   onNameChange,
   sampleName,
   videoFile,
+  clipSource,
   canCreate,
   fileInputRef,
+  createRef,
   onOpenCamera,
   onFilePicked,
   onCreate,
@@ -147,7 +164,13 @@ export const CreateStep = ({
   return (
     <div>
       {/* `pr-12` reserves the close button's corner so a left-aligned title never runs under it. */}
-      <h2 className="mb-1 pr-12 font-display text-xl font-bold text-foreground sm:text-2xl">{t('create.title')}</h2>
+      <h2
+        id={titleId}
+        tabIndex={-1}
+        className={clsx('mb-1 pr-12 font-display text-xl font-bold text-foreground sm:text-2xl', TITLE_FOCUS)}
+      >
+        {t('create.title')}
+      </h2>
       <p className="mb-5 text-sm text-gray-300 sm:mb-6">{t('create.subtitle')}</p>
 
       {/* Both inputs carry a label so their weight is legible: the name is optional — a sample stands
@@ -169,28 +192,33 @@ export const CreateStep = ({
         className="mb-5 px-4 py-3 rounded-xl"
       />
 
-      <p className="mb-2 flex items-baseline gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
+      <p
+        id="ob-clip-label"
+        className="mb-2 flex items-baseline gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400"
+      >
         {t('create.clipLabel')}
         <span aria-hidden="true" className="text-brand-500">
           *
         </span>
       </p>
+      {/* A clip that is ready says where it came from, and replacing it goes back the same way: an imported
+          clip is not "recorded", and its replacement is another file, not the camera. */}
       {videoFile ? (
         <div className="pop-in flex items-center justify-between gap-3 mb-6 p-3 rounded-xl bg-success/10 border border-success/30">
-          <span className="flex items-center gap-2 text-sm text-success-foreground font-medium">
-            <Check className="w-5 h-5" /> {t('create.recorded')}
+          <span id="ob-clip-ready" className="flex items-center gap-2 text-sm text-success-foreground font-medium">
+            <Check className="w-5 h-5 shrink-0" /> {t(clipSource === 'file' ? 'create.imported' : 'create.recorded')}
           </span>
           <Button
-            onClick={onOpenCamera}
+            onClick={clipSource === 'file' ? () => fileInputRef.current?.click() : onOpenCamera}
             variant="ghost"
             size="sm"
-            className="gap-1.5 rounded-lg bg-foreground/5 text-xs text-gray-300 [&_svg]:size-3.5"
+            className="shrink-0 gap-1.5 rounded-lg bg-foreground/5 text-xs text-gray-300 [&_svg]:size-3.5"
           >
-            <RotateCcw /> {t('create.reRecord')}
+            <RotateCcw /> {t(clipSource === 'file' ? 'create.changeClip' : 'create.reRecord')}
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-3 mb-6">
+        <div role="group" aria-labelledby="ob-clip-label" className="grid grid-cols-2 gap-3 mb-6">
           <button
             onClick={onOpenCamera}
             aria-label={t('create.recordAria')}
@@ -212,29 +240,30 @@ export const CreateStep = ({
             />
             <span className="text-sm font-semibold">{t('create.upload')}</span>
           </button>
-          {/* Visually hidden via `sr-only`, NOT `display:none`: WebKit/Safari refuses to open the OS
-              file dialog for a `display:none` input clicked programmatically, so the picker "won't
-              open". sr-only keeps it rendered (and out of the tab order via tabIndex) so .click() works
-              across browsers. */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="video/*"
-            aria-label={t('create.uploadInputAria')}
-            tabIndex={-1}
-            className="sr-only"
-            onChange={onFilePicked}
-          />
         </div>
       )}
+      {/* Visually hidden via `sr-only`, NOT `display:none`: WebKit/Safari refuses to open the OS
+          file dialog for a `display:none` input clicked programmatically, so the picker "won't
+          open". sr-only keeps it rendered (and out of the tab order via tabIndex) so .click() works
+          across browsers. Outside the choice, so an imported clip's "Change clip" can open it too. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="video/*"
+        aria-label={t('create.uploadInputAria')}
+        tabIndex={-1}
+        className="sr-only"
+        onChange={onFilePicked}
+      />
 
       <Button
+        ref={createRef}
         onClick={onCreate}
         disabled={!canCreate}
         variant="primary"
         size="lg"
         className="w-full text-base"
-        aria-describedby={canCreate ? undefined : 'ob-create-hint'}
+        aria-describedby={canCreate ? 'ob-clip-ready' : 'ob-create-hint'}
       >
         <SparklesIcon size={16} /> {t('create.create')}
       </Button>
@@ -250,16 +279,24 @@ export const CreateStep = ({
 };
 
 interface CompilingStepProps {
+  /** The id of this step's heading, which names the dialog. */
+  titleId: string;
   progress: CompilationProgress;
   onStop: () => void;
 }
 
-export const CompilingStep = ({ progress, onStop }: CompilingStepProps) => {
+export const CompilingStep = ({ titleId, progress, onStop }: CompilingStepProps) => {
   const { t } = useTranslation('onboarding');
 
   return (
     <div>
-      <h2 className="mb-1 pr-12 font-display text-xl font-bold text-foreground sm:text-2xl">{t('compiling.title')}</h2>
+      <h2
+        id={titleId}
+        tabIndex={-1}
+        className={clsx('mb-1 pr-12 font-display text-xl font-bold text-foreground sm:text-2xl', TITLE_FOCUS)}
+      >
+        {t('compiling.title')}
+      </h2>
       <p className="mb-5 text-sm text-gray-300 sm:mb-6">{t('compiling.subtitle')}</p>
       <ProgressDisplay progress={progress} />
       <div className="mt-5 flex justify-center sm:mt-6">
@@ -270,11 +307,13 @@ export const CompilingStep = ({ progress, onStop }: CompilingStepProps) => {
 };
 
 interface DoneStepProps {
+  /** The id of this step's heading, which names the dialog. */
+  titleId: string;
   result: CompilationResult;
   onStartCreating: () => void;
 }
 
-export const DoneStep = ({ result, onStartCreating }: DoneStepProps) => {
+export const DoneStep = ({ titleId, result, onStartCreating }: DoneStepProps) => {
   const { t } = useTranslation('onboarding');
 
   return (
@@ -284,7 +323,14 @@ export const DoneStep = ({ result, onStartCreating }: DoneStepProps) => {
       {/* `px-10` keeps the centered title clear of the close button, and `text-balance` stops a
           long localized title ("Ta première vidéo est prête !") from dropping its last glyph alone
           onto a second line. */}
-      <h2 className="mb-3 px-10 font-display text-xl font-bold text-balance brand-gradient-text sm:mb-2 sm:text-2xl">
+      <h2
+        id={titleId}
+        tabIndex={-1}
+        className={clsx(
+          'mb-3 px-10 font-display text-xl font-bold text-balance brand-gradient-text sm:mb-2 sm:text-2xl',
+          TITLE_FOCUS
+        )}
+      >
         {t('done.title')}
       </h2>
       <div className="mb-5 sm:mb-6">
@@ -305,12 +351,15 @@ export const DoneStep = ({ result, onStartCreating }: DoneStepProps) => {
 };
 
 interface ErrorStepProps {
-  errorMessage: string;
+  /** The id of this step's heading, which names the dialog. */
+  titleId: string;
+  failure: CompileFailure;
   onRetry: () => void;
-  onDone: () => void;
+  /** Leave the intro for the studio, wherever the dialog was opened from. */
+  onContinue: () => void;
 }
 
-export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => {
+export const ErrorStep = ({ titleId, failure, onRetry, onContinue }: ErrorStepProps) => {
   const { t } = useTranslation('onboarding');
 
   return (
@@ -318,16 +367,25 @@ export const ErrorStep = ({ errorMessage, onRetry, onDone }: ErrorStepProps) => 
       <div className="pop-in inline-flex p-3 bg-[var(--color-error)]/15 border border-[var(--color-error)]/30 rounded-2xl mb-4">
         <X className="w-6 h-6 text-[var(--color-error)]" />
       </div>
-      <h2 className="mb-2 px-10 font-display text-xl font-bold text-balance text-foreground sm:px-0 sm:text-2xl">
+      <h2
+        id={titleId}
+        tabIndex={-1}
+        className={clsx(
+          'mb-2 px-10 font-display text-xl font-bold text-balance text-foreground sm:px-0 sm:text-2xl',
+          TITLE_FOCUS
+        )}
+      >
         {t('error.title')}
       </h2>
-      <p className="text-gray-300 mb-6 text-sm">{errorMessage}</p>
+      <p className="text-gray-300 mb-6 text-sm">
+        <CompileFailureText failure={failure} />
+      </p>
       <div className="flex flex-col sm:flex-row gap-3">
         <Button onClick={onRetry} variant="primary" className="flex-1">
           {t('actions.tryAgain', { ns: 'common' })}
         </Button>
-        <Button onClick={onDone} variant="secondary" className="flex-1">
-          {t('error.continueToBuilder')}
+        <Button onClick={onContinue} variant="secondary" className="flex-1">
+          {t('error.continueInStudio')}
         </Button>
       </div>
     </div>

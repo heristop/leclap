@@ -1,0 +1,44 @@
+{
+  "_note": "The only file you write. trim is a START offset into the capture, in seconds, not a length: the length is the template's clip duration, or clipSeconds. Capture paths are relative to --work.",
+  "ticket": "SHOP-123",
+  "clipSeconds": 4.4,
+  "intro": {
+    "headline": "MAKE ADD TO CART OBVIOUS"
+  },
+  "outro": {
+    "headline": "REVIEW THE CART DRAWER",
+    "subtitle": "Button contrast first, then focus inside the drawer"
+  },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "raw/before.mp4",
+      "trim": 0,
+      "chip": "A faint link, and no feedback",
+      "card": {
+        "headline": "A LINK NOBODY SEES",
+        "subtitle": "Add to cart is small grey text below the product copy"
+      },
+      "panel": {
+        "title": "A link nobody sees",
+        "desc": "Add to cart is small grey text below the product copy. A click only bumps a quiet Cart (1) in the header: no confirmation, no drawer."
+      }
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "raw/after.mp4",
+      "trim": 0,
+      "chip": "One button, instant cart drawer",
+      "card": {
+        "headline": "ONE OBVIOUS BUTTON",
+        "subtitle": "Where the eye already is, with feedback on click"
+      },
+      "panel": {
+        "title": "One obvious button",
+        "desc": "A primary button where the eye already is. It confirms in place, and a drawer opens on what was just added, checkout one click away."
+      }
+    }
+  ]
+}

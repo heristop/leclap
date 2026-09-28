@@ -1,33 +1,36 @@
 {
   "hero": {
-    "badge": "Privatsphäre zuerst · In deinem Browser",
+    "eyebrow": "Komponiert, nicht generiert",
     "title": "Über LeClap",
-    "tagline": "Ein cinematischer Video-Composer, der komplett in deinem Browser läuft. Komponiere aus echten Vorlagen, rendere mit FFmpeg, zu WebAssembly kompiliert, und lade herunter – keine Server, keine Uploads, keine Grenzen."
+    "tagline": "LeClap macht aus einer JSON-Vorlage und deinem eigenen Material ein fertiges Video. FFmpeg rendert es im Terminal, in einem Browser-Tab oder auf dem Handy: Kein Modell erzeugt auch nur ein einziges Bild, und dein Material wird nie hochgeladen."
   },
   "cta": {
     "prompt": "Bereit, dein erstes Video zu komponieren?",
-    "start": "Jetzt loslegen"
+    "start": "Jetzt loslegen",
+    "compare": "LeClap und Remotion im Vergleich"
   },
-  "stats": {
-    "browser": "Läuft in deinem Browser",
-    "uploads": "Hochgeladene Dateien",
-    "projects": "Projekte, immer kostenlos"
-  },
-  "pillars": {
-    "private": {
-      "title": "Privat by design",
-      "description": "Deine Clips verlassen nie dein Gerät. Kein Upload, kein Account, kein Server dazwischen."
-    },
-    "ffmpeg": {
-      "title": "Echtes FFmpeg, lokal",
-      "description": "Dieselbe FFmpeg-Engine, die die Core-Bibliothek nutzt, zu WebAssembly kompiliert und auf deinem Rechner ausgeführt."
-    },
-    "templates": {
-      "title": "Vorlagengesteuert",
-      "description": "Komponiere aus echten JSON-Vorlagen – Filter, Overlays, Übergänge und Audio-Mixing inklusive."
+  "story": {
+    "eyebrow": "Die Geschichte bisher",
+    "title": "Von einer Node-Bibliothek auf jeden Bildschirm",
+    "lead": "LeClap begann als npm-Paket, das eine JSON-Vorlage in FFmpeg-Befehle kompiliert. Genau das tut es bis heute; seitdem ging es nur darum, diesen einen Schritt an mehr Orten laufen zu lassen.",
+    "today": "Heute",
+    "chapters": {
+      "origin": {
+        "title": "Vorlage rein, Video raus",
+        "body": "Das erste Release von ffmpeg-video-composer: eine Node-Bibliothek, die eine JSON-Vorlage liest, sie in FFmpeg-Befehle kompiliert und diese ausführt."
+      },
+      "everywhere": {
+        "title": "Dieselbe Vorlage auf jedem Bildschirm",
+        "body": "Die Engine bekommt einen Einstiegspunkt für den Browser, mit FFmpeg als WebAssembly, und einen für React Native, mit FFmpeg direkt in der App. Am selben Tag erscheinen die CLI und der MCP-Server als eigene Pakete."
+      },
+      "now": {
+        "title": "Ein Name für alles",
+        "body": "LeClap ist das Studio in diesem Browser, die React-Native-App, die CLI und der MCP-Server. Die Engine erscheint auf npm bis heute unter ihrem ersten, bewundernswert wörtlichen Namen: ffmpeg-video-composer."
+      }
     }
   },
   "author": {
+    "eyebrow": "Gemacht von",
     "name": "Alexandre Mogère",
     "handle": "@heristop",
     "bio": "Webentwickler aus Paris, der Tools baut, die Creator stärken, und auf Zazen Code über Coding & KI schreibt.",

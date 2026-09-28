@@ -48,14 +48,11 @@
       "subtitle": "Fülle die nötigen Angaben aus, um dein Video zu personalisieren"
     },
     "status": {
-      "required": "Pflichtfeld",
       "completed": "Feld ausgefüllt",
       "maxChars": "Maximal {{count}} Zeichen erlaubt",
-      "remaining": "{{count}} übrig",
       "counter": "{{count}}/{{max}}",
       "requiredMark": "erforderlich",
-      "fieldRequired": "Dieses Feld ist erforderlich",
-      "maxCharsLabel": "(max. {{count}} Zeichen)"
+      "fieldRequired": "Dieses Feld ist erforderlich"
     },
     "placeholder": {
       "firstName": "Gib deinen Vornamen ein",
@@ -64,12 +61,6 @@
       "keyword": "Gib ein Stichwort ein",
       "description": "Beschreibung eingeben …",
       "generic": "{{label}} eingeben"
-    },
-    "validation": {
-      "completeTitle": "Formular vollständig!",
-      "completeMessage": "Alle Pflichtfelder sind ausgefüllt. Bereit weiterzumachen.",
-      "incompleteTitle": "Formular unvollständig",
-      "incompleteMessage": "Bitte fülle noch {{count}} Feld(er) aus."
     },
     "noForm": {
       "title": "Kein Formular nötig",

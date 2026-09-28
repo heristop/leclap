@@ -5,8 +5,8 @@ import {
   type CompilationProgress,
   type CompilationResult,
 } from '@/application/usecases/coreCompilationService';
+import { classifyCompileFailure, type CompileFailure } from '@/application/usecases/compile-failure';
 import { logger } from '@/lib/logger';
-import i18n from '@/i18n';
 
 export type OnboardingStep = 'welcome' | 'create' | 'compiling' | 'done' | 'error';
 
@@ -18,9 +18,18 @@ const initialProgress: CompilationProgress = {
   currentStepIndex: 0,
 };
 
+// The entered name goes in the sample's first text field; the rest stay blank.
+const sampleFormData = (template: Template, name: string): Record<string, string> =>
+  Object.fromEntries(
+    templateService
+      .extractFormFields(template.descriptor)
+      .map((field, index) => [field.name, index === 0 ? name.trim() : ''])
+  );
+
 // The onboarding compile flow: step state + a start/stop pair around the in-browser compile. `stop`
-// cancels an in-flight compile (the engine halts at the next segment boundary) and closes via onClose;
-// the cancelled rejection is swallowed (wasCancelled) so it doesn't surface as the error step.
+// cancels an in-flight compile (the engine halts at the next segment boundary) and closes via onClose.
+// Each start gets a ticket that `stop` voids, so a stopped compile's late progress, result or failure
+// never reaches the dialog.
 export function useOnboardingCompile(opts: {
   sampleTemplateId: string;
   template: Template | null;
@@ -30,52 +39,51 @@ export function useOnboardingCompile(opts: {
   const [step, setStep] = useState<OnboardingStep>('welcome');
   const [progress, setProgress] = useState<CompilationProgress>(initialProgress);
   const [result, setResult] = useState<CompilationResult | null>(null);
-  const [errorMessage, setErrorMessage] = useState('');
-  const cancelledRef = useRef(false);
-  // Read through a closure so TS doesn't narrow it to `false` after the reset below.
-  const wasCancelled = () => cancelledRef.current;
+  const [failure, setFailure] = useState<CompileFailure | null>(null);
+  const ticket = useRef(0);
 
   const start = async (name: string, videoFile: File | null) => {
     if (!videoFile) return;
 
     setStep('compiling');
     setProgress(initialProgress);
-    cancelledRef.current = false;
+    ticket.current += 1;
+    const run = ticket.current;
 
     try {
       const sampleTemplate = template ?? (await templateService.getTemplate(sampleTemplateId));
 
       if (!sampleTemplate) throw new Error(`Sample template "${sampleTemplateId}" could not be loaded.`);
 
-      // Put the entered name in the first text field; leave the rest blank.
-      const fields = templateService.extractFormFields(sampleTemplate.descriptor);
-      const formData: Record<string, string> = {};
-
-      for (const [index, field] of fields.entries()) {
-        formData[field.name] = index === 0 ? name.trim() : '';
-      }
-
       const compiled = await coreCompilationService.compileVideo(
-        { template: sampleTemplate, formData, files: [videoFile] },
-        setProgress
+        { template: sampleTemplate, formData: sampleFormData(sampleTemplate, name), files: [videoFile] },
+        (update) => {
+          if (run === ticket.current) setProgress(update);
+        }
       );
+
+      if (run !== ticket.current) {
+        URL.revokeObjectURL(compiled.url);
+
+        return;
+      }
       setResult(compiled);
       setStep('done');
     } catch (error) {
-      // A user-initiated stop rejects the compile too — swallow it; the dialog is already closing.
-      if (wasCancelled()) return;
+      // A stopped compile rejects too: swallow it, the dialog is already closing.
+      if (run !== ticket.current) return;
 
       logger.error('Onboarding compilation failed:', error);
-      setErrorMessage(error instanceof Error ? error.message : i18n.t('onboarding:error.fallback'));
+      setFailure(classifyCompileFailure(error));
       setStep('error');
     }
   };
 
   const stop = () => {
-    cancelledRef.current = true;
+    ticket.current += 1;
     coreCompilationService.cancel();
     onClose();
   };
 
-  return { step, setStep, progress, result, errorMessage, start, stop };
+  return { step, setStep, progress, result, failure, start, stop };
 }

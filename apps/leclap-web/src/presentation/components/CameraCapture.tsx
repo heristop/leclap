@@ -4,6 +4,7 @@ import { X, Check, RotateCcw, Loader2, CameraOff, TimerReset } from '@/presentat
 import { SwitchCameraIcon } from '@/presentation/components/icons/switch-camera';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
+import { motion, useReducedMotion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { formatElapsed, type CaptureOrientation } from '@/hooks/useCameraCapture';
@@ -12,6 +13,7 @@ import type { CaptureMode } from '@leclap/creative-kit';
 import { Button } from '@/presentation/components/ui';
 import { VideoPreview } from '@/presentation/components/VideoPreview';
 import { FramingGuideOverlay } from '@/presentation/components/FramingGuideOverlay';
+import { ClappyCountdown } from '@/presentation/components/clappy';
 import type { FramingGuideConfig } from 'ffmpeg-video-composer/src/core/types.d.ts';
 
 interface CameraCaptureProps {
@@ -164,27 +166,86 @@ const CameraErrorView = ({ error, onRetry }: ErrorViewProps) => {
   );
 };
 
-// Big centered "3·2·1" over the live preview before recording starts. The number
-// is keyed so each tick re-triggers the pop-in, reading as a distinct beat.
-const CountdownOverlay = ({ value }: { value: number | null }) => {
-  const { t } = useTranslation('media');
+// How long "Action!" holds into the recording: Clappy's slam lands 0.12s into it and he has settled by
+// ~0.7s. The overlay is page chrome, so the beat is seen and never recorded.
+const ACTION_BEAT_MS = 700;
 
-  if (value === null) return null;
+// True for the moment right after a countdown hands over to the recording — the slate's "Action!".
+// A countdown the user cancels goes back to idle instead, and gets no slam.
+const useActionBeat = (state: CaptureState): boolean => {
+  const [beat, setBeat] = useState(false);
+  const previous = useRef(state);
+
+  useEffect(() => {
+    const counted = previous.current === 'countdown';
+    previous.current = state;
+
+    if (!counted || state !== 'recording') {
+      setBeat(false);
+
+      return () => {};
+    }
+
+    setBeat(true);
+    const id = window.setTimeout(() => {
+      setBeat(false);
+    }, ACTION_BEAT_MS);
+
+    return () => {
+      window.clearTimeout(id);
+    };
+  }, [state]);
+
+  return beat && state === 'recording';
+};
+
+// Clappy slates the take: through the big "3·2·1" he holds the clapper open, a beat on each number, and on
+// "Action!" he slams it shut (silently: the mic is live by then). The dim behind the count lifts the moment
+// the recording starts, so the person sees themself while the slam plays out, then the beat fades away.
+// The number is keyed so each tick re-triggers its pop-in, reading as a distinct beat.
+const CountdownOverlay = ({ value, action }: { value: number | null; action: boolean }) => {
+  const { t } = useTranslation('media');
+  const reduced = useReducedMotion() ?? false;
+
+  if (value === null && !action) return null;
+
+  const counting = value !== null;
 
   return (
-    <div
-      className="pointer-events-none absolute inset-0 z-20 grid place-items-center bg-black/45 backdrop-blur-[2px]"
-      aria-label={t('camera.recordingIn', { value })}
-    >
-      <div className="text-center">
-        <span
-          key={value}
-          className="pop-in block font-display font-extrabold leading-none text-white tabular-nums text-[7rem] sm:text-[9rem] [text-shadow:0_4px_28px_oklch(0_0_0/0.6)]"
-        >
-          {value}
-        </span>
-        <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/85">{t('camera.getReady')}</p>
-      </div>
+    <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-black/45 backdrop-blur-[2px] transition-opacity duration-150 ease-out motion-reduce:transition-none"
+        style={{ opacity: counting ? 1 : 0 }}
+      />
+      <span className="sr-only" role="status" aria-live="polite">
+        {counting ? t('camera.recordingIn', { value }) : t('camera.action')}
+      </span>
+      <motion.div
+        aria-hidden="true"
+        className="relative flex flex-col items-center text-center"
+        animate={{ opacity: counting || reduced ? 1 : [1, 1, 0] }}
+        transition={counting || reduced ? { duration: 0 } : { duration: ACTION_BEAT_MS / 1000, times: [0, 0.75, 1] }}
+      >
+        <ClappyCountdown value={value} size={112} />
+        {counting ? (
+          <>
+            <span
+              key={value}
+              className="pop-in -mt-1 block font-display font-extrabold leading-none text-white tabular-nums text-[6rem] sm:text-[8rem] [text-shadow:0_4px_28px_oklch(0_0_0/0.6)]"
+            >
+              {value}
+            </span>
+            <p className="mt-1 text-sm font-semibold uppercase tracking-[0.2em] text-white/85">
+              {t('camera.getReady')}
+            </p>
+          </>
+        ) : (
+          <span className="pop-in mt-3 block font-display text-4xl font-extrabold uppercase tracking-wide text-white sm:text-5xl [text-shadow:0_4px_28px_oklch(0_0_0/0.6)]">
+            {t('camera.action')}
+          </span>
+        )}
+      </motion.div>
     </div>
   );
 };
@@ -217,6 +278,8 @@ const RecordingHint = ({ text }: { text: string }) => (
 interface StageOverlaysProps {
   state: CaptureState;
   countdownValue: number | null;
+  // The "Action!" beat that follows a countdown into the recording (useActionBeat).
+  actionBeat: boolean;
   endingSoon: boolean;
   framingGuide?: FramingGuideConfig;
   description?: string;
@@ -225,15 +288,26 @@ interface StageOverlaysProps {
 // The stacked live-preview overlays. The "what to film" hint only guides framing before capture, so it
 // clears once recording starts — recording shows just the live feed and the record control (plus the
 // end-warning beat near the duration cap, and the countdown on top before that).
-const StageOverlays = ({ state, countdownValue, endingSoon, framingGuide, description }: StageOverlaysProps) => {
+const StageOverlays = ({
+  state,
+  countdownValue,
+  actionBeat,
+  endingSoon,
+  framingGuide,
+  description,
+}: StageOverlaysProps) => {
   const framingPhase = state === 'idle' || state === 'countdown';
 
   return (
     <>
-      {framingGuide && state !== 'preview' && <FramingGuideOverlay guide={framingGuide} />}
+      {framingGuide && state !== 'preview' && (
+        <FramingGuideOverlay guide={framingGuide} recording={state === 'recording'} />
+      )}
       {description && framingPhase && <RecordingHint text={description} />}
       {endingSoon && <EndWarningOverlay />}
-      {state === 'countdown' && <CountdownOverlay value={countdownValue} />}
+      {(state === 'countdown' || actionBeat) && (
+        <CountdownOverlay value={state === 'countdown' ? countdownValue : null} action={actionBeat} />
+      )}
     </>
   );
 };
@@ -324,7 +398,7 @@ const UploadControls = ({ onOpen, fileName }: { onOpen: () => void; fileName?: s
   return (
     <div className="flex items-center justify-center gap-4">
       <Button onClick={onOpen} size="lg">
-        {t('camera.chooseFile', 'Choose file')}
+        {t('upload.pickFile')}
       </Button>
       {fileName && <p className="text-white/80 text-sm truncate max-w-xs">{fileName}</p>}
     </div>
@@ -355,6 +429,7 @@ interface BackgroundStageProps {
   fileName?: string;
   videoRef: React.RefObject<HTMLVideoElement | null>;
   countdownValue: number | null;
+  actionBeat: boolean;
   endingSoon: boolean;
 }
 
@@ -372,8 +447,11 @@ function BackgroundStage({
   fileName,
   videoRef,
   countdownValue,
+  actionBeat,
   endingSoon,
 }: BackgroundStageProps) {
+  const { t } = useTranslation('media');
+
   if (state === 'error') {
     return <CameraErrorView error={error} onRetry={onRetry} />;
   }
@@ -381,7 +459,6 @@ function BackgroundStage({
   if (mode === 'upload') {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8 w-full h-full">
-        <p className="text-white/60 text-sm text-center">Pick a video from your device</p>
         <UploadControls onOpen={onFileSelect} fileName={fileName} />
       </div>
     );
@@ -400,7 +477,7 @@ function BackgroundStage({
         {/* Live preview (hidden while reviewing the recording) */}
         <video
           ref={videoRef}
-          aria-label="Live camera preview"
+          aria-label={t('camera.livePreviewAria')}
           playsInline
           autoPlay
           muted
@@ -419,7 +496,7 @@ function BackgroundStage({
         {state === 'preview' && previewUrl && (
           <div className="absolute inset-0 flex items-center justify-center bg-black px-3 pb-[11.5rem] pt-20 sm:px-4 sm:pb-32 sm:pt-24">
             <div className="h-full w-full max-w-[min(100%,26rem)]">
-              <VideoPreview url={previewUrl} autoPlay loop muted fill />
+              <VideoPreview url={previewUrl} autoPlay loop muted fill label={null} />
             </div>
           </div>
         )}
@@ -427,6 +504,7 @@ function BackgroundStage({
         <StageOverlays
           state={state}
           countdownValue={countdownValue}
+          actionBeat={actionBeat}
           endingSoon={endingSoon}
           framingGuide={framingGuide}
           description={description}
@@ -435,8 +513,8 @@ function BackgroundStage({
 
       {state === 'loading' && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-foreground/80">
-          <Loader2 className="w-8 h-8 animate-spin" />
-          <p className="text-sm">Starting camera…</p>
+          <Loader2 className="w-8 h-8 animate-spin motion-reduce:animate-none" />
+          <p className="text-sm">{t('camera.starting')}</p>
         </div>
       )}
     </>
@@ -463,6 +541,8 @@ export const CameraCapture = ({
     maxDuration: maxDurationSeconds,
     orientation,
   });
+
+  const actionBeat = useActionBeat(session.state);
 
   // Keep a stable ref so confirming doesn't depend on the parent re-creating onCapture each render.
   const onCaptureRef = useRef(onCapture);
@@ -506,6 +586,7 @@ export const CameraCapture = ({
           fileName={session.result?.name}
           videoRef={session.videoRef}
           countdownValue={session.countdownValue}
+          actionBeat={actionBeat}
           endingSoon={session.endingSoon}
         />
       </div>

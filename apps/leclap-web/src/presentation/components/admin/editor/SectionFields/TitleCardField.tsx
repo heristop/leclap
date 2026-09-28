@@ -5,15 +5,7 @@
 import { useTranslation } from 'react-i18next';
 import { FONTS, isFontRef } from '@leclap/creative-kit/fonts';
 import { fontLabel, type TitleCard } from '../../templateEditorModel';
-import {
-  Checkbox,
-  ColorPicker,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/presentation/components/ui';
+import { Checkbox, ColorPicker, Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { SegmentedControl, type SegmentOption } from '../controls';
 import { AccentControl } from '../AccentControl';
@@ -22,6 +14,7 @@ import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
 import { VariableTextField } from '../VariableTextField';
 import { FONT_REF_OPTION, fontPickerValue } from '../font-picker';
+import { EditorSelectContent } from '../editor-select-content';
 
 type Align = NonNullable<TitleCard['align']>;
 type LineStyle = NonNullable<TitleCard['kickerStyle']>;
@@ -295,7 +288,7 @@ const LineStyleControl = ({
             <SelectTrigger aria-label={t('titleCard.font')} className="w-full">
               <SelectValue placeholder={t('titleCard.fontDefault')} />
             </SelectTrigger>
-            <SelectContent>
+            <EditorSelectContent>
               {isFontRef(style?.font) ? (
                 <SelectItem value={FONT_REF_OPTION} disabled>
                   {fontLabel(style.font)}
@@ -306,7 +299,7 @@ const LineStyleControl = ({
                   {font.label}
                 </SelectItem>
               ))}
-            </SelectContent>
+            </EditorSelectContent>
           </Select>
         </div>
         <NumberField

@@ -20,21 +20,14 @@ import {
   type CaptionStyle,
   type VisualCaption,
 } from '../../templateEditorModel';
-import {
-  Checkbox,
-  ColorPicker,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/presentation/components/ui';
+import { Checkbox, ColorPicker, Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { SegmentedControl, RangeSlider, type SegmentOption } from '../controls';
 import { SectionDisclosure } from '../SectionDisclosure';
 import { RevealControl } from '../RevealControl';
 import { TextEffectControl } from '../TextEffectControl';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { FONT_REF_OPTION, fontPickerValue } from '../font-picker';
+import { EditorSelectContent } from '../editor-select-content';
 
 const DEFAULT_FONTSIZE = 48;
 
@@ -170,7 +163,7 @@ const CaptionAdvanced = ({
             <SelectTrigger aria-label={t('caption.font')} className="w-full">
               <SelectValue placeholder={t('caption.fontDefault')} />
             </SelectTrigger>
-            <SelectContent>
+            <EditorSelectContent>
               {isFontRef(caption.font) ? (
                 <SelectItem value={FONT_REF_OPTION} disabled>
                   {fontLabel(caption.font)}
@@ -181,7 +174,7 @@ const CaptionAdvanced = ({
                   {font.label}
                 </SelectItem>
               ))}
-            </SelectContent>
+            </EditorSelectContent>
           </Select>
         </div>
         <NumberField

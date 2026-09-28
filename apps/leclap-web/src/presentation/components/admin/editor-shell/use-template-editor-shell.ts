@@ -1,7 +1,7 @@
 // State hooks lifted out of TemplateEditorShell to keep the shell component itself thin: the live
 // program monitor (playable timeline + rAF clock + play-mode bookkeeping) and template persistence
 // (guard + projection + save). The shell composes these with the shared editor-state hooks.
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TFunction } from 'i18next';
 import { useReducedMotion } from 'motion/react';
 import { templateService, type Template } from '@/services/templateService';
@@ -10,20 +10,7 @@ import type { StoredTemplate } from '@/stores/userTemplateStore';
 import { buildDescriptor, type EditorState } from '../templateEditorModel';
 import { buildMasterTimeline } from './program-timeline.logic';
 import { useProgramClock } from './use-program-clock';
-
-// Save guard mirroring TemplateEditor's saveGuardError: name + at least one section + media-or-upload.
-// Returns true when the template is NOT yet safe to save.
-export function saveGuardFails(state: EditorState): boolean {
-  if (state.name.trim() === '') return true;
-
-  if (state.sections.length === 0) return true;
-
-  const emptyMedia = state.sections.find(
-    (s) => (s.kind === 'music' || s.kind === 'image') && s.allowed.length === 0 && !s.allowUpload
-  );
-
-  return Boolean(emptyMedia);
-}
+import { saveBlocker, saveFeedback, type SaveBlocker } from './save-blocker.logic';
 
 // Editor state -> persisted user Template (same projection as TemplateEditor.toUserTemplate).
 function toUserTemplate(state: EditorState): Template {
@@ -70,22 +57,47 @@ interface PersistenceArgs {
   t: TFunction<'admin'>;
   onSaved: (saved: StoredTemplate) => void;
   onSaveAndCompile?: (saved: StoredTemplate) => void;
+  // Shows a scene: a save refused over an empty media scene lands the author on it.
+  onShowScene?: (index: number) => void;
 }
 
-// Save/persist for the shell: guards, projects to a user Template, writes it, and surfaces a save
-// error. Exposes the guard flag too, so the titlebar's disabled state and the save path share it.
-export function useTemplatePersistence({ state, t, onSaved, onSaveAndCompile }: PersistenceArgs) {
-  const [error, setError] = useState('');
-  const guardFails = saveGuardFails(state);
+// Save/persist for the shell: guards, projects to a user Template, writes it, and reports back through
+// one `feedback` line beside the Save button. A refused save doesn't fail silently: it names the
+// blocker until the author fixes it — but only once they've asked to save, so a template just started
+// isn't nagged — and takes them to it: the titlebar's name field (`nameRef`), or the media scene that
+// offers nothing. A failed write says so there too.
+export function useTemplatePersistence({ state, t, onSaved, onSaveAndCompile, onShowScene }: PersistenceArgs) {
+  // The thrown message of the last failed write ('' when it had none); null while nothing failed.
+  const [failure, setFailure] = useState<string | null>(null);
+  const [attempted, setAttempted] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const blocker = saveBlocker(state);
+
+  const refuse = (reason: SaveBlocker): void => {
+    setAttempted(true);
+
+    if (reason.kind === 'name') {
+      nameRef.current?.focus();
+
+      return;
+    }
+
+    if (reason.kind === 'media') onShowScene?.(reason.index);
+  };
 
   const persist = (): StoredTemplate | null => {
-    if (saveGuardFails(state)) return null;
-    setError('');
+    if (blocker) {
+      refuse(blocker);
+
+      return null;
+    }
+    setFailure(null);
+    setAttempted(false);
 
     try {
       return userTemplateService.save(toUserTemplate(state));
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : t('validation.saveFailed'));
+      setFailure(saveError instanceof Error ? saveError.message : '');
 
       return null;
     }
@@ -103,5 +115,13 @@ export function useTemplatePersistence({ state, t, onSaved, onSaveAndCompile }: 
     if (saved) onSaveAndCompile?.(saved);
   };
 
-  return { error, guardFails, handleSave, handleSaveAndCompile };
+  const shownBlocker = attempted ? blocker : null;
+
+  return {
+    nameRef,
+    blocker: shownBlocker,
+    feedback: saveFeedback(shownBlocker, failure, t),
+    handleSave,
+    handleSaveAndCompile,
+  };
 }

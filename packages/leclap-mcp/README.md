@@ -47,7 +47,9 @@ the render-free findings come back either way.
 An agent working on a code change can use LeClap to package visual evidence for review:
 
 1. Collect a short, real screen recording and state what the reviewer should inspect.
-2. Author or reuse a review template such as [`examples/agentic-pr-video`](../../examples/agentic-pr-video).
+2. Author or reuse a review template such as [`examples/agentic-pr-video`](../../examples/agentic-pr-video), or its
+   [evidence-video skill](../../examples/agentic-pr-video/evidence-skill), which composes before/after cards and panels
+   with measured captions first.
 3. Call `validate_template` until the descriptor is valid.
 4. Call `compose_video` with the recording in `userVideoPaths` and the review context in `fields`.
 5. Attach the returned `outputPath` to the PR or MR beside the diff.

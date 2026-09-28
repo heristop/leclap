@@ -38,6 +38,10 @@ export const HomeShowcase = () => {
   const { muted, volume, toggle, changeVolume, refuse, adopt } = useFilmSound(videoRef);
   const [paused, setPaused] = useState(true);
   const [held, setHeld] = useState(false);
+  // The controls exist before the clip does, so a keyboard visitor tabbing down the page lands on them instead
+  // of skipping the frame (focusing one scrolls it near, and the clip mounts): the pill from the first render,
+  // and under reduced motion the native player itself, which fetches nothing until the frame nears the viewport.
+  const mounted = shouldLoad || reduced;
   // Store the element AND set `muted` as an attribute the instant it mounts, before the browser
   // evaluates autoplay eligibility — otherwise some browsers refuse the scroll-triggered play(). It
   // starts on the landing's sound (muted, unless the visitor already turned it on): the same state the
@@ -104,7 +108,7 @@ export const HomeShowcase = () => {
             controlLabel={t('showcase.badge')}
             paused={paused}
             control={
-              shouldLoad && !reduced ? (
+              reduced ? undefined : (
                 <>
                   <SoundControl
                     muted={muted}
@@ -117,18 +121,18 @@ export const HomeShowcase = () => {
                     {paused ? <Play /> : <Pause />}
                   </FrameButton>
                 </>
-              ) : undefined
+              )
             }
           >
             {/* Shimmer placeholder holds the frame until the video is mounted. */}
-            {!shouldLoad && (
+            {!mounted && (
               <div
                 aria-hidden="true"
                 className="absolute inset-0 animate-pulse bg-linear-to-br from-brand-500/20 via-secondary-500/10 to-accent-400/15"
               />
             )}
 
-            {shouldLoad && (
+            {mounted && (
               <video
                 ref={setVideoEl}
                 className="h-full w-full object-cover"
@@ -136,7 +140,7 @@ export const HomeShowcase = () => {
                 loop
                 playsInline
                 controls={reduced}
-                preload="auto"
+                preload={shouldLoad ? 'auto' : 'none'}
                 aria-label={t('showcase.videoAria')}
                 onLoadedData={(event) => {
                   if (reduced || !playInView || held) return;

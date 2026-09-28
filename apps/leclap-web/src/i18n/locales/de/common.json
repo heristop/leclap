@@ -27,10 +27,9 @@
   "nav": {
     "home": "Start",
     "studio": "Studio",
-    "projects": "Projekte",
     "templates": "Vorlagen",
     "docs": "Docs",
-    "about": "Über uns",
+    "about": "Über LeClap",
     "primaryLabel": "Primär"
   },
   "header": {
@@ -99,5 +98,12 @@
       "title": "Schnitt! Bei uns ist etwas kaputtgegangen.",
       "message": "LeClap ist auf einen Fehler gestoßen, mit dem es nicht gerechnet hat. Deine gespeicherten Projekte bleiben in diesem Browser – Neuladen rührt sie nicht an."
     }
+  },
+  "compileError": {
+    "missingClip": "Diese Vorlage braucht mindestens einen Clip.",
+    "unreadableClip": "Einer deiner Clips ließ sich nicht lesen: Er ist vielleicht beschädigt oder in einem Format, das dieser Browser nicht öffnen kann.",
+    "assemblyFailed": "Die Szenen ließen sich nicht zu einem Video zusammenfügen.",
+    "stopped": "Das Rendern wurde gestoppt.",
+    "unknown": "Die Render-Engine hat einen Fehler gemeldet."
   }
 }

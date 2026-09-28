@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   looped it. Tracks already rewritten are not repaired.
 - After a failed compile in a long-lived process (e.g. `leclap render --watch`), a compile with
   music enabled but no track resolved no longer mixes the failed compile's track.
+- A background track shorter than the video now loops whatever its container. The Node loop
+  joined copies of the file byte for byte, which only loops a bare MP3 stream: an MP4 container
+  named `.mp3` (`pop.mp3`, `point-being.mp3` and `future-bass-energy.mp3` in the bundled library,
+  or a track an earlier version rewrote in place) played once and then fell silent, and an MP3
+  with embedded cover art (`air-prelude.mp3`, `anxiety.mp3`, `arcadia.mp3`) failed the render,
+  on device too. Both loops now repeat the track's demuxed audio alone.
 
 ## [2.3.0] - 2026-08-16
 

@@ -47,6 +47,15 @@ abstract class AbstractFFmpeg {
     return false;
   }
 
+  /**
+   * Why `getInfos()` cannot run on this adapter at all, or null when it can. Only the static adapter
+   * gets here — ffmpeg-static ships no ffprobe — and the director checks it before rendering a
+   * template that needs probing, so the render stops up front instead of after every segment encodes.
+   */
+  get probeUnavailableReason(): string | null {
+    return null;
+  }
+
   abstract execute(command: string): Promise<{ rc: number }>;
 
   abstract getInfos(source: string): Promise<FFMpegInfos>;

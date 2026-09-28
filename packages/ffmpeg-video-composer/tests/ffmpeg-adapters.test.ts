@@ -151,6 +151,7 @@ import FFmpegWasmAdapter from '@/platform/ffmpeg/FFmpegWasmAdapter';
 import MusicNodeAdapter from '@/platform/ffmpeg/MusicNodeAdapter';
 import AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
 import AbstractMusic from '@/platform/ffmpeg/AbstractMusic';
+import { FFmpegError } from '@/core/errors/FFmpegError';
 import type AbstractFilesystem from '@/platform/filesystem/AbstractFilesystem';
 import type AbstractLogger from '@/platform/logging/AbstractLogger';
 
@@ -319,6 +320,15 @@ describe('FFmpegNodeAdapter', () => {
 // FFmpegStaticAdapter
 // ===========================================================================
 describe('FFmpegStaticAdapter', () => {
+  // ffmpeg-static ships no ffprobe and this repo doesn't install ffprobe-static, so the real install
+  // resolves none; the probing tests below hand the adapter the ffprobe a full FFmpeg install provides.
+  function staticAdapterWithFfprobe(ffprobePath = '/opt/ffmpeg/bin/ffprobe'): FFmpegStaticAdapter {
+    const adapter = new FFmpegStaticAdapter();
+    (adapter as unknown as { ffprobePath: string | null }).ffprobePath = ffprobePath;
+
+    return adapter;
+  }
+
   it('execute() quotes the static binary path and forwards args, returning rc 0', async () => {
     const adapter = new FFmpegStaticAdapter();
 
@@ -342,8 +352,8 @@ describe('FFmpegStaticAdapter', () => {
     await expect(adapter.execute('-i x.mp4')).rejects.toThrow('static-stderr');
   });
 
-  it('getInfos() runs the static ffprobe binary and parses streams', async () => {
-    const adapter = new FFmpegStaticAdapter();
+  it('getInfos() runs the resolved ffprobe binary and parses streams', async () => {
+    const adapter = staticAdapterWithFfprobe();
     execHandler = () => ({
       stdout: probeJson([
         { codec_type: 'video', codec_name: 'vp9', duration: '7.25' },
@@ -361,12 +371,12 @@ describe('FFmpegStaticAdapter', () => {
       sampleRate: 48000,
     });
     // ffprobe binary run via execFile, with the JSON-streams flags and raw source.
-    expect(execFileCalls[0].file).toMatch(/ffprobe$/);
+    expect(execFileCalls[0].file).toBe('/opt/ffmpeg/bin/ffprobe');
     expect(execFileCalls[0].args).toEqual(['-v', 'quiet', '-print_format', 'json', '-show_streams', 'movie.webm']);
   });
 
   it('getInfos() returns nulls when ffprobe reports no streams', async () => {
-    const adapter = new FFmpegStaticAdapter();
+    const adapter = staticAdapterWithFfprobe();
     execHandler = () => ({ stdout: probeJson([]), stderr: '' });
 
     const infos = await adapter.getInfos('empty.webm');
@@ -380,7 +390,7 @@ describe('FFmpegStaticAdapter', () => {
   });
 
   it('getInfos() throws an FFmpegError (static) on ffprobe failure', async () => {
-    const adapter = new FFmpegStaticAdapter();
+    const adapter = staticAdapterWithFfprobe();
     execHandler = () => {
       throw Object.assign(new Error('probe fail'), { stderr: 'oops' });
     };
@@ -388,21 +398,18 @@ describe('FFmpegStaticAdapter', () => {
     await expect(adapter.getInfos('bad.webm')).rejects.toThrow('FFprobe analysis failed for bad.webm (static)');
   });
 
-  it('derives the ffprobe path from the ffmpeg path when ffprobe-static is absent', async () => {
-    // ffprobe-static is not installed in this repo, so the constructor's
-    // catch-branch derives the ffprobe binary path from the ffmpeg one
-    // (.../ffmpeg -> .../ffprobe). The spawned probe command must point at it.
+  it('getInfos() fails fast, naming ffprobe and its install, when ffmpeg-static ships no ffprobe', async () => {
+    // The real install. The old name-swapped fallback spawned a …/ffmpeg-static/ffprobe that doesn't
+    // exist, which only surfaced as "could not probe segment … (static)" once every segment had rendered.
     const adapter = new FFmpegStaticAdapter();
-    execHandler = () => ({
-      stdout: probeJson([{ codec_type: 'video', codec_name: 'h264', duration: '1.0' }]),
-      stderr: '',
-    });
 
-    await adapter.getInfos('clip.mp4');
+    const error = await adapter.getInfos('clip.mp4').catch((caught: unknown) => caught);
 
-    expect(execFileCalls[0].file).toMatch(/ffprobe$/);
-    // The probe path is the ffmpeg path with a trailing 'ffmpeg' swapped for 'ffprobe'.
-    expect(execFileCalls[0].file).not.toMatch(/ffmpeg$/);
+    expect(error).toBeInstanceOf(FFmpegError);
+    expect((error as Error).message).toMatch(/ffprobe not found/);
+    expect((error as Error).message).toMatch(/brew install ffmpeg/);
+    expect(execFileCalls).toHaveLength(0);
+    expect(adapter.probeUnavailableReason).toBe((error as Error).message);
   });
 
   it('execute() throws when the ffmpeg binary path is unavailable', async () => {
@@ -415,12 +422,8 @@ describe('FFmpegStaticAdapter', () => {
     expect(execCommands).toHaveLength(0);
   });
 
-  it('getInfos() throws when the ffprobe binary path is unavailable', async () => {
-    const adapter = new FFmpegStaticAdapter();
-    (adapter as unknown as { ffprobePath: string | null }).ffprobePath = null;
-
-    await expect(adapter.getInfos('a.mp4')).rejects.toThrow('FFprobe static binary not available');
-    expect(execCommands).toHaveLength(0);
+  it('reports no probe restriction once an ffprobe is resolved', () => {
+    expect(staticAdapterWithFfprobe().probeUnavailableReason).toBeNull();
   });
 });
 

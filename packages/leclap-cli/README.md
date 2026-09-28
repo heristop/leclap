@@ -69,6 +69,23 @@ CLI itself never needs it.
 The engine resolves FFmpeg in this order: system FFmpeg (fastest) → `ffmpeg-static` → `@ffmpeg/ffmpeg`
 (WASM). Run `leclap diagnose` to see what your environment provides.
 
+`ffmpeg-static` ships `ffmpeg` but no `ffprobe`. Templates with transitions, music, whole-video overlays
+(`global.animations`, `global.watermark`) or `project_video` clips need an ffprobe to read their media,
+so on that path LeClap looks for one in two places:
+
+- the optional `ffprobe-static` package (large: it bundles a binary for every platform);
+- an `ffprobe` next to the `ffmpeg-static` binary, for example when `FFMPEG_BIN` points at an FFmpeg
+  build that ships both.
+
+With neither, the render stops before encoding anything. The reason, which names the missing binary
+and how to install it, is written to the render log (`build/render.log`). Background music uses
+neither: it still runs `ffprobe` and `ffmpeg` from PATH, so a template with music needs FFmpeg
+installed.
+
+Installing FFmpeg (`brew install ffmpeg`, `sudo apt install ffmpeg`) provides both binaries, and
+LeClap then uses it instead of `ffmpeg-static`. For templates that draw text, that FFmpeg needs the
+`drawtext` filter.
+
 ## Standalone binaries
 
 `pnpm build:exe` produces self-contained executables (Windows / macOS / Linux) under `dist/bin` via

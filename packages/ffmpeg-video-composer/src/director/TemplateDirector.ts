@@ -14,7 +14,7 @@ import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
 import { resolveOrientationScale, resolveFps } from './resolve-video-config';
-import { hasWholeVideoOverlays } from '../editor/presets/watermark';
+import { assertCanProbe, renderNeeds } from './render-needs';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import type { TemplateDescriptor as SchemaTemplateDescriptor } from '../schemas/template.schemas';
 import { expandPartialsSafe } from '@/core/partials';
@@ -186,6 +186,8 @@ class TemplateDirector {
     const timer = getPerfTimer();
 
     this.buildTransitions(videoSegments);
+    const needs = renderNeeds(this.template.descriptor.global, this.project.buildInfos);
+    assertCanProbe(this.ffmpegAdapter, needs, videoSegments);
     await timer.span('director:calculateTotalLength', () => this.calculateTotalLength(videoSegments));
 
     this.logger.info(`[TemplateDirection] Length: ${this.project.buildInfos.totalLength}`);
@@ -322,16 +324,16 @@ class TemplateDirector {
 
   finalizeCompilation = async (segments: Section[]): Promise<string | null> => {
     const transitions = this.project.buildInfos.transitions;
-    const hasTransition = transitions.some((transition) => transition.type !== 'cut');
     const global = this.template.descriptor.global;
+    const { hasTransition, hasAnimations, musicWillRun } = renderNeeds(global, this.project.buildInfos);
     const buildDir = this.filesystemAdapter.getBuildDir() ?? 'build';
 
     return runFinalize({
       segments,
       hasTransition,
-      hasAnimations: hasWholeVideoOverlays(global),
+      hasAnimations,
       musicEnabled: Boolean(global?.musicEnabled),
-      musicWillRun: Boolean(global?.musicEnabled) && Boolean(this.project.buildInfos.musicPath),
+      musicWillRun,
       normalizeWillRun: !global?.musicEnabled && this.musicComposer.hasNormalization(),
       disableFold: Boolean(process.env.FVC_DISABLE_CONCAT_FOLD),
       finalPath: `${buildDir}/output.mp4`,

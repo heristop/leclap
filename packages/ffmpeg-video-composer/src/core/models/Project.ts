@@ -62,6 +62,8 @@ class Project {
     bi.videoInputs.length = bi.musicInputs.length = bi.musicFilters.length = bi.transitions.length = 0;
     bi.durations = {};
     bi.sourceHasAudio = {};
+    // loadMusic leaves musicPath untouched when no track resolves, and it may still hold the last build's loop copy.
+    bi.musicPath = '';
     this.errors.length = 0;
     this.finalVideo = '';
   };

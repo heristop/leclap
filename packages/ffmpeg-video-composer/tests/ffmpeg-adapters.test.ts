@@ -51,7 +51,8 @@ vi.mock('node:child_process', () => {
   return { execFile, default: { execFile } };
 });
 
-// fs/promises is used by MusicNodeAdapter (unlink / rename of looped file).
+// fs/promises is mocked so a MusicNodeAdapter that unlinks or renames the source track it was handed shows up
+// as a recorded call: that track may be the caller's library or the package's own, and must never be touched.
 const fsMocks = {
   unlink: vi.fn<(p: string) => Promise<void>>(),
   rename: vi.fn<(a: string, b: string) => Promise<void>>(),
@@ -244,11 +245,17 @@ describe('Abstract base classes', () => {
 
   it('AbstractMusic can be subclassed and its process contract implemented', async () => {
     class TestMusic extends (AbstractMusic as unknown as { new (): object }) {
-      process = async () => ({ rc: 0 });
+      process = async (_logger: AbstractLogger, _fs: AbstractFilesystem, _totalLength: number, musicPath: string) => ({
+        rc: 0,
+        musicPath,
+      });
     }
 
     const instance = new TestMusic() as unknown as AbstractMusic;
-    await expect(instance.process(makeLogger(), makeFs(), 0, '/m.mp3')).resolves.toEqual({ rc: 0 });
+    await expect(instance.process(makeLogger(), makeFs(), 0, '/m.mp3')).resolves.toEqual({
+      rc: 0,
+      musicPath: '/m.mp3',
+    });
   });
 });
 
@@ -802,14 +809,15 @@ describe('MusicNodeAdapter', () => {
 
     const result = await adapter.process(logger, makeFs(), 60, '/music.mp3');
 
-    expect(result).toEqual({ rc: 0 });
+    // Long enough already: the source itself is what gets mixed.
+    expect(result).toEqual({ rc: 0, musicPath: '/music.mp3' });
     expect(logger.info).toHaveBeenCalledWith('[Music] Duration: 120 / 60');
     // Only the ffprobe duration call ran; no looping ffmpeg command.
     expect(execCommands.every((c) => !c.includes('-acodec copy'))).toBe(true);
     expect(fsMocks.rename).not.toHaveBeenCalled();
   });
 
-  it('process() loops the music when it is shorter than the total length', async () => {
+  it('process() loops a short track into the build dir and returns that copy, leaving the source untouched', async () => {
     const adapter = new MusicNodeAdapter();
     const logger = makeLogger();
     // music = 10s, total = 35s -> needs 4 repetitions (concat with 3 extra '|').
@@ -823,13 +831,19 @@ describe('MusicNodeAdapter', () => {
 
     const result = await adapter.process(logger, makeFs(), 35, '/music.mp3');
 
-    expect(result).toEqual({ rc: 0 });
-    const loopCmd = execCommands.find((c) => c.includes('-acodec copy'));
-    expect(loopCmd).toBeDefined();
-    // 4 occurrences of the music path inside the concat input.
-    expect(loopCmd!.match(/\/music\.mp3/g)!.length).toBe(4);
-    expect(fsMocks.unlink).toHaveBeenCalledWith('/music.mp3');
-    expect(fsMocks.rename).toHaveBeenCalledTimes(1);
+    // The same stream-copy loop, written to the build dir and returned as the track to mix...
+    expect(execFileCalls.at(-1)?.args).toEqual([
+      '-y',
+      '-i',
+      'concat:/music.mp3|/music.mp3|/music.mp3|/music.mp3',
+      '-acodec',
+      'copy',
+      '/build/loop_music.mp4',
+    ]);
+    expect(result).toEqual({ rc: 0, musicPath: '/build/loop_music.mp4' });
+    // ...while the track it was handed is never replaced by it.
+    expect(fsMocks.unlink).not.toHaveBeenCalled();
+    expect(fsMocks.rename).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith('[Music][Loop] ffmpeg process completed');
   });
 

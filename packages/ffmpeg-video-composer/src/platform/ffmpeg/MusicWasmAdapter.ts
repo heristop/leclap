@@ -6,6 +6,7 @@ import type AbstractMusic from './AbstractMusic';
 
 interface ProcessResult {
   rc: number;
+  musicPath: string;
 }
 
 @injectable()
@@ -13,7 +14,7 @@ class MusicWasmAdapter implements AbstractMusic {
   /**
    * Loop the background track to cover the full video length, in the browser.
    * Probes duration via the WASM FFmpeg adapter; if the track is shorter than the
-   * video, `-stream_loop`s it and writes the result back over `musicPath`.
+   * video, `-stream_loop`s it into the build dir and returns that copy's path.
    */
   process = async (
     logger: AbstractLogger,
@@ -27,12 +28,12 @@ class MusicWasmAdapter implements AbstractMusic {
       logger.info(`[MusicWasmAdapter] Duration: ${musicLength} / ${totalLength}`);
 
       if (musicLength <= 0 || musicLength >= totalLength) {
-        return { rc: 0 };
+        return { rc: 0, musicPath };
       }
 
-      await this.loopToLength(ffmpeg, logger, filesystemAdapter, totalLength, musicPath);
+      const loopPath = await this.loopToLength(ffmpeg, logger, filesystemAdapter, totalLength, musicPath);
 
-      return { rc: 0 };
+      return { rc: 0, musicPath: loopPath };
     } catch (error: unknown) {
       if (!(error instanceof Error)) {
         logger.error('[MusicWasmAdapter] Unknown error occurred');
@@ -52,7 +53,7 @@ class MusicWasmAdapter implements AbstractMusic {
     filesystemAdapter: AbstractFilesystem,
     totalLength: number,
     musicPath: string
-  ): Promise<void> {
+  ): Promise<string> {
     const buildDir = filesystemAdapter.getBuildDir() ?? '/tmp/build';
     const loopPath = `${buildDir}/loop_music.mp3`;
     const command = ` -y -stream_loop -1 -i ${musicPath} -t ${totalLength} -c copy ${loopPath} `;
@@ -64,8 +65,9 @@ class MusicWasmAdapter implements AbstractMusic {
       throw new Error('Failed to loop music in browser');
     }
 
-    await filesystemAdapter.move(loopPath, musicPath);
     logger.info('[MusicWasmAdapter][Loop] ffmpeg process completed');
+
+    return loopPath;
   }
 }
 

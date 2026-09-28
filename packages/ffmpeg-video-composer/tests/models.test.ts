@@ -172,6 +172,7 @@ describe('Project', () => {
       project.buildInfos.currentIncrement = 4;
       project.buildInfos.currentLength = 42;
       project.buildInfos.totalLength = 42;
+      project.buildInfos.musicPath = '/build/loop_music.mp4';
       project.errors.push('prior-section');
       project.finalVideo = '/build/old.mp4';
 
@@ -187,6 +188,8 @@ describe('Project', () => {
       expect(project.buildInfos.currentIncrement).toBe(0);
       expect(project.buildInfos.currentLength).toBe(0);
       expect(project.buildInfos.totalLength).toBe(0);
+      // A compile whose music is enabled but resolves no track must not mix, or loop over, the last build's copy.
+      expect(project.buildInfos.musicPath).toBe('');
       expect(project.errors).toEqual([]);
       expect(project.finalVideo).toBe('');
     });

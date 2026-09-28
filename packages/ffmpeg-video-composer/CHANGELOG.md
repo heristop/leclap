@@ -71,6 +71,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- In the browser, a segment FFmpeg fails to write no longer passes for a fresh render. ffmpeg.wasm's
+  in-memory filesystem outlives a render, so an output an earlier render left at the same path
+  counted as this command's output: a failed segment "succeeded", and a clip FFmpeg couldn't read
+  rendered as the previous render's clip. `FFmpegWasmAdapter` now deletes a command's output path
+  before running it, unless the command also reads that path.
 - A section that fails to build now fails the whole compile. The build error (an asset or font
   that can't be resolved, for instance) used to be logged and swallowed: the section rendered
   nothing, the concat skipped it, and `compile()` resolved `output.mp4` without that section.

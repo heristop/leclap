@@ -99,7 +99,13 @@ async function initializeBrowserPlatform(): Promise<void> {
 
       throw error;
     }
-  })();
+  })().catch((error: unknown) => {
+    // A failed attempt (the core couldn't load offline, say) mustn't stick until the page reloads: the next
+    // compile tries again, with a fresh adapter.
+    initializationPromise = null;
+
+    throw error;
+  });
 
   return initializationPromise;
 }

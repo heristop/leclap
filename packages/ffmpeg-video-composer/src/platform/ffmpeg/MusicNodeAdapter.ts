@@ -73,7 +73,6 @@ class MusicNodeAdapter implements AbstractMusic {
    * Loop the music file to match the required total length, into a copy in the build directory
    * @param logger - Logger instance
    * @param musicPath - Path to the music file
-   * @param musicLength - Duration of the music file in seconds
    * @param totalLength - Required total length in seconds
    * @param buildDir - Directory to store the looped file
    * @returns Path of the looped copy
@@ -81,22 +80,28 @@ class MusicNodeAdapter implements AbstractMusic {
   private async loopMusic(
     logger: AbstractLogger,
     musicPath: string,
-    musicLength: number,
     totalLength: number,
     buildDir: string
   ): Promise<string> {
     const loop = path.join(buildDir, 'loop_music.mp4');
-
-    let input = `concat:${musicPath}`;
-    let repetitions = 1;
-
-    while (repetitions * musicLength < totalLength) {
-      input += `|${musicPath}`;
-      repetitions++;
-    }
-
     const { ffmpeg } = selectedBinaries();
-    const args = ['-y', '-i', input, '-acodec', 'copy', loop];
+    // The track is demuxed and looped: joining copies with the concat protocol appends bytes, which only
+    // loops a bare MP3 stream. Only its audio is kept, since a cover image would be re-encoded to an H.264
+    // cover, which the mp4 muxer rejects.
+    const args = [
+      '-y',
+      '-stream_loop',
+      '-1',
+      '-i',
+      musicPath,
+      '-t',
+      String(totalLength),
+      '-map',
+      '0:a',
+      '-acodec',
+      'copy',
+      loop,
+    ];
     const command = `${ffmpeg} ${args.join(' ')}`;
     logger.debug(`[Music][Command] ${command}`);
 
@@ -139,7 +144,7 @@ class MusicNodeAdapter implements AbstractMusic {
           throw new Error('Build directory is not set');
         }
 
-        const loopPath = await this.loopMusic(logger, musicPath, musicLength, totalLength, buildDir);
+        const loopPath = await this.loopMusic(logger, musicPath, totalLength, buildDir);
 
         return { rc: 0, musicPath: loopPath };
       }

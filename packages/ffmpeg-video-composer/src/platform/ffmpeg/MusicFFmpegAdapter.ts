@@ -46,8 +46,9 @@ class MusicFFmpegAdapter implements AbstractMusic {
       const buildDir = filesystemAdapter.getBuildDir() ?? '/tmp/build';
       const loopPath = `${buildDir}/loop_music.m4a`;
       // The command string is space-split into argv; a path with raw whitespace must fail loudly
-      // here rather than mis-tokenize into extra ffmpeg arguments.
-      const command = ` -y -stream_loop -1 -i ${assertSafeArgToken(musicPath, 'music path')} -t ${totalLength} -c:a aac -b:a 192k ${loopPath} `;
+      // here rather than mis-tokenize into extra ffmpeg arguments. Only the audio is kept, since a
+      // cover image would be re-encoded to an H.264 cover, which the m4a muxer rejects.
+      const command = ` -y -stream_loop -1 -i ${assertSafeArgToken(musicPath, 'music path')} -t ${totalLength} -map 0:a -c:a aac -b:a 192k ${loopPath} `;
       logger.debug(`[MusicFFmpegAdapter][Command] ffmpeg ${command}`);
 
       const result = await ffmpeg.execute(command);

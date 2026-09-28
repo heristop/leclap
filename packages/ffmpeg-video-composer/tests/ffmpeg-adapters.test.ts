@@ -770,7 +770,7 @@ describe('MusicNodeAdapter', () => {
     },
   ])('process() probes and loops the track with the $path binaries', async ({ adapter, ffprobe, ffmpeg }) => {
     container.registerInstance('ffmpegAdapter', adapter());
-    // music = 10s, total = 25s -> 3 repetitions in the stream-copy concat loop.
+    // music = 10s, total = 25s -> the track is stream-looped and cut at 25s.
     execHandler = (_command, file) => ({ stdout: file.endsWith('ffprobe') ? '10\n' : '', stderr: '' });
 
     await new MusicNodeAdapter().process(makeLogger(), makeFs(), 25, '/music.mp3');
@@ -779,7 +779,20 @@ describe('MusicNodeAdapter', () => {
       { file: ffprobe, args: [...DURATION_PROBE_ARGS, '/music.mp3'] },
       {
         file: ffmpeg,
-        args: ['-y', '-i', 'concat:/music.mp3|/music.mp3|/music.mp3', '-acodec', 'copy', '/build/loop_music.mp4'],
+        args: [
+          '-y',
+          '-stream_loop',
+          '-1',
+          '-i',
+          '/music.mp3',
+          '-t',
+          '25',
+          '-map',
+          '0:a',
+          '-acodec',
+          'copy',
+          '/build/loop_music.mp4',
+        ],
       },
     ]);
   });

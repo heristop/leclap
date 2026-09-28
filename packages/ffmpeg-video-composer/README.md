@@ -55,7 +55,6 @@ The library picks the best available FFmpeg automatically:
    Templates that probe media (transitions, music, whole-video overlays, `project_video` clips) also
    need an `ffprobe`, either from the optional `ffprobe-static` package or next to the `ffmpeg-static`
    binary. Without one they stop before rendering, with an error that names the missing binary.
-   Background music also runs `ffprobe` and `ffmpeg` from PATH, so it needs FFmpeg installed.
 3. **WebAssembly** — `@ffmpeg/ffmpeg` in the browser (2 GB input limit).
 4. **None** — a clear error message with installation guidance.
 

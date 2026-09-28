@@ -4,8 +4,8 @@ export interface FfprobeLookup {
   exists: (path: string) => boolean;
 }
 
-// Points at the one fix that covers every template: ffprobe-static alone doesn't unblock background
-// music, whose adapter still runs ffprobe and ffmpeg from PATH.
+// Points at installing FFmpeg: it brings ffprobe and moves renders onto the faster system path. The
+// optional ffprobe-static package also covers every template, but bundles a binary for every platform.
 export const FFPROBE_MISSING_MESSAGE =
   'ffprobe not found: ffmpeg-static ships only ffmpeg, and transitions, music, overlays and video clips need ' +
   'ffprobe to read media info. Install FFmpeg, which includes ffprobe (macOS: brew install ffmpeg · ' +

@@ -25,7 +25,7 @@ The core never calls FFmpeg directly — it goes through an `AbstractFFmpeg` ada
 `FFmpegDetector` resolves, in order:
 
 1. **System** FFmpeg (`ffmpeg -version` on PATH) → `FFmpegNodeAdapter` (fluent-ffmpeg).
-2. **`ffmpeg-static`** bundled binary → `FFmpegStaticAdapter`. The package ships `ffmpeg` only: ffprobe comes from the optional `ffprobe-static` package or from beside the resolved binary, existence-checked (`resolve-ffprobe.ts`). With neither, the adapter's `probeUnavailableReason` is set and the director stops a template that probes media (transitions, music, whole-video overlays, `project_video` clips) before the first segment renders (`director/render-needs.ts`). `MusicNodeAdapter` still spawns `ffprobe`/`ffmpeg` from PATH, so music on this path needs system FFmpeg.
+2. **`ffmpeg-static`** bundled binary → `FFmpegStaticAdapter`. The package ships `ffmpeg` only: ffprobe comes from the optional `ffprobe-static` package or from beside the resolved binary, existence-checked (`resolve-ffprobe.ts`). With neither, the adapter's `probeUnavailableReason` is set and the director stops a template that probes media (transitions, music, whole-video overlays, `project_video` clips) before the first segment renders (`director/render-needs.ts`). `MusicNodeAdapter` spawns the selected adapter's `binaries`, so music works on this path whenever probing does.
 3. **`@ffmpeg/ffmpeg`** WASM → `FFmpegWasmAdapter`.
 4. None found → throws with platform-specific install instructions.
 
@@ -46,7 +46,7 @@ Keep the two bundles separate — anything imported by `browser.ts` must be brow
 
 ## Common mistakes
 
-- Calling FFmpeg directly instead of through `AbstractFFmpeg` — breaks one or more platforms.
+- Calling FFmpeg directly instead of through `AbstractFFmpeg` — breaks one or more platforms. Node code that has to spawn FFmpeg itself (`MusicNodeAdapter`) runs the selected adapter's `binaries`, never a bare `ffmpeg`/`ffprobe`: the static path has neither on PATH.
 - Importing a Node module along the `browser.ts` path → bundle/runtime failure in the browser.
 - Adding a new FFmpeg capability to one adapter only — add it to `AbstractFFmpeg` and every concrete adapter that should support it.
 - Assuming a binary exists — respect the detector's fallback rather than hardcoding a path. In particular there is no `ffprobe` next to the `ffmpeg-static` binary; a name-swapped path must be existence-checked, or the probe fails only after every segment has rendered.

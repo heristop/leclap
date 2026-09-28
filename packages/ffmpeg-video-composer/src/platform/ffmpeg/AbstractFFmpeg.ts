@@ -22,6 +22,13 @@ export interface VirtualFilesystemFFmpeg {
   listDir(path: string): Promise<FSNode[]>;
 }
 
+/** Executables a CLI adapter spawns: a bare name is looked up on PATH, anything else is a path. */
+export interface FFmpegBinaries {
+  ffmpeg: string;
+  /** null when the install ships no ffprobe (ffmpeg-static on its own). */
+  ffprobe: string | null;
+}
+
 abstract class AbstractFFmpeg {
   /**
    * Optional per-exec progress listener (0..1). When set, adapters that receive
@@ -53,6 +60,15 @@ abstract class AbstractFFmpeg {
    * template that needs probing, so the render stops up front instead of after every segment encodes.
    */
   get probeUnavailableReason(): string | null {
+    return null;
+  }
+
+  /**
+   * The ffmpeg/ffprobe executables this adapter spawns, or null when it runs FFmpeg in-process (the WASM
+   * core, the on-device engine). Node code that spawns FFmpeg itself, like MusicNodeAdapter's stream-copy
+   * loop, runs these rather than `ffmpeg`/`ffprobe` from PATH, which holds neither on the ffmpeg-static path.
+   */
+  get binaries(): FFmpegBinaries | null {
     return null;
   }
 

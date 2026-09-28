@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { container } from 'tsyringe';
 
 /**
  * Controllable handler for the mocked `node:child_process` execFile.
@@ -191,6 +192,19 @@ function makeFs(overrides: Partial<AbstractFilesystem> = {}): AbstractFilesystem
   };
 
   return { ...base, ...overrides } as unknown as AbstractFilesystem;
+}
+
+/**
+ * A real static adapter with both resolved binaries pinned: its ffmpeg path comes from the real
+ * ffmpeg-static install (or FFMPEG_BIN), so expectations must not depend on this machine.
+ */
+function staticAdapterResolvedTo(ffmpegPath: string, ffprobePath: string | null): FFmpegStaticAdapter {
+  const adapter = new FFmpegStaticAdapter();
+  const paths = adapter as unknown as { ffmpegPath: string | null; ffprobePath: string | null };
+  paths.ffmpegPath = ffmpegPath;
+  paths.ffprobePath = ffprobePath;
+
+  return adapter;
 }
 
 beforeEach(() => {
@@ -708,6 +722,67 @@ describe('FFmpegWasmAdapter', () => {
 // MusicNodeAdapter
 // ===========================================================================
 describe('MusicNodeAdapter', () => {
+  const DURATION_PROBE_ARGS = [
+    '-v',
+    'error',
+    '-show_entries',
+    'format=duration',
+    '-of',
+    'default=noprint_wrappers=1:nokey=1',
+  ];
+
+  beforeEach(() => {
+    // The music adapter spawns the binaries of the FFmpeg adapter the bridge selected. Unless a test
+    // registers another, that is system FFmpeg, whose ffmpeg and ffprobe are looked up on PATH.
+    container.registerInstance('ffmpegAdapter', new FFmpegNodeAdapter());
+  });
+
+  afterEach(() => {
+    container.clearInstances();
+  });
+
+  it.each([
+    { path: 'system FFmpeg', adapter: () => new FFmpegNodeAdapter(), ffprobe: 'ffprobe', ffmpeg: 'ffmpeg' },
+    {
+      path: 'ffmpeg-static',
+      adapter: () => staticAdapterResolvedTo('/opt/ffmpeg-static/ffmpeg', '/opt/ffmpeg/bin/ffprobe'),
+      ffprobe: '/opt/ffmpeg/bin/ffprobe',
+      ffmpeg: '/opt/ffmpeg-static/ffmpeg',
+    },
+  ])('process() probes and loops the track with the $path binaries', async ({ adapter, ffprobe, ffmpeg }) => {
+    container.registerInstance('ffmpegAdapter', adapter());
+    // music = 10s, total = 25s -> 3 repetitions in the stream-copy concat loop.
+    execHandler = (_command, file) => ({ stdout: file.endsWith('ffprobe') ? '10\n' : '', stderr: '' });
+
+    await new MusicNodeAdapter().process(makeLogger(), makeFs(), 25, '/music.mp3');
+
+    expect(execFileCalls).toEqual([
+      { file: ffprobe, args: [...DURATION_PROBE_ARGS, '/music.mp3'] },
+      {
+        file: ffmpeg,
+        args: ['-y', '-i', 'concat:/music.mp3|/music.mp3|/music.mp3', '-acodec', 'copy', '/build/loop_music.mp4'],
+      },
+    ]);
+  });
+
+  it('process() names the missing ffprobe, spawning nothing, when the selected ffmpeg-static has none', async () => {
+    container.registerInstance('ffmpegAdapter', staticAdapterResolvedTo('/opt/ffmpeg-static/ffmpeg', null));
+
+    await expect(new MusicNodeAdapter().process(makeLogger(), makeFs(), 25, '/music.mp3')).rejects.toThrow(
+      /ffprobe not found/
+    );
+    expect(execFileCalls).toHaveLength(0);
+  });
+
+  it('process() keeps the PATH lookup when the selected adapter runs FFmpeg in-process', async () => {
+    container.registerInstance('ffmpegAdapter', new FFmpegWasmAdapter(makeFs()));
+    execHandler = (_command, file) => ({ stdout: file.endsWith('ffprobe') ? '10\n' : '', stderr: '' });
+
+    await new MusicNodeAdapter().process(makeLogger(), makeFs(), 25, '/music.mp3');
+
+    expect(execFileCalls.map((call) => call.file)).toEqual(['ffprobe', 'ffmpeg']);
+  });
+
   it('process() returns rc 0 and does not loop when music already covers the length', async () => {
     const adapter = new MusicNodeAdapter();
     const logger = makeLogger();

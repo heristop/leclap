@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { injectable } from 'tsyringe';
 import { promisify } from 'node:util';
 import type { FFMpegInfos } from '@/core/types';
-import AbstractFFmpeg from './AbstractFFmpeg';
+import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { parseCommand } from './parse-command';
 import { FFPROBE_MISSING_MESSAGE, resolveStaticFfprobe } from './resolve-ffprobe';
@@ -41,6 +41,10 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
 
   override get probeUnavailableReason(): string | null {
     return this.ffprobePath ? null : FFPROBE_MISSING_MESSAGE;
+  }
+
+  override get binaries(): FFmpegBinaries | null {
+    return this.ffmpegPath ? { ffmpeg: this.ffmpegPath, ffprobe: this.ffprobePath } : null;
   }
 
   // A missing ffprobe is not fatal here: templates that never probe (cuts-only cards, no music, no

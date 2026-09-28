@@ -63,7 +63,7 @@ The published `bin` is `leclap-mcp`.
 overlays or `project_video` clips need one, and so does `probe_media`. On that path a render stops
 before encoding and names the missing binary. Installing FFmpeg (`brew install ffmpeg`,
 `sudo apt install ffmpeg`) provides both. The optional `ffprobe-static` package, installed next to
-the server, also works, except for background music, which runs `ffprobe` and `ffmpeg` from PATH.
+the server, also works.
 
 Built on the [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
 (`@modelcontextprotocol/server`), tracking the current protocol revision. Clients on an older revision

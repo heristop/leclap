@@ -78,9 +78,7 @@ so on that path LeClap looks for one in two places:
   build that ships both.
 
 With neither, the render stops before encoding anything. The reason, which names the missing binary
-and how to install it, is written to the render log (`build/render.log`). Background music uses
-neither: it still runs `ffprobe` and `ffmpeg` from PATH, so a template with music needs FFmpeg
-installed.
+and how to install it, is written to the render log (`build/render.log`).
 
 Installing FFmpeg (`brew install ffmpeg`, `sudo apt install ffmpeg`) provides both binaries, and
 LeClap then uses it instead of `ffmpeg-static`. For templates that draw text, that FFmpeg needs the

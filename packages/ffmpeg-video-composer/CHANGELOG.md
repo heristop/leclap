@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **`AbstractMusic.process` returns the track to mix.** It resolves `{ rc, musicPath }`: the
+  track it was handed when that already covers the video, else a looped copy in the build
+  directory. It no longer writes the loop over its input, so a custom `AbstractMusic` must now
+  return `musicPath`; the bundled Node, browser and device adapters do.
+
+### Fixed
+
+- Looping a background track shorter than the video no longer rewrites that track. The loop is
+  written to the build directory and mixed from there. Earlier versions replaced the track in
+  place — in the CLI's `assets/musics`, the MCP media library, the package's bundled tracks, or a
+  device's staged copy — with a longer MP4/AAC file still named `.mp3`, so later renders no longer
+  looped it. Tracks already rewritten are not repaired.
+- After a failed compile in a long-lived process (e.g. `leclap render --watch`), a compile with
+  music enabled but no track resolved no longer mixes the failed compile's track.
+
 ## [2.3.0] - 2026-08-16
 
 ### Changed

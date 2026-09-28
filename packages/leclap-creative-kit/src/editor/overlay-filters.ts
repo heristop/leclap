@@ -175,7 +175,11 @@ function accentBarFilters(overlay: TextOverlay): StoredFilter[] {
 // order. Shared by video/color/image sections; tolerant of an absent list (older states / sections
 // built before overlays existed on this kind).
 export function overlayFiltersFrom(overlays: TextOverlay[] | undefined): StoredFilter[] {
-  return (overlays ?? [])
-    .filter((o) => o.text.trim() !== '')
-    .flatMap((o) => [drawtextFilterFrom(o), ...accentBarFilters(o)]);
+  return (overlays ?? []).flatMap((o) => {
+    if (o.text.trim() === '') {
+      return [];
+    }
+
+    return [drawtextFilterFrom(o), ...accentBarFilters(o)];
+  });
 }

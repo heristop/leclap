@@ -50,3 +50,15 @@ minimumReleaseAgeExclude:
   # resolve them without an exception. Drop these two lines once they age past the window.
   - '@modelcontextprotocol/server@2.0.0'
   - '@modelcontextprotocol/client@2.0.0'
+  # Temporary: Vite+ 1.0.0 and its core/native binaries were published 2026-09-28, inside the
+  # minimum-release-age window. Drop these lines once they age past it.
+  - vite-plus@1.0.0
+  - '@voidzero-dev/vite-plus-core@1.0.0'
+  - '@voidzero-dev/vite-plus-darwin-arm64@1.0.0'
+  - '@voidzero-dev/vite-plus-darwin-x64@1.0.0'
+  - '@voidzero-dev/vite-plus-linux-arm64-gnu@1.0.0'
+  - '@voidzero-dev/vite-plus-linux-arm64-musl@1.0.0'
+  - '@voidzero-dev/vite-plus-linux-x64-gnu@1.0.0'
+  - '@voidzero-dev/vite-plus-linux-x64-musl@1.0.0'
+  - '@voidzero-dev/vite-plus-win32-arm64-msvc@1.0.0'
+  - '@voidzero-dev/vite-plus-win32-x64-msvc@1.0.0'

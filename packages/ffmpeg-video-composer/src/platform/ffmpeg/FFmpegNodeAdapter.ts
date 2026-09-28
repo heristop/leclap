@@ -5,6 +5,7 @@ import type { FFMpegInfos } from '../../core/types';
 import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { parseCommand } from './parse-command';
+import { tailStderr } from './tail-stderr';
 import { getPerfTimer } from '../../utils/perf-timer';
 
 const execFileAsync = promisify(execFile);
@@ -34,13 +35,17 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
 
   execute = async (command: string): Promise<{ rc: number }> => {
     try {
-      await getPerfTimer().span('ffmpeg:execute', () => execFileAsync('ffmpeg', parseCommand(command)));
+      // Errors only. At its default level ffmpeg also prints its banner, every input's stream dump, the
+      // stream mapping and encoder stats, which bury the line saying why a command failed.
+      await getPerfTimer().span('ffmpeg:execute', () =>
+        execFileAsync('ffmpeg', ['-loglevel', 'error', ...parseCommand(command)])
+      );
 
       return { rc: 0 };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
 
-      throw new FFmpegError('FFmpeg command failed', execError.stderr);
+      throw new FFmpegError('FFmpeg command failed', tailStderr(execError.stderr));
     }
   };
 

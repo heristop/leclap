@@ -256,7 +256,7 @@ describe('FFmpegNodeAdapter', () => {
     const result = await adapter.execute('-i in.mp4 out.mp4');
 
     expect(result).toEqual({ rc: 0 });
-    expect(execCommands).toContain('ffmpeg -i in.mp4 out.mp4');
+    expect(execCommands).toContain('ffmpeg -loglevel error -i in.mp4 out.mp4');
   });
 
   it('execute() throws an FFmpegError carrying stderr on failure', async () => {
@@ -267,6 +267,20 @@ describe('FFmpegNodeAdapter', () => {
 
     await expect(adapter.execute('-i bad.mp4')).rejects.toThrow('FFmpeg command failed');
     await expect(adapter.execute('-i bad.mp4')).rejects.toThrow('boom-stderr');
+  });
+
+  it('execute() keeps only the last 20 lines of a long stderr', async () => {
+    const adapter = new FFmpegNodeAdapter();
+    const lines = Array.from({ length: 30 }, (_, i) => `stderr line ${i + 1}`);
+    execHandler = () => {
+      throw Object.assign(new Error('exit 1'), { stderr: `${lines.join('\n')}\n` });
+    };
+
+    const error = await adapter.execute('-i bad.mp4').catch((failure: Error) => failure);
+
+    expect((error as Error).message).toBe(
+      `FFmpeg command failed\n--- FFmpeg stderr ---\n${lines.slice(-20).join('\n')}`
+    );
   });
 
   it('getInfos() parses ffprobe JSON for video + audio streams', async () => {
@@ -353,7 +367,7 @@ describe('FFmpegStaticAdapter', () => {
     // argv array (no shell, so the binary path is NOT quoted).
     expect(execFileCalls).toHaveLength(1);
     expect(execFileCalls[0].file).toMatch(/ffmpeg$/);
-    expect(execFileCalls[0].args).toEqual(['-i', 'a.mp4', 'b.mp4']);
+    expect(execFileCalls[0].args).toEqual(['-loglevel', 'error', '-i', 'a.mp4', 'b.mp4']);
   });
 
   it('execute() throws an FFmpegError (static) on failure', async () => {
@@ -364,6 +378,20 @@ describe('FFmpegStaticAdapter', () => {
 
     await expect(adapter.execute('-i x.mp4')).rejects.toThrow('FFmpeg command failed (static)');
     await expect(adapter.execute('-i x.mp4')).rejects.toThrow('static-stderr');
+  });
+
+  it('execute() keeps only the last 20 lines of a long stderr (static)', async () => {
+    const adapter = new FFmpegStaticAdapter();
+    const lines = Array.from({ length: 30 }, (_, i) => `stderr line ${i + 1}`);
+    execHandler = () => {
+      throw Object.assign(new Error('exit 1'), { stderr: `${lines.join('\n')}\n` });
+    };
+
+    const error = await adapter.execute('-i x.mp4').catch((failure: Error) => failure);
+
+    expect((error as Error).message).toBe(
+      `FFmpeg command failed (static)\n--- FFmpeg stderr ---\n${lines.slice(-20).join('\n')}`
+    );
   });
 
   it('getInfos() runs the resolved ffprobe binary and parses streams', async () => {

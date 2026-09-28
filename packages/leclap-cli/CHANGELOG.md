@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is nothing to report). They never change the exit code, so `validate` stays usable as a CI gate.
 - When a font is not bundled, `validate` fetches it from the LeClap asset catalog (5s timeout per
   font); offline, it falls back to an estimate and marks the finding approximate.
+- `leclap validate --render` also renders the sections that hold text and measures their contrast
+  from real pixels, settling text over pictures, grades and looks that the render-free check can
+  only flag as unguarded. It costs seconds and needs a native FFmpeg with `drawtext`; without one,
+  or when the render fails, it prints the render-free findings and says why. The exit code is
+  unchanged.
 
 ### Fixed
 

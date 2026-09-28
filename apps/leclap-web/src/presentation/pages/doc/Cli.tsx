@@ -94,7 +94,7 @@ export const DocCli = () => (
         <CommandPill command="leclap render <template>" label="compile a video from a template JSON" />
         <CommandPill
           command="leclap validate <template>"
-          label="check a template against the schema, without rendering"
+          label="check a template against the schema and its text geometry, without rendering"
         />
         <CommandPill command="leclap diagnose" label="report which FFmpeg your environment provides" />
       </CommandList>
@@ -135,7 +135,12 @@ export const DocCli = () => (
       <DefList rows={RENDER_FLAGS} />
       <Tip>
         <Code>validate</Code> takes the same template and the same <Code>--json</Code> flag, but never touches FFmpeg —
-        it is the fast check to run in a pre-commit hook or before a long render.
+        it is the fast check to run in a pre-commit hook or before a long render. Beyond the schema, it reads where the
+        renderer will draw every piece of text and warns about text that runs off the frame or out of title-safe,
+        collides with other text, sits under a band, is too small, lacks contrast, or sits over footage with no box,
+        outline or shadow. Those warnings are advisory: they never change the exit code, so the command stays usable as
+        a CI gate. On a published install it may fetch fonts from the LeClap catalog to measure them; offline, widths
+        are estimated and marked as such.
       </Tip>
     </DocSection>
 

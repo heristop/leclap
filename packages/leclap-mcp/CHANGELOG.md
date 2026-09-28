@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   missing figure can neither print `NaN%` nor disable the throttle for the rest of the render.
   stdout is untouched: it stays the JSON-RPC framing channel, and the tool's result payload is
   unchanged.
+- `validate_template` returns geometry findings on a new optional `geometry` field, one line each:
+  text off the frame or out of the title-safe area, colliding, hidden under a band, too small,
+  low-contrast, or unguarded over footage. They are advisory and never change `valid`. A finding
+  drawn from an estimate carries an `(approx: …)` note saying why.
 
 ### Fixed
 

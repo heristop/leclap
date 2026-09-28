@@ -14,8 +14,10 @@ import {
   type ValidationError,
 } from './template-validation-rules';
 import { expandPartialsSafe } from '@/core/partials';
+import type { GeometryWarning, FontLoader } from './geometry';
 
 export type { ValidationError } from './template-validation-rules';
+export type { GeometryWarning, FontLoader } from './geometry';
 
 export interface ValidationResult {
   success: boolean;
@@ -336,6 +338,18 @@ export class TemplateValidator {
 
   getVariableWarnings(template: TemplateDescriptor): ValidationError[] {
     return this.validateVariableReferences(template);
+  }
+
+  // Advisory, exactly like getVariableWarnings: geometry findings never enter `errors` and never
+  // flip `success`. A template that renders badly still renders, so this is guidance, not a gate.
+  // Lazily loaded: the geometry graph (font metrics, colour-contrast math, caption layout) is only
+  // ever called from Node consumers, and a static import on a class method can't be tree-shaken out
+  // of the browser and React Native chunks. `collectGeometryWarnings` expands partials itself, so a
+  // caller that skipped `validateTemplate` still gets the partial's sections measured.
+  async getGeometryWarnings(template: TemplateDescriptor, loadFont?: FontLoader): Promise<GeometryWarning[]> {
+    const { collectGeometryWarnings } = await import('./geometry');
+
+    return collectGeometryWarnings(template, loadFont);
   }
 
   getValidationSummary(result: ValidationResult): string {

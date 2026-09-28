@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Readable } from 'node:stream';
-import { promises as fs } from 'node:fs';
+import fsModule, { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -72,6 +72,95 @@ describe('FilesystemNodeAdapter.fetch', () => {
     await expect(makeAdapter().fetch(`https://example.com/${name}`)).rejects.toThrow('stream boom');
     // The partial download must not be left behind.
     expect((await fs.readdir(os.tmpdir())).filter((file) => file.endsWith(`-${name}`))).toEqual([]);
+  });
+
+  it('removes the partial file even when the write stream opens after the source failed', async () => {
+    // Under load the write stream's async open can land after the source already errored; an unlink
+    // issued before that open would miss, and the open would then recreate an empty file.
+    const realOpen = fsModule.open;
+    let opened: Promise<void> = Promise.resolve();
+    const openSpy = vi.spyOn(fsModule, 'open').mockImplementation(((file: string, flags: string, mode: number, cb) => {
+      opened = new Promise((resolve) => {
+        setTimeout(() => {
+          realOpen(file, flags, mode, (error, fd) => {
+            cb(error, fd);
+            resolve();
+          });
+        }, 10);
+      });
+    }) as typeof realOpen);
+    const errStream = new Readable({
+      read() {
+        this.destroy(new Error('late open boom'));
+      },
+    });
+    mockedAxios.mockResolvedValue(ok(errStream));
+
+    const dest = path.join(os.tmpdir(), 'late-open.bin');
+
+    try {
+      await expect(makeAdapter().fetch('https://example.com/late-open.bin')).rejects.toThrow('late open boom');
+    } finally {
+      openSpy.mockRestore();
+    }
+
+    // Check only once the delayed open has landed, so a file it recreated would be visible.
+    await opened;
+    await expect(fs.access(dest)).rejects.toBeInstanceOf(Error);
+    await fs.unlink(dest).catch(() => undefined);
+  });
+});
+
+describe('FilesystemNodeAdapter.fetchBytes', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockedLookup.mockResolvedValue([{ address: '93.184.216.34', family: 4 }]);
+  });
+
+  it('returns the body in memory without staging anything under tempDir', async () => {
+    mockedAxios.mockResolvedValue(ok(Buffer.from('font bytes')));
+
+    const bytes = await makeAdapter().fetchBytes('https://cdn.example.com/Probe.ttf', { timeoutMs: 5000 });
+
+    expect(Buffer.from(bytes).toString('utf-8')).toBe('font bytes');
+    // fetch() would have written tempDir/Probe.ttf — the path a render stages the same asset through.
+    await expect(fs.access(path.join(os.tmpdir(), 'Probe.ttf'))).rejects.toBeInstanceOf(Error);
+  });
+
+  it('hands its limits to axios', async () => {
+    mockedAxios.mockResolvedValue(ok(Buffer.from('x')));
+
+    await makeAdapter().fetchBytes('https://cdn.example.com/a.ttf', { timeoutMs: 5000, maxBytes: 1024 });
+
+    expect(mockedAxios.mock.calls[0]?.[0]).toMatchObject({
+      responseType: 'arraybuffer',
+      timeout: 5000,
+      maxContentLength: 1024,
+    });
+  });
+
+  it('leaves fetch() unbounded, as the render path has always been', async () => {
+    mockedAxios.mockResolvedValue(ok(Readable.from(['body'])));
+
+    const dest = await makeAdapter().fetch('https://cdn.example.com/defaults.bin');
+
+    expect(mockedAxios.mock.calls[0]?.[0]).not.toHaveProperty('timeout');
+    expect(mockedAxios.mock.calls[0]?.[0]).not.toHaveProperty('maxContentLength');
+
+    await fs.unlink(dest).catch(() => undefined);
+  });
+
+  it('rejects a redirect it was not allowed to follow instead of returning its body', async () => {
+    mockedAxios.mockResolvedValue({ status: 302, headers: {}, data: Buffer.from('<html>moved</html>') });
+
+    await expect(makeAdapter().fetchBytes('https://cdn.example.com/a.ttf', { timeoutMs: 5000 })).rejects.toThrow(
+      'HTTP 302'
+    );
+  });
+
+  it('is guarded against private destinations like every other request', async () => {
+    await expect(makeAdapter().fetchBytes('http://169.254.169.254/latest/', { timeoutMs: 5000 })).rejects.toThrow();
+    expect(mockedAxios).not.toHaveBeenCalled();
   });
 });
 

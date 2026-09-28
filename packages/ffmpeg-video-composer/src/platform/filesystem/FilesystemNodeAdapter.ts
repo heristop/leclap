@@ -6,9 +6,11 @@ import http from 'node:http';
 import https from 'node:https';
 import os from 'node:os';
 import path from 'node:path';
+import { finished } from 'node:stream/promises';
 import axios, { type AxiosResponse, type ResponseType } from 'axios';
 import AbstractFilesystem from './AbstractFilesystem';
 import { assertSafeRemoteUrl } from './url-guard';
+import { creativeKitCandidates, isBundledAssetName, sourceLayoutCandidates } from './bundled-asset-paths';
 import { catalogAssetUrl } from '../../core/asset-source';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 
@@ -23,6 +25,15 @@ const MAX_REDIRECT_HOPS = 5;
 const httpAgent = new http.Agent({ keepAlive: false });
 const httpsAgent = new https.Agent({ keepAlive: false });
 
+// Optional bounds for one request. `timeoutMs` is axios' idle-socket timeout — the request is
+// abandoned once the connection makes no progress for that long — and `maxBytes` caps the response
+// body. Left out, axios' own defaults apply (no timeout, no cap), which is what the render path has
+// always used.
+export interface RequestLimits {
+  timeoutMs?: number;
+  maxBytes?: number;
+}
+
 // Follow HTTP redirects manually so the async SSRF guard runs on *every* hop, not
 // just the first URL. axios' built-in redirect handling (maxRedirects > 0) would
 // chase a 302 with no re-check, letting a public bait URL bounce to a private/
@@ -33,9 +44,9 @@ const httpsAgent = new https.Agent({ keepAlive: false });
 async function requestWithGuardedRedirects(
   url: string,
   responseType: ResponseType,
-  headers?: Record<string, string>,
   origin: string = url,
-  hop = 0
+  hop = 0,
+  options: RequestLimits & { headers?: Record<string, string> } = {}
 ): Promise<AxiosResponse> {
   if (hop > MAX_REDIRECT_HOPS) {
     throw new Error(`Too many redirects (more than ${MAX_REDIRECT_HOPS}) while fetching ${origin}`);
@@ -48,10 +59,12 @@ async function requestWithGuardedRedirects(
     method: 'get',
     url,
     responseType,
-    headers,
+    headers: options.headers,
     maxRedirects: 0,
     httpAgent,
     httpsAgent,
+    ...(options.timeoutMs === undefined ? {} : { timeout: options.timeoutMs }),
+    ...(options.maxBytes === undefined ? {} : { maxContentLength: options.maxBytes }),
     // Accept 3xx as a non-error response so we can read Location and re-validate the
     // next hop ourselves; without this axios rejects 3xx when maxRedirects is 0.
     validateStatus: (status) => (status >= 200 && status < 300) || (status >= 300 && status < 400),
@@ -71,7 +84,7 @@ async function requestWithGuardedRedirects(
   // then recurse so the destination is guarded before the next request.
   const next = new URL(location, url).toString();
 
-  return requestWithGuardedRedirects(next, responseType, headers, origin, hop + 1);
+  return requestWithGuardedRedirects(next, responseType, origin, hop + 1, options);
 }
 
 @injectable()
@@ -185,13 +198,31 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       });
     } catch (error) {
       writer.destroy();
-      // Drop the partial file so a later read can't pick up corrupt content.
+      // Wait for the writer to close first: its open is async, so an unlink racing a pending open
+      // misses and the open then recreates the file. Drop the partial file so a later read can't
+      // pick up corrupt content.
+      await finished(writer).catch(() => {});
       await fs.unlink(dest).catch(() => {});
 
       throw error;
     }
 
     return dest;
+  };
+
+  // Download a small remote file straight into memory, bounded by `limits`. Unlike fetch(), nothing
+  // is written under `tempDir`: fetch() stages every download at `tempDir/<basename>`, a path shared
+  // with any render staging the same asset, which a caller that only wants the bytes has no business
+  // truncating or deleting.
+  fetchBytes = async (url: string, limits: RequestLimits): Promise<Uint8Array> => {
+    const response = await requestWithGuardedRedirects(url, 'arraybuffer', url, 0, limits);
+
+    // requestWithGuardedRedirects hands back a 3xx that carries no Location rather than following it.
+    if (response.status >= 300) {
+      throw new Error(`Unexpected HTTP ${response.status} while fetching ${url}`);
+    }
+
+    return new Uint8Array(response.data as ArrayBuffer);
   };
 
   // Resolve a template asset to an already-present local file under the configured assetsDir, so a
@@ -256,37 +287,51 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
   };
 
   // Resolve a file shipped with the package (under `library/<kind>`) to an absolute local path.
-  // Candidates cover both the bundled build (dist/<kind>, next to the entry) and running from
-  // source/tests (packages/leclap-creative-kit/src/library/<kind>). Returns null when it isn't bundled.
-  private async resolveBundledAsset(kind: string, file: string): Promise<string | null> {
-    let moduleDir: string;
+  // Returns null when it isn't reachable. `libraryCandidates` says where the creative kit's copy may
+  // be: fonts WALK UP from the module directory (creativeKitCandidates) rather than hard-coding a hop
+  // count, because a fixed `../../../../` resolves from `src/platform/filesystem/` (vitest, which
+  // aliases `@/` to source) and lands outside the repo from `dist/` (every built consumer — the CLI,
+  // the MCP server, any library user). That is why `leclap validate` reported every geometry finding
+  // as approximate while the engine's own tests measured real glyphs. Music deliberately keeps the
+  // fixed candidate; see sourceLayoutCandidates.
+  private async resolveBundledAsset(
+    kind: string,
+    file: string,
+    libraryCandidates: (moduleDir: string, kind: string, file: string) => string[]
+  ): Promise<string | null> {
+    const moduleDir = this.bundledModuleDir();
 
-    try {
-      moduleDir = path.dirname(fileURLToPath(import.meta.url));
-    } catch {
+    if (moduleDir === null || !isBundledAssetName(file)) {
       return null;
     }
 
-    const candidates = [
-      path.join(moduleDir, kind, file),
-      path.join(moduleDir, '..', '..', '..', '..', 'leclap-creative-kit', 'src', 'library', kind, file),
-    ];
+    const candidates = [path.join(moduleDir, kind, file), ...libraryCandidates(moduleDir, kind, file)];
     const present = await Promise.all(candidates.map((candidate) => this.stat(candidate)));
     const index = present.findIndex(Boolean);
 
     return index === -1 ? null : candidates[index];
   }
 
+  // The directory this module runs from: `src/platform/filesystem/` under vitest, `dist/` once built.
+  // A method so a test can stand it inside a synthetic package layout.
+  protected bundledModuleDir(): string | null {
+    try {
+      return path.dirname(fileURLToPath(import.meta.url));
+    } catch {
+      return null;
+    }
+  }
+
   // Find a bundled font so drawtext works offline and out-of-the-box on Node (server/MCP/library) —
   // the previous behaviour downloaded from Google Fonts, which fails for the bundled single-token
   // family names (BebasNeue, PlayfairDisplay, …).
   override resolveBundledFont = (fontFile: string): Promise<string | null> =>
-    this.resolveBundledAsset('fonts', fontFile);
+    this.resolveBundledAsset('fonts', fontFile, creativeKitCandidates);
 
   // Find a bundled music track so `global.music` resolves offline on Node (server/MCP/library)
   // instead of requiring a network download.
   override resolveBundledMusic = (musicFile: string): Promise<string | null> =>
-    this.resolveBundledAsset('musics', musicFile);
+    this.resolveBundledAsset('musics', musicFile, sourceLayoutCandidates);
 
   // A font downloaded by an earlier render, kept OUTSIDE the build dir (which is wiped between runs)
   // so a repeat render of the same resolved font needs no network. Overridable with FVC_FONT_CACHE_DIR
@@ -403,7 +448,7 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       // SSRF guard: same class as fetch() — a template-supplied font URL must not be able to
       // reach cloud metadata, loopback, or RFC1918 hosts, on the first request or any redirect.
       // Google Fonts CSS can answer 302, so redirects are followed but re-validated per hop.
-      const response = await requestWithGuardedRedirects(url, 'text', headers);
+      const response = await requestWithGuardedRedirects(url, 'text', url, 0, { headers });
 
       return response.data;
     } catch (error) {

@@ -93,6 +93,14 @@ jobs:
       - name: Run Expo App Tests
         run: pnpm --filter @leclap/expo test
 
+      # The CLI suite runs under the package's own vitest config (packages/leclap-cli/vitest.config.ts),
+      # which the root config above doesn't glob, for the same reason as the web app: a file collected by
+      # both would run under two pipelines. Without this step no CLI test runs in CI. cli-bundle.test.ts
+      # spawns the built dist/index.js and renders a real template, so this needs Build and the FFmpeg
+      # set up above.
+      - name: Run CLI Tests
+        run: pnpm --filter @leclap/cli test
+
       # Cucumber BDD integration: real renders through the core and the MCP server over stdio.
       # Needs the drawtext-capable FFmpeg set up above; each suite builds its own package first.
       - name: Run Integration Tests

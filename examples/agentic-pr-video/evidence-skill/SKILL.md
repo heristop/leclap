@@ -1,6 +1,6 @@
 ---
 name: evidence-video
-description: Use when producing the before/after evidence video a UI-touching pull or merge request carries. The render is NOT hand-rolled; `build.py --content <copy>.json --work <dir>` composes every card, panel and caption from this directory, and anything else produces a clip that is not the house video. Holds that pipeline, the capture recipe, and the traps that have already cost hours: the `project_video` naming convention, cover-crop, `trim` being a START offset, and Playwright's non-wall-clock video timeline.
+description: "Use when producing the before/after evidence video a UI-touching pull or merge request carries. The render is NOT hand-rolled; `build.py --content <copy>.json --work <dir>` composes every card, panel and caption from this directory, and anything else produces a clip that is not the house video. Holds that pipeline, the capture recipe, and the traps that have already cost hours: the `project_video` naming convention, cover-crop, `trim` being a START offset, and Playwright's non-wall-clock video timeline."
 ---
 
 # Evidence video: the house template

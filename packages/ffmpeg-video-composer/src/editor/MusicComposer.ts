@@ -463,7 +463,9 @@ class MusicComposer {
       return;
     }
 
-    await this.musicAdapter.process(this.logger, this.filesystemAdapter, totalLength, musicPath);
+    // Mix what the adapter hands back — the track itself, or its looped copy in the build dir.
+    const result = await this.musicAdapter.process(this.logger, this.filesystemAdapter, totalLength, musicPath);
+    this.project.buildInfos.musicPath = result.musicPath;
   };
 }
 

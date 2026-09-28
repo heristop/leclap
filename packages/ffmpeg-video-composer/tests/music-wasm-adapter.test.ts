@@ -23,7 +23,7 @@ describe('MusicWasmAdapter.process', () => {
     container.clearInstances();
   });
 
-  it('loops the track when it is shorter than the video', async () => {
+  it('loops a short track into the build dir and returns that copy, leaving the source untouched', async () => {
     const execute = vi.fn(async () => ({ rc: 0 }));
     registerFfmpeg(
       vi.fn(async () => ({ duration: 10, videoCodec: null, audioCodec: 'mp3', sampleRate: null })),
@@ -34,13 +34,14 @@ describe('MusicWasmAdapter.process', () => {
 
     const result = await new MusicWasmAdapter().process(logger as never, fs as never, 30, '/assets/musics/song.mp3');
 
-    expect(result.rc).toBe(0);
+    expect(result).toEqual({ rc: 0, musicPath: '/tmp/build/loop_music.mp3' });
     expect(execute).toHaveBeenCalledTimes(1);
     const command = (execute.mock.calls[0] as string[])[0];
     expect(command).toContain('-stream_loop -1');
     expect(command).toContain('-i /assets/musics/song.mp3');
     expect(command).toContain('-t 30');
-    expect(fs.move).toHaveBeenCalledWith('/tmp/build/loop_music.mp3', '/assets/musics/song.mp3');
+    expect(command).toContain('/tmp/build/loop_music.mp3');
+    expect(fs.move).not.toHaveBeenCalled();
   });
 
   it('does nothing when the track already covers the video', async () => {
@@ -53,7 +54,7 @@ describe('MusicWasmAdapter.process', () => {
 
     const result = await new MusicWasmAdapter().process(makeLogger() as never, fs as never, 30, '/m.mp3');
 
-    expect(result.rc).toBe(0);
+    expect(result).toEqual({ rc: 0, musicPath: '/m.mp3' });
     expect(execute).not.toHaveBeenCalled();
     expect(fs.move).not.toHaveBeenCalled();
   });

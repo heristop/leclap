@@ -808,7 +808,7 @@ describe('MusicNodeAdapter', () => {
   it('process() loops a short track into the build dir and returns that copy, leaving the source untouched', async () => {
     const adapter = new MusicNodeAdapter();
     const logger = makeLogger();
-    // music = 10s, total = 35s -> needs 4 repetitions (concat with 3 extra '|').
+    // music = 10s, total = 35s.
     execHandler = (command) => {
       if (command.includes('-acodec copy')) {
         return { stdout: '', stderr: '' };
@@ -819,11 +819,19 @@ describe('MusicNodeAdapter', () => {
 
     const result = await adapter.process(logger, makeFs(), 35, '/music.mp3');
 
-    // The same stream-copy loop, written to the build dir and returned as the track to mix...
+    // The track is demuxed and looped, never byte-concatenated, and cut at the total length; only its audio
+    // is kept, since an embedded cover image can't be muxed into the mp4. The loop is written to the build
+    // dir and returned as the track to mix...
     expect(execFileCalls.at(-1)?.args).toEqual([
       '-y',
+      '-stream_loop',
+      '-1',
       '-i',
-      'concat:/music.mp3|/music.mp3|/music.mp3|/music.mp3',
+      '/music.mp3',
+      '-t',
+      '35',
+      '-map',
+      '0:a',
       '-acodec',
       'copy',
       '/build/loop_music.mp4',

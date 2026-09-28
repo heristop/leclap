@@ -55,8 +55,8 @@ d3a3a984a0047edc8c2ad1c6cd7bb2b8ecdcf250018fe9e43f87ac84fc490013  packages/lecla
 # Creative-kit sample + bumper videos
 2dc9c7607a95d7a9723f1730a4269a41938de88c4efd7ae4b556338f1e4802e8  packages/leclap-creative-kit/src/library/videos/earth-no-audio.mp4
 8ab080c1406dff77f8897955cf977e9ad779e40ab3a07bc2f8694fbd2fc2be21  packages/leclap-creative-kit/src/library/videos/earth.mp4
-2a7bc3324e6ee282903c079ae150d5ceb27421e39ca1b05892e2b15c1600e2f7  packages/leclap-creative-kit/src/library/videos/leclap_bumper.mp4
-fbea079124afe69ba90047fd1a7995fc795b2058b42db8879a6556de12f84bf0  packages/leclap-creative-kit/src/library/videos/leclap_bumper_portrait.mp4
+3724dec9a8151178c64c1db911314ec5960eec16db31f22017f70c25946802ce  packages/leclap-creative-kit/src/library/videos/leclap_bumper.mp4
+4eb2fa9a75e64dfb16ee4a3fbc923eab908fafeca46a968b4aad12ac498869a8  packages/leclap-creative-kit/src/library/videos/leclap_bumper_portrait.mp4
 984a822e3844926e0910aa7377ada0f93201a620dd624f10c8f0ba0e1df4c5a0  packages/leclap-creative-kit/src/library/videos/outro.mp4
 24b40629abdbadd3b6d8669b9cfa7a0fc5a72dc514f888dec9ba9a7bf78469a5  packages/leclap-creative-kit/src/library/videos/video_1.mp4
 7465d20760e6ef7e4985131ae15ec5c4ba03c7126cc8415f79a165a190aef53d  packages/leclap-creative-kit/src/library/videos/video_2.mp4

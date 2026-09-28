@@ -103,6 +103,7 @@
     "missingClip": "Esta plantilla necesita al menos un clip.",
     "unreadableClip": "No se pudo leer uno de tus clips: puede que esté dañado o en un formato que este navegador no sabe abrir.",
     "assemblyFailed": "No se pudieron unir las escenas en un solo vídeo.",
+    "engineUnavailable": "No se pudo descargar el motor de vídeo. Vuelve a conectarte e inténtalo de nuevo.",
     "stopped": "Se ha detenido el render.",
     "unknown": "El motor de render ha devuelto un error."
   }

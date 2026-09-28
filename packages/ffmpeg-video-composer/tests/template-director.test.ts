@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import TemplateDirector from '@/director/TemplateDirector';
+import type { IEventEmitter } from '@/platform/AbstractEventManager';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 
 function makeLogger() {
@@ -26,6 +27,43 @@ function makeEmitter(): EmitterStub {
   };
 
   return emitter;
+}
+
+// Multi-listener emitter with the browser SimpleEventEmitter's semantics (off drops one registration by
+// reference) that also reports how many listeners an event still has — neither real emitter exposes that.
+class SharedEmitter implements IEventEmitter {
+  private readonly callbacks = new Map<string, Array<(...args: unknown[]) => void>>();
+
+  on(event: string, callback: (...args: unknown[]) => void): this {
+    this.callbacks.set(event, [...(this.callbacks.get(event) ?? []), callback]);
+
+    return this;
+  }
+
+  off(event: string, callback: (...args: unknown[]) => void): this {
+    const callbacks = this.callbacks.get(event) ?? [];
+    const index = callbacks.indexOf(callback);
+
+    if (index > -1) {
+      callbacks.splice(index, 1);
+    }
+
+    return this;
+  }
+
+  emit(event: string, ...args: unknown[]): boolean {
+    const callbacks = this.callbacks.get(event) ?? [];
+
+    for (const callback of callbacks) {
+      callback(...args);
+    }
+
+    return callbacks.length > 0;
+  }
+
+  listenerCount(event: string): number {
+    return this.callbacks.get(event)?.length ?? 0;
+  }
 }
 
 function makeProject() {
@@ -107,12 +145,14 @@ function makeDeps() {
   const ffmpeg = {
     supportsConcurrentExecute: false,
     execute: vi.fn(async () => ({ rc: 0 })),
-    getInfos: vi.fn(async (): Promise<FFMpegInfos> => ({
-      duration: 5,
-      videoCodec: 'h264',
-      audioCodec: 'aac',
-      sampleRate: 44100,
-    })),
+    getInfos: vi.fn(
+      async (): Promise<FFMpegInfos> => ({
+        duration: 5,
+        videoCodec: 'h264',
+        audioCodec: 'aac',
+        sampleRate: 44100,
+      })
+    ),
   };
 
   return {
@@ -135,9 +175,10 @@ function makeDeps() {
   };
 }
 
-function makeDirector() {
+// Builds a director whose event manager hands out `emitter` on every connect(). Passing one emitter to
+// several directors mirrors BrowserEventManager, whose connect() returns the same emitter all session.
+function makeDirectorOn<E>(emitter: E) {
   const deps = makeDeps();
-  const emitter = makeEmitter();
   const eventManager = { connect: vi.fn(() => emitter) };
   const videoEditor = {
     emitter: undefined as unknown,
@@ -157,6 +198,10 @@ function makeDirector() {
   const director = new TemplateDirector(eventManager as never, videoEditor as never, deps.directorDeps as never);
 
   return { director, emitter, eventManager, videoEditor, ...deps };
+}
+
+function makeDirector() {
+  return makeDirectorOn(makeEmitter());
 }
 
 beforeEach(() => {
@@ -663,6 +708,64 @@ describe('TemplateDirector probe pre-flight', () => {
 
     expect(result).toBe('/build/output.mp4');
     expect(concreteBuilder.build).toHaveBeenCalled();
+  });
+});
+
+describe('TemplateDirector.construct on a shared event emitter', () => {
+  // Browser / React Native: BrowserEventManager.connect() returns ONE emitter for the whole session while
+  // a fresh director is resolved per compile. A director still subscribed once its build settles is
+  // leaked (the listener closes over it) and re-run by every later cancel.
+  type Arrange = (build: ReturnType<typeof makeDeps>, shared: SharedEmitter) => unknown;
+
+  const cancelDuringRender: Arrange = (build, shared) =>
+    build.concreteBuilder.render.mockImplementationOnce(async () => {
+      shared.emit('task-cancelled');
+
+      return undefined;
+    });
+  const outcomes: Array<[string, Arrange]> = [
+    ['succeeds', () => undefined],
+    ['fails', (build) => build.musicComposer.loadMusic.mockRejectedValue(new Error('music boom'))],
+    ['is cancelled', cancelDuringRender],
+    [
+      'stops at the probe pre-flight',
+      (build) => {
+        Object.assign(build.ffmpeg, { probeUnavailableReason: 'ffprobe not found' });
+        build.template.descriptor = { sections: [{ name: 'clip', type: 'project_video', options: { duration: 4 } }] };
+      },
+    ],
+  ];
+
+  it.each(outcomes)('leaves no task-cancelled listener behind when every build %s', async (_outcome, arrange) => {
+    const shared = new SharedEmitter();
+
+    for (let run = 0; run < 3; run++) {
+      const build = makeDirectorOn(shared);
+      build.template.descriptor = { sections: [{ name: 'clip', type: 'video', options: { duration: 4 } }] };
+      arrange(build, shared);
+
+      await build.director.construct();
+    }
+
+    expect(shared.listenerCount('task-cancelled')).toBe(0);
+  });
+
+  it('still stops at the next segment when cancelled mid-render', async () => {
+    const shared = new SharedEmitter();
+    const build = makeDirectorOn(shared);
+    build.template.descriptor = {
+      sections: [
+        { name: 'clipA', type: 'video', options: { duration: 4 } },
+        { name: 'clipB', type: 'video', options: { duration: 4 } },
+      ],
+    };
+    cancelDuringRender(build, shared);
+
+    const result = await build.director.construct();
+
+    expect(result).toBeNull();
+    expect(build.concreteBuilder.render).toHaveBeenCalledTimes(1);
+    expect(build.videoEditor.concat).not.toHaveBeenCalled();
   });
 });
 

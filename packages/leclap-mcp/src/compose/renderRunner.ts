@@ -1,5 +1,7 @@
 import { fork, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs/promises';
 import os from 'node:os';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { ProjectConfig, RenderedGeometry, TemplateDescriptor } from 'ffmpeg-video-composer';
@@ -272,14 +274,33 @@ function onTimeout<T>(state: RunState<T>, timeoutMs: number): void {
   });
 }
 
+function forkWorker(): ChildProcess {
+  return fork(workerPath(), [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
+}
+
+// Resolves once the worker process is gone: it exited (on its own, or killed on timeout/cancel), or it
+// never spawned at all, in which case 'error' is all it will ever emit.
+function workerGone(child: ChildProcess): Promise<void> {
+  return new Promise<void>((resolve) => {
+    child.once('exit', () => {
+      resolve();
+    });
+    child.on('error', () => {
+      if (child.pid === undefined) {
+        resolve();
+      }
+    });
+  });
+}
+
 function executeJob<T>(
   job: RenderJob | GeometryJob,
   opts: RenderOptions,
-  interpret: Interpret<T>
+  interpret: Interpret<T>,
+  child: ChildProcess = forkWorker()
 ): Promise<T | WorkerFailure> {
   return new Promise<T | WorkerFailure>((resolve) => {
     const ring = new RingBuffer();
-    const child = fork(workerPath(), [], { stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
     const state: RunState<T> = { child, ring, settled: false, resolve };
 
     captureStreams(child, ring);
@@ -360,6 +381,27 @@ export function runRender(job: RenderJob, opts: RenderOptions): Promise<RenderRe
 // `validate_template` with `render: true`: the rendered geometry check in its own worker, under the
 // same slot cap, timeout and cancellation as a compose — it renders the text sections twice, so it
 // costs like one.
+//
+// The worker renders into a scratch folder it removes when it finishes, which it never does when it is
+// killed on timeout or cancel, or crashes. So this process owns that folder: it creates it, hands it to
+// the worker as its workDir, and removes it once the worker is gone — not merely settled, since a
+// killed worker still rendering could write into it again.
 export function runGeometryCheck(job: GeometryJob, opts: RenderOptions): Promise<GeometryCheckResult> {
-  return inSlot(opts, () => executeJob(job, opts, geometryCheckResult));
+  return inSlot(opts, async () => {
+    const scratch = await fs.mkdtemp(path.join(job.options.workDir ?? os.tmpdir(), 'leclap-render-check-'));
+    const child = forkWorker();
+    const gone = workerGone(child);
+
+    try {
+      return await executeJob(
+        { ...job, options: { ...job.options, workDir: scratch } },
+        opts,
+        geometryCheckResult,
+        child
+      );
+    } finally {
+      await gone;
+      await fs.rm(scratch, { recursive: true, force: true });
+    }
+  });
 }

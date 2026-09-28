@@ -67,19 +67,9 @@ c50d6e6376db69df565c4a3da7c2a94733c0206f1352ab392de139e4192dc920  packages/lecla
 9fafb12db000b3f7dfbb18c2cd9ce36b2c142743e06a955a66f1fbe8116aa235  packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_3mbmb.png
 75b3e186e36e6459baeea8750b98e1e5814616d5f0075046690f11f86ad18bc8  packages/leclap-creative-kit/src/library/pictures/SamplePNGImage_5mbmb.png
 
-# Web showcase, promo and placeholder clips
+# Web showcase and placeholder clips
 1cc070c04ca93517c09ebef2cd95a9b44e1ec8ed5fd407098abe03a3890b626d  apps/leclap-web/public/videos/clapperboard.mp4
 7c07b4df249a9af04e002359b6a3d68fc073f8205ad45828295a463f8d945ee0  apps/leclap-web/public/videos/drink-and-coffee.mp4
 0d2133cd5cd0fc5dff4e1bc866bacabe5610c54a9d6fe6861913215bd3a676b4  apps/leclap-web/public/videos/drink-and-coffee.webm
-546b2d1afa4df72139369f9b4ff5944cfe667750ade4a4b7ff999eb3ce3d5cda  apps/leclap-web/public/videos/leclap-android-demo.mp4
-02bf0bd5f91f3f540cd01c52b5a2c9e42b6d73fb89fdb98a1550d58acda6fec5  apps/leclap-web/public/videos/leclap-android-demo.webm
-57e22ba6cb4561376948748173264c2be7e36d82c64bb20e4187cbe24e7cfd91  apps/leclap-web/public/videos/leclap-builder-promo-portrait.mp4
-56a5a9836efb9631a59b4d66b4a3abab1df315fbbdc733614ce06f1b5c997419  apps/leclap-web/public/videos/leclap-builder-promo-portrait.webm
-c12957d63f8b11272fd1f066905d6329a371a6d95c704d7aac96a37a42f4d4d4  apps/leclap-web/public/videos/leclap-builder-promo.mp4
-6b8928213439346edb36b30665910c33aef2c64612f022e6e77fcc0e97ea8a8a  apps/leclap-web/public/videos/leclap-builder-promo.webm
-4928b041afe34d61c9201a40d0740c6d0d7ec6093f88561a5bd4634b3bd03ef9  apps/leclap-web/public/videos/leclap-create-promo-portrait.mp4
-f70dea6fa795547d89f0017a91f7ce93be1a0c69b6c7718e825b94eeac984ad6  apps/leclap-web/public/videos/leclap-create-promo-portrait.webm
-d42ba638d04c0b3e0dca87abfd17f17c89804aecc85ca24162d430ca8479edb0  apps/leclap-web/public/videos/leclap-create-promo.mp4
-53938870f6c2c983543620baa5e502184b00b0a31ffd1ed431f3cb29a71fce30  apps/leclap-web/public/videos/leclap-create-promo.webm
 b12d241232077d9c84f75d0bbe7c604e857cad9c945c994653b9514aaf0398bf  apps/leclap-web/public/videos/placeholder-landscape.mp4
 00390c708b9dbf89e7653165e6e97813e5d96ec8438f7642a89dcef00597cf1a  apps/leclap-web/public/videos/placeholder-portrait.mp4

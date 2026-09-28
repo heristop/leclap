@@ -38,6 +38,15 @@ vi.mock('picocolors', () => {
   };
 });
 
+// The engine's compile() resolves null on failure and reports why through the reporter's onError.
+const failWith =
+  (reason: string) =>
+  async (_config: unknown, _template: unknown, reporter?: { onError?: (error: Error) => void }): Promise<null> => {
+    reporter?.onError?.(new Error(reason));
+
+    return null;
+  };
+
 describe('render command', () => {
   let exitSpy: ReturnType<typeof vi.spyOn>;
   let logSpy: ReturnType<typeof vi.spyOn>;
@@ -72,13 +81,7 @@ describe('render command', () => {
   // The engine resolves null on failure and hands the cause to the reporter's onError; the CLI must
   // print that cause (which names the failing section), not the generic "no output" line.
   function failWithSectionError() {
-    compileMock.mockImplementation(
-      async (_config: unknown, _template: unknown, reporter?: { onError?: (e: Error) => void }) => {
-        reporter?.onError?.(new Error('Section "broken" failed: font Nope.ttf could not be resolved'));
-
-        return null;
-      }
-    );
+    compileMock.mockImplementation(failWith('Section "broken" failed: font Nope.ttf could not be resolved'));
   }
 
   it('exits 1 with the section failure reported by the engine', async () => {
@@ -90,6 +93,27 @@ describe('render command', () => {
     expect(exitSpy).toHaveBeenCalledWith(1);
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Section "broken" failed: font Nope.ttf'));
     expect(logSpy).not.toHaveBeenCalledWith(expect.stringContaining('Rendered'));
+  });
+
+  it('prints the reason the engine reported without FFmpeg install hints', async () => {
+    compileMock.mockImplementation(failWith("FFmpeg command failed\nNo such filter: 'definitelynotafilter'"));
+
+    const { render } = await import('../src/commands/render');
+    await render.run?.({ args: { template: 'x.json' } } as never);
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("No such filter: 'definitelynotafilter'"));
+    expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('leclap diagnose'));
+    expect(errorSpy).not.toHaveBeenCalledWith(expect.stringContaining('npm i ffmpeg-static'));
+  });
+
+  it('keeps the FFmpeg install hints for an engine that fails to start', async () => {
+    compileMock.mockRejectedValue(new Error('FFmpeg not found'));
+
+    const { render } = await import('../src/commands/render');
+    await render.run?.({ args: { template: 'x.json' } } as never);
+
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('FFmpeg not found'));
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('leclap diagnose'));
   });
 
   it('puts the section failure in the --json error payload', async () => {

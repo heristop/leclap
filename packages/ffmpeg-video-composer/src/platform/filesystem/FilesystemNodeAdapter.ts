@@ -6,6 +6,7 @@ import http from 'node:http';
 import https from 'node:https';
 import os from 'node:os';
 import path from 'node:path';
+import { finished } from 'node:stream/promises';
 import axios, { type AxiosResponse, type ResponseType } from 'axios';
 import AbstractFilesystem from './AbstractFilesystem';
 import { assertSafeRemoteUrl } from './url-guard';
@@ -242,7 +243,10 @@ class FilesystemNodeAdapter extends AbstractFilesystem {
       });
     } catch (error) {
       writer.destroy();
-      // Drop the partial file so a later read can't pick up corrupt content.
+      // Wait for the writer to close first: its open is async, so an unlink racing a pending open
+      // misses and the open then recreates the file. Drop the partial file so a later read can't
+      // pick up corrupt content.
+      await finished(writer).catch(() => {});
       await fs.unlink(dest).catch(() => {});
 
       throw error;

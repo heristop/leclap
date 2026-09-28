@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Readable } from 'node:stream';
-import { promises as fs } from 'node:fs';
+import fsModule, { promises as fs } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -72,6 +72,42 @@ describe('FilesystemNodeAdapter.fetch', () => {
     await expect(makeAdapter().fetch(`https://example.com/${name}`)).rejects.toThrow('stream boom');
     // The partial download must not be left behind.
     expect((await fs.readdir(os.tmpdir())).filter((file) => file.endsWith(`-${name}`))).toEqual([]);
+  });
+
+  it('removes the partial file even when the write stream opens after the source failed', async () => {
+    // Under load the write stream's async open can land after the source already errored; an unlink
+    // issued before that open would miss, and the open would then recreate an empty file.
+    const realOpen = fsModule.open;
+    let opened: Promise<void> = Promise.resolve();
+    const openSpy = vi.spyOn(fsModule, 'open').mockImplementation(((file: string, flags: string, mode: number, cb) => {
+      opened = new Promise((resolve) => {
+        setTimeout(() => {
+          realOpen(file, flags, mode, (error, fd) => {
+            cb(error, fd);
+            resolve();
+          });
+        }, 10);
+      });
+    }) as typeof realOpen);
+    const errStream = new Readable({
+      read() {
+        this.destroy(new Error('late open boom'));
+      },
+    });
+    mockedAxios.mockResolvedValue(ok(errStream));
+
+    const dest = path.join(os.tmpdir(), 'late-open.bin');
+
+    try {
+      await expect(makeAdapter().fetch('https://example.com/late-open.bin')).rejects.toThrow('late open boom');
+    } finally {
+      openSpy.mockRestore();
+    }
+
+    // Check only once the delayed open has landed, so a file it recreated would be visible.
+    await opened;
+    await expect(fs.access(dest)).rejects.toBeInstanceOf(Error);
+    await fs.unlink(dest).catch(() => undefined);
   });
 });
 

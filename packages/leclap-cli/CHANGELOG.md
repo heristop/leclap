@@ -32,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to build, the render exits 1 and prints the engine's cause, naming the section
   (`Section "outro" failed: …`) — also in the `--json` error payload — instead of
   "Compilation failed to produce output". Requires `ffmpeg-video-composer` 2.4.0.
+- The same goes for any other render that fails inside the engine: `render` prints the reason it
+  gave (the filter FFmpeg rejected, the missing ffprobe, the segment it could not probe), and
+  `--json` returns it as `error`, so an agent driving the CLI can act on it.
+- A failure the engine reported is no longer followed by the FFmpeg install hints
+  (`leclap diagnose`, `npm i ffmpeg-static`, …). They matched any message mentioning FFmpeg, so a
+  filter FFmpeg rejected was answered with "reinstall FFmpeg". They still follow an engine that
+  fails to start.
 
 ## [0.2.3] - 2026-08-15
 

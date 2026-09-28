@@ -27,6 +27,17 @@ describe('compile() validation gate', () => {
     expect(out).toBeNull();
   });
 
+  it('hands the validation summary to onError', async () => {
+    const errors: Error[] = [];
+
+    const out = await compile(baseConfig(), invalidDescriptor, { onError: (error) => errors.push(error) });
+
+    expect(out).toBeNull();
+    expect(errors).toHaveLength(1);
+    expect(errors[0].message).toContain('Template validation failed');
+    expect(errors[0].message).toContain('definitelyNotAField');
+  });
+
   it('compiles the same descriptor when skipValidation is set', async () => {
     const config = { ...baseConfig(), skipValidation: true } as ProjectConfig;
     const out = await compile(config, invalidDescriptor);

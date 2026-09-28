@@ -138,6 +138,24 @@ Then('the render has a positive duration and non-zero size', function (this: Age
   assert.ok(output.sizeBytes > 0, 'size must be non-zero');
 });
 
+// Filter types reach FFmpeg verbatim, so an unknown one passes validation and the descriptor guard and
+// only fails once the engine renders the segment.
+When('the agent composes a template whose filter FFmpeg rejects', async function (this: AgentWorld) {
+  const template = await loadJson('unknown-filter.json');
+  this.lastResult = await this.timed('compose_video:failed', (client) =>
+    client.callTool({ name: 'compose_video', arguments: { template, locale: 'en' } })
+  );
+});
+
+// The worker's log tail follows the first line and holds the engine's own log of the failure either way,
+// so only the first line shows whether the reason made it into the error itself.
+Then('the error leads with the reason the engine gave', function (this: AgentWorld) {
+  const result = this.lastResult as ToolResult;
+  const text = result.content?.map((part) => part.text ?? '').join('\n') ?? '';
+
+  assert.equal(text.split('\n')[0], 'FFmpeg command failed');
+});
+
 When('the agent probes the rendered file', async function (this: AgentWorld) {
   assert.ok(this.outputPath, 'a rendered file is required before probing');
 

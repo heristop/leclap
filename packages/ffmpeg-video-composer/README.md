@@ -30,6 +30,9 @@ const template = await loadConfig('./my-template.json');
 const result = await compile(projectConfig, template);
 ```
 
+`compile()` resolves `null` when a render fails. To learn why, pass a reporter as the third argument: its
+`onError(error)` receives the error that stopped the render, once, before `compile()` resolves.
+
 Prefer the command line? Use [`@leclap/cli`](https://github.com/heristop/leclap/tree/main/packages/leclap-cli):
 
 ```bash

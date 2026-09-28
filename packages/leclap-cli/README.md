@@ -103,6 +103,10 @@ CLI itself never needs it.
 The engine resolves FFmpeg in this order: system FFmpeg (fastest) → `ffmpeg-static` → `@ffmpeg/ffmpeg`
 (WASM). Run `leclap diagnose` to see what your environment provides.
 
+When a render fails, `render` prints the reason the engine gave (the filter FFmpeg rejected, the file it
+could not probe, the section that failed) and exits with code 1. With `--json`, the same reason is the
+`error` field. The default output also writes the full engine log to `build/render.log`.
+
 `ffmpeg-static` ships `ffmpeg` but no `ffprobe`. Templates with transitions, music, whole-video overlays
 (`global.animations`, `global.watermark`) or `project_video` clips need an ffprobe to read their media,
 so on that path LeClap looks for one in two places:
@@ -111,8 +115,8 @@ so on that path LeClap looks for one in two places:
 - an `ffprobe` next to the `ffmpeg-static` binary, for example when `FFMPEG_BIN` points at an FFmpeg
   build that ships both.
 
-With neither, the render stops before encoding anything. The reason, which names the missing binary
-and how to install it, is written to the render log (`build/render.log`).
+With neither, the render stops before encoding anything and names the missing binary and how to install
+it.
 
 Installing FFmpeg (`brew install ffmpeg`, `sudo apt install ffmpeg`) provides both binaries, and
 LeClap then uses it instead of `ffmpeg-static`. For templates that draw text, that FFmpeg needs the

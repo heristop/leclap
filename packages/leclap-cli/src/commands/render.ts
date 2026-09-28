@@ -16,7 +16,8 @@ import { LiveRenderer } from '../render-progress.js';
 import { buildProjectConfig, collectRepeated, withOrientation, type RenderFlags } from '../render-args.js';
 import { summaryLine, safeSize } from '../render-format.js';
 import { watchPaths } from '../watch.js';
-import { fail, hint, step } from '../ui.js';
+import { fail, hint } from '../ui.js';
+import { compileFailure, errorMessage, printErrorHints } from '../render-errors.js';
 import { wordmark, statusRow, ok, bad, dot } from '../theme.js';
 
 // Everything a render pass needs, assembled once from the CLI flags.
@@ -62,25 +63,6 @@ async function ensureTemplateExists(templatePath: string, json: boolean): Promis
   }
 }
 
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message.trim();
-
-  if (typeof error === 'string') return error.trim();
-
-  return JSON.stringify(error);
-}
-
-function printErrorHints(message: string): void {
-  console.error(`\n${fail(message)}`);
-
-  if (message.includes('FFmpeg') || message.includes('ffmpeg')) {
-    console.error(hint('  try'));
-    console.error(step('leclap diagnose'));
-    console.error(step('npm i ffmpeg-static  (bundled fallback)'));
-    console.error(step('macOS: brew install ffmpeg  ·  Linux: sudo apt install ffmpeg'));
-  }
-}
-
 // Copy the engine's `build/output.mp4` to the user's `--output` path (engine output naming is fixed;
 // per-render placement is the CLI's concern). Returns the path the summary should report.
 async function finalizeOutput(result: string, outputAbs: string | undefined): Promise<string> {
@@ -104,7 +86,7 @@ async function compileOnce(opts: RenderOptions, reporter?: CompileReporter): Pro
     },
   });
 
-  if (!result) throw failure.error ?? new Error('Compilation failed to produce output');
+  if (!result) throw compileFailure(failure.error);
 
   return finalizeOutput(result, opts.outputAbs);
 }
@@ -256,7 +238,7 @@ async function renderVerbose(opts: RenderOptions): Promise<void> {
     const output = await compileOnce(opts);
     console.log(summaryLine(output, startedAt, process.cwd(), Date.now()));
   } catch (error) {
-    printErrorHints(errorMessage(error));
+    printErrorHints(error);
     process.exit(1);
   }
 }
@@ -312,7 +294,7 @@ async function renderWithReporter(opts: RenderOptions): Promise<void> {
 
     if (!opts.quiet) console.error(hint(`  full log → ${logRel}`));
 
-    printErrorHints(errorMessage(error));
+    printErrorHints(error);
     process.exit(1);
   }
 }

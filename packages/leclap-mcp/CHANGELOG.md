@@ -34,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   section fails to build, the tool returns `isError` with the engine's cause, naming the section
   (`Section "outro" failed: …`), instead of a bare "compilation failed". Requires
   `ffmpeg-video-composer` 2.4.0.
+- Any other render that fails inside the engine — an FFmpeg command it rejects, a segment it
+  cannot probe — also leads the `compose_video` error with the engine's reason instead of
+  "compilation failed"; the worker's log tail still follows it.
 
 ## [0.3.4] - 2026-08-24
 

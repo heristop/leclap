@@ -1,9 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, it, expect } from 'vitest';
-import { compile } from '@/index';
+import { describe, it, expect, vi } from 'vitest';
+import { compile, container, loadConfig } from '@/index';
 import type { CompileReporter, ProjectConfig, TemplateDescriptor } from '@/core/types';
+import type AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
 import { testBuildDir } from './fixtures/build-dir';
 
 // The Node `compile()` accepts an optional reporter so a host (the `leclap` CLI) can render live
@@ -20,30 +21,49 @@ function load(id: string): TemplateDescriptor {
   return JSON.parse(fs.readFileSync(path.resolve(fixturesDir, `${id}.json`), 'utf8')) as TemplateDescriptor;
 }
 
+function projectConfig(): ProjectConfig {
+  return {
+    buildDir,
+    assetsDir: libDir,
+    currentLocale: 'en',
+    audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
+    videoConfig: { orientation: 'landscape', scale: '1280:720' },
+    fields: {},
+    userVideoPaths: {},
+  } as unknown as ProjectConfig;
+}
+
+// Filter types are passed to FFmpeg verbatim, so an unknown one is schema-valid and only fails when the
+// director renders the segment: the failure happens inside construct(), past compile()'s own checks.
+const unknownFilterDescriptor = {
+  global: { orientation: 'landscape', musicEnabled: false },
+  sections: [
+    {
+      type: 'color_background',
+      name: 'card',
+      options: { duration: 1, backgroundColor: '#204060' },
+      filters: [{ type: 'definitelynotafilter', value: 1 }],
+    },
+  ],
+} as unknown as TemplateDescriptor;
+
 describe('compile() reporter', () => {
   it('forwards 0..1 progress and engine log lines', async () => {
     const descriptor = load('gradient');
 
-    const projectConfig = {
-      buildDir,
-      assetsDir: libDir,
-      currentLocale: 'en',
-      audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
-      videoConfig: { orientation: 'landscape', scale: '1280:720' },
-      fields: {},
-      userVideoPaths: {},
-    } as unknown as ProjectConfig;
-
     const progress: number[] = [];
     const logs: Array<{ level: string; message: string }> = [];
+    const errors: Error[] = [];
     const reporter: CompileReporter = {
       onProgress: (fraction) => progress.push(fraction),
       onLog: (line) => logs.push(line),
+      onError: (error) => errors.push(error),
     };
 
-    const out = await compile(projectConfig, descriptor, reporter);
+    const out = await compile(projectConfig(), descriptor, reporter);
 
     expect(out, 'gradient should compile').not.toBeNull();
+    expect(errors, 'a successful compile reports no error').toEqual([]);
 
     // Progress is forwarded, stays within 0..1, never decreases, and reaches completion.
     expect(progress.length).toBeGreaterThan(0);
@@ -60,18 +80,39 @@ describe('compile() reporter', () => {
   }, 180000);
 
   it('compiles unchanged when no reporter is passed', async () => {
-    const descriptor = load('gradient');
-    const projectConfig = {
-      buildDir,
-      assetsDir: libDir,
-      currentLocale: 'en',
-      audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
-      videoConfig: { orientation: 'landscape', scale: '1280:720' },
-      fields: {},
-      userVideoPaths: {},
-    } as unknown as ProjectConfig;
-
-    const out = await compile(projectConfig, descriptor);
+    const out = await compile(projectConfig(), load('gradient'));
     expect(out, 'gradient should compile without a reporter').not.toBeNull();
+  }, 180000);
+
+  it('hands the reason a render failed inside the director to onError', async () => {
+    const errors: Error[] = [];
+
+    const out = await compile(projectConfig(), unknownFilterDescriptor, { onError: (error) => errors.push(error) });
+
+    expect(out, 'compile() still resolves null on failure').toBeNull();
+    expect(errors).toHaveLength(1);
+    expect(errors[0].message).toContain('FFmpeg command failed');
+    // FFmpeg's own stderr names the filter it rejected: the detail a host needs to fix the template.
+    expect(errors[0].message).toContain('definitelynotafilter');
+    // The reason is FFmpeg's error, not its version banner.
+    expect(errors[0].message).not.toMatch(/ffmpeg version|configuration:/);
+  }, 180000);
+
+  it('hands onError an Error even when the render rejected with something else', async () => {
+    // loadConfig initialises the platform, so the adapter resolved here is the one the director uses.
+    await loadConfig(path.resolve(fixturesDir, 'gradient.json'));
+    const adapter = container.resolve<AbstractFFmpeg>('ffmpegAdapter');
+    const execute = vi.spyOn(adapter, 'execute').mockRejectedValue('ffmpeg exited without a message');
+    const errors: unknown[] = [];
+
+    try {
+      await compile(projectConfig(), load('gradient'), { onError: (error) => errors.push(error) });
+    } finally {
+      execute.mockRestore();
+    }
+
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toBeInstanceOf(Error);
+    expect((errors[0] as Error).message).toBe('ffmpeg exited without a message');
   }, 180000);
 });

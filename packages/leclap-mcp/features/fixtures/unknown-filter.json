@@ -1,0 +1,22 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "color_card",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#3366cc",
+        "duration": 1
+      },
+      "filters": [
+        {
+          "type": "definitelynotafilter",
+          "value": 1
+        }
+      ]
+    }
+  ]
+}

@@ -196,6 +196,16 @@ function installReporterLogger(reporter?: CompileReporter): { logger: AbstractLo
   return { logger: tee, restore: () => container.registerInstance('logger', base) };
 }
 
+// The director re-emits whatever a failing step rejected with. A bare string is already the reason;
+// JSON-encoding it would hand the host a quoted message.
+function asError(failure: unknown): Error {
+  if (failure instanceof Error) return failure;
+
+  if (typeof failure === 'string') return new Error(failure);
+
+  return new Error(JSON.stringify(failure));
+}
+
 // Resolve the director, run the construction span, and emit the perf report, detaching the progress
 // listeners once the compile settles.
 async function runConstruction(
@@ -220,7 +230,7 @@ async function runConstruction(
     const failure = listeners.getError();
 
     if (output === null && failure) {
-      throw failure instanceof Error ? failure : new Error(JSON.stringify(failure));
+      throw asError(failure);
     }
 
     return output;

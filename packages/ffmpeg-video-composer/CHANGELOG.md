@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   or a track an earlier version rewrote in place) played once and then fell silent, and an MP3
   with embedded cover art (`air-prelude.mp3`, `anxiety.mp3`, `arcadia.mp3`) failed the render,
   on device too. Both loops now repeat the track's demuxed audio alone.
+- A failed FFmpeg command on Node (system FFmpeg or `ffmpeg-static`) now reports the lines
+  FFmpeg failed on, instead of its whole stderr: ten lines of version banner, then a dump of
+  every input and of the stream mapping, ahead of the line naming the problem. Both adapters
+  run FFmpeg at `-loglevel error` and keep the last 20 lines of what it prints.
 
 ## [2.3.0] - 2026-08-16
 

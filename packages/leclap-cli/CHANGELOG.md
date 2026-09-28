@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.5] - 2026-09-28
 
 ### Added
 
@@ -28,11 +28,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   for `ffmpeg-static` and `esbuild`) instead of the `package.json` `pnpm.onlyBuiltDependencies`
   field, which pnpm 11+ ignores — a fresh project's `pnpm install` failed on the unapproved
   `ffmpeg-static` build, so the first `render` had no ffmpeg.
-
-## [0.2.5] - 2026-09-28
-
-### Fixed
-
 - `leclap render` no longer reports success for a video missing a section. When a section fails
   to build, the render exits 1 and prints the engine's cause, naming the section
   (`Section "outro" failed: …`) — also in the `--json` error payload — instead of

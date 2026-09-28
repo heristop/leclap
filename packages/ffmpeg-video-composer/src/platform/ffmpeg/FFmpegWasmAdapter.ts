@@ -26,10 +26,13 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
   readonly usesVirtualFilesystem = true;
   private ffmpeg: FFmpegWasm | null = null;
   private isLoaded = false;
+  // Settles once the core has loaded, or failed to: waitForReady() hands that failure straight back.
+  private readonly initialization: Promise<void>;
 
   constructor(@inject('filesystemAdapter') private readonly fs: AbstractFilesystem) {
     super();
-    this.initializeFFmpeg().catch((error: unknown) => {
+    this.initialization = this.initializeFFmpeg();
+    this.initialization.catch((error: unknown) => {
       console.error(
         '[FFmpegWasmAdapter] Initialization failed:',
         error instanceof Error ? error.message : String(error)
@@ -82,25 +85,26 @@ class FFmpegWasmAdapter extends AbstractFFmpeg implements VirtualFilesystemFFmpe
     return this.ffmpeg;
   }
 
+  // A load that failed (the core couldn't be fetched offline, say) rejects right away with its own error;
+  // only one that hangs runs into the timeout.
   waitForReady = (): Promise<void> => {
+    // execute() awaits this before every command: once loaded, don't arm a timer each time.
+    if (this.isLoaded) {
+      return Promise.resolve();
+    }
+
     const maxWaitTime = 30000; // 30 seconds
-    const startTime = Date.now();
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    const poll = (): Promise<void> => {
-      if (this.isLoaded) {
-        return Promise.resolve();
-      }
+    const timeout = new Promise<never>((_resolve, reject) => {
+      timer = setTimeout(() => {
+        reject(new FFmpegError('Timeout waiting for FFmpeg WebAssembly to load'));
+      }, maxWaitTime);
+    });
 
-      if (Date.now() - startTime > maxWaitTime) {
-        return Promise.reject(new FFmpegError('Timeout waiting for FFmpeg WebAssembly to load'));
-      }
-
-      return new Promise<void>((resolve) => {
-        setTimeout(resolve, 100);
-      }).then(poll);
-    };
-
-    return poll();
+    return Promise.race([this.initialization, timeout]).finally(() => {
+      clearTimeout(timer);
+    });
   };
 
   // Capture ffmpeg's log stream into an error list + a rolling tail (minus the version/config

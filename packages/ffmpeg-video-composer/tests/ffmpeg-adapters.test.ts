@@ -90,6 +90,7 @@ interface FakeFFmpeg {
 
 let lastFFmpegInstance: FakeFFmpeg | null = null;
 let ffmpegLoadShouldThrow = false;
+let ffmpegLoadShouldHang = false;
 let toBlobUrlShouldThrow = false;
 
 function createFakeFFmpeg(): FakeFFmpeg {
@@ -111,6 +112,10 @@ function createFakeFFmpeg(): FakeFFmpeg {
     load: vi.fn(async () => {
       if (ffmpegLoadShouldThrow) {
         throw new Error('load boom');
+      }
+
+      if (ffmpegLoadShouldHang) {
+        await new Promise(() => undefined);
       }
     }),
     exec: vi.fn(async () => undefined),
@@ -217,6 +222,7 @@ beforeEach(() => {
   fsMocks.rename.mockResolvedValue(undefined);
   lastFFmpegInstance = null;
   ffmpegLoadShouldThrow = false;
+  ffmpegLoadShouldHang = false;
   toBlobUrlShouldThrow = false;
   vi.spyOn(console, 'log').mockImplementation(() => undefined);
   vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -699,17 +705,23 @@ describe('FFmpegWasmAdapter', () => {
     await expect(adapter.getInfos('x')).rejects.toThrow();
   });
 
-  it('waitForReady() rejects with a timeout when FFmpeg never loads', async () => {
+  it('waitForReady() rejects with the load error as soon as the core fails to load', async () => {
+    toBlobUrlShouldThrow = true;
+    const adapter = new FFmpegWasmAdapter(makeFs());
+
+    await expect(adapter.waitForReady()).rejects.toThrow('blob boom');
+  });
+
+  it('waitForReady() rejects with a timeout when the core load hangs', async () => {
     vi.useFakeTimers();
     try {
-      ffmpegLoadShouldThrow = true;
+      ffmpegLoadShouldHang = true;
       const adapter = new FFmpegWasmAdapter(makeFs());
-      await Promise.resolve(); // let init reject
 
       const pending = adapter.waitForReady();
       const assertion = expect(pending).rejects.toThrow('Timeout waiting for FFmpeg WebAssembly to load');
 
-      // Advance beyond the 30s max wait, flushing the chained poll timers.
+      // Advance past the 30s max wait.
       await vi.advanceTimersByTimeAsync(31000);
       await assertion;
     } finally {

@@ -16,7 +16,10 @@ const directorConfig = vi.fn(function (this: unknown) {
 
 vi.mock('@/platform/ffmpeg/FFmpegWasmAdapter', () => {
   class MockFFmpegWasmAdapter {
-    waitForReady = waitForReady;
+    // Like the real adapter, each instance loads its core once, when it's built: one whose load failed stays
+    // failed, so only a fresh adapter can get past it.
+    private readonly ready = waitForReady();
+    waitForReady = () => this.ready;
     execute = vi.fn();
     getInfos = vi.fn();
   }
@@ -219,6 +222,18 @@ describe('browser.ts compileBrowser', () => {
       /Browser video compilation failed: Unknown error/
     );
     expect(errorSpy).toHaveBeenCalledWith('Failed to initialize browser platform:', 'non-error-init-boom');
+  });
+
+  it('retries initialization with a fresh adapter on the compile after a failed one', async () => {
+    // Fresh module again. The first adapter's core fails to load (offline, say): the next compile must
+    // initialize anew rather than hand back that rejection until the page reloads.
+    vi.resetModules();
+    waitForReady.mockRejectedValueOnce(new Error('Failed to fetch'));
+
+    const { compile } = await loadBrowser();
+
+    await expect(compile({ buildDir: '/build' }, validDescriptor)).rejects.toThrow('Failed to fetch');
+    await expect(compile({ buildDir: '/build' }, validDescriptor)).resolves.toBe('/browser/out.mp4');
   });
 
   it('exposes the browser export surface', async () => {

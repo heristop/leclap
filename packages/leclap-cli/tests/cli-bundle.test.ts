@@ -9,6 +9,7 @@ const CLI = path.resolve(here, '../dist/index.js');
 interface CliResult {
   code: number;
   output: string;
+  stdout: string;
 }
 
 // Run the BUILT dist/index.js as a real subprocess (resolves even on non-zero exit so the test
@@ -24,12 +25,12 @@ function runCli(args: string[]): Promise<CliResult> {
         const output = `${stdout}${stderr}`;
 
         if (error === null) {
-          resolve({ code: 0, output });
+          resolve({ code: 0, output, stdout });
 
           return;
         }
 
-        resolve({ code: typeof error.code === 'number' ? error.code : 1, output });
+        resolve({ code: typeof error.code === 'number' ? error.code : 1, output, stdout });
       }
     );
   });
@@ -44,5 +45,19 @@ describe('CLI bundle (dist/index.js)', () => {
     expect(output).not.toMatch(/"level":\d+/); // engine JSON logs are silenced
     expect(output).toContain('Rendered');
     expect(code).toBe(0);
+  }, 90_000);
+
+  // An unknown filter type is schema-valid (filter types reach FFmpeg verbatim), so the failure happens
+  // while the engine renders the segment — the case that used to come back as a bare
+  // "Compilation failed to produce output".
+  it('reports why the engine failed in the --json error', async () => {
+    const fixture = path.join(here, 'fixtures/unknown-filter.json');
+    const { code, stdout } = await runCli(['render', fixture, '--json']);
+    const result = JSON.parse(stdout) as { ok: boolean; error: string };
+
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/^FFmpeg command failed/);
+    expect(result.error).toContain('definitelynotafilter');
+    expect(code).toBe(1);
   }, 90_000);
 });

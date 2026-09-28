@@ -248,14 +248,15 @@ describe('resolveLayerGeometry', () => {
 });
 
 // The gradients lavfi source must be sized to the LAYER's box (not the full frame) so a 50%-wide
-// gradient layer actually renders half-frame; the sweep coords span the box.
+// gradient layer actually renders half-frame; the sweep coords span the box, up to its last
+// column/row (w-1, h-1: see "keeps every coordinate inside the box" below).
 describe('buildGradientSource geometry', () => {
   const gradient = { from: '#000000', to: '#ffffff' };
 
   it('sizes the source to the full scale when the layer has no w/h', () => {
     const src = buildGradientSource({ gradient }, '1280:720', 4);
     expect(src).toContain('gradients=s=1280x720:c0=#000000:c1=#ffffff:d=4');
-    expect(src).toContain('x0=0:y0=0:x1=0:y1=720');
+    expect(src).toContain('x0=0:y0=0:x1=0:y1=719');
   });
 
   it('sizes the source to the resolved w/h box and sweeps across it', () => {
@@ -265,7 +266,7 @@ describe('buildGradientSource geometry', () => {
       4
     );
     expect(src).toContain('gradients=s=640x360');
-    expect(src).toContain('x0=0:y0=0:x1=640:y1=360');
+    expect(src).toContain('x0=0:y0=0:x1=639:y1=359');
   });
 
   it('sweeps a horizontal gradient across the layer width, not the frame', () => {
@@ -275,7 +276,7 @@ describe('buildGradientSource geometry', () => {
       2
     );
     expect(src).toContain('gradients=s=320x720');
-    expect(src).toContain('x0=0:y0=0:x1=320:y1=0');
+    expect(src).toContain('x0=0:y0=0:x1=319:y1=0');
   });
 });
 
@@ -302,13 +303,13 @@ describe('buildGradientSource shape', () => {
       4
     );
     expect(src).toContain('type=linear');
-    expect(src).toContain('x0=0:y0=0:x1=1280:y1=0');
+    expect(src).toContain('x0=0:y0=0:x1=1279:y1=0');
   });
 
   it('centres a radial gradient in the layer box and reaches its far corner', () => {
     const src = buildGradientSource({ gradient: { ...gradient, shape: 'radial' } }, '1280:720', 4);
     expect(src).toContain('type=radial');
-    expect(src).toContain('x0=640:y0=360:x1=1280:y1=720');
+    expect(src).toContain('x0=640:y0=360:x1=1279:y1=719');
     expect(src).toContain('speed=0.00001');
   });
 
@@ -319,69 +320,108 @@ describe('buildGradientSource shape', () => {
       4
     );
     expect(circular).toContain('type=circular');
-    expect(circular).toContain('x0=320:y0=180:x1=640:y1=360');
+    expect(circular).toContain('x0=320:y0=180:x1=639:y1=359');
 
     const spiral = buildGradientSource({ gradient: { ...gradient, shape: 'spiral' } }, '1280:720', 4);
     expect(spiral).toContain('type=spiral');
-    expect(spiral).toContain('x0=640:y0=360:x1=1280:y1=720');
+    expect(spiral).toContain('x0=640:y0=360:x1=1279:y1=719');
   });
 });
 
 // A free `angle` (degrees, CSS convention: 0=bottom→top, 90=left→right, 180=top→bottom,
 // 270=right→left) lowers to sweep endpoints computed against the layer box: a ray through the
-// centre, cut at the box edges so the coords stay inside the range the gradients source accepts.
+// centre, cut at the box edges and kept inside [0, w-1]×[0, h-1], the range the gradients source accepts.
 // It unlocks the reverse sweeps the direction enum lacks; the enum stays as sugar.
 describe('buildGradientSource angle', () => {
   const gradient = { from: '#000000', to: '#ffffff' };
 
   it('lowers angle=0 to a bottom→top sweep up the centre column', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 0 } }, '1280:720', 4);
-    expect(src).toContain('x0=640:y0=720:x1=640:y1=0');
+    expect(src).toContain('x0=640:y0=719:x1=640:y1=0');
   });
 
   it('lowers angle=90 to a left→right sweep along the centre row', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 90 } }, '1280:720', 4);
-    expect(src).toContain('x0=0:y0=360:x1=1280:y1=360');
+    expect(src).toContain('x0=0:y0=360:x1=1279:y1=360');
   });
 
   it('lowers angle=180 to a top→bottom sweep (the vertical default, recentred)', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 180 } }, '1280:720', 4);
-    expect(src).toContain('x0=640:y0=0:x1=640:y1=720');
+    expect(src).toContain('x0=640:y0=0:x1=640:y1=719');
   });
 
   it('lowers angle=270 to the right→left sweep the direction enum lacks', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 270 } }, '1280:720', 4);
-    expect(src).toContain('x0=1280:y0=360:x1=0:y1=360');
+    expect(src).toContain('x0=1279:y0=360:x1=0:y1=360');
   });
 
   it('cuts a 45° sweep at the box corners of a square layer (bottom-left→top-right)', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 45 }, w: 400, h: 400 }, '1280:720', 4);
     expect(src).toContain('gradients=s=400x400');
-    expect(src).toContain('x0=0:y0=400:x1=400:y1=0');
+    expect(src).toContain('x0=0:y0=399:x1=399:y1=0');
   });
 
   it('computes the sweep against the resolved layer box, not the frame', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 270 }, w: 'iw*0.5', h: 'ih*0.5' }, '1280:720', 4);
     expect(src).toContain('gradients=s=640x360');
-    expect(src).toContain('x0=640:y0=180:x1=0:y1=180');
+    expect(src).toContain('x0=639:y0=180:x1=0:y1=180');
   });
 
   it('normalises angles outside 0..360 (450 ≡ 90, -90 ≡ 270)', () => {
     const wrapped = buildGradientSource({ gradient: { ...gradient, angle: 450 } }, '1280:720', 4);
-    expect(wrapped).toContain('x0=0:y0=360:x1=1280:y1=360');
+    expect(wrapped).toContain('x0=0:y0=360:x1=1279:y1=360');
 
     const negative = buildGradientSource({ gradient: { ...gradient, angle: -90 } }, '1280:720', 4);
-    expect(negative).toContain('x0=1280:y0=360:x1=0:y1=360');
+    expect(negative).toContain('x0=1279:y0=360:x1=0:y1=360');
   });
 
   it('wins over the direction enum when both are set', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 0, direction: 'horizontal' } }, '1280:720', 4);
-    expect(src).toContain('x0=640:y0=720:x1=640:y1=0');
+    expect(src).toContain('x0=640:y0=719:x1=640:y1=0');
   });
 
   it('is ignored for non-linear shapes, which keep their centred origin', () => {
     const src = buildGradientSource({ gradient: { ...gradient, angle: 90, shape: 'radial' } }, '1280:720', 4);
-    expect(src).toContain('x0=640:y0=360:x1=1280:y1=720');
+    expect(src).toContain('x0=640:y0=360:x1=1279:y1=719');
+  });
+});
+
+// FFmpeg's gradients source swaps any point outside [0, w-1]×[0, h-1] (x ≥ w and y ≥ h included) for
+// a random one drawn from its seed, so an end point ON the far edge renders a different radius or
+// sweep length on every run. Every coordinate the builder emits must sit inside the box, whatever the
+// shape, direction, angle or box size.
+describe('buildGradientSource keeps every coordinate inside the box', () => {
+  const gradient = { from: '#000000', to: '#ffffff' };
+  const boxes = [
+    { label: 'the full frame', layer: {}, w: 1280, h: 720 },
+    { label: 'a half-frame box', layer: { w: 'iw*0.5', h: 'ih*0.5' }, w: 640, h: 360 },
+    { label: 'an odd 321x181 box', layer: { w: 321, h: 181 }, w: 321, h: 181 },
+    { label: 'a 1px box', layer: { w: 1, h: 1 }, w: 1, h: 1 },
+  ];
+  const variants = [
+    ...([undefined, 'horizontal', 'vertical', 'diagonal'] as const).map((direction) => ({ direction })),
+    ...(['linear', 'radial', 'circular', 'spiral'] as const).map((shape) => ({ shape })),
+    ...[0, 30, 45, 90, 135, 180, 225, 270, 315, -90, 450].map((angle) => ({ angle })),
+  ];
+  const cases = boxes.flatMap((box) => variants.map((variant) => ({ ...box, variant })));
+
+  it.each(cases)('$label with $variant', ({ layer, w, h, variant }) => {
+    const src = buildGradientSource({ gradient: { ...gradient, ...variant }, ...layer }, '1280:720', 4);
+    const coords = Object.fromEntries(
+      [...src.matchAll(/\b([xy][01])=(-?\d+)/g)].map(([, key, value]) => [key, Number(value)])
+    );
+
+    expect(Object.keys(coords).sort()).toEqual(['x0', 'x1', 'y0', 'y1']);
+
+    for (const x of [coords.x0, coords.x1]) {
+      expect(x).toBeGreaterThanOrEqual(0);
+      expect(x).toBeLessThan(w);
+    }
+
+    for (const y of [coords.y0, coords.y1]) {
+      expect(y).toBeGreaterThanOrEqual(0);
+      expect(y).toBeLessThan(h);
+    }
   });
 });
 

@@ -1,10 +1,14 @@
 {
   "notFound": {
-    "title": "Seite nicht gefunden",
-    "message": "Die gesuchte Seite existiert nicht oder wurde verschoben.",
-    "home": "Start",
-    "openBuilder": "Vorlagen öffnen",
-    "seoTitle": "Seite nicht gefunden"
+    "seoTitle": "Seite nicht gefunden",
+    "slate": "Szene 404",
+    "eyebrow": "Fehler 404 · Seite nicht gefunden",
+    "title": "Diese Szene ist im Schnitt rausgeflogen.",
+    "message": "Unter <path/> gibt es nichts. Der Link ist veraltet oder enthält einen Tippfehler.",
+    "suggestion": "Meintest du <path/>?",
+    "home": "Zur Startseite",
+    "studio": "Studio öffnen",
+    "elsewhere": "Mehr auf LeClap"
   },
   "stepperProgress": "Fortschritt",
   "stepperStep": "Schritt {{current}} von {{total}}"

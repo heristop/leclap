@@ -180,7 +180,7 @@ export default defineConfig({
       'prefer-const': 'error',
       // Free/module-level functions use `function` declarations (hoisted, top-down readable, named in
       // stack traces); arrow functions stay for `this`-bound class fields and inline callbacks, which
-      // this rule does not touch. Disabled for the React/Remotion packages (apps + brand-motion),
+      // this rule does not touch. Disabled for the React apps,
       // where `const Component = () => <jsx>` is the idiom.
       'func-style': ['error', 'declaration'],
       // Surface stray TODO/FIXME/XXX comments so Sonar doesn't catch them
@@ -371,21 +371,6 @@ export default defineConfig({
           // to the RN runtime, so it is disabled app-wide for the Expo package.
           'unicorn/prefer-module': 'off',
           // `const Component = () => <jsx>` is the React idiom — do not force declarations here.
-          'func-style': 'off',
-        },
-      },
-      {
-        // @leclap/brand-motion (Remotion render package): a Remotion component's body is one long
-        // sequence of derived interpolate/spring animation values, so the file/function size and
-        // statement budgets are relaxed here as they are for apps/**.
-        files: ['packages/leclap-brand-motion/**'],
-        plugins: ['typescript', 'unicorn', 'import', 'oxc', 'react'],
-        env: { browser: true, es2024: true },
-        rules: {
-          'max-lines': 'off',
-          'max-lines-per-function': 'off',
-          'max-statements': 'off',
-          // Remotion components are `const Component = () => <jsx>` — the React idiom.
           'func-style': 'off',
         },
       },

@@ -52,9 +52,11 @@ a compile end-to-end and hard-refresh a deep link (e.g. `/templates`) to confirm
 
 ### Social card
 
-`public/og-image.png` (2400×1260 — the recommended 1.91:1 ratio at 2× for high-DPI feeds,
-referenced by `index.html`/`Seo.tsx`) is rendered from the Remotion brand composition —
-regenerate it with `pnpm --filter @leclap/brand-motion render:og`.
+`public/og-image.jpg` (1200×630, the 1.91:1 ratio link previews use, referenced by `index.html`/`Seo.tsx`)
+and the repo's GitHub social preview (`.github/media/social-preview.png`, 1280×640) are the same card —
+Clappy beside the wordmark — rendered from the Remotion composition: regenerate both with `pnpm render:og`
+in the private leclap-brand-motion repo. The GitHub one is uploaded by hand, in the repo's Settings → Social
+preview (there is no API for it).
 
 ---
 

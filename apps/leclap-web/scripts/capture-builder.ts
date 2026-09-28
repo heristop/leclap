@@ -1,20 +1,22 @@
 // Record real screen-capture VIDEO clips of the web template builder (/templates/new) for the Remotion
-// marketing promo. Each clip is recorded in its own Playwright context (one webm per beat), then
-// transcoded to mp4 (h264/yuv420p) into the brand-motion package's public/captures dir, where the
-// Marketing composition embeds them via <OffthreadVideo>/staticFile().
+// promos (Marketing, the showcase's desktop beat). Each beat is screencast in its own 2x context
+// (scripts/screencast.ts — crisp, high-bitrate) into the brand-motion repo's public/captures dir, where
+// the compositions embed them via <OffthreadVideo>/staticFile().
+// They land in the private leclap-brand-motion repo (github.com/heristop/leclap-brand-motion):
+// LECLAP_BRAND_MOTION points at its checkout, a sibling of this monorepo by default.
 //
 // Needs the dev server up:  pnpm --filter @leclap/web dev   (default :5174; override with E2E_BASE_URL)
 // Needs ffmpeg on PATH. Run:  node apps/leclap-web/scripts/capture-builder.ts
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { chromium, type Browser, type Page } from '@playwright/test';
+import { chromium, type Page } from '@playwright/test';
+import { recordScreencast } from './screencast.ts';
 
 const BASE = process.env.E2E_BASE_URL ?? 'http://localhost:5174';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const outDir = path.resolve(here, '../../../packages/leclap-brand-motion/public/captures');
-const recDir = '/tmp/leclap-promo-rec';
+const brandMotion = process.env.LECLAP_BRAND_MOTION ?? path.resolve(here, '../../../../leclap-brand-motion');
+const outDir = path.join(brandMotion, 'public/captures');
 const SIZE = { width: 1440, height: 900 };
 
 // Run an async step for each item in order (a lint-clean alternative to `await` inside a for-loop).
@@ -22,9 +24,15 @@ const forEachSeq = async <T>(items: readonly T[], fn: (item: T) => Promise<void>
   await items.reduce<Promise<void>>((prev, item) => prev.then(() => fn(item)), Promise.resolve());
 };
 
-const ready = async (page: Page): Promise<void> => {
+// /templates/new opens a "Start your template" dialog: answer it (`start` names a ready-made structure,
+// default a blank canvas), then wait for the builder itself.
+const ready = async (page: Page, start: RegExp = /Start blank/): Promise<void> => {
   await page.goto(`${BASE}/templates/new`);
-  await page.getByRole('button', { name: /Render a preview/i }).waitFor({ state: 'visible' });
+  const choice = page.getByRole('button', { name: start });
+  await choice.waitFor({ state: 'visible' });
+  await page.waitForTimeout(500);
+  await choice.click();
+  await page.getByRole('button', { name: /Render a preview|Preview render/i }).waitFor({ state: 'visible' });
   await page.waitForTimeout(700);
 };
 
@@ -37,12 +45,28 @@ const addScene = async (page: Page, label: string): Promise<void> => {
   await page.waitForTimeout(900);
 };
 
-// Build → add a color scene → add an image scene; the canvas and timeline fill in live.
+// Build scenes the way a person would: start from the Product showcase structure (photo, clip and music
+// land in the timeline), swap the photo, then retype the caption on the canvas. The canvas shows real
+// content at every step — a colour scene reads as a flat box once the builder is shrunk into a film frame.
 const buildScenes = async (page: Page): Promise<void> => {
-  await ready(page);
-  await addScene(page, 'Color background');
-  await page.waitForTimeout(900);
-  await addScene(page, 'Background image');
+  await ready(page, /Product showcase/);
+  await page
+    .getByText('Golden Hour', { exact: true })
+    .click()
+    .catch(() => {});
+  await page.waitForTimeout(1000);
+
+  // The caption is the canvas's draggable text box: double-click to edit, replace its text, commit.
+  const caption = page.locator('.cursor-move').first();
+  await caption.waitFor({ state: 'visible', timeout: 8000 });
+  const rect = await caption.boundingBox();
+
+  if (!rect) return;
+  await page.mouse.dblclick(rect.x + rect.width / 2, rect.y + rect.height / 2);
+  await page.waitForTimeout(250);
+  await page.keyboard.press('ControlOrMeta+A');
+  await page.keyboard.type('Summer collection', { delay: 70 });
+  await page.keyboard.press('Enter');
   await page.waitForTimeout(1600);
 };
 
@@ -112,7 +136,7 @@ const previewRender = async (page: Page): Promise<void> => {
   await ready(page);
   await addScene(page, 'Color background');
   await addScene(page, 'Background image');
-  await page.getByRole('button', { name: /Render a preview/i }).click();
+  await page.getByRole('button', { name: /Render a preview|Preview render/i }).click();
   const video = page.getByRole('dialog').locator('video');
   await video.waitFor({ state: 'visible', timeout: 7 * 60 * 1000 });
   await page
@@ -123,84 +147,34 @@ const previewRender = async (page: Page): Promise<void> => {
   await page.waitForTimeout(4500);
 };
 
-interface ClipOpts {
-  // Keep only the last N seconds (skip the preview compile wait, keep just the playback).
-  tailSeconds?: number;
-  // Drop the first N seconds (skip setup so the action lands in the promo's beat window).
-  startSeconds?: number;
-}
-
-// One clip: record the scenario in its own context, then transcode the webm to mp4 (optionally trimming
-// the head/tail so the kept window is the part the promo shows).
-const clip = async (
-  browser: Browser,
-  name: string,
-  scenario: (page: Page) => Promise<void>,
-  opts: ClipOpts = {}
-): Promise<void> => {
-  const context = await browser.newContext({ viewport: SIZE, recordVideo: { dir: recDir, size: SIZE } });
-  const page = await context.newPage();
-  await scenario(page).catch((error: unknown) => {
-    process.stderr.write(`[${name}] scenario failed: ${error instanceof Error ? error.message : String(error)}\n`);
-  });
-  const video = page.video();
-  await context.close();
-
-  if (!video) return;
-  const src = await video.path();
-  const dest = path.join(outDir, `${name}.mp4`);
-  const trim = seekArgs(opts);
-  execFileSync(
-    'ffmpeg',
-    [
-      ...trim,
-      '-y',
-      '-i',
-      src,
-      '-an',
-      '-vf',
-      'format=yuv420p',
-      '-c:v',
-      'libx264',
-      '-preset',
-      'veryfast',
-      '-movflags',
-      '+faststart',
-      dest,
-    ],
-    { stdio: 'ignore' }
-  );
-  process.stdout.write(`rendered ${name}.mp4\n`);
-};
-
-// ffmpeg input-seek args for a clip's trim window (placed before `-i`).
-const seekArgs = (opts: ClipOpts): string[] => {
-  if (opts.tailSeconds) return ['-sseof', `-${opts.tailSeconds}`];
-
-  if (opts.startSeconds) return ['-ss', `${opts.startSeconds}`];
-
-  return [];
-};
-
 // Optional `--only a,b` filter so a single flaky clip can be re-recorded without redoing the rest.
 const onlyArg = process.argv[process.argv.indexOf('--only') + 1];
 const only = process.argv.includes('--only') && onlyArg ? new Set(onlyArg.split(',')) : null;
 const wanted = (name: string): boolean => only === null || only.has(name);
 
 const main = async (): Promise<void> => {
-  fs.mkdirSync(recDir, { recursive: true });
   fs.mkdirSync(outDir, { recursive: true });
   const browser = await chromium.launch({
     args: ['--disk-cache-dir=/tmp/leclap-pw-cache', '--disk-cache-size=104857600'],
   });
 
-  if (wanted('build-scenes')) await clip(browser, 'build-scenes', buildScenes);
+  const out = (name: string): string => path.join(outDir, `${name}.mp4`);
 
-  if (wanted('pick-background')) await clip(browser, 'pick-background', pickBackground, { startSeconds: 2.7 });
+  if (wanted('build-scenes')) {
+    await recordScreencast(browser, SIZE, buildScenes, out('build-scenes'), { startSeconds: 9 });
+  }
 
-  if (wanted('canvas-drag')) await clip(browser, 'canvas-drag', canvasDrag, { startSeconds: 2.4 });
+  if (wanted('pick-background')) {
+    await recordScreencast(browser, SIZE, pickBackground, out('pick-background'), { startSeconds: 2.7 });
+  }
 
-  if (wanted('preview-render')) await clip(browser, 'preview-render', previewRender, { tailSeconds: 8 });
+  if (wanted('canvas-drag')) {
+    await recordScreencast(browser, SIZE, canvasDrag, out('canvas-drag'), { startSeconds: 2.4 });
+  }
+
+  if (wanted('preview-render')) {
+    await recordScreencast(browser, SIZE, previewRender, out('preview-render'), { tailSeconds: 8 });
+  }
 
   await browser.close();
   process.stdout.write('done\n');

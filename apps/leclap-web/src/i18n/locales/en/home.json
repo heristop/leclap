@@ -1,7 +1,7 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Shoot. Cut. Share.",
+    "headlineA": "Lights. Camera. Render.",
     "headlineB": "in your browser.",
     "subtagline": "The cinematic video composer that runs entirely in your browser.",
     "privacy": "Your footage never leaves this device.",
@@ -9,8 +9,9 @@
     "scrubAria": "Scrub the background film",
     "startCreating": "Start Creating",
     "seeHow": "See How It Works",
-    "soundOn": "Turn on hero sound",
-    "soundOff": "Turn off hero sound"
+    "play": "Play the hero film",
+    "pause": "Pause the hero film",
+    "scrubValue": "{{seconds}} of {{total}} seconds"
   },
   "showcase": {
     "eyebrow": "See it in action",
@@ -18,42 +19,90 @@
     "subtitle": "No upload, no server — this clip was composed on-device from a template with transitions, music, effects, text and animations, then rendered by WebAssembly FFmpeg.",
     "badge": "Sample render · in-browser",
     "videoAria": "A sample video composed in LeClap, playing on a loop",
-    "mute": "Mute",
-    "unmute": "Unmute",
-    "volume": "Volume",
+    "play": "Play the render",
+    "pause": "Pause the render",
     "cta": "Make your own",
     "browseTemplates": "Browse templates",
     "readDocs": "Read the docs"
   },
-  "createShowcase": {
-    "eyebrow": "Make a video",
-    "title": "From template to finished video",
-    "subtitle": "Pick a template, drop in your clip, and render a polished video right in your browser — WebAssembly FFmpeg, no upload, no account.",
-    "badge": "Studio · in-browser",
-    "videoAria": "A screen recording of creating a video in the LeClap studio, playing on a loop",
-    "cta": "Start creating"
+  "sound": {
+    "on": "Sound on",
+    "off": "Mute",
+    "volume": "Volume"
   },
-  "builderShowcase": {
-    "eyebrow": "Build it yourself",
-    "title": "Compose a template, visually",
-    "subtitle": "Add scenes, drag text and backgrounds on the canvas, then preview the render live — all in your browser, nothing to install.",
-    "badge": "The template builder",
-    "videoAria": "A screen recording of the LeClap template builder, playing on a loop",
-    "cta": "Open the builder"
+  "film": {
+    "eyebrow": "The film",
+    "title": "One template. Every screen.",
+    "subtitle": "78 seconds, every shot rendered or recorded for real: the template, the engine, the browser, the phone and the agent.",
+    "name": "LeClap — the film",
+    "badge": "The trailer · 1:18",
+    "play": "Play the film",
+    "pause": "Pause the film",
+    "captions": "English captions",
+    "captionsToggle": "Captions"
   },
-  "phoneShowcase": {
-    "eyebrow": "Also on your phone",
-    "title": "The whole studio, in your pocket",
-    "subtitle": "LeClap on iPhone and Android does the same job as the web app — capture, compose and render a finished clip without ever leaving your device.",
-    "bullets": {
-      "capture": "Record straight from the camera, then drop the take into a template.",
-      "effects": "Layer effects, music and transitions, previewed live as you tweak.",
-      "offline": "Everything renders on-device — no upload, no account, works offline."
+  "mobile": {
+    "eyebrow": "On your phone",
+    "title": "Shoot and render, right on the phone.",
+    "subtitle": "The same templates run on the phone: FFmpeg is compiled into the app, so your footage never leaves your hands.",
+    "chapters": {
+      "pick": {
+        "title": "Pick a template",
+        "body": "Browse ready-made looks and choose the one that fits your story."
+      },
+      "shoot": {
+        "title": "Shoot your clip",
+        "body": "Film straight from the app, with a countdown and a framing guide."
+      },
+      "render": {
+        "title": "Render it on the phone",
+        "body": "FFmpeg composes the finished video on the device. No server, no upload."
+      },
+      "result": {
+        "title": "Your video, finished",
+        "body": "Titles, grade and lower third baked in, ready to post, and still on your phone."
+      }
     },
-    "badge": "On iOS & Android · on-device",
-    "videoAria": "A screen recording of the LeClap mobile app composing a video, playing on a loop",
-    "cta": "Start creating",
-    "secondaryCta": "Read the docs"
+    "badge": "On-device · no upload",
+    "phoneAria": "A phone running the LeClap app",
+    "cta": "Try the templates in your browser"
+  },
+  "agentic": {
+    "eyebrow": "For agentic development",
+    "title": "Don’t describe the change. Show it.",
+    "subtitle": "Your coding agent records the change, LeClap renders a short before/after video, and your workflow attaches it to the pull request.",
+    "chapters": {
+      "implement": {
+        "title": "The agent implements",
+        "body": "It changes the product and states what the reviewer should look at."
+      },
+      "record": {
+        "title": "It records before and after",
+        "body": "Real screen recordings of the base branch and of the change, not generated footage."
+      },
+      "render": {
+        "title": "LeClap validates and renders",
+        "body": "The template is validated first, then composed into a deterministic video."
+      },
+      "attach": {
+        "title": "Your workflow attaches it",
+        "body": "The reviewer presses play on the pull request instead of imagining the change."
+      }
+    },
+    "steps": {
+      "implement": "Implement",
+      "record": "Record",
+      "render": "Render",
+      "attach": "Attach"
+    },
+    "cardAria": "A pull request with a rendered before/after video attached",
+    "evidencePlay": "Play the before/after video",
+    "evidencePause": "Pause the before/after video",
+    "filmTitle": "From user story to preview",
+    "filmName": "LeClap for agentic development — the film",
+    "filmBadge": "Agentic development · 0:50",
+    "cta": "Open the runnable example",
+    "ctaSecondary": "Use the MCP recipe"
   },
   "features": {
     "badge": "Everything, client-side",
@@ -61,34 +110,28 @@
     "subtitle": "Production-grade FFmpeg, real templates, and live forms — running entirely on your device.",
     "items": {
       "templates": {
-        "title": "Real JSON Templates",
-        "highlight": "Production-ready",
-        "description": "Use actual template files from the core package with complex FFmpeg configurations, filters, and effects."
+        "title": "Real JSON templates",
+        "description": "One JSON file describes the whole video: sections, filters, text and music. The same file renders in the CLI, the browser and on the phone."
       },
       "forms": {
-        "title": "Interactive Forms",
-        "highlight": "Dynamic",
-        "description": "Dynamic form generation from template definitions with real-time validation and user input processing."
+        "title": "Forms from the template",
+        "description": "Each template declares its fields. The studio builds the form from them and checks every entry before rendering."
       },
       "processing": {
-        "title": "Advanced Processing",
-        "highlight": "Professional",
-        "description": "Full FFmpeg pipeline with video filters, text overlays, transitions, and audio mixing."
+        "title": "The whole FFmpeg pipeline",
+        "description": "Video filters, text overlays, transitions and audio mixing, compiled into real FFmpeg commands."
       },
       "privacy": {
-        "title": "Complete Privacy",
-        "highlight": "Private",
-        "description": "All processing happens locally in your browser. Your files never leave your device or touch any server."
+        "title": "Nothing leaves the device",
+        "description": "The render happens in this tab. Your files are never uploaded, so there is no server to trust."
       },
       "wasm": {
-        "title": "WebAssembly Powered",
-        "highlight": "Fast",
-        "description": "Lightning-fast video processing using WebAssembly FFmpeg for near-native performance."
+        "title": "FFmpeg in WebAssembly",
+        "description": "The same FFmpeg you would run on a server, compiled for the browser. Slower than native, and nothing to install."
       },
       "crossPlatform": {
-        "title": "Cross-Platform",
-        "highlight": "Universal",
-        "description": "Works in any modern browser on desktop, mobile, and tablet. No installation required."
+        "title": "Desktop, tablet, phone",
+        "description": "Runs in current browsers, from a desktop monitor down to a phone screen."
       }
     }
   }

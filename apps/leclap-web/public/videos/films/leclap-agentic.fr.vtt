@@ -1,0 +1,37 @@
+WEBVTT
+
+00:00:00.800 --> 00:00:02.166
+Votre agent a livré sa modification.
+
+00:00:02.900 --> 00:00:04.705
+Mais le relecteur doit encore l’imaginer.
+
+00:00:06.600 --> 00:00:08.713
+Ne décrivez pas le changement. Montrez-le.
+
+00:00:10.400 --> 00:00:12.047
+L’agent code la modification,
+
+00:00:14.400 --> 00:00:18.022
+réunit de vraies preuves : le comportement avant, et après,
+
+00:00:20.400 --> 00:00:25.927
+puis LeClap vérifie le modèle, et monte la vidéo. Du montage, pas de la génération.
+
+00:00:28.400 --> 00:00:30.702
+Votre workflow l’ajoute à la pull request.
+
+00:00:33.000 --> 00:00:35.620
+Avant : un lien à peine visible, et rien ne se passe.
+
+00:00:36.700 --> 00:00:39.373
+Après : un vrai bouton, et le panier s’ouvre.
+
+00:00:40.100 --> 00:00:41.508
+Et un point précis à vérifier.
+
+00:00:43.500 --> 00:00:45.976
+Silence, on merge.
+
+00:00:47.000 --> 00:00:47.591
+LeClap.

@@ -8,7 +8,8 @@ export * from './animated-2';
 export * from './animated-3';
 
 export { AlertCircle, AlertTriangle, BookOpen, Braces, Camera, CameraOff, Circle } from 'lucide-react';
-export { CheckCircle2, Clapperboard, Code2, Crop, File, FileCode } from 'lucide-react';
+export { Captions, CaptionsOff, CheckCircle2, Clapperboard, Code2, Crop } from 'lucide-react';
+export { File, FileCode } from 'lucide-react';
 export { FileVideo, Film, Globe, HardDrive, Hash, Image } from 'lucide-react';
 export { Info, Lightbulb, Loader2, Minimize2, Monitor, MonitorSmartphone } from 'lucide-react';
 export { Move, Music, Pencil, Proportions, Redo2, Save } from 'lucide-react';

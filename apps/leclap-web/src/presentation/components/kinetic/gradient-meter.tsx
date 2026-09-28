@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { kineticMotion } from './motion';
-import { arcRadius, barPct, circumference, clamp01, dashOffset, showLiveHead } from './gradient-meter.logic';
+import { arcRadius, barPct, circumference, clamp01, dashOffset } from './gradient-meter.logic';
 
 type MeterVariant = 'bar' | 'playhead' | 'arc';
 
@@ -18,16 +18,14 @@ export interface GradientMeterProps {
   label?: string;
   /** Swap the on-brand fill for the still success treatment on completion (opt-in). */
   success?: boolean;
-  /** Ride a soft head-light on the fill's leading edge while in progress (opt-in). */
-  live?: boolean;
   className?: string;
 }
 
 // The progress vocabulary shared across the app — the signature lavender→pink fill expressed as a
 // slim `bar`, a `playhead` scrubber (bar + a riding tick) or an `arc` ring (SVG). One component so
 // card meters, preview scrubbers and render rings read as one family. Reduced-motion snaps to value.
-// `success` swaps the fill to the settled success treatment at completion, and `live` puts a soft
-// head-light on an in-progress fill's leading edge — both opt-in, so existing meters are unchanged.
+// `success` swaps the fill to the settled success treatment at completion — opt-in, so existing
+// meters are unchanged.
 export function GradientMeter({
   progress,
   variant = 'bar',
@@ -35,7 +33,6 @@ export function GradientMeter({
   stroke = 6,
   label,
   success = false,
-  live = false,
   className,
 }: GradientMeterProps) {
   if (variant === 'arc') {
@@ -57,7 +54,6 @@ export function GradientMeter({
       height={size ?? 6}
       showThumb={variant === 'playhead'}
       success={success}
-      live={live}
       label={label}
       className={className}
     />
@@ -69,16 +65,14 @@ interface LinearMeterProps {
   height: number;
   showThumb: boolean;
   success: boolean;
-  live: boolean;
   label?: string;
   className?: string;
 }
 
-function LinearMeter({ progress, height, showThumb, success, live, label, className }: LinearMeterProps) {
+function LinearMeter({ progress, height, showThumb, success, label, className }: LinearMeterProps) {
   const reduced = useReducedMotion();
   const pct = barPct(progress);
   const transition = { duration: reduced ? 0 : kineticMotion.duration.ring, ease: [0.16, 1, 0.3, 1] as const };
-  const liveHead = showLiveHead(live, success, progress);
 
   return (
     <div
@@ -100,25 +94,6 @@ function LinearMeter({ progress, height, showThumb, success, live, label, classN
         animate={{ width: `${pct}%` }}
         transition={transition}
       />
-      {/* The one moving part: a tally light riding the fill's leading edge, the way a playhead reads
-          on a timeline — this is a video editor, so progress should look like a transport, not like a
-          generic loading skeleton. Breathing `scale` lives on the inner span; on the positioned one
-          it would overwrite the centering translate, since an animation's transform beats the
-          class's. */}
-      {liveHead && (
-        <motion.span
-          aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 grid -translate-x-1/2 -translate-y-1/2 place-items-center"
-          initial={{ left: '0%' }}
-          animate={{ left: `${pct}%` }}
-          transition={transition}
-        >
-          <span
-            className="block animate-meter-head rounded-full bg-white/80 shadow-[0_0_10px_2px_oklch(1_0_0/0.45)] motion-reduce:animate-none"
-            style={{ width: height * 0.75, height: height * 0.75 }}
-          />
-        </motion.span>
-      )}
       {showThumb && (
         <motion.span
           className="absolute top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-secondary-400 bg-surface-2"

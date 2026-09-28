@@ -1,10 +1,14 @@
 {
   "notFound": {
-    "title": "Pagina non trovata",
-    "message": "La pagina che cerchi non esiste o è stata spostata.",
-    "home": "Home",
-    "openBuilder": "Apri i Modelli",
-    "seoTitle": "Pagina non trovata"
+    "seoTitle": "Pagina non trovata",
+    "slate": "Scena 404",
+    "eyebrow": "Errore 404 · Pagina non trovata",
+    "title": "Questa scena è stata tagliata al montaggio.",
+    "message": "All’indirizzo <path/> non c’è niente: il link è vecchio, oppure contiene un refuso.",
+    "suggestion": "Forse cercavi <path/>?",
+    "home": "Torna alla home",
+    "studio": "Apri lo studio",
+    "elsewhere": "Altro su LeClap"
   },
   "stepperProgress": "Avanzamento",
   "stepperStep": "Passo {{current}} di {{total}}"

@@ -58,10 +58,46 @@
     "license": "Sous licence MIT"
   },
   "routeError": {
-    "heading": "Quelque chose a coincé",
-    "fallbackStatus": "Oups",
-    "message": "Une erreur inattendue a interrompu cette page.",
-    "unexpected": "Une erreur inattendue s’est produite.",
-    "reload": "Recharger"
+    "seoTitle": {
+      "notFound": "Page introuvable",
+      "badRequest": "Requête invalide",
+      "update": "Mise à jour disponible",
+      "offline": "Hors ligne",
+      "crash": "Un problème est survenu"
+    },
+    "reload": "Recharger",
+    "home": "Retour à l’accueil",
+    "back": "Revenir en arrière",
+    "details": "Détails techniques",
+    "copy": "Copier les détails",
+    "copied": "Copié",
+    "report": "Le signaler sur GitHub",
+    "badRequest": {
+      "slate": "Scène {{status}}",
+      "eyebrow": "Erreur {{status}} · Requête invalide",
+      "title": "Cette requête ne tient pas debout.",
+      "message": "LeClap n’a pas réussi à la comprendre : le lien est peut-être tronqué, ou modifié à la main. Reviens en arrière et réessaie depuis la page elle-même."
+    },
+    "update": {
+      "slate": "Nouvelle prise",
+      "eyebrow": "Mise à jour disponible",
+      "title": "LeClap a été mis à jour pendant que cet onglet était ouvert.",
+      "message": "Cette page vient de la version que tu avais ouverte. Recharge pour passer à la nouvelle ; tes projets enregistrés restent dans ce navigateur."
+    },
+    "offline": {
+      "slate": "Pas de signal",
+      "eyebrow": "Hors ligne",
+      "title": "Tu es hors ligne.",
+      "message": "Cette page n’est pas encore enregistrée sur cet appareil. Reconnecte-toi, puis recharge.",
+      "backTitle": "Te revoilà en ligne.",
+      "backMessage": "Recharge pour reprendre là où tu en étais."
+    },
+    "crash": {
+      "slate": "Coupez",
+      "eyebrow": "Erreur inattendue",
+      "eyebrowStatus": "Erreur {{status}}",
+      "title": "Coupez ! Quelque chose a lâché de notre côté.",
+      "message": "LeClap est tombé sur une erreur qu’il n’avait pas vue venir. Tes projets enregistrés restent dans ce navigateur : recharger n’y touchera pas."
+    }
   }
 }

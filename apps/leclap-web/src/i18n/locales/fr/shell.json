@@ -1,10 +1,14 @@
 {
   "notFound": {
-    "title": "Page introuvable",
-    "message": "La page que tu cherches n’existe pas ou a été déplacée.",
-    "home": "Accueil",
-    "openBuilder": "Ouvrir les modèles",
-    "seoTitle": "Page introuvable"
+    "seoTitle": "Page introuvable",
+    "slate": "Scène 404",
+    "eyebrow": "Erreur 404 · Page introuvable",
+    "title": "Cette scène a été coupée au montage.",
+    "message": "Aucune page à l’adresse <path/> : le lien est ancien, ou il contient une coquille.",
+    "suggestion": "Tu voulais dire <path/> ?",
+    "home": "Retour à l’accueil",
+    "studio": "Ouvrir le studio",
+    "elsewhere": "Aussi sur LeClap"
   },
   "stepperProgress": "Progression",
   "stepperStep": "Étape {{current}} sur {{total}}"

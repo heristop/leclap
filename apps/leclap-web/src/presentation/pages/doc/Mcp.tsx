@@ -89,6 +89,29 @@ export const DocMcp = () => (
       </Prose>
     </DocSection>
 
+    <DocSection id="agentic-review" title="Agentic PR evidence" kicker="A review-ready recipe">
+      <Prose>
+        <p>{mcpDoc.agenticReview.intro}</p>
+        <ol>
+          {mcpDoc.agenticReview.steps.map((step) => (
+            <li key={step}>{step}</li>
+          ))}
+        </ol>
+      </Prose>
+      <Callout label="Upload boundary">{mcpDoc.agenticReview.uploadBoundary}</Callout>
+      <Tip>
+        Start from the runnable{' '}
+        <a
+          href="https://github.com/heristop/leclap/tree/main/examples/agentic-pr-video"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          agentic PR video example
+        </a>
+        , then replace its walkthrough and fields with safe evidence from the change under review.
+      </Tip>
+    </DocSection>
+
     <DocSection id="run" title="Run it" kicker="stdio">
       <CommandList>
         <CommandPill command="npx -y @leclap/mcp" label="published — no checkout needed" />

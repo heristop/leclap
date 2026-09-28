@@ -6,6 +6,7 @@ import { Header } from '@/presentation/components/Header';
 import { Footer } from '@/presentation/components/Footer';
 import { LanguageSuggestion } from '@/presentation/components/LanguageSuggestion';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { useNotFound } from '@/hooks/use-not-found';
 import { useSmoothScroll } from '@/hooks/use-smooth-scroll';
 
 // Onboarding pulls in the compile pipeline (and FFmpeg WASM); it only shows on the first studio
@@ -27,13 +28,15 @@ export function RootLayout() {
   useSmoothScroll(location.pathname);
 
   // The guided intro stays off the landing page: it auto-opens once the visitor first reaches the
-  // studio — where orientation is useful — then never again. openIfFirstTime() no-ops for bots and
-  // for anyone who has already seen it.
+  // studio — where orientation is useful — then never again, and never over a 404 that merely starts
+  // like a studio address. openIfFirstTime() no-ops for bots and for anyone who has already seen it.
+  const notFound = useNotFound();
+
   useEffect(() => {
-    if (location.pathname.startsWith('/studio')) {
+    if (!notFound && location.pathname.startsWith('/studio')) {
       openIfFirstTime();
     }
-  }, [location.pathname, openIfFirstTime]);
+  }, [location.pathname, notFound, openIfFirstTime]);
 
   // App-wide tactile feedback: a subtle haptic on every press of an interactive
   // element gives the web app a native, responsive feel (web-haptics).

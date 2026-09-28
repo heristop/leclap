@@ -1,10 +1,14 @@
 {
   "notFound": {
-    "title": "Page not found",
-    "message": "The page you're looking for doesn't exist or has moved.",
-    "home": "Home",
-    "openBuilder": "Open Templates",
-    "seoTitle": "Page Not Found"
+    "seoTitle": "Page Not Found",
+    "slate": "Scene 404",
+    "eyebrow": "Error 404 · Page not found",
+    "title": "This scene didn't make the cut.",
+    "message": "Nothing lives at <path/>. The link is old, or has a typo in it.",
+    "suggestion": "Did you mean <path/>?",
+    "home": "Back to the home page",
+    "studio": "Open the studio",
+    "elsewhere": "More on LeClap"
   },
   "stepperProgress": "Progress",
   "stepperStep": "Step {{current}} of {{total}}"

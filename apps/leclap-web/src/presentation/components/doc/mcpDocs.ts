@@ -30,6 +30,11 @@ export interface McpDoc {
   config: McpConfigDoc[];
   sampleConfig: string;
   projectConfig: string;
+  agenticReview: {
+    intro: string;
+    steps: string[];
+    uploadBoundary: string;
+  };
 }
 
 export const mcpDoc: McpDoc = {
@@ -38,6 +43,19 @@ export const mcpDoc: McpDoc = {
   intro:
     'The LeClap MCP server exposes this same descriptor engine to local AI agents. The agent authors a JSON descriptor from the schema, the server validates it, and compose_video renders a deterministic MP4 through the FFmpeg pipeline. It ships no template catalog; an optional render_remotion_clip turns your own Remotion project into an animated intro clip.',
   flow: ['get_template_schema', 'validate_template', 'compose_video'],
+  agenticReview: {
+    intro:
+      'For a pull or merge request, the development agent can turn a real walkthrough into a short evidence video before handing the change to a reviewer.',
+    steps: [
+      'collect implementation evidence',
+      'author the review template',
+      'validate_template',
+      'compose_video',
+      'attach the returned outputPath to the PR or MR',
+    ],
+    uploadBoundary:
+      'The LeClap MCP server renders and returns the local artifact. It does not upload to GitHub or GitLab; the surrounding agent workflow must perform that explicit step.',
+  },
   tools: [
     {
       name: 'get_template_schema',

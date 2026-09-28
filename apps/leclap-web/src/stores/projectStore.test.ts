@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { UserProjectService } from './projectStore';
 import type { StoredProject } from '@/lib/projectModel';
 
@@ -92,5 +92,40 @@ describe('UserProjectService', () => {
     expect(svc.list()).toEqual([]);
     expect(() => svc.save(project())).not.toThrow();
     expect(svc.get('p1')).toBeNull();
+  });
+
+  it('notifies subscribers after every write', () => {
+    const listener = vi.fn();
+    service.subscribe(listener);
+
+    service.save(project());
+    service.remove('p1');
+
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it('stops notifying once unsubscribed', () => {
+    const listener = vi.fn();
+    const unsubscribe = service.subscribe(listener);
+    unsubscribe();
+
+    service.save(project());
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('stays silent when the write did not land', () => {
+    const throwing = makeStorage();
+    throwing.setItem = () => {
+      throw new Error('QuotaExceeded');
+    };
+    const listener = vi.fn();
+
+    for (const svc of [new UserProjectService(throwing), new UserProjectService(null)]) {
+      svc.subscribe(listener);
+      svc.save(project());
+    }
+
+    expect(listener).not.toHaveBeenCalled();
   });
 });

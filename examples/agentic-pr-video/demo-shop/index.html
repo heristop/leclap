@@ -1,0 +1,541 @@
+<!doctype html>
+<!--
+  Kiln & Co. — a fake e-commerce product page to try the before/after PR evidence template on.
+  ?v=before  the "add to cart" is a tiny grey link; clicking it only bumps a small "Cart (1)" label.
+  ?v=after   the fix: a primary "Add to cart" button that confirms and opens a cart drawer.
+  A drawn cursor follows the pointer (headless recordings show none) and ripples on click.
+  record.mjs records both walkthroughs; everything is local (SVG products, system fonts).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Speckled Mug · Kiln &amp; Co.</title>
+    <style>
+      :root {
+        --bg: #faf7f2;
+        --ink: #2b2622;
+        --muted: #8a8178;
+        --line: #e7dfd4;
+        --brand: #b4532a;
+        --glaze: #e9dfcf;
+        --glaze-dark: #cdbfa8;
+      }
+      body[data-color='sage'] {
+        --glaze: #c9d3bd;
+        --glaze-dark: #9aab88;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        overflow: hidden;
+      }
+      header {
+        height: 68px;
+        display: flex;
+        align-items: center;
+        padding: 0 64px;
+        border-bottom: 1px solid var(--line);
+        background: #fff;
+      }
+      .logo {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+      }
+      .logo b {
+        color: var(--brand);
+        font-weight: 400;
+      }
+      nav {
+        display: flex;
+        gap: 34px;
+        margin-left: 72px;
+        font-size: 15px;
+        color: #544c45;
+      }
+      .icons {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        color: #544c45;
+        font-size: 15px;
+      }
+      .cart {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .cart .count-plain {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .cart .badge {
+        position: absolute;
+        right: -10px;
+        top: -8px;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 10px;
+        background: var(--brand);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .cart .badge.show {
+        display: flex;
+        animation: pop 0.45s cubic-bezier(0.2, 1.8, 0.4, 1);
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0.2);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+      .crumbs {
+        padding: 18px 64px 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      main {
+        display: grid;
+        grid-template-columns: 600px 1fr;
+        gap: 64px;
+        padding: 18px 64px 0;
+      }
+      .hero {
+        height: 470px;
+        border-radius: 18px;
+        background: radial-gradient(420px 300px at 50% 60%, #f6efe4, #ece2d3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .thumbs {
+        display: flex;
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .thumbs div {
+        width: 92px;
+        height: 70px;
+        border-radius: 10px;
+        background: #efe7da;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid transparent;
+      }
+      .thumbs div:first-child {
+        border-color: var(--ink);
+      }
+      .kicker {
+        font-size: 12px;
+        letter-spacing: 2px;
+        color: var(--muted);
+        text-transform: uppercase;
+        margin-top: 6px;
+      }
+      h1 {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-weight: 400;
+        font-size: 40px;
+        margin: 10px 0 8px;
+      }
+      .rating {
+        font-size: 14px;
+        color: #b88a1b;
+      }
+      .rating span {
+        color: var(--muted);
+        margin-left: 6px;
+      }
+      .price {
+        font-size: 28px;
+        margin: 18px 0 20px;
+      }
+      .swatches {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        color: #544c45;
+      }
+      .swatch {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px var(--line);
+        cursor: pointer;
+      }
+      .swatch.on {
+        box-shadow: 0 0 0 2px var(--ink);
+      }
+      .desc {
+        font-size: 15px;
+        line-height: 1.6;
+        color: #544c45;
+        margin: 22px 0 0;
+        max-width: 470px;
+      }
+      /* before: the add-to-cart is an afterthought at the end of the copy */
+      .ship {
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.7;
+      }
+      .tiny-add {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 12px;
+        color: #a39a91;
+        text-decoration: underline;
+        cursor: pointer;
+      }
+      /* after: a primary action where the eye already is */
+      .buy {
+        display: none;
+        margin-top: 24px;
+        gap: 12px;
+        align-items: center;
+      }
+      .qty {
+        display: flex;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        height: 58px;
+        font-size: 18px;
+        background: #fff;
+      }
+      .qty span {
+        width: 44px;
+        text-align: center;
+        color: var(--muted);
+      }
+      .qty b {
+        width: 30px;
+        text-align: center;
+        font-weight: 500;
+      }
+      .add {
+        flex: 1;
+        height: 58px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--brand);
+        color: #fff;
+        font-size: 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.25s;
+        box-shadow: 0 10px 24px rgba(180, 83, 42, 0.28);
+      }
+      .add.done {
+        background: #3f7d4d;
+        box-shadow: 0 10px 24px rgba(63, 125, 77, 0.28);
+      }
+      .perks {
+        display: none;
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      body.after .buy {
+        display: flex;
+      }
+      body.after .perks {
+        display: block;
+      }
+      body.after .tiny-add,
+      body.after .ship {
+        display: none;
+      }
+      /* the drawer */
+      .scrim {
+        position: fixed;
+        inset: 0;
+        background: rgba(43, 38, 34, 0.28);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      .drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 400px;
+        height: 100%;
+        background: #fff;
+        box-shadow: -20px 0 50px rgba(0, 0, 0, 0.18);
+        transform: translateX(105%);
+        transition: transform 0.42s cubic-bezier(0.2, 0.9, 0.2, 1);
+        padding: 28px 30px;
+      }
+      body.open .scrim {
+        opacity: 1;
+      }
+      body.open .drawer {
+        transform: translateX(0);
+      }
+      .drawer h2 {
+        font-family: Georgia, serif;
+        font-weight: 400;
+        font-size: 26px;
+        margin: 0 0 24px;
+      }
+      .line {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        padding: 16px 0;
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .line .pic {
+        width: 76px;
+        height: 76px;
+        border-radius: 12px;
+        background: #efe7da;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .line .name {
+        font-size: 16px;
+      }
+      .line .sub {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .line .amt {
+        margin-left: auto;
+        font-size: 16px;
+      }
+      .total {
+        display: flex;
+        justify-content: space-between;
+        margin: 22px 0;
+        font-size: 17px;
+      }
+      .checkout {
+        width: 100%;
+        height: 56px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .checkout.hover {
+        background: #000;
+      }
+      .continue {
+        text-align: center;
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 16px;
+        text-decoration: underline;
+      }
+      /* the drawn cursor */
+      #cursor {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 26px;
+        height: 34px;
+        pointer-events: none;
+        z-index: 100;
+        transform: translate(-100px, -100px);
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+      }
+      .ripple {
+        position: fixed;
+        width: 16px;
+        height: 16px;
+        margin: -8px 0 0 -8px;
+        border-radius: 50%;
+        border: 3px solid rgba(180, 83, 42, 0.8);
+        pointer-events: none;
+        z-index: 99;
+        animation: ripple 0.55s ease-out forwards;
+      }
+      @keyframes ripple {
+        to {
+          transform: scale(4.5);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo">kiln <b>&amp;</b> co.</div>
+      <nav><span>Shop</span><span>Collections</span><span>Journal</span><span>About</span></nav>
+      <div class="icons">
+        <span>Search</span>
+        <span>Account</span>
+        <span class="cart" id="cart">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+            <path d="M5 7h14l-1.2 11.5a2 2 0 0 1-2 1.5H8.2a2 2 0 0 1-2-1.5z" />
+            <path d="M9 7V5.5a3 3 0 0 1 6 0V7" />
+          </svg>
+          <span class="count-plain" id="countPlain">Cart (0)</span>
+          <span class="badge" id="badge">1</span>
+        </span>
+      </div>
+    </header>
+    <div class="crumbs">Shop / Mugs / Speckled Mug</div>
+    <main>
+      <section>
+        <div class="hero" id="hero"></div>
+        <div class="thumbs">
+          <div></div>
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </section>
+      <section>
+        <div class="kicker">Stoneware · Handmade in Lisbon</div>
+        <h1>Speckled Mug</h1>
+        <div class="rating">★★★★★<span>128 reviews</span></div>
+        <div class="price">€24</div>
+        <div class="swatches">
+          <span class="swatch on" id="oat" style="background: #e9dfcf"></span>
+          <span class="swatch" id="sage" style="background: #9aab88"></span>
+          <span class="swatch" style="background: #3b3632"></span>
+          <span id="colorName">Oat</span>
+        </div>
+        <div class="buy">
+          <div class="qty"><span>−</span><b>1</b><span>+</span></div>
+          <button class="add" id="add">Add to cart — €24</button>
+        </div>
+        <div class="perks">Free shipping over €50 · Ships in 2 days · 30-day returns</div>
+        <p class="desc">
+          Wheel-thrown stoneware with an iron-speckled glaze. Holds 350 ml, comfortable handle, dishwasher safe. Every
+          piece is slightly different.
+        </p>
+        <div class="ship">
+          Shipping calculated at checkout. Orders ship within 2 business days.<br />Returns accepted within 30 days in
+          original packaging.
+        </div>
+        <span class="tiny-add" id="tinyAdd">add to cart</span>
+      </section>
+    </main>
+    <div class="scrim"></div>
+    <aside class="drawer">
+      <h2>Your cart</h2>
+      <div class="line">
+        <div class="pic" id="linePic"></div>
+        <div>
+          <div class="name">Speckled Mug</div>
+          <div class="sub" id="lineSub">Oat · Qty 1</div>
+        </div>
+        <div class="amt">€24</div>
+      </div>
+      <div class="total"><span>Subtotal</span><span>€24</span></div>
+      <button class="checkout" id="checkout">Checkout</button>
+      <div class="continue">Continue shopping</div>
+    </aside>
+    <svg id="cursor" viewBox="0 0 26 34">
+      <path
+        d="M2 2 L2 27 L8.8 20.8 L13.8 31.5 L17.8 29.8 L12.8 19.4 L21.5 19 Z"
+        fill="#fff"
+        stroke="#111"
+        stroke-width="1.8"
+        stroke-linejoin="round"
+      />
+    </svg>
+    <script>
+      const variant = new URLSearchParams(location.search).get('v') === 'after' ? 'after' : 'before';
+      document.body.classList.add(variant);
+
+      // The mug, drawn with a little character: a chubby rounded cup with a soft outline, a gentle face
+      // and curly steam. The glaze colour follows the selected swatch.
+      const INK = '#5c4a3a';
+      const mug = (size) => {
+        return `<svg width="${size}" height="${size}" viewBox="0 0 300 300">
+          <ellipse cx="150" cy="268" rx="94" ry="11" fill="${INK}" opacity="0.1"/>
+          <path d="M220 118 C272 110 274 208 216 204" fill="none" stroke="${INK}" stroke-width="32" stroke-linecap="round"/>
+          <path d="M220 118 C272 110 274 208 216 204" fill="none" stroke="var(--glaze-dark)" stroke-width="19" stroke-linecap="round"/>
+          <path d="M70 90 C70 76 80 70 94 70 L206 70 C220 70 230 76 230 90 L226 212 C224 246 200 264 166 264 L134 264 C100 264 76 246 74 212 Z"
+            fill="var(--glaze)" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>
+          <path d="M200 74 C214 78 222 88 222 104 L218 212 C216 238 200 254 176 258 C196 244 204 224 205 200 L208 96 C208 86 206 79 200 74 Z"
+            fill="var(--glaze-dark)" opacity="0.55"/>
+          <path d="M88 104 C88 94 92 88 100 86" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0.7"/>
+          <ellipse cx="150" cy="78" rx="80" ry="15" fill="var(--glaze-dark)" stroke="${INK}" stroke-width="6"/>
+          <ellipse cx="150" cy="80" rx="66" ry="9" fill="#8a5a3c"/>
+          <ellipse cx="121" cy="172" rx="10" ry="12" fill="#3b2a22"/>
+          <ellipse cx="179" cy="172" rx="10" ry="12" fill="#3b2a22"/>
+          <circle cx="124.5" cy="167" r="4" fill="#fff"/>
+          <circle cx="182.5" cy="167" r="4" fill="#fff"/>
+          <ellipse cx="102" cy="194" rx="12" ry="7" fill="#e8a08f" opacity="0.4"/>
+          <ellipse cx="198" cy="194" rx="12" ry="7" fill="#e8a08f" opacity="0.4"/>
+          <path d="M141 190 Q150 198 159 190" fill="none" stroke="#3b2a22" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M116 52 C106 42 124 34 114 22" fill="none" stroke="#c9b9a6" stroke-width="5" stroke-linecap="round"/>
+          <path d="M186 52 C196 42 178 34 188 22" fill="none" stroke="#c9b9a6" stroke-width="5" stroke-linecap="round"/>
+          <path d="M150 54 C140 42 160 34 150 20" fill="none" stroke="#c9b9a6" stroke-width="5" stroke-linecap="round"/>
+        </svg>`;
+      };
+      document.getElementById('hero').innerHTML = mug(380);
+      document.querySelectorAll('.thumbs div').forEach((thumb) => (thumb.innerHTML = mug(58)));
+      document.getElementById('linePic').innerHTML = mug(62);
+
+      document.getElementById('sage').addEventListener('click', () => {
+        document.body.dataset.color = 'sage';
+        document.getElementById('oat').classList.remove('on');
+        document.getElementById('sage').classList.add('on');
+        document.getElementById('colorName').textContent = 'Sage';
+        document.getElementById('lineSub').textContent = 'Sage · Qty 1';
+      });
+
+      // Before: the only feedback is a small grey label changing.
+      document.getElementById('tinyAdd').addEventListener('click', () => {
+        document.getElementById('countPlain').textContent = 'Cart (1)';
+      });
+
+      // After: the button confirms, the badge pops, the drawer slides in.
+      document.getElementById('add').addEventListener('click', (event) => {
+        event.currentTarget.textContent = '✓ Added to cart';
+        event.currentTarget.classList.add('done');
+        document.getElementById('countPlain').textContent = '';
+        document.getElementById('badge').classList.add('show');
+        setTimeout(() => document.body.classList.add('open'), 180);
+      });
+      document
+        .getElementById('checkout')
+        .addEventListener('mouseenter', (event) => event.currentTarget.classList.add('hover'));
+
+      // The drawn cursor and click ripples.
+      const cursor = document.getElementById('cursor');
+      addEventListener('mousemove', (event) => {
+        cursor.style.transform = `translate(${event.clientX - 2}px, ${event.clientY - 2}px)`;
+      });
+      addEventListener('mousedown', (event) => {
+        const ring = document.createElement('div');
+        ring.className = 'ripple';
+        ring.style.left = `${event.clientX}px`;
+        ring.style.top = `${event.clientY}px`;
+        document.body.appendChild(ring);
+        setTimeout(() => ring.remove(), 700);
+      });
+    </script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { parseKeyValues, buildProjectConfig, withOrientation } from '../src/render-args';
+import { parseKeyValues, buildProjectConfig, withOrientation, collectRepeated } from '../src/render-args';
 
 describe('withOrientation', () => {
   const template = {
@@ -95,5 +95,27 @@ describe('buildProjectConfig', () => {
     expect(cfg.userVideoPaths).toBeUndefined();
     expect(cfg.videoConfig).toBeUndefined();
     expect(cfg.currentLocale).toBeUndefined();
+  });
+});
+
+// citty parses a repeated string flag as last-wins, so `--field a=1 --field b=2` used to reach the
+// engine as only `b=2` (and a two-clip template could only map one --video). Collect from raw argv.
+describe('collectRepeated', () => {
+  it('keeps every occurrence of a repeated flag, in order', () => {
+    const argv = ['t.json', '--field', 'project=Acme', '--field', 'change=Cart', '--video', 'before=a.mp4'];
+
+    expect(collectRepeated(argv, 'field')).toEqual(['project=Acme', 'change=Cart']);
+    expect(collectRepeated(argv, 'video')).toEqual(['before=a.mp4']);
+  });
+
+  it('accepts the --flag=value form and values containing spaces or `=`', () => {
+    const argv = ['--field=title=Hello world', '--field', 'url=https://x/y?a=b', '--video=after=b.mp4'];
+
+    expect(collectRepeated(argv, 'field')).toEqual(['title=Hello world', 'url=https://x/y?a=b']);
+    expect(collectRepeated(argv, 'video')).toEqual(['after=b.mp4']);
+  });
+
+  it('ignores flags with a longer name and a trailing flag with no value', () => {
+    expect(collectRepeated(['--fields', 'x=1', '--field'], 'field')).toEqual([]);
   });
 });

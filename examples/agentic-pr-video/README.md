@@ -1,0 +1,75 @@
+# Agentic PR evidence video
+
+Use this template when an agent has finished a code change and the reviewer needs more than a written summary. The agent collects a short, real screen recording, gives the change and review focus to LeClap, validates the descriptor, and renders a deterministic MP4. Attach the finished file to the pull or merge request beside the code.
+
+LeClap creates the artifact. Uploading it remains an explicit step in your GitHub or GitLab workflow.
+
+## Inputs
+
+- `walkthrough`: a screen recording of the implementation under review
+- `project`: the project name shown on the opening card
+- `change`: a concise name for the change
+- `reviewFocus`: the behavior the reviewer should watch
+
+## Validate
+
+```bash
+npx @leclap/cli validate template.json
+```
+
+## Render
+
+Run this command from this directory after placing the recording at `./evidence/walkthrough.mp4`:
+
+```bash
+npx @leclap/cli render template.json \
+  --video walkthrough=./evidence/walkthrough.mp4 \
+  --field project="Example project" \
+  --field change="Keyboard navigation" \
+  --field reviewFocus="Focus order and visible focus states" \
+  --output ./build/pr-evidence.mp4
+```
+
+Then attach `./build/pr-evidence.mp4` to the PR/MR description or a review comment. Keep the source recording narrow, avoid customer data, and only show evidence that is safe to publish.
+
+## Before / after variant
+
+For a UI change, a single walkthrough still leaves the reviewer comparing against memory. [`before-after.json`](./before-after.json) shows both behaviors in one short clip:
+
+1. a title card with the project and the change
+2. the `before` recording, badged **BEFORE**
+3. a wipe to the `after` recording, badged **AFTER**
+4. a card that says what to review
+
+### Inputs
+
+- `before`: the walkthrough on the base branch (the first 3.8 s are used)
+- `after`: the same walkthrough on the branch under review (the first 4.2 s are used)
+- `project`, `change`, `beforeCaption`, `afterCaption`, `reviewFocus`: the card and badge texts, set in the template's `global.variables`
+
+Copy the template next to your evidence and edit those variables to describe your change.
+
+### Try it on the demo shop
+
+[`demo-shop/`](./demo-shop) is a fake e-commerce product page, Kiln & Co. With `?v=before` its "add to cart" is a faint grey link that gives no feedback; with `?v=after` it is a primary button that confirms and opens a cart drawer. [`record.mjs`](./demo-shop/record.mjs) records both walkthroughs with Playwright and needs ffmpeg on your PATH. Playwright is resolved from the directory you run it in:
+
+```bash
+npm i -D @playwright/test && npx playwright install chromium
+node demo-shop/record.mjs
+```
+
+This writes `./evidence/before.mp4` and `./evidence/after.mp4`. The demo shop's texts, if you want to reproduce the example exactly: project `Kiln & Co. — shop`, change `Make Add to cart obvious`, beforeCaption `A faint link, and no feedback`, afterCaption `One button, instant cart drawer`, reviewFocus `Button contrast and drawer focus`.
+
+### Validate and render
+
+```bash
+npx @leclap/cli validate before-after.json
+npx @leclap/cli render before-after.json \
+  --video before=./evidence/before.mp4 \
+  --video after=./evidence/after.mp4 \
+  --output ./build/pr-evidence.mp4
+```
+
+Mapping two clips needs a `@leclap/cli` release newer than 0.2.4; earlier versions keep only the last `--video` (and `--field`) flag.
+
+For a real change, point the same two walkthroughs at your app on the base branch and on your branch, then attach `./build/pr-evidence.mp4` to the PR/MR like the single-walkthrough video.

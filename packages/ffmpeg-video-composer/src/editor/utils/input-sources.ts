@@ -390,12 +390,20 @@ export function resolveLayerGeometry(
   };
 }
 
+// %R / %B stand for the box's last column / row (w-1, h-1), never w/h: the gradients source swaps any
+// point outside [0, w-1]×[0, h-1] for a random one drawn from its seed, so an end point ON the far edge
+// renders a different sweep length on every run.
 const GRADIENT_DIRECTION_COORDS: Record<string, string> = {
   // gradients defaults to a top→bottom (vertical) sweep; we set the end coords explicitly per direction.
-  horizontal: 'x0=0:y0=0:x1=%W:y1=0',
-  vertical: 'x0=0:y0=0:x1=0:y1=%H',
-  diagonal: 'x0=0:y0=0:x1=%W:y1=%H',
+  horizontal: 'x0=0:y0=0:x1=%R:y1=0',
+  vertical: 'x0=0:y0=0:x1=0:y1=%B',
+  diagonal: 'x0=0:y0=0:x1=%R:y1=%B',
 };
+
+/** Rounds a coordinate into the gradients source's accepted range, [0, size-1]. */
+function insideBox(value: number, size: number): number {
+  return Math.min(Math.max(Math.round(value), 0), size - 1);
+}
 
 /**
  * lavfi gradients source for a gradient background layer:
@@ -431,9 +439,9 @@ export function buildGradientSource(layer: BackgroundLayer, scale: string, durat
 }
 
 // linear sweeps between two points along a direction; radial/circular/spiral radiate from the
-// (x0,y0) origin, so they get a centred origin with (x1,y1) at the far corner (radial reach =
-// half-diagonal, filling the whole box) — the direction coords would pin them to the top-left.
-// A free `angle` (degrees) wins over the direction enum, unlocking the reverse and diagonal
+// (x0,y0) origin, so they get a centred origin with (x1,y1) at the far corner pixel (w-1, h-1;
+// radial reach ≈ half-diagonal, filling the whole box) — the direction coords would pin them to the
+// top-left. A free `angle` (degrees) wins over the direction enum, unlocking the reverse and diagonal
 // sweeps the three fixed directions can't express; the enum stays as sugar for old descriptors.
 function gradientCoords(
   shape: string | undefined,
@@ -443,19 +451,19 @@ function gradientCoords(
   h: number
 ): string {
   if (shape && shape !== 'linear') {
-    return `x0=${Math.round(w / 2)}:y0=${Math.round(h / 2)}:x1=${w}:y1=${h}`;
+    return `x0=${insideBox(w / 2, w)}:y0=${insideBox(h / 2, h)}:x1=${w - 1}:y1=${h - 1}`;
   }
 
   if (angle !== undefined) return angleCoords(angle, w, h);
 
   const sweep = GRADIENT_DIRECTION_COORDS[direction ?? 'vertical'] ?? GRADIENT_DIRECTION_COORDS.vertical;
 
-  return sweep.replace('%W', String(w)).replace('%H', String(h));
+  return sweep.replace('%R', String(w - 1)).replace('%B', String(h - 1));
 }
 
 // Lowers a CSS-convention angle (0=bottom→top, 90=left→right, clockwise) to gradients sweep
 // endpoints: a ray through the box centre, cut where it exits the box — the gradients source
-// re-randomises coordinates outside the box, so the endpoints must stay within [0,w]×[0,h].
+// re-randomises coordinates outside the box, so the endpoints must stay within [0,w-1]×[0,h-1].
 function angleCoords(angleDeg: number, w: number, h: number): string {
   const theta = (((angleDeg % 360) + 360) % 360) * (Math.PI / 180);
   // CSS angles run clockwise from "up"; screen y grows downward, hence dy = -cos.
@@ -464,18 +472,11 @@ function angleCoords(angleDeg: number, w: number, h: number): string {
   const tx = Math.abs(dx) < 1e-9 ? Infinity : w / 2 / Math.abs(dx);
   const ty = Math.abs(dy) < 1e-9 ? Infinity : h / 2 / Math.abs(dy);
   const reach = Math.min(tx, ty);
-  function clampX(v: number): number {
-    return Math.min(Math.max(Math.round(v), 0), w);
-  }
 
-  function clampY(v: number): number {
-    return Math.min(Math.max(Math.round(v), 0), h);
-  }
-
-  const x0 = clampX(w / 2 - dx * reach);
-  const y0 = clampY(h / 2 - dy * reach);
-  const x1 = clampX(w / 2 + dx * reach);
-  const y1 = clampY(h / 2 + dy * reach);
+  const x0 = insideBox(w / 2 - dx * reach, w);
+  const y0 = insideBox(h / 2 - dy * reach, h);
+  const x1 = insideBox(w / 2 + dx * reach, w);
+  const y1 = insideBox(h / 2 + dy * reach, h);
 
   return `x0=${x0}:y0=${y0}:x1=${x1}:y1=${y1}`;
 }

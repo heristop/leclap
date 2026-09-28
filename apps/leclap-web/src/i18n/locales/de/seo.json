@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Cinematischer Video-Composer in deinem Browser",
-    "description": "Erstelle cinematische Videos aus Vorlagen direkt in deinem Browser. LeClap läuft clientseitig mit WebAssembly und FFmpeg – keine Uploads, keine Server, keine Grenzen."
+    "title": "LeClap — Video-Composer für Browser, Handy & KI-Agenten",
+    "description": "Erstelle Videos aus einer JSON-Vorlage im Browser oder auf dem Handy – ohne Upload. In der agentischen Entwicklung hängt dein Coding-Agent Vorher/Nachher-Videos an PRs."
   },
   "studio": {
     "title": "Studio",

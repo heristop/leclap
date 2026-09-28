@@ -1,0 +1,52 @@
+WEBVTT
+
+00:00:00.900 --> 00:00:02.547
+Every video starts as an idea.
+
+00:00:03.100 --> 00:00:05.297
+What if that idea was a template?
+
+00:00:06.800 --> 00:00:09.544
+LeClap. One template. Every screen.
+
+00:00:10.500 --> 00:00:17.808
+Describe your video once, as a JSON template. LeClap's FFmpeg engine composes it into a finished film.
+
+00:00:18.300 --> 00:00:22.298
+The same template renders in Node, in your browser, and right on your phone.
+
+00:00:24.300 --> 00:00:31.635
+On desktop: pick a template. Drop in your footage. Trim the best take. Build your scenes, right in the browser.
+
+00:00:32.500 --> 00:00:33.607
+But here's the magic.
+
+00:00:34.700 --> 00:00:36.643
+Pick a template. Shoot your clip.
+
+00:00:37.400 --> 00:00:39.339
+And the phone renders the video itself.
+
+00:00:42.300 --> 00:00:46.000
+No server. No upload. It all stays on the device.
+
+00:00:48.200 --> 00:00:53.194
+Social stories. Brand intros. Product demos. Personalised videos.
+
+00:00:54.400 --> 00:00:59.758
+And for agentic development: your coding agent records the change, and LeClap renders the proof.
+
+00:01:00.000 --> 00:01:02.620
+Before: a faint link, and no feedback.
+
+00:01:03.800 --> 00:01:06.473
+After: one button, and the cart opens.
+
+00:01:07.200 --> 00:01:09.313
+Don't describe the change. Show it.
+
+00:01:10.800 --> 00:01:13.494
+LeClap. One template. Every screen.
+
+00:01:14.600 --> 00:01:16.588
+Open source, at leclap.dev.

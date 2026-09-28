@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Compositeur vidéo cinématographique dans ton navigateur",
-    "description": "Crée des vidéos cinématographiques à partir de modèles, directement dans ton navigateur. LeClap tourne côté client avec WebAssembly et FFmpeg — sans envoi, sans serveur, sans limite."
+    "title": "LeClap — Compositeur vidéo pour navigateur, mobile et agents IA",
+    "description": "Compose des vidéos depuis un modèle JSON, dans ton navigateur ou sur ton téléphone, sans envoi. En développement agentique, ton agent joint une vidéo avant/après à ses PR."
   },
   "studio": {
     "title": "Studio",

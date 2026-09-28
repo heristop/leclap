@@ -58,10 +58,46 @@
     "license": "MIT licensed"
   },
   "routeError": {
-    "heading": "Something went wrong",
-    "fallbackStatus": "Oops",
-    "message": "An unexpected error interrupted this page.",
-    "unexpected": "An unexpected error occurred.",
-    "reload": "Reload"
+    "seoTitle": {
+      "notFound": "Page Not Found",
+      "badRequest": "Bad Request",
+      "update": "Update Available",
+      "offline": "Offline",
+      "crash": "Something Went Wrong"
+    },
+    "reload": "Reload",
+    "home": "Back to the home page",
+    "back": "Go back",
+    "details": "Technical details",
+    "copy": "Copy details",
+    "copied": "Copied",
+    "report": "Report it on GitHub",
+    "badRequest": {
+      "slate": "Scene {{status}}",
+      "eyebrow": "Error {{status}} · Bad request",
+      "title": "This request doesn't add up.",
+      "message": "LeClap couldn't make sense of it: the link may be cut short, or edited by hand. Go back and try again from the page itself."
+    },
+    "update": {
+      "slate": "New take",
+      "eyebrow": "Update available",
+      "title": "LeClap was updated while this tab was open.",
+      "message": "This page belongs to the version you opened earlier. Reload to switch to the new one; projects you've saved stay in this browser."
+    },
+    "offline": {
+      "slate": "No signal",
+      "eyebrow": "Offline",
+      "title": "You're offline.",
+      "message": "This page hasn't been saved on this device yet. Reconnect, then reload.",
+      "backTitle": "You're back online.",
+      "backMessage": "Reload to pick up where you left off."
+    },
+    "crash": {
+      "slate": "Cut",
+      "eyebrow": "Unexpected error",
+      "eyebrowStatus": "Error {{status}}",
+      "title": "Cut! Something broke on our side.",
+      "message": "LeClap hit an error it didn't see coming. Projects you've saved stay in this browser, so reloading won't touch them."
+    }
   }
 }

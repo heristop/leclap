@@ -55,6 +55,6 @@ describe('link extraction', () => {
   // pinned a citation that a README trim deleted, failing this for the wrong reason), but the <img>
   // in the centred header block is structural.
   it('finds README html links', () => {
-    expect(hrefs(readme, HTML_LINK)).toContain('apps/leclap-web/public/pwa-512x512.png');
+    expect(hrefs(readme, HTML_LINK)).toContain('.github/media/clappy.png');
   });
 });

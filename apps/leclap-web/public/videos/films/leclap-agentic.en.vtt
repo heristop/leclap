@@ -1,0 +1,37 @@
+WEBVTT
+
+00:00:00.800 --> 00:00:02.166
+Your agent shipped the change.
+
+00:00:02.900 --> 00:00:04.705
+The reviewer still has to imagine it.
+
+00:00:06.600 --> 00:00:08.713
+Don't describe the change. Show it.
+
+00:00:10.400 --> 00:00:12.047
+The agent implements the change,
+
+00:00:14.400 --> 00:00:18.022
+collects real evidence: the behavior before, and after,
+
+00:00:20.400 --> 00:00:25.927
+then LeClap validates the template, and composes the video. Composition, not generation.
+
+00:00:28.400 --> 00:00:30.702
+Your workflow attaches it to the pull request.
+
+00:00:33.000 --> 00:00:35.620
+Before: a faint link, and no feedback.
+
+00:00:36.700 --> 00:00:39.373
+After: one button, and the cart opens.
+
+00:00:40.100 --> 00:00:41.508
+And one clear thing to review.
+
+00:00:43.500 --> 00:00:45.976
+Lights, camera, merge.
+
+00:00:47.000 --> 00:00:47.591
+LeClap.

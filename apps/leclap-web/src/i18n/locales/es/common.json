@@ -58,10 +58,46 @@
     "license": "Licencia MIT"
   },
   "routeError": {
-    "heading": "Algo salió mal",
-    "fallbackStatus": "Vaya",
-    "message": "Un error inesperado interrumpió esta página.",
-    "unexpected": "Ocurrió un error inesperado.",
-    "reload": "Recargar"
+    "seoTitle": {
+      "notFound": "Página no encontrada",
+      "badRequest": "Solicitud incorrecta",
+      "update": "Actualización disponible",
+      "offline": "Sin conexión",
+      "crash": "Algo ha fallado"
+    },
+    "reload": "Recargar",
+    "home": "Volver al inicio",
+    "back": "Volver atrás",
+    "details": "Detalles técnicos",
+    "copy": "Copiar detalles",
+    "copied": "Copiado",
+    "report": "Reportarlo en GitHub",
+    "badRequest": {
+      "slate": "Escena {{status}}",
+      "eyebrow": "Error {{status}} · Solicitud incorrecta",
+      "title": "Esta solicitud no tiene ni pies ni cabeza.",
+      "message": "LeClap no ha podido entenderla: puede que el enlace esté cortado o editado a mano. Vuelve atrás e inténtalo de nuevo desde la propia página."
+    },
+    "update": {
+      "slate": "Nueva toma",
+      "eyebrow": "Actualización disponible",
+      "title": "LeClap se ha actualizado mientras esta pestaña estaba abierta.",
+      "message": "Esta página es de la versión que abriste antes. Recarga para pasar a la nueva; tus proyectos guardados siguen en este navegador."
+    },
+    "offline": {
+      "slate": "Sin señal",
+      "eyebrow": "Sin conexión",
+      "title": "Estás sin conexión.",
+      "message": "Esta página aún no está guardada en este dispositivo. Vuelve a conectarte y recarga.",
+      "backTitle": "Vuelve a haber conexión.",
+      "backMessage": "Recarga para seguir donde lo dejaste."
+    },
+    "crash": {
+      "slate": "Corten",
+      "eyebrow": "Error inesperado",
+      "eyebrowStatus": "Error {{status}}",
+      "title": "¡Corten! Algo ha fallado por nuestra parte.",
+      "message": "LeClap se ha topado con un error que no esperaba. Tus proyectos guardados siguen en este navegador: recargar no los tocará."
+    }
   }
 }

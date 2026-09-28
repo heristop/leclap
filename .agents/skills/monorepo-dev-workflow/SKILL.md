@@ -27,7 +27,7 @@ pnpm workspaces (`apps/*`, `packages/*`), no turbo/nx. Tooling is **vite-plus (`
 | Build executables    | `pnpm build:exe:all`                                                                                     |
 | Dep graph / check    | `pnpm graph` · `pnpm deps:check`                                                                         |
 
-`<pkg>` names: `ffmpeg-video-composer`, `@leclap/mcp`, `@leclap/creative-kit`, `@leclap/brand-motion`, `@leclap/expo`, `@leclap/web`.
+`<pkg>` names: `ffmpeg-video-composer`, `@leclap/mcp`, `@leclap/creative-kit`, `@leclap/expo`, `@leclap/web`.
 
 ## Before committing
 

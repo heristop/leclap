@@ -1,7 +1,7 @@
 {
   "hero": {
     "eyebrow": "LeClap Studio",
-    "headlineA": "Tourne. Monte. Publie.",
+    "headlineA": "Silence, ça tourne.",
     "headlineB": "dans ton navigateur.",
     "subtagline": "Le monteur vidéo cinématique qui tourne entièrement dans ton navigateur.",
     "privacy": "Tes images ne quittent jamais ton appareil.",
@@ -9,8 +9,9 @@
     "scrubAria": "Faire défiler le film d'arrière-plan",
     "startCreating": "Créer ma vidéo",
     "seeHow": "Voir comment ça marche",
-    "soundOn": "Activer le son du hero",
-    "soundOff": "Couper le son du hero"
+    "play": "Lire le film du hero",
+    "pause": "Mettre le film du hero en pause",
+    "scrubValue": "{{seconds}} sur {{total}} secondes"
   },
   "showcase": {
     "eyebrow": "En action",
@@ -18,42 +19,90 @@
     "subtitle": "Aucun envoi, aucun serveur — ce clip a été composé sur l’appareil à partir d’un modèle, avec transitions, musique, effets, texte et animations, puis rendu par WebAssembly FFmpeg.",
     "badge": "Rendu d’exemple · dans le navigateur",
     "videoAria": "Une vidéo d’exemple composée dans LeClap, lue en boucle",
-    "mute": "Couper le son",
-    "unmute": "Activer le son",
-    "volume": "Volume",
+    "play": "Lire le rendu",
+    "pause": "Mettre le rendu en pause",
     "cta": "Crée la tienne",
     "browseTemplates": "Parcourir les modèles",
     "readDocs": "Lire la doc"
   },
-  "createShowcase": {
-    "eyebrow": "Faire une vidéo",
-    "title": "Du modèle à la vidéo finie",
-    "subtitle": "Choisis un modèle, glisse ton clip et lance le rendu d’une vidéo soignée, directement dans ton navigateur — WebAssembly FFmpeg, sans envoi, sans compte.",
-    "badge": "Studio · dans le navigateur",
-    "videoAria": "Un enregistrement d’écran de la création d’une vidéo dans le Studio LeClap, lu en boucle",
-    "cta": "Créer ma vidéo"
+  "sound": {
+    "on": "Activer le son",
+    "off": "Couper le son",
+    "volume": "Volume"
   },
-  "builderShowcase": {
-    "eyebrow": "À toi de jouer",
-    "title": "Composez un modèle, visuellement",
-    "subtitle": "Ajoute des scènes, dépose textes et arrière-plans sur le canevas, puis prévisualise le rendu en direct — le tout dans ton navigateur, rien à installer.",
-    "badge": "L’éditeur de modèles",
-    "videoAria": "Un enregistrement d’écran de l’éditeur de modèles LeClap, lu en boucle",
-    "cta": "Ouvrir l’éditeur"
+  "film": {
+    "eyebrow": "Le film",
+    "title": "Un modèle. Tous les écrans.",
+    "subtitle": "78 secondes, chaque plan rendu ou filmé pour de vrai : le modèle, le moteur, le navigateur, le téléphone et l’agent.",
+    "name": "LeClap — le film",
+    "badge": "La bande-annonce · 1:18",
+    "play": "Lancer le film",
+    "pause": "Mettre le film en pause",
+    "captions": "Sous-titres français",
+    "captionsToggle": "Sous-titres"
   },
-  "phoneShowcase": {
-    "eyebrow": "Et aussi sur mobile",
-    "title": "Tout le Studio, dans ta poche",
-    "subtitle": "Sur iPhone et Android, LeClap fait exactement le même travail que la version web — filme, compose et lance le rendu d’un clip fini sans jamais quitter ton appareil.",
-    "bullets": {
-      "capture": "Filme directement depuis la caméra, puis glisse la prise dans un modèle.",
-      "effects": "Empile effets, musique et transitions, avec un aperçu en direct au fil de tes réglages.",
-      "offline": "Tout se rend sur l’appareil — sans envoi, sans compte, même hors ligne."
+  "mobile": {
+    "eyebrow": "Sur ton téléphone",
+    "title": "Filme et monte, directement sur le téléphone.",
+    "subtitle": "Les mêmes modèles tournent sur le téléphone : FFmpeg est compilé dans l’app, tes images ne quittent jamais tes mains.",
+    "chapters": {
+      "pick": {
+        "title": "Choisis un modèle",
+        "body": "Parcours des styles prêts à l’emploi et choisis celui qui colle à ton histoire."
+      },
+      "shoot": {
+        "title": "Filme ton plan",
+        "body": "Filme directement depuis l’app, avec compte à rebours et guide de cadrage."
+      },
+      "render": {
+        "title": "Le rendu, sur le téléphone",
+        "body": "FFmpeg compose la vidéo finale sur l’appareil. Pas de serveur, pas d’envoi."
+      },
+      "result": {
+        "title": "Ta vidéo, terminée",
+        "body": "Titres, étalonnage et bandeau intégrés : prête à publier, et toujours sur ton téléphone."
+      }
     },
-    "badge": "Sur iOS et Android · sur l’appareil",
-    "videoAria": "Un enregistrement d’écran de l’application mobile LeClap en train de composer une vidéo, lu en boucle",
-    "cta": "Créer ma vidéo",
-    "secondaryCta": "Lire la doc"
+    "badge": "Sur l’appareil · aucun envoi",
+    "phoneAria": "Un téléphone qui fait tourner l’app LeClap",
+    "cta": "Essaie les modèles dans ton navigateur"
+  },
+  "agentic": {
+    "eyebrow": "Pour le développement agentique",
+    "title": "Ne décris pas le changement. Montre-le.",
+    "subtitle": "Ton agent de code enregistre le changement, LeClap rend une courte vidéo avant/après, et ton workflow la joint à la pull request.",
+    "chapters": {
+      "implement": {
+        "title": "L’agent implémente",
+        "body": "Il modifie le produit et précise ce que le reviewer doit vérifier."
+      },
+      "record": {
+        "title": "Il enregistre l’avant et l’après",
+        "body": "De vraies captures d’écran de la branche de base et du changement, pas d’images générées."
+      },
+      "render": {
+        "title": "LeClap valide et rend",
+        "body": "Le modèle est d’abord validé, puis composé en une vidéo déterministe."
+      },
+      "attach": {
+        "title": "Ton workflow la joint",
+        "body": "Le reviewer lance la vidéo sur la pull request au lieu d’imaginer le changement."
+      }
+    },
+    "steps": {
+      "implement": "Implémenter",
+      "record": "Enregistrer",
+      "render": "Rendre",
+      "attach": "Joindre"
+    },
+    "cardAria": "Une pull request avec une vidéo avant/après rendue en pièce jointe",
+    "evidencePlay": "Lire la vidéo avant/après",
+    "evidencePause": "Mettre la vidéo avant/après en pause",
+    "filmTitle": "De la user story à la preview",
+    "filmName": "LeClap pour le développement agentique — le film",
+    "filmBadge": "Développement agentique · 0:50",
+    "cta": "Ouvrir l’exemple exécutable",
+    "ctaSecondary": "Utiliser la recette MCP"
   },
   "features": {
     "badge": "Tout, côté client",
@@ -62,33 +111,27 @@
     "items": {
       "templates": {
         "title": "De vrais modèles JSON",
-        "highlight": "Prêt pour la prod",
-        "description": "Partez de vrais fichiers de modèle issus du paquet principal, avec configurations FFmpeg poussées, filtres et effets."
+        "description": "Un seul fichier JSON décrit toute la vidéo : sections, filtres, texte et musique. Ce même fichier se rend en CLI, dans le navigateur et sur le téléphone."
       },
       "forms": {
-        "title": "Formulaires interactifs",
-        "highlight": "Dynamique",
-        "description": "Des formulaires générés à la volée depuis les modèles, avec validation en temps réel et prise en compte de tes saisies."
+        "title": "Formulaires issus du modèle",
+        "description": "Chaque modèle déclare ses champs. Le studio en tire le formulaire et vérifie chaque saisie avant le rendu."
       },
       "processing": {
-        "title": "Traitement avancé",
-        "highlight": "Professionnel",
-        "description": "Un pipeline FFmpeg complet : filtres vidéo, incrustations de texte, transitions et mixage audio."
+        "title": "Tout le pipeline FFmpeg",
+        "description": "Filtres vidéo, incrustations de texte, transitions et mixage audio, compilés en véritables commandes FFmpeg."
       },
       "privacy": {
-        "title": "Confidentialité totale",
-        "highlight": "Privé",
-        "description": "Tout se passe en local, dans ton navigateur. Tes fichiers ne quittent jamais ton appareil et ne touchent aucun serveur."
+        "title": "Rien ne quitte l’appareil",
+        "description": "Le rendu se fait dans cet onglet. Tes fichiers ne sont jamais envoyés, il n’y a donc aucun serveur à qui faire confiance."
       },
       "wasm": {
-        "title": "Propulsé par WebAssembly",
-        "highlight": "Rapide",
-        "description": "Un traitement vidéo ultra-rapide grâce à WebAssembly FFmpeg, pour des performances quasi natives."
+        "title": "FFmpeg en WebAssembly",
+        "description": "Le même FFmpeg que tu ferais tourner sur un serveur, compilé pour le navigateur. Plus lent qu’en natif, et rien à installer."
       },
       "crossPlatform": {
-        "title": "Multiplateforme",
-        "highlight": "Universel",
-        "description": "Fonctionne dans tout navigateur moderne, sur ordinateur, mobile et tablette. Aucune installation."
+        "title": "Ordinateur, tablette, mobile",
+        "description": "Fonctionne dans les navigateurs récents, de l’écran d’ordinateur à celui d’un téléphone."
       }
     }
   }

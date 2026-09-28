@@ -6,7 +6,7 @@
 // before it ever reaches the consumer's composition. The loader only reaches for TypeScript when it
 // has not been handed a `tsconfigRaw`, so hand it one.
 //
-// Unlike the copy in packages/leclap-brand-motion (which serves this repo's own fixed compositions),
+// Unlike the copy in the leclap-brand-motion repo (which serves its own fixed compositions),
 // this is a published package bundling somebody else's Remotion project, so the workaround is gated
 // on the crash actually being possible: a `tsconfigRaw` REPLACES the compiler options esbuild would
 // otherwise have read from their tsconfig (jsxImportSource, experimentalDecorators, target, …), and

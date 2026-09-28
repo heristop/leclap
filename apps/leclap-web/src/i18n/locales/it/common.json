@@ -58,10 +58,46 @@
     "license": "Licenza MIT"
   },
   "routeError": {
-    "heading": "Qualcosa è andato storto",
-    "fallbackStatus": "Ops",
-    "message": "Un errore imprevisto ha interrotto questa pagina.",
-    "unexpected": "Si è verificato un errore imprevisto.",
-    "reload": "Ricarica"
+    "seoTitle": {
+      "notFound": "Pagina non trovata",
+      "badRequest": "Richiesta non valida",
+      "update": "Aggiornamento disponibile",
+      "offline": "Offline",
+      "crash": "Qualcosa è andato storto"
+    },
+    "reload": "Ricarica",
+    "home": "Torna alla home",
+    "back": "Torna indietro",
+    "details": "Dettagli tecnici",
+    "copy": "Copia i dettagli",
+    "copied": "Copiato",
+    "report": "Segnalalo su GitHub",
+    "badRequest": {
+      "slate": "Scena {{status}}",
+      "eyebrow": "Errore {{status}} · Richiesta non valida",
+      "title": "Questa richiesta non sta né in cielo né in terra.",
+      "message": "LeClap non è riuscito a interpretarla: forse il link è troncato o modificato a mano. Torna indietro e riprova dalla pagina stessa."
+    },
+    "update": {
+      "slate": "Nuovo ciak",
+      "eyebrow": "Aggiornamento disponibile",
+      "title": "LeClap è stato aggiornato mentre questa scheda era aperta.",
+      "message": "Questa pagina appartiene alla versione che avevi aperto prima. Ricarica per passare a quella nuova; i progetti salvati restano in questo browser."
+    },
+    "offline": {
+      "slate": "Nessun segnale",
+      "eyebrow": "Offline",
+      "title": "Sei offline.",
+      "message": "Questa pagina non è ancora salvata su questo dispositivo. Riconnettiti, poi ricarica.",
+      "backTitle": "Sei di nuovo online.",
+      "backMessage": "Ricarica per riprendere da dove avevi lasciato."
+    },
+    "crash": {
+      "slate": "Stop",
+      "eyebrow": "Errore imprevisto",
+      "eyebrowStatus": "Errore {{status}}",
+      "title": "Stop! Qualcosa si è rotto da parte nostra.",
+      "message": "LeClap si è imbattuto in un errore che non aveva previsto. I progetti che hai salvato restano in questo browser: ricaricare non li tocca."
+    }
   }
 }

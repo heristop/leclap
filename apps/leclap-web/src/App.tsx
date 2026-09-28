@@ -4,6 +4,7 @@ import { RootLayout } from '@/presentation/components/RootLayout';
 import { Home } from '@/presentation/pages/Home';
 import { RouteError } from '@/presentation/components/RouteError';
 import { LOCALE_PREFIXES } from '@/lib/language';
+import { NOT_FOUND_HANDLE } from '@/hooks/use-not-found';
 
 // Home stays in the entry chunk — it's the landing page and LCP-critical, so a lazy round-trip would
 // only add a fallback flash. Every other route is code-split into its own chunk so the heavy surfaces
@@ -94,9 +95,11 @@ const router = createBrowserRouter(
       </Route>
       <Route path="/about" element={<About />} />
       <Route path="/compare/remotion" element={<CompareRemotion />} />
+      {/* Retired page: its story is the home page's agentic section now; old links land there. */}
+      <Route path="/use-cases/agentic-development" element={<Navigate to="/#agentic" replace />} />
       <Route path="/legal" element={<Legal />} />
       <Route path="/privacy" element={<Privacy />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="*" element={<NotFound />} handle={NOT_FOUND_HANDLE} />
     </Route>
   ),
   { basename: detectBasename() }

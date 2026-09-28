@@ -19,6 +19,28 @@ export interface RenderFlags {
   build?: string;
 }
 
+// Every value of a repeatable flag, read from raw argv in order. citty parses a repeated string flag
+// as last-wins, so `--field a=1 --field b=2` reached the engine as `b=2` alone (and a two-clip
+// template could only ever map one --video). Accepts `--name value` and `--name=value`.
+export function collectRepeated(rawArgs: readonly string[], name: string): string[] {
+  const flag = `--${name}`;
+  const values: string[] = [];
+
+  for (const [index, arg] of rawArgs.entries()) {
+    if (arg.startsWith(`${flag}=`)) {
+      values.push(arg.slice(flag.length + 1));
+
+      continue;
+    }
+
+    const next = index + 1 < rawArgs.length ? rawArgs[index + 1] : undefined;
+
+    if (arg === flag && next !== undefined && !next.startsWith('--')) values.push(next);
+  }
+
+  return values;
+}
+
 // Parse repeatable `key=value` flag values into a record. Splits on the FIRST `=` so values may
 // contain `=` (e.g. a URL query). `label` is the flag name, used in the error message.
 export function parseKeyValues(pairs: string[] | undefined, label: string): Record<string, string> {

@@ -69,7 +69,7 @@ describe('FFmpegNodeAdapter — shell injection hardening', () => {
     expect(execFileCalls).toHaveLength(1);
     expect(execFileCalls[0].file).toBe('ffmpeg');
     expect(Array.isArray(execFileCalls[0].args)).toBe(true);
-    expect(execFileCalls[0].args).toEqual(['-i', 'in.mp4', 'out.mp4']);
+    expect(execFileCalls[0].args).toEqual(['-loglevel', 'error', '-i', 'in.mp4', 'out.mp4']);
   });
 
   it('keeps a shell-metacharacter payload as a single literal argv element', async () => {
@@ -83,7 +83,7 @@ describe('FFmpegNodeAdapter — shell injection hardening', () => {
     expect(execFileCalls[0].file).toBe('ffmpeg');
     // The payload survives as ONE literal element — never split, never shell-expanded.
     expect(execFileCalls[0].args).toContain(payload);
-    expect(execFileCalls[0].args).toEqual(['-i', payload, 'out.mp4']);
+    expect(execFileCalls[0].args).toEqual(['-loglevel', 'error', '-i', payload, 'out.mp4']);
   });
 
   it('preserves a drawtext filtergraph as a single literal argv element', async () => {
@@ -92,7 +92,7 @@ describe('FFmpegNodeAdapter — shell injection hardening', () => {
     await adapter.execute('-vf "drawtext=text=\'Hi\':x=10" out.mp4');
 
     expect(execFileCalls[0].file).toBe('ffmpeg');
-    expect(execFileCalls[0].args).toEqual(['-vf', "drawtext=text='Hi':x=10", 'out.mp4']);
+    expect(execFileCalls[0].args).toEqual(['-loglevel', 'error', '-vf', "drawtext=text='Hi':x=10", 'out.mp4']);
   });
 
   it('runs ffprobe via execFile with an argv array including the raw source path', async () => {

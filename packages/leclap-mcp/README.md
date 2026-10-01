@@ -201,3 +201,25 @@ Remotion remains optional and requires the existing trusted-local opt-in. Set `L
 This delivery supports opaque title clips. It does not execute React scenes on a phone, provide a general effect marketplace, or claim text-fit/contrast inspection of Remotion graphics through the core's FFmpeg geometry checks. Preserve JSON, module source/dependencies, assets and render provenance together for reproducibility.
 
 Registered jobs run in a separate worker under one setup-and-render deadline. Failed jobs are removed. Completed previews retain returned artifacts and provenance; compositions retain provenance after the FFmpeg worker consumes the temporary effect clips. Intermediate paths in `effectProvenance` describe consumed inputs and are not downloadable output artifacts. Relative effect asset paths resolve under `mediaDir`; absolute paths must remain inside it. Effect props/assets must contain concrete values rather than unresolved `{{ placeholders }}`.
+
+Registered JSON effect previews and composition reuse rendered artifacts in
+`<mediaDir>/.leclap-effects/cache-v1`. Lookup happens after fresh asset staging,
+bundling and browser/composition identification. Exact still frames, inclusive
+ranges and full clips have separate keys; source, dependencies, props, assets and
+render/browser settings participate in provenance. Hits are verified and copied
+into the current job directory before use.
+
+The default cache budget is 512 MiB with at most 256 entries, evicted by least
+recent use. Oversize outputs bypass admission; cache I/O failures fall back to
+rendering. Set `--effect-cache-max-bytes` or `LECLAP_MCP_EFFECT_CACHE_MAX_BYTES`
+to a nonnegative safe integer in bytes; `0` disables lookup and publication.
+Invalid values use the default. CLI values take precedence over environment values.
+Preview results expose `cache: {hits, misses, writes}`; composition results expose
+an aggregate `effectCache` when the template contains effects. Individual effect
+results also carry `metadata.cache` (`hit`, `miss`, `disabled` or `bypass`).
+
+Each MCP process runs one registered effect worker at a time with at most eight
+pending jobs. Queue waiting is bounded by `renderTimeoutMs` and request cancellation;
+after admission, worker setup and rendering have a separate `renderTimeoutMs`
+deadline. FFmpeg composition retains its existing worker policy. Independent MCP
+processes can reuse the disk cache but do not coalesce rendering jobs.

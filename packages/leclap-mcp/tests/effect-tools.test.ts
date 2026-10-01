@@ -102,6 +102,34 @@ describe('MCP registered effects', () => {
     expect(job.projectConfig.userVideoPaths).toEqual({ title: path.join(dir, 'clip.mp4') });
     expect(template).toEqual(raw);
   });
+  it('propagates worker cache summaries to preview and composition', async () => {
+    const original = vi.mocked(runTitleEffect).getMockImplementation()!;
+    vi.mocked(runTitleEffect).mockImplementation(async (...args) => ({
+      ...(await original(...args)),
+      cache: { hits: 1, misses: 0, writes: 0 },
+    }));
+    const preview = await capture(registerRenderPreview)({ template, section: 'title', frames: [0] });
+    expect(preview.structuredContent.cache).toEqual({ hits: 1, misses: 0, writes: 0 });
+    const composed = await capture(registerCompose)({ template });
+    expect(composed.structuredContent.effectCache).toEqual({ hits: 1, misses: 0, writes: 0 });
+  });
+
+  it('aggregates cache summaries across multiple effect sections', async () => {
+    template.sections.push({ ...structuredClone(template.sections[0]), name: 'second' });
+    const original = vi.mocked(runTitleEffect).getMockImplementation()!;
+    vi.mocked(runTitleEffect).mockImplementation(async (...args) => ({
+      ...(await original(...args)),
+      cache: { hits: 1, misses: 1, writes: 1 },
+    }));
+    const composed = await capture(registerCompose)({ template });
+    expect(composed.structuredContent.effectCache).toEqual({ hits: 2, misses: 2, writes: 2 });
+  });
+
+  it('gives older worker mocks zero preview diagnostics', async () => {
+    const preview = await capture(registerRenderPreview)({ template, section: 'title', frames: [0] });
+    expect(preview.structuredContent.cache).toEqual({ hits: 0, misses: 0, writes: 0 });
+  });
+
   it('invalid later effect rejects before any Remotion rendering', async () => {
     template.sections.push({
       ...structuredClone(template.sections[0]),

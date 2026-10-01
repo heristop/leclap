@@ -11,6 +11,7 @@ export async function resolveComposeEffects(
   signal?: AbortSignal
 ) {
   const directories: string[] = [];
+  const effectCache = { hits: 0, misses: 0, writes: 0 };
 
   try {
     const prepared = await validateEffects(template, config);
@@ -22,6 +23,9 @@ export async function resolveComposeEffects(
         if (!title) throw new Error(`effect_not_preflighted: ${section.name}`);
         const job = await runTitleEffect(title, config, [{ kind: 'video' }], signal);
         directories.push(job.directory);
+        effectCache.hits += job.cache?.hits ?? 0;
+        effectCache.misses += job.cache?.misses ?? 0;
+        effectCache.writes += job.cache?.writes ?? 0;
 
         return job.results[0];
       },
@@ -37,6 +41,7 @@ export async function resolveComposeEffects(
       descriptor: effects.descriptor,
       paths: { ...paths, ...effects.userVideoPaths },
       effectProvenance: effects.provenance,
+      effectCache,
       effectDirectories: directories,
     };
   } catch (error) {

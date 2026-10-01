@@ -51,6 +51,7 @@ it('keeps provenance/output directory after acknowledged successful rendering', 
   Object.assign(child, { exitCode: 0 });
   child.emit('exit', 0, null);
   const result = await pending;
+  expect(result.cache).toEqual({ hits: 0, misses: 0, writes: 0 });
   expect(result.provenance.hash).toBe('trusted');
   expect((await fs.stat(result.directory)).isDirectory()).toBe(true);
 });
@@ -81,4 +82,41 @@ it('abort terminates a running worker before cleanup', async () => {
   controller.abort();
   await expect(pending).rejects.toThrow(/aborted/);
   expect(await fs.readdir(path.join(root, '.leclap-effects'))).toEqual([]);
+});
+
+it('retains cache diagnostics from IPC', async () => {
+  const pending = runTitleEffect({} as never, { mediaDir: root, renderTimeoutMs: 1000 } as never, [{ kind: 'video' }]);
+  await vi.waitFor(() => expect(sent?.directory).toBeTypeOf('string'));
+  child.emit('message', {
+    ok: true,
+    results: [],
+    provenance: { hash: 'cached' },
+    cache: { hits: 2, misses: 1, writes: 1 },
+  });
+  child.emit('exit', 0, null);
+  expect((await pending).cache).toEqual({ hits: 2, misses: 1, writes: 1 });
+});
+
+it('holds the permit until exit and releases it after worker failure', async () => {
+  const first = runTitleEffect({} as never, { mediaDir: root, renderTimeoutMs: 1000 } as never, [{ kind: 'video' }]);
+  await vi.waitFor(() => expect(sent?.directory).toBeTypeOf('string'));
+  const firstDirectory = sent.directory;
+  const controller = new AbortController();
+  const queued = runTitleEffect(
+    {} as never,
+    { mediaDir: root, renderTimeoutMs: 1000 } as never,
+    [{ kind: 'video' }],
+    controller.signal
+  );
+  controller.abort();
+  await expect(queued).rejects.toThrow(/aborted/);
+  expect(sent.directory).toBe(firstDirectory);
+  child.emit('exit', 1, null);
+  await expect(first).rejects.toThrow(/without a result/);
+  sent = undefined;
+  const next = runTitleEffect({} as never, { mediaDir: root, renderTimeoutMs: 1000 } as never, [{ kind: 'video' }]);
+  await vi.waitFor(() => expect(sent?.directory).toBeTypeOf('string'));
+  child.emit('message', { ok: true, results: [], provenance: { hash: 'next' } });
+  child.emit('exit', 0, null);
+  await expect(next).resolves.toHaveProperty('provenance.hash', 'next');
 });

@@ -76,3 +76,22 @@ Local verification on an Apple M2 Pro (12 CPU cores, 32 GB RAM), Node 24.19.0, R
 All previews, the standalone title and the mixed composition reported the same implementation/input provenance hash; repeated PNG bytes also matched. `ffprobe` measured 10.000 seconds of video for the title, 1.000 for the range, and 11.933333 for the mixed project. Container durations include AAC padding (10.048, 1.045333 and 11.954362 seconds respectively); the mixed route retains the existing engine's frame trimming. The standalone route encodes the title once; mixed composition additionally normalizes its sections through FFmpeg. Persistent effect caching remains future work.
 
 The whole verification command reported a maximum resident set of about 566 MiB. This is the command's resource report, not a sampled sum of simultaneously running Chromium/FFmpeg processes. Transient job directories were checked after rendering: preview files/provenance remained, while staged media, bundles and consumed composition clips were removed.
+
+## Persistent effect reuse
+
+Registered previews and full title clips now reuse a bounded disk cache. By default it retains up to 512 MiB and 256 entries under the MCP media directory. Set `LECLAP_MCP_EFFECT_CACHE_MAX_BYTES=0` to disable it, or choose another integer byte budget. Preview replies include `cache`; composition replies include `effectCache`, each with `hits`, `misses` and `writes`.
+
+Cache lookup follows fresh asset/source bundling and browser identification. This preserves invalidation for imported code and exact asset contents; it still pays preparation costs. The final FFmpeg assembly runs on each composition. One registered effect worker runs per MCP process, with at most eight queued jobs.
+
+A subsequent local check on the same M2 Pro/runtime used a separate copy of the reference scene, `CACHE WITH LECLAP`, a 2 MiB cache budget and unchanged frame/output settings. OS caches were not cleared; these are single-run observations:
+
+| Operation                        | Cache miss | Cache hit |
+| -------------------------------- | ---------: | --------: |
+| Five preview frames              |     8.24 s |    1.53 s |
+| Same frames after restarting MCP |          — |    1.50 s |
+| Inclusive range 0..29            |     4.61 s |    2.01 s |
+| Title plus two-second outro      |    27.07 s |    2.70 s |
+
+Repeated PNGs, range clips and composed MP4s matched by SHA256 in this fixture. Headline-position changes, imported palette-code edits and a logo-file replacement each produced a miss and new provenance. Disabling caching produced no hits or writes without changing implementation identity. The measured cache held nine entries totaling 746,360 artifact/manifest bytes before the additional asset-edit check. Corrupt entries, lower budgets, metadata mismatches, eviction, cancellation and non-regular files are covered by unit regressions.
+
+The whole verification command reported about 950 MiB maximum resident set; this is not a sampled total across concurrent subprocesses. Cached composition avoids the effect encode while retaining the existing FFmpeg assembly work. Persistent bundle caching and whole-project incremental compilation remain separate future deliveries.

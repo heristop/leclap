@@ -1,3 +1,4 @@
+import type { EffectCacheSummary } from '../effects/effect-runner.js';
 import { randomBytes } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -37,6 +38,7 @@ const outputSchema = z.object({
   audioCodec: z.string().nullable(),
   renderId: z.string(),
   effectProvenance: z.record(z.string(), z.unknown()).optional(),
+  effectCache: z.object({ hits: z.number(), misses: z.number(), writes: z.number() }).optional(),
 });
 
 type ComposeArgs = {
@@ -165,7 +167,8 @@ async function buildProjectConfig(
 function successPayload(
   result: Extract<RenderResult, { ok: true }>,
   renderId: string,
-  effectProvenance?: Record<string, ResolvedEffectProvenance>
+  effectProvenance?: Record<string, ResolvedEffectProvenance>,
+  effectCache?: EffectCacheSummary
 ) {
   return {
     content: [
@@ -190,6 +193,7 @@ function successPayload(
       audioCodec: result.audioCodec,
       renderId,
       ...(effectProvenance ? { effectProvenance } : {}),
+      ...(effectCache ? { effectCache } : {}),
     },
   };
 }
@@ -202,6 +206,7 @@ function failurePayload(result: Extract<RenderResult, { ok: false }>): ToolError
 
 type PreparedCompose = {
   effectDirectories?: string[];
+  effectCache?: EffectCacheSummary;
   ok: true;
   descriptor: TemplateDescriptor;
   paths: Record<string, string>;
@@ -271,7 +276,8 @@ async function finalizeRender(
   result: Extract<RenderResult, { ok: true }>,
   args: ComposeArgs,
   renderId: string,
-  effectProvenance?: Record<string, ResolvedEffectProvenance>
+  effectProvenance?: Record<string, ResolvedEffectProvenance>,
+  effectCache?: EffectCacheSummary
 ) {
   const outputPath = await applyOutputName(result.outputPath, args.outputBaseName);
   // Keep only the deliverable(s); the engine's intermediate segments/concat lists/staged assets are
@@ -280,7 +286,7 @@ async function finalizeRender(
   // its output under buildDir. Best-effort — never fail a good render on cleanup.
   await pruneRenderDir(path.dirname(result.outputPath), [path.basename(outputPath), path.basename(result.outputPath)]);
 
-  return successPayload({ ...result, outputPath }, renderId, effectProvenance);
+  return successPayload({ ...result, outputPath }, renderId, effectProvenance, effectCache);
 }
 
 // Render progress goes to stderr, not to a `notifications/message`: `ctx.mcpReq.log` is deprecated
@@ -322,7 +328,7 @@ async function handleCompose(args: ComposeArgs, config: McpConfig, ctx?: ServerC
       return failurePayload(result);
     }
 
-    return await finalizeRender(result, args, renderId, prepared.effectProvenance);
+    return await finalizeRender(result, args, renderId, prepared.effectProvenance, prepared.effectCache);
   } finally {
     await Promise.all(
       (prepared.effectDirectories ?? []).map((directory) => pruneRenderDir(directory, ['provenance.json']))

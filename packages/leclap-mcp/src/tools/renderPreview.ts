@@ -134,7 +134,13 @@ async function handlePreview(input: PreviewArgs, config: McpConfig, ctx?: Server
         },
         ...content,
       ],
-      structuredContent: { revision, section: args.section, artifacts, provenance: job.provenance },
+      structuredContent: {
+        revision,
+        section: args.section,
+        artifacts,
+        provenance: job.provenance,
+        cache: job.cache ?? { hits: 0, misses: 0, writes: 0 },
+      },
     };
   } catch (error) {
     if (directory) await fs.rm(directory, { recursive: true, force: true }).catch(() => {});

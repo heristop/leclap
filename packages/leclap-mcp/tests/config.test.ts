@@ -9,6 +9,7 @@ const ENV_KEYS = [
   'LECLAP_MCP_MEDIA_DIR',
   'LECLAP_MCP_RENDER_TIMEOUT_MS',
   'LECLAP_MCP_ALLOW_REMOTION',
+  'LECLAP_MCP_EFFECT_CACHE_MAX_BYTES',
 ] as const;
 
 describe('loadConfig', () => {
@@ -41,6 +42,21 @@ describe('loadConfig', () => {
     expect(config.renderTimeoutMs).toBe(600_000);
     expect(config.allowRemotion).toBe(false);
   });
+
+  it('defaults cache to 512 MiB and accepts zero, flags and env values', () => {
+    expect(loadConfig([]).effectCacheMaxBytes).toBe(512 * 1024 * 1024);
+    process.env.LECLAP_MCP_EFFECT_CACHE_MAX_BYTES = '42';
+    expect(loadConfig([]).effectCacheMaxBytes).toBe(42);
+    expect(loadConfig(['--effect-cache-max-bytes=0']).effectCacheMaxBytes).toBe(0);
+    expect(loadConfig(['--effect-cache-max-bytes', '100']).effectCacheMaxBytes).toBe(100);
+  });
+
+  it.each(['-1', '1.5', '10bytes', 'NaN', '', '9007199254740992', '1e3', ' 10'])(
+    'defaults invalid cache budget %s',
+    (raw) => {
+      expect(loadConfig([`--effect-cache-max-bytes=${raw}`]).effectCacheMaxBytes).toBe(512 * 1024 * 1024);
+    }
+  );
 
   it('enables Remotion only when explicitly opted in', () => {
     expect(loadConfig([]).allowRemotion).toBe(false);

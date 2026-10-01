@@ -5,6 +5,8 @@ import path from 'node:path';
 // Dirs are resolved to absolute paths but never created here — the compose tool creates
 // per-render output dirs on demand (Task 4).
 export interface McpConfig {
+  /** Persistent registered-effect cache budget; zero disables it. Defaults to 512 MiB. */
+  effectCacheMaxBytes?: number;
   outputDir: string;
   mediaDir: string;
   renderTimeoutMs: number;
@@ -81,6 +83,12 @@ function resolveTimeout(raw: string | undefined): number {
   return parsed;
 }
 
+function resolveEffectCacheBudget(raw: string | undefined): number {
+  const parsed = raw !== undefined && /^\d+$/.test(raw) ? Number(raw) : NaN;
+
+  return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 512 * 1024 * 1024;
+}
+
 export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
   const outputDir =
     readFlag(argv, '--output-dir') ??
@@ -104,6 +112,9 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
     outputDir: path.resolve(outputDir),
     mediaDir: path.resolve(mediaDir),
     renderTimeoutMs,
+    effectCacheMaxBytes: resolveEffectCacheBudget(
+      readFlag(argv, '--effect-cache-max-bytes') ?? process.env.LECLAP_MCP_EFFECT_CACHE_MAX_BYTES
+    ),
     allowRemotion,
     ...(browserExecutable ? { browserExecutable: path.resolve(browserExecutable) } : {}),
     ...(remotionEntry ? { remotionEntry: path.resolve(remotionEntry) } : {}),

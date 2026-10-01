@@ -193,7 +193,8 @@ function executeTitleWorker(
       }
       reject(failure ?? new Error(`Effect worker exited without a result (${code})`));
     });
-    child.send({ title, config, requests, directory }, (error) => {
+    const { effectCatalog: _catalog, effectCatalogPath: _catalogPath, ...workerConfig } = config;
+    child.send({ title, config: workerConfig, requests, directory }, (error) => {
       if (error) stop(error);
     });
 

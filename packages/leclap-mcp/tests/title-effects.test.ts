@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { parseCustomEffectCatalog } from '../src/effects/custom-effect-catalog.js';
 import type { McpConfig } from '../src/config.js';
 import { validateEffects, titlePropsSchema } from '../src/effects/title-registry.js';
 import { promoPropsSchema } from '../src/effects/promo-registry.js';
@@ -227,4 +228,58 @@ it('rejects promo extra assets, symlink escapes, directories and duration mismat
   template.sections[0].effect = effect;
   template.sections[0].options.duration = 9;
   await expect(validateEffects(template, config)).rejects.toThrow(/LeclapWebAppPromo.*10/);
+});
+
+it('applies explicit video policy to any custom key and skips absent optional assets', async () => {
+  config.effectCatalog = parseCustomEffectCatalog({
+    schemaVersion: 1,
+    effects: [
+      {
+        id: 'studio.video',
+        version: '1.0.0',
+        compositionId: 'Product',
+        propsSchema: { type: 'object', properties: {}, additionalProperties: false },
+        assets: {
+          footage: { extensions: ['.mp4'], minVideoDurationSeconds: 12 },
+          optionalClip: { extensions: ['.mp4'], required: false, minVideoDurationSeconds: 20 },
+        },
+      },
+    ],
+  });
+  template.sections[0].effect = {
+    id: 'studio.video',
+    version: '1.0.0',
+    props: {},
+    assets: { footage: path.join(dir, 'background.mp4') },
+  };
+  await expect(validateEffects(template, config)).rejects.toThrow(/footage.*12/);
+  vi.mocked(probeMedia).mockResolvedValue({ durationSeconds: 12, videoCodec: 'h264' } as never);
+  expect((await validateEffects(template, config)).get('title')?.assets).toEqual({
+    footage: path.join(dir, 'background.mp4'),
+  });
+});
+it('does not infer a custom video policy from background asset name', async () => {
+  config.effectCatalog = parseCustomEffectCatalog({
+    schemaVersion: 1,
+    effects: [
+      {
+        id: 'studio.image',
+        version: '1.0.0',
+        compositionId: 'Product',
+        propsSchema: { type: 'object', properties: {}, additionalProperties: false },
+        assets: { background: { extensions: ['.png'] } },
+      },
+    ],
+  });
+  template.sections[0].effect = {
+    id: 'studio.image',
+    version: '1.0.0',
+    props: {},
+    assets: { background: path.join(dir, 'logo.png') },
+  };
+  vi.mocked(probeMedia).mockClear();
+  await validateEffects(template, config);
+  expect(probeMedia).not.toHaveBeenCalled();
+  template.sections[0].effect.assets = {};
+  await expect(validateEffects(template, config)).rejects.toThrow();
 });

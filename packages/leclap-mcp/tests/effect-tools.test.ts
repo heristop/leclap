@@ -2,6 +2,9 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { parseCustomEffectCatalog } from '../src/effects/custom-effect-catalog.js';
+import { registerPatchTemplate } from '../src/tools/patchTemplate.js';
+import { validateEffects } from '../src/effects/title-registry.js';
 import { registerCompose } from '../src/tools/composeVideo.js';
 import { registerRenderPreview } from '../src/tools/renderPreview.js';
 import { registerGetEffectSchema } from '../src/tools/getEffectSchema.js';
@@ -305,3 +308,93 @@ it('retains rendered contrast refinement on ordinary sections alongside effects'
   expect(result.structuredContent.geometry).not.toContain('sections[1].caption: stale static contrast warning');
   expect(result.structuredContent.render.measured).toBe(1);
 });
+
+function useCustom() {
+  cfg.effectCatalog = parseCustomEffectCatalog({
+    schemaVersion: 1,
+    effects: [
+      {
+        id: 'studio.product-reveal',
+        version: '1.0.0',
+        compositionId: 'LeclapProductReveal',
+        description: 'Generic product reveal',
+        propsSchema: {
+          type: 'object',
+          properties: {
+            headline: { type: 'string', minLength: 1, maxLength: 80, default: 'Product' },
+          },
+          additionalProperties: false,
+        },
+        assets: {},
+      },
+    ],
+  });
+  template.sections[0].effect = { id: 'studio.product-reveal', version: '1.0.0', props: {}, assets: {} };
+}
+it('lists custom effects and exposes their strict schema without rendering', async () => {
+  useCustom();
+  const handler = capture(registerGetEffectSchema);
+  const listed = await handler({ list: true });
+  expect(listed.structuredContent.effects).toHaveLength(3);
+  expect(listed.structuredContent.effects[2]).toMatchObject({
+    id: 'studio.product-reveal',
+    description: 'Generic product reveal',
+  });
+  const schema = await handler({ id: 'studio.product-reveal', version: '1.0.0' });
+  expect(schema.structuredContent.props.properties.headline.default).toBe('Product');
+  expect((await handler({ list: true, id: 'studio.product-reveal' })).isError).toBe(true);
+  expect((await handler({ list: true, version: '1.0.0' })).isError).toBe(true);
+  expect(runTitleEffect).not.toHaveBeenCalled();
+});
+it('validates custom defaults and snapshots serializable composition metadata for preview', async () => {
+  useCustom();
+  const result = await capture(registerRenderPreview)({ template, section: 'title', frames: [42] });
+  expect(result.isError, JSON.stringify(result.content)).toBeUndefined();
+  expect(vi.mocked(runTitleEffect).mock.calls[0][0]).toMatchObject({
+    compositionId: 'LeclapProductReveal',
+    definitionHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+    props: { headline: 'Product' },
+    assets: {},
+  });
+});
+it('rejects custom invalid props before rendering', async () => {
+  useCustom();
+  template.sections[0].effect.props = { headline: '' };
+  const result = await capture(registerCompose)({ template });
+  expect(result.isError).toBe(true);
+  expect(runTitleEffect).not.toHaveBeenCalled();
+  expect(runRender).not.toHaveBeenCalled();
+});
+it('patches custom props through the configured snapshot', async () => {
+  useCustom();
+  let handler: any;
+  registerPatchTemplate(
+    {
+      registerTool: (_name: any, _meta: any, cb: any) => {
+        handler = cb;
+      },
+    } as never,
+    async (patched) => {
+      await validateEffects(patched, cfg);
+    }
+  );
+  const result = await handler({
+    template,
+    expectedRevision: templateRevision(template),
+    edits: [{ section: 'title', props: { headline: 'Updated' } }],
+  });
+  expect(result.isError, JSON.stringify(result.content)).toBeUndefined();
+  expect(result.structuredContent.template.sections[0].effect.props.headline).toBe('Updated');
+});
+
+it.each(['props', 'assets'])(
+  'rejects raw prototype keys in custom %s before schema normalization or rendering',
+  async (field) => {
+    useCustom();
+    template.sections[0].effect[field] = JSON.parse('{"__proto__":{}}');
+    const result = await capture(registerCompose)({ template });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('effect_key_unsafe');
+    expect(runTitleEffect).not.toHaveBeenCalled();
+  }
+);

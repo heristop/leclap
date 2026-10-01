@@ -24,6 +24,7 @@ export interface TitleJob {
     effectId: string;
     effectVersion: string;
     compositionId: string;
+    definitionHash: string;
     sourceHash: string;
     assetHashes: Record<string, string>;
     renderer: Record<string, string | number>;
@@ -103,14 +104,29 @@ async function bundleJob(
   directory: string,
   signal?: AbortSignal
 ): Promise<TitleJob> {
-  const definition = getEffectDefinition(title.section.effect.id, title.section.effect.version);
+  // Preflight metadata survives IPC. Legacy builtin callers may omit both fields;
+  // this fallback uses the static builtin registry, never the operator catalog.
+  const definition =
+    title.compositionId === undefined && title.definitionHash === undefined
+      ? getEffectDefinition(title.section.effect.id, title.section.effect.version)
+      : title;
+  const { compositionId, definitionHash } = definition;
+
+  if (
+    typeof compositionId !== 'string' ||
+    !/^[A-Za-z0-9-]+$/.test(compositionId) ||
+    typeof definitionHash !== 'string' ||
+    !/^[a-f0-9]{64}$/.test(definitionHash)
+  ) {
+    throw new Error('effect_metadata_invalid: prepared compositionId and definitionHash are required.');
+  }
   const { publicDir, inputProps, assetHashes } = await snapshotAssets(title, directory, signal);
   const options = await remotionBundleOptions(config.remotionEntry as string);
   const serveUrl = await remotion.bundle({ ...options, publicDir, outDir: path.join(directory, 'bundle') });
   const browser = await browserIdentity(remotion, config, signal);
   const composition = await remotion.selectComposition({
     serveUrl,
-    id: definition.compositionId,
+    id: compositionId,
     inputProps,
     browserExecutable: browser.browserExecutable,
     timeoutInMilliseconds: config.renderTimeoutMs,
@@ -128,17 +144,20 @@ async function bundleJob(
   };
   const provenance = {
     hash: templateRevision({
-      id: definition.id,
-      version: definition.version,
+      id: title.section.effect.id,
+      version: title.section.effect.version,
+      compositionId,
+      definitionHash,
       sourceHash,
       assetHashes,
       inputProps,
       renderer,
       composition,
     }),
-    effectId: definition.id,
-    effectVersion: definition.version,
-    compositionId: definition.compositionId,
+    effectId: title.section.effect.id,
+    effectVersion: title.section.effect.version,
+    compositionId,
+    definitionHash,
     sourceHash,
     assetHashes,
     renderer,

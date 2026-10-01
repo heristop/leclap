@@ -1,10 +1,15 @@
 import os from 'node:os';
 import path from 'node:path';
+import type { JsonEffectCatalog } from './effects/custom-effect-catalog.js';
 
 // Runtime config for the MCP server. Precedence per field: CLI flag > env var > default.
 // Dirs are resolved to absolute paths but never created here — the compose tool creates
 // per-render output dirs on demand (Task 4).
 export interface McpConfig {
+  /** Operator JSON catalog path; read once when creating the server. */
+  effectCatalogPath?: string;
+  /** Parsed, immutable, plain JSON startup snapshot (also supported by direct tool callers). */
+  effectCatalog?: JsonEffectCatalog;
   /** Persistent registered-effect cache budget; zero disables it. Defaults to 512 MiB. */
   effectCacheMaxBytes?: number;
   outputDir: string;
@@ -89,6 +94,12 @@ function resolveEffectCacheBudget(raw: string | undefined): number {
   return Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : 512 * 1024 * 1024;
 }
 
+function catalogPathConfig(argv: readonly string[]): Pick<McpConfig, 'effectCatalogPath'> {
+  const file = readFlag(argv, '--effect-catalog') ?? process.env.LECLAP_MCP_EFFECT_CATALOG;
+
+  return file ? { effectCatalogPath: path.resolve(file) } : {};
+}
+
 export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
   const outputDir =
     readFlag(argv, '--output-dir') ??
@@ -116,6 +127,7 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
       readFlag(argv, '--effect-cache-max-bytes') ?? process.env.LECLAP_MCP_EFFECT_CACHE_MAX_BYTES
     ),
     allowRemotion,
+    ...catalogPathConfig(argv),
     ...(browserExecutable ? { browserExecutable: path.resolve(browserExecutable) } : {}),
     ...(remotionEntry ? { remotionEntry: path.resolve(remotionEntry) } : {}),
   };

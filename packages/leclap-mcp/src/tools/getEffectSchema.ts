@@ -1,27 +1,57 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { TITLE_EFFECT_ID, TITLE_EFFECT_VERSION } from '../effects/title-registry.js';
-import { getEffectDefinition } from '../effects/effect-catalog.js';
+import type { McpConfig } from '../config.js';
+import { getEffectDefinition, listEffectDefinitions } from '../effects/effect-catalog.js';
 
-const inputSchema = z.object({ id: z.string().optional(), version: z.string().optional() }).strict();
-export function registerGetEffectSchema(server: McpServer): void {
+const inputSchema = z
+  .object({ id: z.string().optional(), version: z.string().optional(), list: z.boolean().optional() })
+  .strict()
+  .refine(
+    (value) => !value.list || (value.id === undefined && value.version === undefined),
+    'list cannot be combined with id or version.'
+  );
+export function registerGetEffectSchema(server: McpServer, config: Pick<McpConfig, 'effectCatalog'> = {}): void {
   server.registerTool(
     'get_effect_schema',
     {
       title: 'Get Effect Schema',
       description:
-        'Describe a trusted registered JSON effect, its prop defaults/bounds, local assets and runtime restrictions. Catalog: leclap.title-reveal@1.0.0 and leclap.web-app-promo@1.0.0.',
+        'Describe a trusted registered JSON effect, its prop defaults/bounds, local assets and runtime restrictions. Use list:true to discover builtin and operator-registered effects.',
       inputSchema,
     },
     (args: z.infer<typeof inputSchema>) => {
       try {
         const parsed = inputSchema.parse(args);
 
-        const definition = getEffectDefinition(parsed.id ?? TITLE_EFFECT_ID, parsed.version ?? TITLE_EFFECT_VERSION);
+        if (parsed.list) {
+          const catalog = {
+            effects: listEffectDefinitions(config.effectCatalog).map((definition) => ({
+              id: definition.id,
+              version: definition.version,
+              compositionId: definition.compositionId,
+              description: definition.description,
+              definitionHash: definition.definitionHash,
+              output: definition.output,
+            })),
+          };
+
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify(catalog, null, 2) }],
+            structuredContent: catalog,
+          };
+        }
+        const definition = getEffectDefinition(
+          parsed.id ?? TITLE_EFFECT_ID,
+          parsed.version ?? TITLE_EFFECT_VERSION,
+          config.effectCatalog
+        );
         const schema = {
           id: definition.id,
           version: definition.version,
           compositionId: definition.compositionId,
+          description: definition.description,
+          definitionHash: definition.definitionHash,
           props: z.toJSONSchema(definition.props),
           assets: z.toJSONSchema(definition.assets),
           timing: definition.timing,

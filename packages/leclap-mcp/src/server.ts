@@ -1,6 +1,7 @@
 import { createRequire } from 'node:module';
 import { McpServer } from '@modelcontextprotocol/server';
 
+import { loadCustomEffectCatalog } from './effects/custom-effect-catalog.js';
 import type { McpConfig } from './config.js';
 import { registerGetTemplateSchema } from './tools/getTemplateSchema.js';
 import { registerCompose } from './tools/composeVideo.js';
@@ -45,7 +46,16 @@ const SERVER_VERSION: string = createRequire(import.meta.url)('../package.json')
 
 // Side-effect-free: builds and configures the server but does NOT connect a transport, so it
 // stays unit-testable. The caller (index.ts) hands it to `serveStdio` as a per-connection factory.
-export function createServer(config: McpConfig): McpServer {
+export function snapshotEffectConfig(input: McpConfig): Readonly<McpConfig> {
+  return Object.freeze({
+    ...input,
+    ...(input.effectCatalog === undefined && input.effectCatalogPath
+      ? { effectCatalog: loadCustomEffectCatalog(input.effectCatalogPath) }
+      : {}),
+  });
+}
+export function createServer(input: McpConfig): McpServer {
+  const config = snapshotEffectConfig(input);
   const server = new McpServer(
     { name: 'leclap', version: SERVER_VERSION },
     {
@@ -64,7 +74,7 @@ export function createServer(config: McpConfig): McpServer {
   registerCompose(server, config);
 
   if (config.allowRemotion) {
-    registerGetEffectSchema(server);
+    registerGetEffectSchema(server, config);
     registerRenderPreview(server, config);
   }
   registerPatchTemplate(server, async (template) => {

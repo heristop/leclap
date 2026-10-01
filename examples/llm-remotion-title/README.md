@@ -62,7 +62,7 @@ The illustrative `template` and `expectedRevision` values above must be replaced
 
 The registry accepts versioned title and web app promo IDs with typed controls. Source remains in `remotion/` and is editable with normal code tools. Keep its exact source/dependency versions alongside the JSON to recreate the effect. Changing source changes the implementation identity recorded for the render.
 
-Opaque H.264 output is supported first. Transparent effects, an arbitrary effect registry, full mobile graphics generation and a visual editor belong to later roadmap deliveries. Bounded persistent effect caching is implemented below. Font width and visual pacing still need inspection of actual preview artifacts.
+Opaque H.264 output is supported first. Transparent effects, full mobile graphics generation and a visual editor belong to later roadmap deliveries. Additional fixed-output compositions can be registered with an operator JSON catalog as described below. Bounded persistent effect caching is implemented below. Font width and visual pacing still need inspection of actual preview artifacts.
 
 ## Initial measured baseline
 
@@ -103,13 +103,13 @@ The whole verification command reported about 950 MiB maximum resident set; this
 
 `promo-template.json` selects `leclap.web-app-promo@1.0.0`. The default entry `remotion/index.ts` registers both `LeclapTitle` and `LeclapWebAppPromo`, so a template can combine either effect with ordinary LeClap sections. The promo uses three local assets: `screenshot`, `logo`, and `font`. Run the fixture generator above to create all four assets, including the original title background. Its screenshot is a deterministic geometric studio illustration, not an actual app capture.
 
-The tool description lists registered effects; `get_effect_schema` without arguments returns the title contract for compatibility. Read it with `id: "leclap.web-app-promo", version: "1.0.0"` for the exact contract. Validate `promo-template.json` and retain its revision. Preview `section: "promo"` at frames `[0, 45, 90, 150, 239, 260, 299]`; inspect the exported PNGs, including text bounds. Preview a short inclusive range around `showcaseStartFrame` to assess motion. Use `patch_template` with the returned revision and `edits: [{ section: "promo", props: { headline: "Make your next story", cameraTiltDegrees: 4 } }]`. Save the returned JSON, preview again, and pass it to `compose_video`. Repeat unchanged requests to inspect `cache` / `effectCache`; source, asset, browser and prop changes invalidate reuse.
+`get_effect_schema({ list: true })` lists registered effects; `get_effect_schema` without arguments returns the title contract for compatibility. Read it with `id: "leclap.web-app-promo", version: "1.0.0"` for the exact contract. Validate `promo-template.json` and retain its revision. Preview `section: "promo"` at frames `[0, 45, 90, 150, 239, 260, 299]`; inspect the exported PNGs, including text bounds. Preview a short inclusive range around `showcaseStartFrame` to assess motion. Use `patch_template` with the returned revision and `edits: [{ section: "promo", props: { headline: "Make your next story", cameraTiltDegrees: 4 } }]`. Save the returned JSON, preview again, and pass it to `compose_video`. Repeat unchanged requests to inspect `cache` / `effectCache`; source, asset, browser and prop changes invalidate reuse.
 
 The JSON surface controls all copy, three feature labels, palette, entrance duration, spring damping, showcase/CTA boundaries and camera movement. The showcase starts at frames 60–150, CTA at 210–260, with at least 90 frames between them. This registered composition stays 1280×720, 30 fps, 300 frames. `displayUrl` is a label, never fetched. Keep asset paths local and inside the configured media directory.
 
 For a landing-page adaptation, give the LLM the real React/SVG source, local fonts/images, and a screenshot of the intended state. First extract the time-independent layout into a trusted component. Replace scroll progress, CSS transitions, requestAnimationFrame and timers with progress derived from `useCurrentFrame`, `interpolate` and `spring`. Preserve the actual typography, spacing and SVG paths. Drive the meaningful scene boundaries from the typed JSON controls. Leave geometry and rendering logic in trusted React source; JSON never contains arbitrary code or module paths. Inspect maximum-length text and scene boundaries before composition.
 
-A screenshot-backed browser frame animates one raster image: it cannot reproduce live app DOM interactions. To recreate a moving landing-page interface, render its actual extracted components inside the browser viewport and bind their states to frame time. Registering new effects or changing the public prop schema requires operator code changes, not a JSON patch. Matching an unknown page exactly requires its source and assets; this example provides a reusable choreography, not pixel parity.
+A screenshot-backed browser frame animates one raster image: it cannot reproduce live app DOM interactions. To recreate a moving landing-page interface, render its actual extracted components inside the browser viewport and bind their states to frame time. Operators register additional compositions and contracts through the startup catalog; composition implementation changes still require trusted code edits. Matching an unknown page exactly requires its source and assets; this example provides a reusable choreography, not pixel parity.
 
 ## Optional private LeClap film source
 
@@ -123,7 +123,7 @@ pnpm --dir examples/llm-remotion-title exec tsc -p tsconfig.brand-motion.json
 
 Set `LECLAP_MCP_REMOTION_ENTRY` to the absolute `remotion/brand-motion-index.tsx` path, retaining the same media/output configuration and promo JSON. This adapter visibly reuses original Clappy, Sparks, Shockwave, Grain and Vignette, tied to the JSON timeline. The copied source is bundled and participates in render provenance/cache identity. Its original film palette is retained; the promo copy, camera and main palette remain controlled by JSON. The default entry and `tsconfig.json` are independent of this optional kit; use `pnpm --dir examples/llm-remotion-title exec tsc -p tsconfig.json` without staging it.
 
-This is a ten-second adaptation of selected effects from the supplied 78-second `LeClapShowcase`, not a replay of the complete film. The complete film remains trusted Remotion code that can be rendered through `render_remotion_clip` with its own entry/composition. A general film-duration/catalog JSON registration is future work. Private source/assets must stay out of public commits; the ignored snapshot is deliberately reproducible from the local companion repo.
+This is a ten-second adaptation of selected effects from the supplied 78-second `LeClapShowcase`, not a replay of the complete film. The complete film remains trusted Remotion code that can be rendered through `render_remotion_clip` with its own entry/composition. Catalog registration supports fixed ten-second compositions; general film-duration output remains future work. Private source/assets must stay out of public commits; the ignored snapshot is deliberately reproducible from the local companion repo.
 
 ## Verified promo rendering
 
@@ -132,3 +132,27 @@ The supplied source adapter and the generic entry were each exercised through th
 On the same M2 Pro/runtime listed above, the final source adapter took 6.06 seconds for seven frames versus 2.05 seconds cached, and 20.80 seconds for composition versus 2.64 seconds cached. These are single-run observations with OS caches retained, not guarantees. Preparation and final FFmpeg assembly still run.
 
 Maximum-length unbroken copy was inspected with both supplied Oswald and a broader local Verdana font, at maximum camera motion and latest scene boundaries. The complete hero/closing blocks and header are fitted after the exact font loads; no copy is dropped. Generic and staged typechecks, 217 MCP tests, package build/typecheck and changed-file lint/format pass. The private snapshot modules match their original SHA256 values, and the companion repository remains unchanged. This evidence covers the ten-second adaptation; it does not establish full-film or cross-platform pixel parity.
+
+## Custom product reveal
+
+The third generic composition, `LeclapProductReveal`, uses only deterministic geometry, system typography and frame-driven Remotion springs. It requires no generated media, local font file or private source. Its bounded headline, accent enum and entrance duration are registered as `studio.product-reveal@1.0.0` in [effect-catalog.json](./effect-catalog.json); [custom-template.json](./custom-template.json) is ready for the existing tools.
+
+After building the MCP package, launch with your actual absolute paths:
+
+```sh
+node packages/leclap-mcp/dist/index.js --allow-remotion \
+  --remotion-entry /absolute/path/examples/llm-remotion-title/remotion/index.ts \
+  --effect-catalog /absolute/path/examples/llm-remotion-title/effect-catalog.json \
+  --media-dir /absolute/path/examples/llm-remotion-title \
+  --output-dir /absolute/path/examples/llm-remotion-title/build
+```
+
+Alternatively set `LECLAP_MCP_EFFECT_CATALOG` alongside the earlier environment settings. CLI overrides the environment. The catalog is validated once at startup and held as an immutable snapshot; restart after catalog edits. A missing, invalid or oversized catalog fails startup. The server's trusted entry remains the only executable source. Keep composition defaults synchronized with the JSON contract.
+
+1. Call `get_effect_schema` with `{ "list": true }`, then `{ "id": "studio.product-reveal", "version": "1.0.0" }`. Inspect defaults, bounds, output and `definitionHash`. The zero-argument call still describes the builtin title; do not combine `list: true` with `id` or `version`.
+2. Read the actual `custom-template.json` object and submit it to `validate_template`. Retain the revision.
+3. Call `render_preview` with that object, `section: "product"`, `frames: [0, 12, 36, 150, 299]` and the revision. Inspect the exported PNGs for readable copy and complete framing. An inclusive range `{ "from": 0, "to": 59 }` shows the entrance motion.
+4. Call `patch_template` with the same object, revision and `edits: [{ "section": "product", "props": { "headline": "Your next idea, in motion", "accent": "mint" } }]`. Save the returned template and revision, then preview again.
+5. Submit the revised object to `compose_video`. The effect alone produces an opaque H.264 video at 1280×720, 30 fps, 300 frames / ten seconds. Repeat unchanged previews/compositions to inspect cache hits; prop, composition mapping or contract changes invalidate reuse.
+
+This example needs compatible local Chrome or Remotion browser setup and the existing optional Remotion peers. Catalog registration uses the supported strict JSON Schema subset and resource bounds documented in the [MCP guide](../../packages/leclap-mcp/README.md#operator-custom-effect-catalogs); arbitrary schemas, inline source and custom output formats are rejected. Visual text fit remains a preview inspection step.

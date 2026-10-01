@@ -10,6 +10,7 @@ const ENV_KEYS = [
   'LECLAP_MCP_RENDER_TIMEOUT_MS',
   'LECLAP_MCP_ALLOW_REMOTION',
   'LECLAP_MCP_EFFECT_CACHE_MAX_BYTES',
+  'LECLAP_MCP_EFFECT_CATALOG',
 ] as const;
 
 describe('loadConfig', () => {
@@ -119,4 +120,19 @@ describe('loadConfig', () => {
     expect(path.isAbsolute(config.outputDir)).toBe(true);
     expect(path.isAbsolute(config.mediaDir)).toBe(true);
   });
+});
+
+it('resolves the operator catalog with CLI precedence', () => {
+  const saved = process.env.LECLAP_MCP_EFFECT_CATALOG;
+  try {
+    process.env.LECLAP_MCP_EFFECT_CATALOG = 'env-catalog.json';
+    expect(loadConfig([]).effectCatalogPath).toBe(path.resolve('env-catalog.json'));
+    expect(loadConfig(['--effect-catalog', 'cli.json']).effectCatalogPath).toBe(path.resolve('cli.json'));
+    expect(loadConfig(['--effect-catalog=inline.json']).effectCatalogPath).toBe(path.resolve('inline.json'));
+    delete process.env.LECLAP_MCP_EFFECT_CATALOG;
+    expect(loadConfig([]).effectCatalogPath).toBeUndefined();
+  } finally {
+    if (saved === undefined) delete process.env.LECLAP_MCP_EFFECT_CATALOG;
+    if (saved !== undefined) process.env.LECLAP_MCP_EFFECT_CATALOG = saved;
+  }
 });

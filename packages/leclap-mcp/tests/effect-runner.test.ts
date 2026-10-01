@@ -146,3 +146,30 @@ it.skipIf(process.platform === 'win32').each(['timeout', 'abort'])(
     }
   }
 );
+
+it('passes resolved JSON metadata to the worker without its catalog snapshot or path', async () => {
+  const title = {
+    compositionId: 'LeclapProductReveal',
+    definitionHash: 'a'.repeat(64),
+    props: { headline: 'Product' },
+    assets: {},
+  };
+  const pending = runTitleEffect(
+    title as never,
+    {
+      mediaDir: root,
+      renderTimeoutMs: 1000,
+      effectCatalogPath: '/deleted/catalog.json',
+      effectCatalog: { schemaVersion: 1, effects: [] },
+    } as never,
+    [{ kind: 'video' }]
+  );
+  await vi.waitFor(() => expect(sent?.directory).toBeTypeOf('string'));
+  const payload = JSON.parse(JSON.stringify(sent));
+  child.emit('message', { ok: true, results: [], provenance: { hash: 'prepared' } });
+  child.emit('exit', 0, null);
+  await pending;
+  expect(payload.title).toEqual(title);
+  expect(payload.config.effectCatalog).toBeUndefined();
+  expect(payload.config.effectCatalogPath).toBeUndefined();
+});

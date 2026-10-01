@@ -69,6 +69,13 @@
           "format": "number",
           "isRequired": false,
           "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_EFFECT_CATALOG",
+          "description": "Operator JSON effect catalog loaded and validated once at startup. Restart after catalog edits.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
         }
       ]
     }

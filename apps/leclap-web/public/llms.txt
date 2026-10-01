@@ -63,3 +63,5 @@ For PR or MR evidence: collect a real walkthrough and review focus, author the t
 ## Optional
 
 - [GitHub repository](https://github.com/heristop/leclap): full source, issues, and CI.
+
+Operator JSON effect catalogs: configure `--effect-catalog` / `LECLAP_MCP_EFFECT_CATALOG` at MCP startup, mapping strict prop/asset contracts to compositions in the existing trusted Remotion entry. Use `get_effect_schema({list:true})` for discovery, then inspect a versioned identity, validate, preview, patch and compose. Catalog edits require restart. Output stays 1280×720, 30 fps, 300 frames, opaque H.264. JSON cannot select executable source. See the MCP README and examples/llm-remotion-title custom product reveal.

@@ -2,7 +2,6 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 import type { EffectSection } from 'ffmpeg-video-composer';
-import type { z } from 'zod';
 import type { McpConfig } from '../config.js';
 import { validateTemplate } from '../compose/validation.js';
 import { assertWithinMediaDir } from '../compose/pathGuard.js';
@@ -10,16 +9,17 @@ import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { probeMedia } from '../tools/probeMedia.js';
 
 export * from './title-definition.js';
-import type { TitleProps, titleAssetsSchema } from './title-definition.js';
-import type { PromoProps, promoAssetsSchema } from './promo-registry.js';
 import { getEffectDefinition } from './effect-catalog.js';
 export interface PreparedTitle {
   section: EffectSection;
-  props: TitleProps | PromoProps;
-  assets: z.infer<typeof titleAssetsSchema> | z.infer<typeof promoAssetsSchema>;
+  props: Record<string, unknown>;
+  assets: Record<string, string>;
+  /** Always present after preflight; optional only for legacy builtin callers. */
+  compositionId?: string;
+  definitionHash?: string;
 }
 export type EffectConfig = Pick<McpConfig, 'mediaDir'> &
-  Partial<Pick<McpConfig, 'allowRemotion' | 'remotionEntry' | 'browserExecutable'>>;
+  Partial<Pick<McpConfig, 'allowRemotion' | 'remotionEntry' | 'browserExecutable' | 'effectCatalog'>>;
 
 export async function assertEffectBackend(config: EffectConfig): Promise<void> {
   if (!config.allowRemotion) {
@@ -63,7 +63,7 @@ async function prepareAsset(
 }
 
 async function prepareSection(section: EffectSection, config: EffectConfig): Promise<PreparedTitle> {
-  const definition = getEffectDefinition(section.effect.id, section.effect.version);
+  const definition = getEffectDefinition(section.effect.id, section.effect.version, config.effectCatalog);
 
   if (section.options.duration !== definition.output.durationSeconds) {
     throw new Error(`effect_duration_mismatch: ${definition.compositionId} requires exactly 10 seconds.`);
@@ -83,16 +83,25 @@ async function prepareSection(section: EffectSection, config: EffectConfig): Pro
     )
   ) as PreparedTitle['assets'];
 
-  if ('background' in assets) {
-    const stat = await fs.stat(assets.background);
-    const probe = await probeMedia(assets.background, stat.size);
+  await Promise.all(
+    Object.entries(definition.assetVideoPolicies).map(async ([key, policy]) => {
+      if (!Object.hasOwn(assets, key)) return;
+      const stat = await fs.stat(assets[key]);
+      const probe = await probeMedia(assets[key], stat.size);
 
-    if (!probe.videoCodec || probe.durationSeconds === null || probe.durationSeconds < 10) {
-      throw new Error('effect_asset_invalid: background must contain at least 10 seconds of video.');
-    }
-  }
+      if (
+        !probe.videoCodec ||
+        probe.durationSeconds === null ||
+        probe.durationSeconds < policy.minVideoDurationSeconds
+      ) {
+        throw new Error(
+          `effect_asset_invalid: ${key} must contain at least ${policy.minVideoDurationSeconds} seconds of video.`
+        );
+      }
+    })
+  );
 
-  return { section, props, assets };
+  return { section, props, assets, compositionId: definition.compositionId, definitionHash: definition.definitionHash };
 }
 
 /** Registry/schema/backend/asset preflight only: never bundles or renders source. */

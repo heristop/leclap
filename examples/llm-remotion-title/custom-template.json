@@ -1,0 +1,26 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "fps": 30,
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "product",
+      "type": "effect",
+      "options": {
+        "duration": 10
+      },
+      "effect": {
+        "id": "studio.product-reveal",
+        "version": "1.0.0",
+        "props": {
+          "headline": "Make something memorable",
+          "accent": "lavender",
+          "entranceDurationFrames": 36
+        },
+        "assets": {}
+      }
+    }
+  ]
+}

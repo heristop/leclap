@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "effects": [
+    {
+      "id": "studio.product-reveal",
+      "version": "1.0.0",
+      "compositionId": "LeclapProductReveal",
+      "description": "An asset-free product reveal with bounded headline, accent and spring entrance controls.",
+      "propsSchema": {
+        "type": "object",
+        "properties": {
+          "headline": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+            "default": "Make something memorable"
+          },
+          "accent": {
+            "type": "string",
+            "enum": ["lavender", "mint", "coral"],
+            "default": "lavender"
+          },
+          "entranceDurationFrames": {
+            "type": "integer",
+            "minimum": 12,
+            "maximum": 90,
+            "default": 36
+          }
+        },
+        "additionalProperties": false
+      },
+      "assets": {}
+    }
+  ]
+}

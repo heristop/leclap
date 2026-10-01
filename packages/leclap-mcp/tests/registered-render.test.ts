@@ -132,3 +132,41 @@ it('rejects an unregistered composition identity before bundling', async () => {
   await expect(prepareTitleJob(unknown, config)).rejects.toThrow(/effect_not_registered/);
   expect(bundle).not.toHaveBeenCalled();
 });
+
+it('uses prepared custom metadata after JSON IPC without catalog access and hashes mapping and contract', async () => {
+  const modules = await loadRemotion();
+  const select = vi.fn(async (_options: any) => composition);
+  (modules as any).selectComposition = select;
+  const custom = JSON.parse(
+    JSON.stringify({
+      ...title,
+      section: { ...title.section, effect: { id: 'studio.product-reveal', version: '1.0.0' } },
+      compositionId: 'LeclapProductReveal',
+      definitionHash: 'a'.repeat(64),
+      props: { headline: 'Product' },
+      assets: {},
+    })
+  );
+  config.effectCatalogPath = path.join(dir, 'deleted-catalog.json');
+  const first = await prepareTitleJob(custom, config);
+  expect(select.mock.calls[0][0].id).toBe('LeclapProductReveal');
+  expect(first.provenance).toMatchObject({ compositionId: 'LeclapProductReveal', definitionHash: 'a'.repeat(64) });
+  const same = await prepareTitleJob(custom, config);
+  expect(same.provenance.hash).toBe(first.provenance.hash);
+  const mapping = await prepareTitleJob({ ...custom, compositionId: 'AnotherProduct' }, config);
+  const contract = await prepareTitleJob({ ...custom, definitionHash: 'b'.repeat(64) }, config);
+  expect(mapping.provenance.hash).not.toBe(first.provenance.hash);
+  expect(contract.provenance.hash).not.toBe(first.provenance.hash);
+});
+it.each([
+  { compositionId: 'Invalid_id', definitionHash: 'a'.repeat(64) },
+  { compositionId: 'Product', definitionHash: 'invalid' },
+  { compositionId: 'Product' },
+  { definitionHash: 'a'.repeat(64) },
+])('rejects incomplete or invalid prepared metadata %j before bundling', async (metadata) => {
+  const modules = await loadRemotion();
+  const bundle = vi.fn();
+  (modules as any).bundle = bundle;
+  await expect(prepareTitleJob({ ...title, ...metadata }, config)).rejects.toThrow(/effect_metadata_invalid/);
+  expect(bundle).not.toHaveBeenCalled();
+});

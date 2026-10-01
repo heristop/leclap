@@ -1,10 +1,20 @@
 import { Composition } from 'remotion';
+import { ProductReveal, productRevealDefaults } from './ProductReveal';
 import { Title } from './Title';
 import { WebAppPromo, promoDefaults } from './WebAppPromo';
 
 export function Root({ includePromo = true }: { includePromo?: boolean }) {
   return (
     <>
+      <Composition
+        id="LeclapProductReveal"
+        component={ProductReveal}
+        durationInFrames={300}
+        fps={30}
+        width={1280}
+        height={720}
+        defaultProps={productRevealDefaults}
+      />
       <Composition
         id="LeclapTitle"
         component={Title}

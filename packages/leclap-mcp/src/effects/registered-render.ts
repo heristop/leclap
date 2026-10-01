@@ -8,7 +8,8 @@ import type { McpConfig } from '../config.js';
 import { assertWithinMediaDir } from '../compose/pathGuard.js';
 import { remotionBundleOptions } from '../tools/remotion-webpack-override.js';
 import { loadRemotion, type RemotionModules } from '../tools/renderRemotionClip.js';
-import { TITLE_COMPOSITION_ID, TITLE_EFFECT_ID, TITLE_EFFECT_VERSION, type PreparedTitle } from './title-registry.js';
+import { type PreparedTitle } from './title-registry.js';
+import { getEffectDefinition } from './effect-catalog.js';
 import { hashFile, hashFiles } from './effect-hashes.js';
 import { templateRevision } from './template-revision.js';
 
@@ -20,6 +21,8 @@ export interface TitleJob {
   readonly composition: { width: number; height: number; fps: number; durationInFrames: number };
   readonly provenance: {
     hash: string;
+    effectId: string;
+    effectVersion: string;
     compositionId: string;
     sourceHash: string;
     assetHashes: Record<string, string>;
@@ -89,7 +92,7 @@ function assertComposition(composition: TitleJob['composition']) {
     composition.fps !== 30 ||
     composition.durationInFrames !== 300
   ) {
-    throw new Error('effect_metadata_mismatch: LeclapTitle must render 1280x720 at 30 fps for 300 frames.');
+    throw new Error('effect_metadata_mismatch: Registered effects must render 1280x720 at 30 fps for 300 frames.');
   }
 }
 
@@ -100,13 +103,14 @@ async function bundleJob(
   directory: string,
   signal?: AbortSignal
 ): Promise<TitleJob> {
+  const definition = getEffectDefinition(title.section.effect.id, title.section.effect.version);
   const { publicDir, inputProps, assetHashes } = await snapshotAssets(title, directory, signal);
   const options = await remotionBundleOptions(config.remotionEntry as string);
   const serveUrl = await remotion.bundle({ ...options, publicDir, outDir: path.join(directory, 'bundle') });
   const browser = await browserIdentity(remotion, config, signal);
   const composition = await remotion.selectComposition({
     serveUrl,
-    id: TITLE_COMPOSITION_ID,
+    id: definition.compositionId,
     inputProps,
     browserExecutable: browser.browserExecutable,
     timeoutInMilliseconds: config.renderTimeoutMs,
@@ -124,15 +128,17 @@ async function bundleJob(
   };
   const provenance = {
     hash: templateRevision({
-      id: TITLE_EFFECT_ID,
-      version: TITLE_EFFECT_VERSION,
+      id: definition.id,
+      version: definition.version,
       sourceHash,
       assetHashes,
       inputProps,
       renderer,
       composition,
     }),
-    compositionId: TITLE_COMPOSITION_ID,
+    effectId: definition.id,
+    effectVersion: definition.version,
+    compositionId: definition.compositionId,
     sourceHash,
     assetHashes,
     renderer,

@@ -241,3 +241,13 @@ it('maps only top-level authored geometry indices after omitting effects', async
   expect(result.structuredContent.geometry).toContain('sections[1].caption: top-level');
   expect(result.structuredContent.geometry).toContain('partials[0].sections[0].caption: partial');
 });
+
+it('discovers the promo schema while rejecting unknown registrations', async () => {
+  const handler = capture(registerGetEffectSchema);
+  const promo = await handler({ id: 'leclap.web-app-promo', version: '1.0.0' });
+  expect(promo.isError).toBeUndefined();
+  expect(promo.structuredContent.compositionId).toBe('LeclapWebAppPromo');
+  expect(promo.structuredContent.props.properties.cameraZoom.default).toBe(1.06);
+  expect(promo.structuredContent.assets.required).toEqual(['screenshot', 'logo', 'font']);
+  expect((await handler({ id: 'unknown' })).isError).toBe(true);
+});

@@ -30,7 +30,12 @@ beforeEach(async () => {
     renderTimeoutMs: 1000,
   };
   title = {
-    section: { name: 'title', type: 'effect', options: { duration: 10 } },
+    section: {
+      name: 'title',
+      type: 'effect',
+      options: { duration: 10 },
+      effect: { id: 'leclap.title-reveal', version: '1.0.0' },
+    },
     props: { headline: 'LECLAP', headlineY: 320, logoDelayFrames: 15, entranceDurationFrames: 24, springDamping: 18 },
     assets: {
       background: path.join(dir, 'background.mp4'),
@@ -104,4 +109,26 @@ describe('registered immutable Remotion job', () => {
     controller.abort();
     await expect(prepareTitleJob(title, config, controller.signal)).rejects.toThrow();
   });
+});
+
+it('selects the registered promo composition and hashes registration identity', async () => {
+  const modules = await loadRemotion();
+  const select = vi.fn(async (_options: any) => composition);
+  (modules as any).selectComposition = select;
+  const first = await prepareTitleJob(title, config);
+  const promo = { ...title, section: { ...title.section, effect: { id: 'leclap.web-app-promo', version: '1.0.0' } } };
+  const second = await prepareTitleJob(promo, config);
+  expect(select.mock.calls[1][0]).toMatchObject({ id: 'LeclapWebAppPromo' });
+  expect(second.provenance.compositionId).toBe('LeclapWebAppPromo');
+  expect(second.provenance.hash).not.toBe(first.provenance.hash);
+  expect(second.provenance).toMatchObject({ effectId: 'leclap.web-app-promo', effectVersion: '1.0.0' });
+});
+
+it('rejects an unregistered composition identity before bundling', async () => {
+  const modules = await loadRemotion();
+  const bundle = vi.fn();
+  (modules as any).bundle = bundle;
+  const unknown = { ...title, section: { ...title.section, effect: { id: 'unknown', version: '1.0.0' } } };
+  await expect(prepareTitleJob(unknown, config)).rejects.toThrow(/effect_not_registered/);
+  expect(bundle).not.toHaveBeenCalled();
 });

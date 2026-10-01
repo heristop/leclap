@@ -1,0 +1,23 @@
+{
+  "global": { "orientation": "landscape", "fps": 30, "musicEnabled": false },
+  "sections": [
+    {
+      "name": "intro",
+      "type": "effect",
+      "effect": {
+        "id": "leclap.title-reveal",
+        "version": "1.0.0",
+        "props": {
+          "headline": "LECLAP",
+          "headlineY": 320,
+          "logoDelayFrames": 15,
+          "entranceDurationFrames": 24,
+          "springDamping": 18
+        },
+        "assets": { "background": "media/background.mp4", "logo": "media/logo.png", "font": "media/font.ttf" }
+      },
+      "options": { "duration": 10 }
+    },
+    { "name": "outro", "type": "color_background", "options": { "duration": 2, "backgroundColor": "#101022" } }
+  ]
+}

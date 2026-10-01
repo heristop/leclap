@@ -1,3 +1,4 @@
+import { applyVariables } from './partial-variables';
 // Template "partials": reusable section fragments referenced from a template via
 // `{ "type": "partial", "ref": "<id>" }` instead of being copy-pasted. Expanded at load — before
 // validation and compilation — so the schema, validator, and engine only ever see real sections.
@@ -23,27 +24,6 @@ function isPartialRef(section: Section): section is Section & PartialRefSection 
 
 export function partialsById(partials: TemplatePartial[]): Record<string, TemplatePartial | undefined> {
   return Object.fromEntries(partials.map((partial) => [partial.id, partial]));
-}
-
-// Deep-replace every `{{ key }}` placeholder in a partial's sections with the matching ref variable.
-// Keys absent from `variables` are left untouched, so a partial may still reference global template
-// variables (resolved later by the engine). Values are inserted verbatim and never re-scanned.
-function applyVariables<T>(node: T, variables: Record<string, string>): T {
-  if (typeof node === 'string') {
-    return node.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, key: string) =>
-      Object.prototype.hasOwnProperty.call(variables, key) ? variables[key] : match
-    ) as unknown as T;
-  }
-
-  if (Array.isArray(node)) {
-    return node.map((item) => applyVariables(item, variables)) as unknown as T;
-  }
-
-  if (node !== null && typeof node === 'object') {
-    return Object.fromEntries(Object.entries(node).map(([key, value]) => [key, applyVariables(value, variables)])) as T;
-  }
-
-  return node;
 }
 
 // Expand a single `{ type: "partial", ref }` section into its real sections: resolve the registry
@@ -143,3 +123,5 @@ export function expandPartialsSafe(templateData: unknown): PartialExpansion {
     };
   }
 }
+
+export { assertEffectsResolved } from './assert-effects-resolved';

@@ -1,0 +1,39 @@
+import { prepareTitleJob, renderTitleJob, type TitleRender } from '../effects/registered-render.js';
+import type { PreparedTitle } from '../effects/title-registry.js';
+import type { McpConfig } from '../config.js';
+import type { EffectRenderResult } from 'ffmpeg-video-composer';
+const controller = new AbortController();
+process.on('SIGTERM', () => {
+  controller.abort();
+});
+type Message = {
+  cancel?: boolean;
+  title: PreparedTitle;
+  config: McpConfig;
+  requests: TitleRender[];
+  directory: string;
+};
+async function handleMessage(message: Message) {
+  if (message.cancel) {
+    controller.abort();
+
+    return;
+  }
+
+  try {
+    const job = await prepareTitleJob(message.title, message.config, controller.signal, message.directory);
+    // Render serially to bound Chromium/encoder concurrency to one per worker.
+    const results = await message.requests.reduce(async (pending, request) => {
+      const rendered = await pending;
+      rendered.push(await renderTitleJob(job, request));
+
+      return rendered;
+    }, Promise.resolve<EffectRenderResult[]>([]));
+    process.send?.({ ok: true, results, provenance: job.provenance }, () => process.exit(0));
+  } catch (error) {
+    process.send?.({ ok: false, error: error instanceof Error ? error.message : String(error) }, () => process.exit(1));
+  }
+}
+process.on('message', (message: Message) => {
+  handleMessage(message).catch(() => process.exit(1));
+});

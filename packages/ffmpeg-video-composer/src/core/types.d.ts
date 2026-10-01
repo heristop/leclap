@@ -13,6 +13,8 @@ export type {
 } from './descriptor-text';
 import type { Reveal, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 import type { FontInput } from './fonts';
+import type { EffectReference } from '../schemas/effect-reference.schema';
+export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
 export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
@@ -197,6 +199,7 @@ export interface Variables {
 type DescriptorSection = Section | PartialSection;
 
 export interface Section {
+  effect?: EffectReference;
   name: string;
   type: string;
   options?: SectionOptions;

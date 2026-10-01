@@ -1,0 +1,128 @@
+import { describe, expect, it } from 'vitest';
+import { templateRevision } from '../src/effects/template-revision.js';
+import { patchTemplate } from '../src/tools/patchTemplate.js';
+
+const template = {
+  sections: [
+    {
+      name: 'intro',
+      type: 'effect',
+      effect: {
+        id: 'leclap.title-reveal',
+        version: '1.0.0',
+        props: { headline: 'LECLAP', headlineY: 320 },
+        assets: {},
+      },
+      options: { duration: 10 },
+    },
+    { name: 'outro', type: 'color_background', options: { duration: 2 } },
+  ],
+};
+
+describe('JSON effect revisions', () => {
+  it('hashes equivalent JSON independently of object key ordering', () => {
+    expect(templateRevision({ a: 1, b: { x: 2, y: 3 } })).toBe(templateRevision({ b: { y: 3, x: 2 }, a: 1 }));
+    expect(templateRevision({ a: 1 })).not.toBe(templateRevision({ a: 2 }));
+  });
+  it('patches only named effect props without mutating the caller document', () => {
+    const before = structuredClone(template);
+    const result = patchTemplate({
+      template,
+      expectedRevision: templateRevision(template),
+      edits: [{ section: 'intro', props: { headlineY: 260 } }],
+    });
+    expect((result.template.sections as unknown[])[0]).toMatchObject({
+      effect: { props: { headline: 'LECLAP', headlineY: 260 } },
+    });
+    expect((result.template.sections as unknown[])[1]).toEqual(template.sections[1]);
+    expect(template).toEqual(before);
+    expect(result.revision).not.toBe(templateRevision(template));
+  });
+  it('rejects stale revisions before applying changes', () => {
+    expect(() =>
+      patchTemplate({ template, expectedRevision: 'stale', edits: [{ section: 'intro', props: { headlineY: 260 } }] })
+    ).toThrow('revision_conflict');
+  });
+  it('rejects a mixed valid/invalid batch without changing the original', () => {
+    const before = structuredClone(template);
+    expect(() =>
+      patchTemplate({
+        template,
+        expectedRevision: templateRevision(template),
+        edits: [
+          { section: 'intro', props: { headlineY: 260 } },
+          { section: 'missing', props: { headline: 'x' } },
+        ],
+      })
+    ).toThrow('Unknown effect section');
+    expect(template).toEqual(before);
+  });
+  it('rejects ambiguous duplicate names and duplicate edits', () => {
+    const duplicate = { ...template, sections: [template.sections[0], template.sections[0]] };
+    expect(() =>
+      patchTemplate({
+        template: duplicate,
+        expectedRevision: templateRevision(duplicate),
+        edits: [{ section: 'intro', props: { headline: 'x' } }],
+      })
+    ).toThrow('Ambiguous');
+    expect(() =>
+      patchTemplate({
+        template,
+        expectedRevision: templateRevision(template),
+        edits: [
+          { section: 'intro', props: { headline: 'x' } },
+          { section: 'intro', props: { headline: 'y' } },
+        ],
+      })
+    ).toThrow('Duplicate');
+  });
+});
+
+describe('patch_template tool validation', () => {
+  it('returns an error for a rejected effect batch and retains the source JSON', async () => {
+    const { registerPatchTemplate } = await import('../src/tools/patchTemplate.js');
+    let handler: ((args: unknown) => Promise<{ isError?: boolean; content: { text: string }[] }>) | undefined;
+    const server = {
+      registerTool: (_name: string, _meta: unknown, callback: typeof handler) => {
+        handler = callback;
+      },
+    };
+    registerPatchTemplate(server as never, (candidate) => {
+      const section = (candidate.sections as { effect: { props: Record<string, unknown> } }[])[0];
+      if ((section.effect.props.headlineY as number) > 720) throw new Error('headlineY must fit the frame');
+    });
+    const before = structuredClone(template);
+    const result = await handler!({
+      template,
+      expectedRevision: templateRevision(template),
+      edits: [{ section: 'intro', props: { headlineY: 900 } }],
+    });
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('headlineY');
+    expect(template).toEqual(before);
+  });
+});
+
+it('rejects unknown registered title props before returning a patched document', async () => {
+  const { registerPatchTemplate } = await import('../src/tools/patchTemplate.js');
+  const { titlePropsSchema } = await import('../src/effects/title-registry.js');
+  let handler: ((args: unknown) => Promise<{ isError?: boolean }>) | undefined;
+  const server = {
+    registerTool: (_name: string, _meta: unknown, callback: typeof handler) => {
+      handler = callback;
+    },
+  };
+  registerPatchTemplate(server as never, (candidate) => {
+    const sections = candidate.sections as typeof template.sections;
+    titlePropsSchema.parse(sections[0].effect!.props);
+  });
+  const before = structuredClone(template);
+  const result = await handler!({
+    template,
+    expectedRevision: templateRevision(template),
+    edits: [{ section: 'intro', props: { unknownParameter: 42 } }],
+  });
+  expect(result.isError).toBe(true);
+  expect(template).toEqual(before);
+});

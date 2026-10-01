@@ -765,3 +765,39 @@ Other breaking changes:
 - **Durations are now seconds everywhere.** Previously, `project_video` `options.duration` was in **milliseconds**; now it is **seconds** (e.g. `30000` → `30`). All other durations were already seconds.
 - Transitions are now structured: a bare `transitionDuration` becomes a `transition` object (`{ type, duration }`) on `global` and/or per section. A template that relied on an implicit cross-fade should set `global.transition` explicitly, or `{ "type": "cut" }` for hard cuts.
 - The structured-sugar layer (`look`, `grade`, `motion`, `audio`, `layers`, `framingGuide`) is new — older templates remain valid without it.
+
+## Registered JSON effects (desktop authoring)
+
+An `effect` section references a versioned, registered graphics implementation while its editable controls remain ordinary JSON. The execution caller resolves effects into `project_video` clips before invoking the existing FFmpeg engine. The core exports `resolveTemplateEffects(template, renderer, { preflight })` for library consumers; it does not import Remotion or launch Chromium.
+
+```json
+{
+  "name": "intro",
+  "type": "effect",
+  "effect": {
+    "id": "leclap.title-reveal",
+    "version": "1.0.0",
+    "props": {
+      "headline": "LECLAP",
+      "headlineY": 320,
+      "logoDelayFrames": 15,
+      "entranceDurationFrames": 24,
+      "springDamping": 18
+    },
+    "assets": {
+      "background": "media/background.mp4",
+      "logo": "media/logo.png",
+      "font": "media/font.ttf"
+    }
+  },
+  "options": { "duration": 10 }
+}
+```
+
+Effect IDs and exact semantic versions are required; props contain JSON values only. The core validates the reference contract, while the registered backend validates its specific props, asset slots and runtime support. Every effect is preflighted before effect rendering begins. Resolution preserves section filters, transitions and compositing options.
+
+The first MCP backend supports `leclap.title-reveal@1.0.0` through a trusted configured Remotion entry (`LeclapTitle` composition, 1280×720, 30 fps, 300 frames). Enable the existing Remotion opt-in and configure the entry; see [the runnable example](../examples/llm-remotion-title). Asset paths stay under the configured media directory. This is desktop rendering; native/browser callers may consume the resulting compatible clip but do not execute React code locally.
+
+Calling the core compile API with an unresolved effect reports `effect_backend_unavailable` before platform initialization. Ordinary templates are unchanged. To use another effect implementation, provide a trusted renderer/preflight callback to the generic resolution API; the initial MCP catalog deliberately exposes one registered effect.
+
+For reproducibility, retain the JSON, exact implementation/dependencies, resolved assets/fonts and render settings. JSON syntax alone does not guarantee identical pixels across rendering backends or identical encoded bytes.

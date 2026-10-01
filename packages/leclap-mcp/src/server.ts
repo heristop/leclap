@@ -7,6 +7,10 @@ import { registerCompose } from './tools/composeVideo.js';
 import { registerProbe } from './tools/probeMedia.js';
 import { registerValidateTemplate } from './tools/validateTemplate.js';
 import { registerRenderRemotionClip } from './tools/renderRemotionClip.js';
+import { registerGetEffectSchema } from './tools/getEffectSchema.js';
+import { registerRenderPreview } from './tools/renderPreview.js';
+import { registerPatchTemplate } from './tools/patchTemplate.js';
+import { validateEffects } from './effects/title-registry.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
 
 // Each tool group is registered by a small `registerXxx(server, config)` function, called from
@@ -58,6 +62,14 @@ export function createServer(config: McpConfig): McpServer {
   registerGetTemplateSchema(server);
   registerValidateTemplate(server, config);
   registerCompose(server, config);
+
+  if (config.allowRemotion) {
+    registerGetEffectSchema(server);
+    registerRenderPreview(server, config);
+  }
+  registerPatchTemplate(server, async (template) => {
+    await validateEffects(template, config);
+  });
   registerProbe(server, config);
 
   // render_remotion_clip bundles + executes a caller-supplied entry (arbitrary local JS) — an RCE

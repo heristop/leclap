@@ -16,6 +16,8 @@ export interface McpConfig {
   allowRemotion: boolean;
   /** Default Remotion entry (the module that calls registerRoot) for render_remotion_clip; optional. */
   remotionEntry?: string;
+  /** Optional host Chromium/Chrome executable for registered effect rendering. */
+  browserExecutable?: string;
 }
 
 const DEFAULT_RENDER_TIMEOUT_MS = 600_000;
@@ -95,6 +97,7 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
   );
 
   const remotionEntry = readFlag(argv, '--remotion-entry') ?? process.env.LECLAP_MCP_REMOTION_ENTRY;
+  const browserExecutable = readFlag(argv, '--remotion-browser') ?? process.env.LECLAP_MCP_REMOTION_BROWSER;
   const allowRemotion = readBoolean(argv, '--allow-remotion', process.env.LECLAP_MCP_ALLOW_REMOTION);
 
   return {
@@ -102,6 +105,7 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
     mediaDir: path.resolve(mediaDir),
     renderTimeoutMs,
     allowRemotion,
+    ...(browserExecutable ? { browserExecutable: path.resolve(browserExecutable) } : {}),
     ...(remotionEntry ? { remotionEntry: path.resolve(remotionEntry) } : {}),
   };
 }

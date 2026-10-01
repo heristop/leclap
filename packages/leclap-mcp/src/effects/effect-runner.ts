@@ -1,0 +1,127 @@
+import { fork } from 'node:child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { EffectRenderResult } from 'ffmpeg-video-composer';
+import type { McpConfig } from '../config.js';
+import { assertWithinMediaDir } from '../compose/pathGuard.js';
+import type { PreparedTitle } from './title-registry.js';
+import type { TitleRender, TitleJob } from './registered-render.js';
+
+export interface TitleWorkerResult {
+  directory: string;
+  results: EffectRenderResult[];
+  provenance: TitleJob['provenance'];
+}
+
+/** The deadline covers bundling, browser setup, selection and all requested renders. */
+export async function runTitleEffect(
+  title: PreparedTitle,
+  config: McpConfig,
+  requests: TitleRender[],
+  signal?: AbortSignal
+): Promise<TitleWorkerResult> {
+  signal?.throwIfAborted();
+  const base = path.join(config.mediaDir, '.leclap-effects');
+  await fs.mkdir(base, { recursive: true });
+  await assertWithinMediaDir(base, config.mediaDir);
+  const directory = await fs.mkdtemp(path.join(base, 'job-'));
+
+  try {
+    return await new Promise<TitleWorkerResult>((resolve, reject) => {
+      const child = fork(fileURLToPath(new URL('./effect-worker.js', import.meta.url)), [], {
+        stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
+        detached: process.platform !== 'win32',
+      });
+      child.stderr?.resume();
+      let failure: Error | undefined;
+      let result: TitleWorkerResult | undefined;
+      let killTimer: ReturnType<typeof setTimeout> | undefined;
+      let hardKilled = false;
+      function kill(sig: NodeJS.Signals) {
+        if (sig === 'SIGKILL' && hardKilled) return;
+
+        if (sig === 'SIGKILL') hardKilled = true;
+
+        try {
+          if (process.platform !== 'win32' && child.pid) {
+            process.kill(-child.pid, sig);
+
+            return;
+          }
+          child.kill(sig);
+        } catch {
+          child.kill(sig);
+        }
+      }
+      function stop(error: Error) {
+        if (failure) return;
+        failure = error;
+
+        if (child.connected) child.send({ cancel: true }, () => {});
+        kill('SIGTERM');
+        killTimer = setTimeout(() => {
+          kill('SIGKILL');
+        }, 1000);
+      }
+      function abort() {
+        stop(new Error('Effect rendering aborted'));
+      }
+      const timer = setTimeout(() => {
+        stop(new Error(`Effect rendering timed out after ${config.renderTimeoutMs}ms`));
+      }, config.renderTimeoutMs);
+      signal?.addEventListener('abort', abort, { once: true });
+      child.on('message', (message: unknown) => {
+        const reply = message as {
+          ok?: boolean;
+          results?: EffectRenderResult[];
+          provenance?: TitleJob['provenance'];
+          error?: string;
+        };
+
+        if (reply.ok && reply.results && reply.provenance) {
+          result = { directory, results: reply.results, provenance: reply.provenance };
+
+          return;
+        }
+        stop(new Error(reply.error ?? 'Effect worker returned an invalid response'));
+      });
+      child.once('error', (error) => {
+        if (child.pid) {
+          stop(error);
+
+          return;
+        }
+        {
+          clearTimeout(timer);
+          clearTimeout(killTimer);
+          signal?.removeEventListener('abort', abort);
+          reject(error);
+        }
+      });
+      child.once('exit', (code) => {
+        // The worker may exit on cancellation before Chromium children do.
+        if (failure) kill('SIGKILL');
+        clearTimeout(timer);
+        clearTimeout(killTimer);
+        signal?.removeEventListener('abort', abort);
+
+        if (!failure && code === 0 && result) {
+          resolve(result);
+
+          return;
+        }
+        reject(failure ?? new Error(`Effect worker exited without a result (${code})`));
+      });
+      child.send({ title, config, requests, directory }, (error) => {
+        if (error) stop(error);
+      });
+
+      if (signal?.aborted) abort();
+    });
+  } catch (error) {
+    await fs.rm(directory, { recursive: true, force: true });
+
+    throw error;
+  }
+}

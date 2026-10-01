@@ -9,5 +9,6 @@
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["remotion"]
+  "include": ["remotion"],
+  "exclude": ["remotion/BrandMotionPromo.tsx", "remotion/brand-motion-index.tsx", "remotion/brand-motion-kit"]
 }

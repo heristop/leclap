@@ -1,25 +1,39 @@
 import { Composition } from 'remotion';
 import { Title } from './Title';
+import { WebAppPromo, promoDefaults } from './WebAppPromo';
 
-export function Root() {
+export function Root({ includePromo = true }: { includePromo?: boolean }) {
   return (
-    <Composition
-      id="LeclapTitle"
-      component={Title}
-      durationInFrames={300}
-      fps={30}
-      width={1280}
-      height={720}
-      defaultProps={{
-        headline: 'LECLAP',
-        headlineY: 320,
-        logoDelayFrames: 15,
-        entranceDurationFrames: 24,
-        springDamping: 18,
-        background: 'background.mp4',
-        logo: 'logo.png',
-        font: 'font.ttf',
-      }}
-    />
+    <>
+      <Composition
+        id="LeclapTitle"
+        component={Title}
+        durationInFrames={300}
+        fps={30}
+        width={1280}
+        height={720}
+        defaultProps={{
+          headline: 'LECLAP',
+          headlineY: 320,
+          logoDelayFrames: 15,
+          entranceDurationFrames: 24,
+          springDamping: 18,
+          background: 'background.mp4',
+          logo: 'logo.png',
+          font: 'font.ttf',
+        }}
+      />
+      {includePromo && (
+        <Composition
+          id="LeclapWebAppPromo"
+          component={WebAppPromo}
+          durationInFrames={300}
+          fps={30}
+          width={1280}
+          height={720}
+          defaultProps={promoDefaults}
+        />
+      )}
+    </>
   );
 }

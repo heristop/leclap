@@ -223,3 +223,9 @@ pending jobs. Queue waiting is bounded by `renderTimeoutMs` and request cancella
 after admission, worker setup and rendering have a separate `renderTimeoutMs`
 deadline. FFmpeg composition retains its existing worker policy. Independent MCP
 processes can reuse the disk cache but do not coalesce rendering jobs.
+
+### Web app promo reference
+
+The static effect catalog also includes `leclap.web-app-promo@1.0.0` (`LeclapWebAppPromo`, 1280×720, 30 fps, ten seconds). Discover its strict copy, palette, timing and camera controls through `get_effect_schema`; its local asset slots are `screenshot`, `logo` and `font`. The example Root registers both this composition and the existing title, allowing mixed templates. See [the reference authoring guide](../../examples/llm-remotion-title/README.md#ten-second-web-app-promo) and [promo JSON](../../examples/llm-remotion-title/promo-template.json).
+
+The guide covers screenshot-backed motion, adapting trusted React/SVG layout to frame progress, preview/revision/patch/compose/cache, and an optional ignored snapshot bridge to the supplied private LeClap film source. That bridge reuses selected cinematic effects in the ten-second promo; it does not expose full-film replay or arbitrary source selection through effect JSON.

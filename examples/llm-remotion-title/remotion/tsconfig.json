@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.brand-motion.json",
+  "include": ["*.tsx", "*.ts", "brand-motion-kit"],
+  "exclude": []
+}

@@ -5,7 +5,14 @@ import type { EffectDefinition } from './effect-catalog.js';
 import { TITLE_EFFECT_ID, TITLE_COMPOSITION_ID } from './title-definition.js';
 import { PROMO_EFFECT_ID, PROMO_COMPOSITION_ID } from './promo-registry.js';
 import { templateRevision } from './template-revision.js';
-import { assertSafeKey, catalogError, compileCustomPropsSchema, type JsonPropsSchema } from './custom-props-schema.js';
+import {
+  assertSafeKey,
+  catalogError,
+  compileCustomPropsSchema,
+  createSchemaBudget,
+  type SchemaBudget,
+  type JsonPropsSchema,
+} from './custom-props-schema.js';
 
 export const EFFECT_OUTPUT = {
   width: 1280,
@@ -119,13 +126,14 @@ function visitJson(value: unknown, depth: number, budget: JsonBudget): void {
   }
   budget.active.delete(value);
 }
-function jsonSnapshot(input: unknown): unknown {
-  visitJson(input, 0, { nodes: 0, bytes: 0, active: new WeakSet() });
+function jsonSnapshot(input: unknown) {
+  const usage = { nodes: 0, bytes: 0, active: new WeakSet<object>() };
+  visitJson(input, 0, usage);
   const json = JSON.stringify(input);
 
   if (Buffer.byteLength(json) > MAX_CATALOG_BYTES) catalogError('catalog exceeds 256 KiB.');
 
-  return JSON.parse(json);
+  return { value: JSON.parse(json), nodes: usage.nodes, bytes: Buffer.byteLength(json) };
 }
 function freeze<T>(value: T): T {
   if (value && typeof value === 'object') {
@@ -162,7 +170,7 @@ function compileAssets(effect: JsonEffectDefinition) {
 
   return { assets: z.object(shape).strict() as z.ZodType<Record<string, string>>, assetExtensions, assetVideoPolicies };
 }
-function compileDefinition(effect: JsonEffectDefinition, budget: { nodes: number }): EffectDefinition {
+function compileDefinition(effect: JsonEffectDefinition, budget: SchemaBudget): EffectDefinition {
   const props = compileCustomPropsSchema(effect.propsSchema, budget);
 
   return {
@@ -182,9 +190,10 @@ function compileDefinition(effect: JsonEffectDefinition, budget: { nodes: number
 
 export function parseCustomEffectCatalog(input: unknown): JsonEffectCatalog {
   try {
-    const parsed = catalogSchema.parse(jsonSnapshot(input));
+    const parsed = catalogSchema.parse(jsonSnapshot(input).value);
+    const usage = jsonSnapshot(parsed);
     const identities = new Set<string>();
-    const budget = { nodes: 0 };
+    const budget = createSchemaBudget(usage.nodes, usage.bytes);
     const compiled: EffectDefinition[] = [];
 
     for (const effect of parsed.effects) {
@@ -224,7 +233,8 @@ export function loadCustomEffectCatalog(file: string): JsonEffectCatalog {
   let fd: number | undefined;
 
   try {
-    fd = fs.openSync(file, 'r');
+    // O_NONBLOCK prevents FIFO open from hanging before the regular-file check.
+    fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NONBLOCK);
     const stat = fs.fstatSync(fd);
 
     if (!stat.isFile()) catalogError('catalog must be a regular file.');

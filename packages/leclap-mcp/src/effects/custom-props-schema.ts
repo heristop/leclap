@@ -4,6 +4,21 @@ export type JsonValue = string | number | boolean | null | JsonValue[] | { [key:
 export type JsonPropsSchema = Record<string, JsonValue>;
 export const MAX_SCHEMA_DEPTH = 16;
 export const MAX_SCHEMA_NODES = 1024;
+export const MAX_NORMALIZED_BYTES = 256 * 1024;
+export const MAX_NORMALIZED_NODES = 20000;
+interface DefaultCost {
+  nodes: number;
+  bytes: number;
+}
+export interface SchemaBudget {
+  nodes: number;
+  dataNodes: number;
+  dataBytes: number;
+  defaultCosts: WeakMap<JsonPropsSchema, DefaultCost>;
+}
+export function createSchemaBudget(dataNodes = 0, dataBytes = 0): SchemaBudget {
+  return { nodes: 0, dataNodes, dataBytes, defaultCosts: new WeakMap() };
+}
 const keywords: Record<string, string[]> = {
   object: ['properties', 'required', 'additionalProperties'],
   string: ['minLength', 'maxLength'],
@@ -69,7 +84,7 @@ function validateBounds(schema: JsonPropsSchema, type: string, location: string)
     catalogError(`${location}: inverted bounds.`);
   }
 }
-function validateObject(schema: JsonPropsSchema, depth: number, location: string, budget: { nodes: number }): void {
+function validateObject(schema: JsonPropsSchema, depth: number, location: string, budget: SchemaBudget): void {
   if (schema.additionalProperties !== false) catalogError(`${location}: objects require additionalProperties:false.`);
   object(schema.properties, `${location}.properties`);
   const properties = schema.properties;
@@ -108,7 +123,79 @@ function validateEnum(schema: JsonPropsSchema, type: string, location: string): 
     catalogError(`${location}: duplicate enum values.`);
   }
 }
-function visitSchema(schema: JsonPropsSchema, depth: number, location: string, budget: { nodes: number }): void {
+function addDefaultCost(total: DefaultCost, child: DefaultCost, key?: string): void {
+  total.nodes += child.nodes;
+  total.bytes += child.bytes;
+
+  if (key !== undefined) total.bytes += Buffer.byteLength(JSON.stringify(key)) + 1;
+
+  if (total.nodes > MAX_NORMALIZED_NODES || total.bytes > MAX_NORMALIZED_BYTES) {
+    catalogError('normalized default exceeds JSON data budget.');
+  }
+}
+/** Project default insertion using child summaries; never allocate the expanded value. */
+function defaultCost(value: JsonValue, schema: JsonPropsSchema | undefined, budget: SchemaBudget): DefaultCost {
+  if (value === null || typeof value !== 'object') {
+    return { nodes: 1, bytes: Buffer.byteLength(JSON.stringify(value)) };
+  }
+  const total = { nodes: 1, bytes: 2 };
+
+  if (Array.isArray(value)) {
+    total.bytes += Math.max(0, value.length - 1);
+    const items = schema?.type === 'array' ? (schema.items as JsonPropsSchema) : undefined;
+
+    for (const item of value) addDefaultCost(total, defaultCost(item, items, budget));
+
+    return total;
+  }
+
+  return objectDefaultCost(value, schema, budget, total);
+}
+function objectDefaultCost(
+  value: Record<string, JsonValue>,
+  schema: JsonPropsSchema | undefined,
+  budget: SchemaBudget,
+  total: DefaultCost
+): DefaultCost {
+  const properties = schema?.type === 'object' ? (schema.properties as Record<string, JsonPropsSchema>) : {};
+  const present = Object.entries(value);
+  let fields = present.length;
+
+  for (const [key, item] of present) addDefaultCost(total, defaultCost(item, properties[key], budget), key);
+
+  for (const [key, child] of Object.entries(properties)) {
+    if (Object.hasOwn(value, key) || !Object.hasOwn(child, 'default')) continue;
+    const cost = budget.defaultCosts.get(child);
+
+    if (!cost) catalogError('normalized default cost was not prepared.');
+    addDefaultCost(total, cost, key);
+    fields++;
+  }
+  total.bytes += Math.max(0, fields - 1);
+
+  return total;
+}
+function normalizeDefault(schema: JsonPropsSchema, location: string, budget: SchemaBudget): void {
+  if (!('default' in schema)) return;
+  const { default: value, ...underlying } = schema;
+  const original = defaultCost(value, undefined, budget);
+  const expanded = defaultCost(value, schema, budget);
+  const dataNodes = budget.dataNodes + expanded.nodes - original.nodes;
+  const dataBytes = budget.dataBytes + expanded.bytes - original.bytes;
+
+  if (dataNodes > MAX_NORMALIZED_NODES || dataBytes > MAX_NORMALIZED_BYTES) {
+    catalogError(`${location}: normalized default exceeds catalog JSON data budget.`);
+  }
+  // Only now may Zod materialize nested defaults within the preflighted budget.
+  const parsedDefault = z.fromJSONSchema(underlying).safeParse(value);
+
+  if (!parsedDefault.success) catalogError(`${location}: default violates its schema.`);
+  schema.default = parsedDefault.data as JsonValue;
+  budget.dataNodes = dataNodes;
+  budget.dataBytes = dataBytes;
+  budget.defaultCosts.set(schema, expanded);
+}
+function visitSchema(schema: JsonPropsSchema, depth: number, location: string, budget: SchemaBudget): void {
   if (depth > MAX_SCHEMA_DEPTH) catalogError(`${location}: schema depth exceeds ${MAX_SCHEMA_DEPTH}.`);
 
   if (++budget.nodes > MAX_SCHEMA_NODES) catalogError(`schema node count exceeds ${MAX_SCHEMA_NODES}.`);
@@ -126,22 +213,12 @@ function visitSchema(schema: JsonPropsSchema, depth: number, location: string, b
   }
   validateEnum(schema, type, location);
 
-  if ('default' in schema) {
-    const { default: value, ...underlying } = schema;
-
-    const parsedDefault = z.fromJSONSchema(underlying).safeParse(value);
-
-    if (!parsedDefault.success) {
-      catalogError(`${location}: default violates its schema.`);
-    }
-    // Zod defaults short circuit parsing; store the fully validated nested default.
-    schema.default = parsedDefault.data as JsonValue;
-  }
+  normalizeDefault(schema, location, budget);
 }
 /** Bound and reject unsupported keywords before invoking Zod's permissive importer. */
 export function compileCustomPropsSchema(
   input: JsonPropsSchema,
-  budget = { nodes: 0 }
+  budget = createSchemaBudget()
 ): z.ZodType<Record<string, unknown>> {
   visitSchema(input, 1, 'propsSchema', budget);
 

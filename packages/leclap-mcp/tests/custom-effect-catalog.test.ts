@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getEffectDefinition, listEffectDefinitions } from '../src/effects/effect-catalog.js';
 import { loadCustomEffectCatalog, parseCustomEffectCatalog } from '../src/effects/custom-effect-catalog.js';
@@ -27,6 +28,18 @@ const withProp = (schema: unknown) =>
     ...product,
     propsSchema: { type: 'object', properties: { control: schema }, additionalProperties: false },
   });
+function nestedDefault(levels: number, width: number, leaf: string): Record<string, unknown> {
+  let schema: Record<string, unknown> = { type: 'string', default: leaf };
+  for (let level = 0; level < levels; level++) {
+    schema = {
+      type: 'array',
+      maxItems: width,
+      default: Array.from({ length: width }, () => ({})),
+      items: { type: 'object', additionalProperties: false, properties: { child: schema } },
+    };
+  }
+  return schema;
+}
 const directories: string[] = [];
 afterEach(() => {
   for (const dir of directories.splice(0)) fs.rmSync(dir, { recursive: true, force: true });
@@ -117,6 +130,33 @@ describe('custom effect catalog', () => {
       })
     );
     expect(definition.props.parse({})).toEqual({ control: [{ name: 'Nested' }] });
+  });
+  it.each([
+    [4, 20, 'x'.repeat(10)],
+    [1, 3, 'x'.repeat(100000)],
+  ])('rejects normalized default expansion before materializing it (%i levels, %i items)', (levels, width, leaf) => {
+    const input = withProp(nestedDefault(levels as number, width as number, leaf as string));
+    expect(Buffer.byteLength(JSON.stringify(input))).toBeLessThan(256 * 1024);
+    expect(() => parseCustomEffectCatalog(input)).toThrow(/effect_catalog_invalid.*normalized default.*budget/);
+  });
+  it.each([
+    [1, 3, 'x'.repeat(40000), 2],
+    [3, 15, '', 3],
+  ])('bounds normalized defaults across effects (%i levels, %i items)', (levels, width, leaf, count) => {
+    const effect = withProp(nestedDefault(levels as number, width as number, leaf as string)).effects[0];
+    expect(() => parseCustomEffectCatalog(document(effect))).not.toThrow();
+    const effects = Array.from({ length: count as number }, (_, index) => ({
+      ...effect,
+      id: `studio.product${index}`,
+    }));
+    expect(() => parseCustomEffectCatalog({ schemaVersion: 1, effects })).toThrow(
+      /effect_catalog_invalid.*normalized default.*budget/
+    );
+  });
+  it('keeps legitimate nested array defaults within the aggregate data budget', () => {
+    expect(lookup(withProp(nestedDefault(2, 2, 'ok'))).props.parse({})).toEqual({
+      control: [{ child: [{ child: 'ok' }, { child: 'ok' }] }, { child: [{ child: 'ok' }, { child: 'ok' }] }],
+    });
   });
   it('normalizes and freezes JSON snapshots without retaining mutable caller input', () => {
     const input = document({ ...product, assets: { photo: { extensions: ['.png'] } } });
@@ -320,6 +360,22 @@ describe('custom effect catalog', () => {
     ]) {
       expect(() => parseCustomEffectCatalog(input)).toThrow(/effect_catalog_invalid/);
     }
+  });
+  it.skipIf(process.platform === 'win32')('rejects FIFO catalogs without blocking on open', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leclap-catalog-fifo-'));
+    directories.push(dir);
+    const fifo = path.join(dir, 'catalog.json');
+    expect(spawnSync('mkfifo', [fifo], { timeout: 2000 }).status).toBe(0);
+    const moduleUrl = new URL('../src/effects/custom-effect-catalog.ts', import.meta.url).href;
+    const script = `import {loadCustomEffectCatalog} from ${JSON.stringify(moduleUrl)};
+      try { loadCustomEffectCatalog(${JSON.stringify(fifo)}); }
+      catch (error) { console.log(error.message); }`;
+    const child = spawnSync(process.execPath, ['--import', 'tsx/esm', '--input-type=module', '-e', script], {
+      timeout: 2000,
+      encoding: 'utf8',
+    });
+    expect(child.status).toBe(0);
+    expect(child.stdout).toMatch(/effect_catalog_invalid.*regular file/);
   });
   it('loads bounded regular JSON files and reports malformed or oversized files', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'leclap-catalog-'));

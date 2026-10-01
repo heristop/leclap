@@ -97,7 +97,7 @@ export const CinematicHero = () => {
       // svh (not vh) so the stage doesn't jump as mobile browsers collapse their address bar. The monitor is
       // dark in both themes; on the light page its foot is rounded, so it reads as a screen set on the page
       // like the frames below it (the section carries `.dark` itself, hence the root-theme selector).
-      className="dark relative flex min-h-[92svh] items-center justify-center overflow-hidden bg-background text-foreground [:root:not(.dark)_&]:rounded-b-[2rem] sm:[:root:not(.dark)_&]:rounded-b-[2.75rem]"
+      className="dark relative flex min-h-[92svh] items-center justify-center overflow-hidden bg-background text-foreground [:root:not(.dark)_&]:rounded-b-xl sm:[:root:not(.dark)_&]:rounded-b-2xl"
     >
       <HeroStage
         videoRef={videoRef}

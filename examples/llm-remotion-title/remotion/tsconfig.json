@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.brand-motion.json",
-  "include": ["*.tsx", "*.ts", "brand-motion-kit"],
-  "exclude": []
+  "extends": "../tsconfig.json",
+  "include": ["*.tsx", "*.ts"],
+  "exclude": ["BrandMotionPromo.tsx", "brand-motion-index.tsx", "brand-motion-kit"]
 }

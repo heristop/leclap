@@ -39,6 +39,10 @@ export default defineConfig({
       '**/e2e/**',
       '**/playwright.config.ts',
       'scripts/ffmpeg/.work/**',
+      // Optional adapter requires an operator-staged private companion repository.
+      'examples/llm-remotion-title/remotion/BrandMotionPromo.tsx',
+      'examples/llm-remotion-title/remotion/brand-motion-index.tsx',
+      'examples/llm-remotion-title/remotion/brand-motion-kit/**',
     ],
     env: {
       node: true,

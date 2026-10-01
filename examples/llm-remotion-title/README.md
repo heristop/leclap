@@ -4,14 +4,17 @@ This reference project keeps creative controls in LeClap JSON. A trusted Remotio
 
 ## Prepare
 
-From the repository root, build the core and MCP packages. Install the example's pinned React/Remotion dependencies separately:
+From the repository root, build the core and MCP packages. Install the workspace's pinned dependencies:
 
 ```sh
 pnpm --filter ffmpeg-video-composer build
 pnpm --filter @leclap/mcp build
-pnpm --dir examples/llm-remotion-title install --ignore-workspace
+pnpm install
+pnpm --filter leclap-json-effects-example typecheck
 node examples/llm-remotion-title/generate-media.mjs /absolute/path/to/font.ttf
 ```
+
+The generic example is a private workspace package with dependencies pinned in the root lockfile; CI lints and typechecks it without the optional private companion kit.
 
 The fixture generator needs system FFmpeg and a local TTF font you are entitled to use. It creates a ten-second background, logo and font copy under ignored `media/`; replace these with your own media while retaining duration and slot names.
 

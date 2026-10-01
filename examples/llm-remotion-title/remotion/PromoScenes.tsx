@@ -1,3 +1,4 @@
+import { FitBox } from './FitBox';
 import { AbsoluteFill, Img, interpolate, staticFile } from 'remotion';
 import type { ReactNode } from 'react';
 import type { WebAppPromoProps } from './WebAppPromo';
@@ -21,39 +22,50 @@ export function HeroScene(state: SceneState) {
     <AbsoluteFill
       style={{
         opacity: heroOpacity,
-        justifyContent: 'center',
-        padding: '80px 100px',
+        top: 132,
+        left: 100,
+        width: 1080,
+        height: 480,
         transform: `translateY(${36 * (1 - hero)}px)`,
       }}
     >
-      <div style={{ position: 'absolute', right: 100, top: 140 }}>{p.mascot}</div>
-      <div style={{ color: p.accent, fontSize: 22, letterSpacing: 4, marginBottom: 26 }}>{p.eyebrow}</div>
-      <div
-        style={{
-          fontSize: p.headline.length > 40 ? 76 : 96,
-          lineHeight: 1.05,
-          maxWidth: 900,
-          fontWeight: 700,
-          overflowWrap: 'anywhere',
-        }}
-      >
-        {p.headline}
-      </div>
-      <div
-        style={{ fontSize: 28, lineHeight: 1.4, maxWidth: 760, marginTop: 30, color: muted, overflowWrap: 'anywhere' }}
-      >
-        {p.subheadline}
-      </div>
-      <div
-        style={{
-          marginTop: 36,
-          width: 110,
-          height: 4,
-          backgroundColor: p.accent,
-          transform: `scaleX(${hero})`,
-          transformOrigin: 'left',
-        }}
-      />
+      <div style={{ position: 'absolute', right: 0, top: 0 }}>{p.mascot}</div>
+      <FitBox width={1080} height={480}>
+        <div style={{ color: p.accent, fontSize: 22, letterSpacing: 4, marginBottom: 26 }}>{p.eyebrow}</div>
+        <div
+          style={{
+            fontSize: p.headline.length > 40 ? 76 : 96,
+            lineHeight: 1.05,
+            maxWidth: 900,
+            fontWeight: 700,
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {p.headline}
+        </div>
+        <div
+          style={{
+            fontSize: 28,
+            lineHeight: 1.4,
+            maxWidth: 760,
+            marginTop: 30,
+            color: muted,
+            overflowWrap: 'anywhere',
+          }}
+        >
+          {p.subheadline}
+        </div>
+        <div
+          style={{
+            marginTop: 36,
+            width: 110,
+            height: 4,
+            backgroundColor: p.accent,
+            transform: `scaleX(${hero})`,
+            transformOrigin: 'left',
+          }}
+        />
+      </FitBox>
     </AbsoluteFill>
   );
 }
@@ -135,8 +147,10 @@ export function ShowcaseScene(state: SceneState) {
 
   return (
     <AbsoluteFill style={{ opacity: showcaseOpacity }}>
-      <div style={{ position: 'absolute', top: 106, left: 64, fontSize: 22, letterSpacing: 3, color: p.accent }}>
-        {p.eyebrow}
+      <div style={{ position: 'absolute', top: 100, left: 64 }}>
+        <FitBox width={1152} height={40}>
+          <span style={{ fontSize: 22, letterSpacing: 3, color: p.accent, whiteSpace: 'nowrap' }}>{p.eyebrow}</span>
+        </FitBox>
       </div>
       <BrowserView {...state} />
       <div style={{ position: 'absolute', left: 82, right: 82, bottom: 72, display: 'flex', gap: 20 }}>
@@ -173,41 +187,47 @@ export function ClosingScene(state: SceneState) {
     <AbsoluteFill
       style={{
         opacity: Math.min(1, Math.max(0, close)),
-        justifyContent: 'center',
-        alignItems: 'center',
+        top: 128,
+        left: 100,
+        width: 1080,
+        height: 500,
         transform: `translateY(${30 * (1 - close)}px)`,
       }}
     >
-      <Img src={staticFile(p.logo)} style={{ width: 98, height: 98, objectFit: 'contain', marginBottom: 24 }} />
-      <div
-        style={{
-          color: p.accent,
-          fontSize: p.brand.length > 16 ? 64 : 96,
-          lineHeight: 1.1,
-          maxWidth: 1080,
-          overflowWrap: 'anywhere',
-          textAlign: 'center',
-          fontWeight: 700,
-        }}
-      >
-        {p.brand}
-      </div>
-      <div style={{ marginTop: 24, fontSize: 26, maxWidth: 940, textAlign: 'center', overflowWrap: 'anywhere' }}>
-        {p.subheadline}
-      </div>
-      <div
-        style={{
-          marginTop: 32,
-          padding: '16px 36px',
-          backgroundColor: p.accent,
-          color: p.backgroundColor,
-          fontSize: 28,
-          borderRadius: 6,
-        }}
-      >
-        {p.cta} <span style={{ marginLeft: 16 }}>↗</span>
-      </div>
-      <div style={{ marginTop: 22, fontSize: 20, color: muted }}>{p.displayUrl}</div>
+      <FitBox width={1080} height={500} center>
+        <Img src={staticFile(p.logo)} style={{ width: 98, height: 98, objectFit: 'contain', marginBottom: 24 }} />
+        <div
+          style={{
+            color: p.accent,
+            fontSize: p.brand.length > 16 ? 64 : 96,
+            lineHeight: 1.1,
+            maxWidth: 1080,
+            overflowWrap: 'anywhere',
+            textAlign: 'center',
+            fontWeight: 700,
+          }}
+        >
+          {p.brand}
+        </div>
+        <div style={{ marginTop: 24, fontSize: 26, maxWidth: 940, textAlign: 'center', overflowWrap: 'anywhere' }}>
+          {p.subheadline}
+        </div>
+        <div
+          style={{
+            marginTop: 32,
+            padding: '16px 36px',
+            backgroundColor: p.accent,
+            color: p.backgroundColor,
+            fontSize: 28,
+            borderRadius: 6,
+          }}
+        >
+          {p.cta} <span style={{ marginLeft: 16 }}>↗</span>
+        </div>
+        <div style={{ marginTop: 22, fontSize: 20, color: muted, maxWidth: 1080, overflowWrap: 'anywhere' }}>
+          {p.displayUrl}
+        </div>
+      </FitBox>
     </AbsoluteFill>
   );
 }

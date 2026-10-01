@@ -1,5 +1,6 @@
 import { HeroScene, ShowcaseScene, ClosingScene } from './PromoScenes';
-import { useEffect, useState, type ReactNode } from 'react';
+import { FitBox } from './FitBox';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import {
   AbsoluteFill,
   Img,
@@ -61,6 +62,7 @@ export function WebAppPromo(props: WebAppPromoProps & { atmosphere?: ReactNode; 
   const p = props;
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const [loadedFont, setLoadedFont] = useState<string | null>(null);
   const [fontHandle] = useState(() => delayRender('Load exact promo font'));
   useEffect(() => {
     const face = new FontFace('LeclapPromoFont', `url("${staticFile(p.font)}")`);
@@ -68,10 +70,14 @@ export function WebAppPromo(props: WebAppPromoProps & { atmosphere?: ReactNode; 
       .load()
       .then((loaded) => {
         document.fonts.add(loaded);
-        continueRender(fontHandle);
+        setLoadedFont(p.font);
       })
       .catch((error: unknown) => cancelRender(error instanceof Error ? error : new Error(String(error))));
   }, [p.font, fontHandle]);
+  useLayoutEffect(() => {
+    if (loadedFont === p.font) continueRender(fontHandle);
+  }, [loadedFont, p.font, fontHandle]);
+
   function enter(at: number) {
     return spring({
       frame: frame - at,
@@ -90,6 +96,8 @@ export function WebAppPromo(props: WebAppPromoProps & { atmosphere?: ReactNode; 
   const travel = interpolate(frame, [p.showcaseStartFrame, p.ctaStartFrame], [0, 1], clamp);
   const muted = `${p.textColor}B3`;
   const state = { p, frame, hero, showcase, close, heroOpacity, showcaseOpacity, travel, muted, enter };
+
+  if (loadedFont !== p.font) return null;
 
   return (
     <AbsoluteFill
@@ -128,14 +136,18 @@ export function WebAppPromo(props: WebAppPromoProps & { atmosphere?: ReactNode; 
         />
       </div>
       {p.atmosphere}
-      <div
-        style={{ position: 'absolute', left: 58, top: 34, right: 58, display: 'flex', alignItems: 'center', gap: 12 }}
-      >
+      <div style={{ position: 'absolute', left: 58, top: 34 }}>
         <Img src={staticFile(p.logo)} style={{ width: 40, height: 40, objectFit: 'contain' }} />
-        <span style={{ fontSize: 24, letterSpacing: 1 }}>{p.brand}</span>
-        <span style={{ marginLeft: 'auto', fontSize: 18, color: muted, maxWidth: 600, overflowWrap: 'anywhere' }}>
-          {p.displayUrl}
-        </span>
+      </div>
+      <div style={{ position: 'absolute', left: 110, top: 34 }}>
+        <FitBox width={400} height={40}>
+          <span style={{ fontSize: 24, letterSpacing: 1, whiteSpace: 'nowrap' }}>{p.brand}</span>
+        </FitBox>
+      </div>
+      <div style={{ position: 'absolute', right: 58, top: 34 }}>
+        <FitBox width={620} height={40} center>
+          <span style={{ fontSize: 18, color: muted, whiteSpace: 'nowrap' }}>{p.displayUrl}</span>
+        </FitBox>
       </div>
       <HeroScene {...state} />
       <ShowcaseScene {...state} />

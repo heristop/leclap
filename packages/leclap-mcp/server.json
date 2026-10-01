@@ -51,8 +51,22 @@
         },
         {
           "name": "LECLAP_MCP_REMOTION_ENTRY",
-          "description": "Path to a Remotion entry point used by render_remotion_clip when it is enabled.",
+          "description": "Path to the operator-configured trusted Remotion entry point for clip rendering and registered JSON effects.",
           "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_REMOTION_BROWSER",
+          "description": "Path to a compatible Chrome executable. If omitted, Remotion sets up its browser.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_EFFECT_CACHE_MAX_BYTES",
+          "description": "Persistent registered-effect cache budget in bytes. Defaults to 536870912 (512 MiB); 0 disables caching.",
+          "format": "number",
           "isRequired": false,
           "isSecret": false
         }
@@ -86,10 +100,22 @@
           {
             "name": "render_remotion_clip",
             "description": "Render a composition from your own Remotion project to an MP4. Gated \u2014 see notes."
+          },
+          {
+            "name": "get_effect_schema",
+            "description": "Discover a registered JSON effect, its strict props and assets, output metadata, and runtime requirements."
+          },
+          {
+            "name": "render_preview",
+            "description": "Preview frames or a short frame range of a registered JSON effect using trusted local Remotion source."
+          },
+          {
+            "name": "patch_template",
+            "description": "Apply effect-prop edits to inline template JSON atomically using an expected revision, returning the updated template."
           }
         ],
         "prompts": ["compose-video"],
-        "notes": "render_remotion_clip is registered only when LECLAP_MCP_ALLOW_REMOTION is set, because it executes caller-supplied local JavaScript."
+        "notes": "render_remotion_clip is registered only when LECLAP_MCP_ALLOW_REMOTION is set, because it executes caller-supplied local JavaScript. Registered JSON effects also require the Remotion opt-in for rendering and use operator-configured trusted source; callers cannot select executable source through effect JSON."
       }
     }
   }

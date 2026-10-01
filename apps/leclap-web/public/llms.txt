@@ -54,7 +54,9 @@ Add the MCP server to any MCP-capable client:
 { "mcpServers": { "leclap": { "command": "npx", "args": ["-y", "@leclap/mcp"] } } }
 ```
 
-Tools: `get_template_schema`, `validate_template`, `compose_video`, `probe_media`. No LLM sits in the output path — the agent authors a JSON template and the engine renders it deterministically.
+Tools: `get_template_schema`, `get_effect_schema`, `validate_template`, `render_preview`, `patch_template`, `compose_video`, `probe_media`. No LLM sits in the output path — the agent authors a JSON template and the engine renders it deterministically.
+
+Registered JSON effects can use trusted, operator-configured Remotion components on Node.js. Inspect the effect schema, preview selected frames, and patch props with a revision guard before composing. Remotion rendering requires operator opt-in; JSON cannot select executable source. Generated effects become video clips before the cross-platform FFmpeg engine runs.
 
 For PR or MR evidence: collect a real walkthrough and review focus, author the template, validate it, render it, and attach the returned local file. LeClap renders the artifact; it does not upload to GitHub or GitLab.
 

@@ -228,24 +228,14 @@ async function effectFindings(
   authored: TemplateDescriptor,
   request: RenderRequest | null
 ) {
-  const visible = descriptor.sections?.filter((section) => section.type !== 'effect');
-  const original = authored.sections?.filter((section) => section.type !== 'effect');
-  const result = await findings(
-    { ...descriptor, sections: visible },
-    { ...authored, sections: original },
-    visible?.length ? request : null
-  );
-  const indices = (authored.sections ?? [])
-    .map((section, index) => (section.type === 'effect' ? null : index))
-    .filter((index): index is number => index !== null);
-  const geometry = result.geometry?.map((line) =>
-    line.replace(
-      /^sections\[(\d+)\]/,
-      (_match, index: string) => `sections[${indices[Number(index)] ?? Number(index)}]`
-    )
-  );
+  // Core expands partials and measures FFmpeg layers on generated effect footage. Its rendered
+  // check excludes effects from pixel targets while refining ordinary sections normally.
+  const result = await findings(descriptor, authored, request);
 
-  return { geometry: [...(geometry ?? []), EFFECT_GEOMETRY_NOTE], render: effectRenderSummary(result.render, request) };
+  return {
+    geometry: [...(result.geometry ?? []), EFFECT_GEOMETRY_NOTE],
+    render: effectRenderSummary(result.render, request),
+  };
 }
 function effectRenderSummary(render: RenderSummary | undefined, request: RenderRequest | null) {
   if (!request) return render;

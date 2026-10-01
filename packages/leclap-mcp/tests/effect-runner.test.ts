@@ -120,3 +120,29 @@ it('holds the permit until exit and releases it after worker failure', async () 
   child.emit('exit', 0, null);
   await expect(next).resolves.toHaveProperty('provenance.hash', 'next');
 });
+
+it.skipIf(process.platform === 'win32').each(['timeout', 'abort'])(
+  'terminates an announced detached browser on %s before releasing the worker',
+  async (mode) => {
+    const kills = vi.spyOn(process, 'kill').mockImplementation(() => true);
+    const controller = new AbortController();
+    try {
+      const pending = runTitleEffect(
+        {} as never,
+        { mediaDir: root, renderTimeoutMs: 200 } as never,
+        [{ kind: 'video' }],
+        controller.signal
+      );
+      await vi.waitFor(() => expect(sent?.directory).toBeTypeOf('string'));
+      child.emit('message', { ownedProcess: { pid: 424243, detached: true } });
+      if (mode === 'abort') controller.abort();
+      await vi.waitFor(() => expect(kills).toHaveBeenCalledWith(-424242, 'SIGTERM'));
+      child.emit('exit', null, 'SIGTERM');
+      await expect(pending).rejects.toThrow(mode === 'abort' ? /aborted/ : /timed out/);
+      expect(kills).toHaveBeenCalledWith(-424243, 'SIGKILL');
+      expect(await fs.readdir(path.join(root, '.leclap-effects'))).toEqual([]);
+    } finally {
+      kills.mockRestore();
+    }
+  }
+);

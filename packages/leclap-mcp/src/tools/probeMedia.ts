@@ -34,12 +34,15 @@ interface FFProbeStream {
   codec_type: string;
   codec_name?: string | null;
   duration?: string;
+  start_time?: string;
   sample_rate?: string;
+  tags?: Record<string, string>;
 }
 
 interface FFProbeData {
   // Optional because the JSON comes from ffprobe at runtime; a malformed payload may omit it.
   streams?: FFProbeStream[];
+  format?: { duration?: string; start_time?: string };
 }
 
 export interface ProbeInfos {
@@ -124,22 +127,43 @@ export type ProbeRunner = (realPath: string) => Promise<FFProbeData>;
 
 async function defaultRunner(realPath: string): Promise<FFProbeData> {
   const bin = await resolveFfprobeBin();
-  const { stdout } = await execFileAsync(bin, ['-v', 'quiet', '-print_format', 'json', '-show_streams', realPath], {
-    timeout: PROBE_TIMEOUT_MS,
-    killSignal: 'SIGKILL',
-  });
+  const { stdout } = await execFileAsync(
+    bin,
+    ['-v', 'quiet', '-print_format', 'json', '-show_streams', '-show_format', realPath],
+    {
+      timeout: PROBE_TIMEOUT_MS,
+      killSignal: 'SIGKILL',
+    }
+  );
 
   return JSON.parse(stdout) as FFProbeData;
 }
 
+function numericDuration(value: string | undefined): number | null {
+  if (!value) return null;
+  const number = Number(value);
+
+  return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
+function elapsedDuration(timestamp: number | null, startTime: string | undefined): number | null {
+  if (timestamp === null) return null;
+  const start = Number(startTime ?? 0);
+  // These fallback values are end timestamps in WebM. A true stream.duration is already elapsed.
+  return Math.max(0, timestamp - (Number.isFinite(start) ? Math.max(0, start) : 0));
+}
+
 function parseDuration(stream: FFProbeStream | undefined): number | null {
-  if (!stream?.duration) {
-    return null;
-  }
+  const duration = numericDuration(stream?.duration);
 
-  const value = Number.parseFloat(stream.duration);
+  if (duration !== null) return duration;
+  // Matroska/WebM commonly stores per-stream duration as HH:MM:SS in tags instead.
+  const tag = stream?.tags?.DURATION ?? stream?.tags?.duration;
+  const match = tag?.match(/^(\d+):([0-5]\d):([0-5]\d(?:\.\d+)?)$/);
 
-  return Number.isNaN(value) ? null : value;
+  return match
+    ? elapsedDuration(Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]), stream?.start_time)
+    : null;
 }
 
 function parseSampleRate(stream: FFProbeStream | undefined): number | null {
@@ -150,6 +174,19 @@ function parseSampleRate(stream: FFProbeStream | undefined): number | null {
   const value = Number.parseInt(stream.sample_rate, 10);
 
   return Number.isNaN(value) ? null : value;
+}
+
+function durationFor(streams: FFProbeStream[], format: FFProbeData['format']): number | null {
+  const primary =
+    streams.find((stream) => stream.codec_type === 'video') ?? streams.find((stream) => stream.codec_type === 'audio');
+  // A longer audio/container duration cannot establish that video lasts ten seconds.
+  // Container fallback is safe for a single-stream file, including video-only WebM.
+  return (
+    parseDuration(primary) ??
+    (streams.length === 1
+      ? elapsedDuration(numericDuration(format?.duration), streams[0].start_time ?? format?.start_time)
+      : null)
+  );
 }
 
 export async function probeMedia(
@@ -163,7 +200,7 @@ export async function probeMedia(
   const audioStream = streams.find((s) => s.codec_type === 'audio');
 
   return {
-    durationSeconds: parseDuration(videoStream) ?? parseDuration(audioStream),
+    durationSeconds: durationFor(streams, data.format),
     videoCodec: videoStream?.codec_name ?? null,
     audioCodec: audioStream?.codec_name ?? null,
     sampleRate: parseSampleRate(audioStream),

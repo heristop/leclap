@@ -3,8 +3,18 @@ import type { PreparedTitle } from '../effects/title-registry.js';
 import type { McpConfig } from '../config.js';
 import type { EffectRenderResult } from 'ffmpeg-video-composer';
 import { renderTitleJobCached } from '../effects/effect-cache.js';
+import { ownEffectProcesses } from '../effects/effect-processes.js';
+const cleanupProcesses = ownEffectProcesses((ownedProcess) => {
+  if (process.connected) process.send?.({ ownedProcess }, () => {});
+});
+process.on('exit', cleanupProcesses);
+process.on('disconnect', () => {
+  cleanupProcesses();
+  process.exit(1);
+});
 const controller = new AbortController();
 process.on('SIGTERM', () => {
+  cleanupProcesses();
   controller.abort();
 });
 type Message = {
@@ -16,6 +26,7 @@ type Message = {
 };
 async function handleMessage(message: Message) {
   if (message.cancel) {
+    cleanupProcesses();
     controller.abort();
 
     return;

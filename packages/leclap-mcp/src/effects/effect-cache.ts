@@ -293,12 +293,11 @@ export async function renderTitleJobCached(job: TitleJob, request: TitleRender, 
   const key = keyFor(job, request);
   const hit = root ? await lookup(job, root, key, request) : undefined;
 
-  if (hit && root) {
-    await prune(root, maxBytes).catch(() => {});
-    job.signal?.throwIfAborted();
+  // Enforce operator budget changes even when this miss cannot be admitted or rendering fails.
+  if (root) await prune(root, maxBytes).catch(() => {});
+  job.signal?.throwIfAborted();
 
-    return response(hit, 'hit');
-  }
+  if (hit) return response(hit, 'hit');
   const result = await render(job, request);
   job.signal?.throwIfAborted();
   const written = root ? await optionalPublish(job, root, key, result, request) : false;

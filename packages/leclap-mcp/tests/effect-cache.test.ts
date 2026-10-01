@@ -281,3 +281,36 @@ it('rejects symlink artifacts even when the platform does not enforce O_NOFOLLOW
   expect(result.cache.hits).toBe(0);
   expect(render).toHaveBeenCalledTimes(2);
 });
+
+it.each([1, 6])(
+  'enforces a lowered positive budget on a miss even when admission bypasses (%i bytes)',
+  async (maxBytes) => {
+    const render = renderer();
+    await renderTitleJobCached(job, { kind: 'video' }, render);
+    const changed = {
+      ...job,
+      provenance: { ...job.provenance, hash: 'changed' },
+      config: { ...job.config, effectCacheMaxBytes: maxBytes },
+    };
+    const result = await renderTitleJobCached(changed, { kind: 'video' }, render);
+    expect(result.cache).toEqual({ hits: 0, misses: 1, writes: 0 });
+    expect(await fs.readFile(result.result.path, 'utf8')).toBe('pixels');
+    expect((await cacheEntries()).names).toEqual([]);
+    expect(render).toHaveBeenCalledTimes(2);
+  }
+);
+
+it('enforces a lowered positive budget even when rendering the miss fails', async () => {
+  await renderTitleJobCached(job, { kind: 'video' }, renderer());
+  const changed = {
+    ...job,
+    provenance: { ...job.provenance, hash: 'changed' },
+    config: { ...job.config, effectCacheMaxBytes: 1 },
+  };
+  await expect(
+    renderTitleJobCached(changed, { kind: 'video' }, async () => {
+      throw new Error('render failed');
+    })
+  ).rejects.toThrow('render failed');
+  expect((await cacheEntries()).names).toEqual([]);
+});

@@ -1,3 +1,4 @@
+import { terminateEffectProcess, type OwnedEffectProcess } from './effect-processes.js';
 import { acquireEffectJobPermit } from './effect-job-budget.js';
 import { fork } from 'node:child_process';
 import fs from 'node:fs/promises';
@@ -52,6 +53,50 @@ export async function runTitleEffect(
   }
 }
 
+function workerTermination(child: ReturnType<typeof fork>, ownedProcesses: Map<number, OwnedEffectProcess>) {
+  let hardKilled = false;
+
+  return (sig: NodeJS.Signals) => {
+    if (sig === 'SIGKILL' && hardKilled) return;
+
+    if (sig === 'SIGKILL') hardKilled = true;
+
+    for (const owned of ownedProcesses.values()) terminateEffectProcess(owned, sig);
+
+    if (process.platform === 'win32' && child.pid) {
+      terminateEffectProcess({ pid: child.pid, detached: false }, sig);
+      child.kill(sig);
+
+      return;
+    }
+
+    try {
+      if (process.platform !== 'win32' && child.pid) {
+        process.kill(-child.pid, sig);
+
+        return;
+      }
+      child.kill(sig);
+    } catch {
+      child.kill(sig);
+    }
+  };
+}
+
+function validOwnedProcess(
+  owned: OwnedEffectProcess | undefined,
+  workerPid: number | undefined
+): owned is OwnedEffectProcess {
+  return Boolean(
+    owned &&
+    Number.isSafeInteger(owned.pid) &&
+    owned.pid > 0 &&
+    owned.pid !== process.pid &&
+    owned.pid !== workerPid &&
+    typeof owned.detached === 'boolean'
+  );
+}
+
 function executeTitleWorker(
   title: PreparedTitle,
   config: McpConfig,
@@ -68,23 +113,8 @@ function executeTitleWorker(
     let failure: Error | undefined;
     let result: TitleWorkerResult | undefined;
     let killTimer: ReturnType<typeof setTimeout> | undefined;
-    let hardKilled = false;
-    function kill(sig: NodeJS.Signals) {
-      if (sig === 'SIGKILL' && hardKilled) return;
-
-      if (sig === 'SIGKILL') hardKilled = true;
-
-      try {
-        if (process.platform !== 'win32' && child.pid) {
-          process.kill(-child.pid, sig);
-
-          return;
-        }
-        child.kill(sig);
-      } catch {
-        child.kill(sig);
-      }
-    }
+    const ownedProcesses = new Map<number, OwnedEffectProcess>();
+    const kill = workerTermination(child, ownedProcesses);
     function stop(error: Error) {
       if (failure) return;
       failure = error;
@@ -104,12 +134,23 @@ function executeTitleWorker(
     signal?.addEventListener('abort', abort, { once: true });
     child.on('message', (message: unknown) => {
       const reply = message as {
+        ownedProcess?: OwnedEffectProcess;
         ok?: boolean;
         results?: EffectRenderResult[];
         provenance?: TitleJob['provenance'];
         cache?: EffectCacheSummary;
         error?: string;
       };
+
+      const owned = reply.ownedProcess;
+
+      if (validOwnedProcess(owned, child.pid)) {
+        ownedProcesses.set(owned.pid, owned);
+
+        if (failure) terminateEffectProcess(owned, 'SIGKILL');
+
+        return;
+      }
 
       if (reply.ok && reply.results && reply.provenance) {
         result = {
@@ -139,6 +180,8 @@ function executeTitleWorker(
     child.once('exit', (code) => {
       // The worker may exit on cancellation before Chromium children do.
       if (failure) kill('SIGKILL');
+
+      for (const owned of ownedProcesses.values()) terminateEffectProcess(owned, 'SIGKILL');
       clearTimeout(timer);
       clearTimeout(killTimer);
       signal?.removeEventListener('abort', abort);

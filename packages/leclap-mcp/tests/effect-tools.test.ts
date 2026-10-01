@@ -7,7 +7,7 @@ import { registerRenderPreview } from '../src/tools/renderPreview.js';
 import { registerGetEffectSchema } from '../src/tools/getEffectSchema.js';
 import { registerValidateTemplate } from '../src/tools/validateTemplate.js';
 import { templateRevision } from '../src/effects/template-revision.js';
-import { runRender } from '../src/compose/renderRunner.js';
+import { runRender, runGeometryCheck } from '../src/compose/renderRunner.js';
 import type * as ComposerModule from 'ffmpeg-video-composer';
 import { nodeGeometryWarnings } from 'ffmpeg-video-composer';
 import { runTitleEffect } from '../src/effects/effect-runner.js';
@@ -38,6 +38,7 @@ function capture(register: any) {
 }
 beforeEach(async () => {
   vi.clearAllMocks();
+  vi.mocked(runGeometryCheck).mockResolvedValue({ ok: true, geometry: { warnings: [], measured: 0 } });
   vi.mocked(nodeGeometryWarnings).mockResolvedValue([]);
   dir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-effect-tool-test-')));
   for (const file of ['background.mp4', 'logo.png', 'font.ttf', 'entry.tsx', 'clip.mp4', 'still.png']) {
@@ -231,9 +232,9 @@ it('compose cleans temporary effect files and retains provenance', async () => {
   expect(await fs.readdir(dir)).toEqual(['provenance.json']);
 });
 
-it('maps only top-level authored geometry indices after omitting effects', async () => {
+it('preserves authored geometry indices for effects and ordinary sections', async () => {
   vi.mocked(nodeGeometryWarnings).mockResolvedValue([
-    { path: 'sections[0].caption', message: 'top-level', approx: false },
+    { path: 'sections[1].caption', message: 'top-level', approx: false },
     { path: 'partials[0].sections[0].caption', message: 'partial', approx: false },
   ] as never);
   template.sections.push({ name: 'outro', type: 'color_background', options: { duration: 2 } });
@@ -250,4 +251,57 @@ it('discovers the promo schema while rejecting unknown registrations', async () 
   expect(promo.structuredContent.props.properties.cameraZoom.default).toBe(1.06);
   expect(promo.structuredContent.assets.required).toEqual(['screenshot', 'logo', 'font']);
   expect((await handler({ id: 'unknown' })).isError).toBe(true);
+});
+
+it.each([false, true])(
+  'statically checks effect compositing layers including partials (partial=%s)',
+  async (partial) => {
+    template.sections[0].filters = [
+      {
+        type: 'drawtext',
+        values: {
+          text: { en: 'OFF SCREEN' },
+          fontsize: 120,
+          x: 1400,
+          y: 800,
+        },
+      },
+    ];
+    const warningPath = partial ? 'partials[0].sections[0].filters[0]' : 'sections[0].filters[0]';
+    vi.mocked(nodeGeometryWarnings).mockImplementation(async (analysis) => {
+      const section = (partial ? analysis.partials?.[0].sections?.[0] : analysis.sections?.[0]) as
+        | { type?: string; filters?: unknown[] }
+        | undefined;
+      if (section?.type !== 'effect' || !section.filters?.length) return [];
+      return [{ path: warningPath, message: 'Text extends beyond frame', approx: false }] as never;
+    });
+    if (partial) {
+      template.partials = [{ id: 'promo', sections: template.sections }];
+      template.sections = [{ type: 'partial', ref: 'promo' }];
+    }
+    const before = structuredClone(template);
+    const result = await capture(registerValidateTemplate)({ template });
+    expect(result.structuredContent.geometry).toContain(`${warningPath}: Text extends beyond frame`);
+    expect(result.content[0].text).toContain(`${warningPath}: Text extends beyond frame`);
+    expect(result.content[0].text).toMatch(/Remotion.*not measured/);
+    expect(template).toEqual(before);
+    expect(runTitleEffect).not.toHaveBeenCalled();
+  }
+);
+
+it('retains rendered contrast refinement on ordinary sections alongside effects', async () => {
+  template.sections.push({
+    name: 'card',
+    type: 'color_background',
+    options: { duration: 2 },
+    caption: { text: { en: 'Read me' }, color: '#ffffff' },
+  });
+  vi.mocked(nodeGeometryWarnings).mockResolvedValue([
+    { path: 'sections[1].caption', message: 'stale static contrast warning', approx: false },
+  ] as never);
+  vi.mocked(runGeometryCheck).mockResolvedValue({ ok: true, geometry: { warnings: [], measured: 1 } });
+  const result = await capture(registerValidateTemplate)({ template, render: true });
+  expect(result.isError, JSON.stringify(result.content)).toBeUndefined();
+  expect(result.structuredContent.geometry).not.toContain('sections[1].caption: stale static contrast warning');
+  expect(result.structuredContent.render.measured).toBe(1);
 });

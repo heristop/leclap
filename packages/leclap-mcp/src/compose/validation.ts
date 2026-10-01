@@ -22,7 +22,7 @@ function summarizeErrors(errors: ValidationError[]): string {
 function objectRecord(value: unknown): Record<string, unknown> | undefined {
   return value !== null && typeof value === 'object' ? (value as Record<string, unknown>) : undefined;
 }
-function unsafeEffectValue(values: unknown[]): string | undefined {
+export function unsafeEffectValue(values: unknown[]): string | undefined {
   const pending = values.map((value) => ({ value, depth: 0 }));
   let visited = 0;
 
@@ -44,7 +44,7 @@ function unsafeEffectValue(values: unknown[]): string | undefined {
 
   return undefined;
 }
-function effectKeyError(raw: unknown): string | undefined {
+export function effectKeyError(raw: unknown): string | undefined {
   const template = objectRecord(raw);
 
   if (!template) return undefined;

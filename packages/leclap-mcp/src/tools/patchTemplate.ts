@@ -1,17 +1,31 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { validateTemplate } from '../compose/validation.js';
+import { validateTemplate, effectKeyError, unsafeEffectValue } from '../compose/validation.js';
 import { templateRevision } from '../effects/template-revision.js';
+
+// The SDK parses this schema before invoking the handler. Run the bounded raw-key
+// gate before JSON records can remove __proto__, retaining object discovery metadata.
+function guardedJsonObject(check: (raw: unknown) => string | undefined) {
+  return z
+    .unknown()
+    .superRefine((raw, context) => {
+      const message = check(raw);
+
+      if (message) context.addIssue({ code: 'custom', message });
+    })
+    .meta({ type: 'object' })
+    .pipe(z.record(z.string(), z.json()));
+}
 
 const editSchema = z
   .object({
     section: z.string().min(1),
-    props: z.record(z.string(), z.json()),
+    props: guardedJsonObject((raw) => unsafeEffectValue([raw])),
   })
   .strict();
 const inputSchema = z
   .object({
-    template: z.record(z.string(), z.json()),
+    template: guardedJsonObject(effectKeyError),
     expectedRevision: z.string(),
     edits: z.array(editSchema).min(1),
   })

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { templateRevision } from '../src/effects/template-revision.js';
-import { patchTemplate } from '../src/tools/patchTemplate.js';
+import { Client } from '@modelcontextprotocol/client';
+import { McpServer, InMemoryTransport } from '@modelcontextprotocol/server';
+import { patchTemplate, registerPatchTemplate } from '../src/tools/patchTemplate.js';
 
 const template = {
   sections: [
@@ -125,4 +127,71 @@ it('rejects unknown registered title props before returning a patched document',
   });
   expect(result.isError).toBe(true);
   expect(template).toEqual(before);
+});
+
+const customTemplate = {
+  sections: [
+    {
+      name: 'product',
+      type: 'effect',
+      options: { duration: 10 },
+      effect: { id: 'studio.product-reveal', version: '1.0.0', props: { headline: 'Product' }, assets: {} },
+    },
+  ],
+};
+function unsafePatch(location: string) {
+  const authored = structuredClone(customTemplate);
+  let props: unknown = { headline: 'Updated' };
+  if (location === 'edit') props = JSON.parse('{"__proto__":{},"headline":"Updated"}');
+  if (location === 'nested edit') props = { control: [JSON.parse('{"__proto__":{}}')] };
+  if (location === 'template props') {
+    authored.sections[0].effect.props = JSON.parse('{"__proto__":{},"headline":"Product"}');
+  }
+  if (location === 'template assets') authored.sections[0].effect.assets = JSON.parse('{"__proto__":{}}');
+  return { template: authored, expectedRevision: templateRevision(authored), edits: [{ section: 'product', props }] };
+}
+it.each(['edit', 'nested edit', 'template props', 'template assets'])(
+  'rejects reserved raw keys in pure patch %s',
+  (location) => {
+    const input = unsafePatch(location);
+    const before = JSON.stringify(input);
+    expect(() => patchTemplate(input)).toThrow(/effect_key_unsafe/);
+    expect(JSON.stringify(input)).toBe(before);
+  }
+);
+it('rejects raw reserved keys through actual SDK input validation while preserving object discovery and valid JSON patches', async () => {
+  const server = new McpServer({ name: 'patch-test', version: '1.0.0' });
+  registerPatchTemplate(server);
+  const client = new Client({ name: 'patch-test-client', version: '1.0.0' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  await Promise.all([client.connect(clientTransport), server.connect(serverTransport)]);
+  try {
+    const listed = await client.listTools();
+    const schema = listed.tools.find((tool) => tool.name === 'patch_template')?.inputSchema;
+    expect(schema?.properties?.template).toMatchObject({ type: 'object' });
+    expect(schema?.properties?.edits).toMatchObject({
+      type: 'array',
+      items: { properties: { props: { type: 'object' } } },
+    });
+    for (const location of ['edit', 'nested edit', 'template props', 'template assets']) {
+      const result = await client.callTool({ name: 'patch_template', arguments: unsafePatch(location) });
+      expect(result.isError).toBe(true);
+      expect(JSON.stringify(result.content)).toContain('effect_key_unsafe');
+    }
+    const authored = { ...customTemplate, metadata: { arbitrary: { constructor: 'preserve ordinary metadata' } } };
+    const result = await client.callTool({
+      name: 'patch_template',
+      arguments: {
+        template: authored,
+        expectedRevision: templateRevision(authored),
+        edits: [{ section: 'product', props: { headline: 'Updated' } }],
+      },
+    });
+    expect(result.isError).toBeUndefined();
+    expect(result.structuredContent).toMatchObject({
+      template: { metadata: authored.metadata, sections: [{ effect: { props: { headline: 'Updated' } } }] },
+    });
+  } finally {
+    await Promise.all([client.close(), server.close()]);
+  }
 });

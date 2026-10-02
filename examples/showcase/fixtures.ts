@@ -16,3 +16,9 @@ export function fieldsFor(template: PreviewForm, defaults: Record<string, string
 
   return fields;
 }
+
+export function videoFor(orientation: string | undefined, index: number): string {
+  if (orientation === 'portrait') return 'video_portrait.mp4';
+
+  return index % 2 ? 'video_2.mp4' : 'video_1.mp4';
+}

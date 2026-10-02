@@ -4,6 +4,8 @@ The web app’s public `/showcase` page brings together every shared app templat
 
 The showcase uses the same FilmPlayer and sound/volume controls as the home page. Sound starts muted and can be enabled; narration captions appear only when the film supplies a caption track. Only one film plays at a time. Playback starts on request and pauses when the player leaves the viewport or the tab is hidden. Posters load lazily; previews are 960×540 H.264 at 24 fps with AAC sound when the source has audio, with portrait and square compositions letterboxed. They illustrate the effect with bundled media, synthetic fixtures or the recorded LeClap canvas demo; they are not footage uploaded by a user.
 
+Portrait templates use the bundled portrait source (`video_portrait.mp4`) for every uploaded-video scene, including Story Reel, Product Launch and Present Yourself (Portrait); the renderer selects source footage by template orientation before composition.
+
 The Web App Promo preview uses the [recorded LeClap canvas fixture](./media/README.md), replacing the schematic app placeholder. Its typography and perspective are authored in the shared template JSON.
 
 ## Rebuild previews

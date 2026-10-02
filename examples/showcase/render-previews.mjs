@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { fieldsFor } from './fixtures.ts';
+import { fieldsFor, videoFor } from './fixtures.ts';
 import { previewVideoArgs } from './preview-export.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -234,7 +234,7 @@ async function nativeInputs(sample, template) {
       'web-app-promo': path.join(root, 'examples/showcase/media/leclap-canvas.mp4'),
       'app-tutorial': appCapture,
     }[sample.id];
-    clips[section.name] = capture ?? path.join(library, 'videos', index++ % 2 ? 'video_2.mp4' : 'video_1.mp4');
+    clips[section.name] = capture ?? path.join(library, 'videos', videoFor(expanded.global.orientation, index++));
   }
 
   return { template, assetRoot: library, clips, sampleFields };
@@ -289,6 +289,10 @@ async function renderSample(sample) {
     ]);
   }
   await fs.writeFile(path.join(publicDir, `${sample.id}.json`), `${JSON.stringify(original, null, 2)}\n`);
+  const portraitSource =
+    original.global.orientation === 'portrait'
+      ? 'packages/leclap-creative-kit/src/library/videos/video_portrait.mp4'
+      : undefined;
   const record = {
     id: sample.id,
     source: sample.source,
@@ -301,7 +305,7 @@ async function renderSample(sample) {
       .update(await fs.readFile(video))
       .digest('hex'),
     templateSha256: createHash('sha256').update(JSON.stringify(original)).digest('hex'),
-    mediaSource: sample.id === 'web-app-promo' ? 'examples/showcase/media/leclap-canvas.mp4' : undefined,
+    mediaSource: sample.id === 'web-app-promo' ? 'examples/showcase/media/leclap-canvas.mp4' : portraitSource,
     media:
       sample.category === 'evidence'
         ? 'Synthetic demo-shop captures and house cards'

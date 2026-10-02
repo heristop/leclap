@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fieldsFor } from '../../../../../../examples/showcase/fixtures.ts';
+import { fieldsFor, videoFor } from '../../../../../../examples/showcase/fixtures.ts';
 import { SHOWCASE_SAMPLES, filterSamples, selectedSample, validCategory } from './catalog';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../..');
@@ -44,6 +44,22 @@ describe('showcase catalog', () => {
     );
     expect(fields).toEqual({ app: 'LeClap', headline: 'A lo' });
     expect(defaults).toEqual({ app: 'LeClap' });
+  });
+
+  it('uses portrait source footage for every scene of portrait templates', () => {
+    const templates = ['story-reel', 'product-launch', 'present-yourself-portrait'];
+    for (const id of templates) {
+      const template = JSON.parse(
+        readFileSync(path.join(root, `packages/leclap-creative-kit/src/templates/${id}.json`), 'utf8')
+      );
+      expect(template.global.orientation).toBe('portrait');
+      for (const index of [0, 1, 2]) {
+        expect(videoFor(template.global.orientation, index)).toBe('video_portrait.mp4');
+      }
+    }
+    expect(videoFor('landscape', 0)).toBe('video_1.mp4');
+    expect(videoFor('landscape', 1)).toBe('video_2.mp4');
+    expect(videoFor(undefined, 0)).toBe('video_1.mp4');
   });
 
   it('preserves the authored soundtrack on the default film and app promo', () => {

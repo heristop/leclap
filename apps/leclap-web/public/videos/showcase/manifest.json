@@ -59,11 +59,11 @@
       "hasAudio": true,
       "orientation": "portrait",
       "backend": "native",
-      "sha256": "4ff475c80837831096240169547b07636a86c2b3146c805ec2e5aad3d593e4fb",
+      "sha256": "faa1de7a959c321f000d338f5c7be0a2ea7e525f6fae0c540285c0dd5777acd9",
       "templateSha256": "cfc9b4e088b18b9e774cb60c7bb545a41f2ec7e9d9a6cd40daacbe0b21368f24",
-      "mediaSource": "packages/leclap-creative-kit/src/library/videos/video_portrait.mp4",
+      "mediaSource": "examples/showcase/media/moo-mug.mp4",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 354026
+      "bytes": 206859
     },
     {
       "id": "app-tutorial",

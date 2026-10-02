@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { fieldsFor, videoFor } from './fixtures.ts';
+import { bundledVideoFor, fieldsFor, videoFor } from './fixtures.ts';
 import { previewVideoArgs } from './preview-export.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -226,14 +226,17 @@ async function nativeInputs(sample, template) {
 
   if (sample.category === 'evidence') return evidenceInputs(sample, template);
   const expanded = validatedDescriptor(template, sample.id);
-  const sampleFields = fieldsFor(expanded, fields);
+  const sampleFields = fieldsFor(
+    expanded,
+    sample.id === 'product-launch'
+      ? { ...fields, form_1_name: 'Moo Mug', form_1_tagline: 'Made for coffee breaks' }
+      : fields
+  );
+  const bundled = bundledVideoFor(sample.id);
+  const capture = bundled ? path.join(root, bundled) : { 'app-tutorial': appCapture }[sample.id];
   let index = 0;
 
   for (const section of expanded.sections.filter((section) => section.type === 'project_video')) {
-    const capture = {
-      'web-app-promo': path.join(root, 'examples/showcase/media/leclap-canvas.mp4'),
-      'app-tutorial': appCapture,
-    }[sample.id];
     clips[section.name] = capture ?? path.join(library, 'videos', videoFor(expanded.global.orientation, index++));
   }
 
@@ -276,7 +279,7 @@ async function renderSample(sample) {
   ffmpeg(previewVideoArgs(output, video));
   const metadata = probe(video);
   const duration = Number(metadata.format.duration);
-  const posterTime = Math.min(1.4, duration / 3);
+  const posterTime = Math.min(sample.id === 'product-launch' ? 3.4 : 1.4, duration / 3);
   const poster = path.join(publicDir, `${sample.id}.webp`);
   ffmpeg(['-ss', String(posterTime), '-i', video, '-frames:v', '1', '-vf', 'scale=720:405', '-quality', '85', poster]);
   // Optional local provenance tool; the portable manifest below always records the render source.
@@ -305,7 +308,7 @@ async function renderSample(sample) {
       .update(await fs.readFile(video))
       .digest('hex'),
     templateSha256: createHash('sha256').update(JSON.stringify(original)).digest('hex'),
-    mediaSource: sample.id === 'web-app-promo' ? 'examples/showcase/media/leclap-canvas.mp4' : portraitSource,
+    mediaSource: bundledVideoFor(sample.id) ?? portraitSource,
     media:
       sample.category === 'evidence'
         ? 'Synthetic demo-shop captures and house cards'

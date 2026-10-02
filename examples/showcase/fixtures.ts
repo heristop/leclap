@@ -22,3 +22,12 @@ export function videoFor(orientation: string | undefined, index: number): string
 
   return index % 2 ? 'video_2.mp4' : 'video_1.mp4';
 }
+
+const SAMPLE_VIDEOS: Record<string, string> = {
+  'product-launch': 'examples/showcase/media/moo-mug.mp4',
+  'web-app-promo': 'examples/showcase/media/leclap-canvas.mp4',
+};
+
+export function bundledVideoFor(sampleId: string): string | undefined {
+  return SAMPLE_VIDEOS[sampleId];
+}

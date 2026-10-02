@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fieldsFor, videoFor } from '../../../../../../examples/showcase/fixtures.ts';
+import { bundledVideoFor, fieldsFor, videoFor } from '../../../../../../examples/showcase/fixtures.ts';
 import { SHOWCASE_SAMPLES, filterSamples, selectedSample, validCategory } from './catalog';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../..');
@@ -60,6 +60,18 @@ describe('showcase catalog', () => {
     expect(videoFor('landscape', 0)).toBe('video_1.mp4');
     expect(videoFor('landscape', 1)).toBe('video_2.mp4');
     expect(videoFor(undefined, 0)).toBe('video_1.mp4');
+  });
+
+  it('uses the cow cup fixture for the Product Launch showcase', () => {
+    expect(bundledVideoFor('product-launch')).toBe('examples/showcase/media/moo-mug.mp4');
+    const manifest = JSON.parse(
+      readFileSync(path.join(root, 'apps/leclap-web/public/videos/showcase/manifest.json'), 'utf8')
+    );
+    const product = manifest.samples.find((sample: { id: string }) => sample.id === 'product-launch');
+    expect(product.mediaSource).toBe(bundledVideoFor('product-launch'));
+    expect(existsSync(path.join(root, product.mediaSource))).toBe(true);
+    expect(bundledVideoFor('story-reel')).toBeUndefined();
+    expect(bundledVideoFor('web-app-promo')).toBe('examples/showcase/media/leclap-canvas.mp4');
   });
 
   it('preserves the authored soundtrack on the default film and app promo', () => {

@@ -46,6 +46,10 @@ The full, schema-driven descriptor reference — generated from the engine's own
 - **Instead of a generative video model** when the same input must produce the same output on every run of a given platform.
 - **Not** a replacement for generative video: LeClap composes footage you already have, it does not synthesize new footage.
 
+## Sample discovery
+
+Start with `list_samples` to discover packaged showcase templates, then `get_sample` for the descriptor, creative direction, input requirements and backend setup. The CLI also provides `leclap samples list`, `show` and `export`. Media and preview videos are not bundled in the sample catalog.
+
 ## Use it from an AI agent
 
 Add the MCP server to any MCP-capable client:
@@ -54,7 +58,7 @@ Add the MCP server to any MCP-capable client:
 { "mcpServers": { "leclap": { "command": "npx", "args": ["-y", "@leclap/mcp"] } } }
 ```
 
-Tools: `get_template_schema`, `get_effect_schema`, `validate_template`, `render_preview`, `patch_template`, `compose_video`, `probe_media`. No LLM sits in the output path — the agent authors a JSON template and the engine renders it deterministically.
+Tools: `list_samples`, `get_sample`, `get_template_schema`, `get_effect_schema`, `validate_template`, `render_preview`, `patch_template`, `compose_video`, `probe_media`. No LLM sits in the output path — the agent authors a JSON template and the engine renders it deterministically.
 
 Registered JSON effects can use trusted, operator-configured Remotion components on Node.js. Inspect the effect schema, preview selected frames, and patch props with a revision guard before composing. Remotion rendering requires operator opt-in; JSON cannot select executable source. Generated effects become video clips before the cross-platform FFmpeg engine runs.
 

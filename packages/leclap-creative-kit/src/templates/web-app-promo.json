@@ -329,17 +329,8 @@
       "name": "outro",
       "type": "color_background",
       "options": {
-        "backgroundColor": "#91a7ff",
-        "duration": 2,
-        "layers": [
-          {
-            "color": "#10141e",
-            "x": 0,
-            "y": 610,
-            "w": "iw",
-            "h": 110
-          }
-        ]
+        "backgroundColor": "#10141e",
+        "duration": 2.3
       },
       "filters": [
         {
@@ -349,17 +340,17 @@
               "en": "{{ form_1_cta }}"
             },
             "fontfile": "BebasNeue.ttf",
-            "fontsize": 80,
-            "fontcolor": "#10141e",
+            "fontsize": 84,
+            "fontcolor": "#ffffff",
             "x": 64,
-            "y": 230
+            "y": 152
           },
           "reveal": {
-            "type": "slide-right",
-            "delay": 0.04,
-            "duration": 0.28,
-            "easing": "ease-out",
-            "distance": 60
+            "type": "rise",
+            "delay": 0.02,
+            "duration": 0.32,
+            "distance": 36,
+            "easing": "ease-out"
           }
         },
         {
@@ -369,17 +360,16 @@
               "en": "{{ form_1_promise }}"
             },
             "fontfile": "Oswald.ttf",
-            "fontsize": 32,
-            "fontcolor": "#10141e",
+            "fontsize": 34,
+            "fontcolor": "#91a7ff",
             "x": 64,
-            "y": 355
+            "y": 280
           },
           "reveal": {
-            "type": "rise",
-            "delay": 0.11,
-            "duration": 0.24,
-            "easing": "ease-out",
-            "distance": 22
+            "type": "fade",
+            "delay": 0.14,
+            "duration": 0.22,
+            "easing": "ease-out"
           }
         },
         {
@@ -390,14 +380,35 @@
             },
             "fontfile": "Oswald.ttf",
             "fontsize": 30,
-            "fontcolor": "#ffffff",
+            "fontcolor": "#FF8AAE",
             "x": 64,
-            "y": 650
+            "y": 64
           },
           "reveal": {
-            "type": "fade",
-            "delay": 0.18,
+            "type": "rise",
+            "delay": 0,
             "duration": 0.2,
+            "distance": 12,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "\u25b6"
+            },
+            "fontfile": "Anton.ttf",
+            "fontsize": 380,
+            "fontcolor": "#91a7ff",
+            "x": 930,
+            "y": 260
+          },
+          "reveal": {
+            "type": "slide-left",
+            "delay": 0.04,
+            "duration": 0.42,
+            "distance": 120,
             "easing": "ease-out"
           }
         }

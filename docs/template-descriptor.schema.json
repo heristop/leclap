@@ -918,7 +918,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -1241,7 +1241,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -1555,7 +1555,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -3041,7 +3041,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -3364,7 +3364,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -3678,7 +3678,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -5207,7 +5207,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -5530,7 +5530,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -5844,7 +5844,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -7357,7 +7357,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -7680,7 +7680,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -7994,7 +7994,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -9480,7 +9480,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -9803,7 +9803,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -10117,7 +10117,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -12071,7 +12071,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -12394,7 +12394,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -12708,7 +12708,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -14194,7 +14194,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -14517,7 +14517,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -14831,7 +14831,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"
@@ -16317,7 +16317,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -16640,7 +16640,7 @@
                             "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                           },
                           "value": {
-                            "description": "Single scalar parameter for simple filters that accept one value.",
+                            "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                             "anyOf": [
                               {
                                 "type": "string"
@@ -16954,7 +16954,7 @@
                       "description": "Raw FFmpeg filter name passed through verbatim (e.g. drawtext, drawbox, fade); determines which filter is applied."
                     },
                     "value": {
-                      "description": "Single scalar parameter for simple filters that accept one value.",
+                      "description": "Single scalar parameter for simple filters. For scale, the LeClap shorthand output preserves aspect and pads the completed scene to videoConfig.scale.",
                       "anyOf": [
                         {
                           "type": "string"

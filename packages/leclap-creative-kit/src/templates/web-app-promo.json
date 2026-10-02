@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Web App Promo",
-    "description": "A landscape interface showcase with a split composition, fast staggered promise, screen capture with a readable feature caption and a wide call-to-action."
+    "description": "A landscape app launch with directional typography, a floating perspective screen recording and a clear final call to action."
   },
   "global": {
     "orientation": "landscape",
@@ -207,34 +207,123 @@
         "en": "Show your app"
       },
       "description": {
-        "en": "Upload a landscape screen recording or film a walkthrough. Keep the feature you want to show above the caption band."
+        "en": "Upload a landscape screen recording. The full capture sits in a floating window with a gentle perspective sweep; the feature caption stays outside the screen."
       },
       "options": {
         "duration": 6,
-        "forceAspectRatio": true,
+        "forceAspectRatio": false,
         "countdown": true,
         "countdownDuration": 2,
-        "forceOriginalAspectRatio": true
+        "forceOriginalAspectRatio": false,
+        "captureMode": "screen",
+        "allowedCaptureModes": ["screen", "upload"]
       },
-      "caption": {
-        "text": {
-          "en": "{{ form_1_feature }}"
+      "filters": [
+        {
+          "type": "fps",
+          "value": "30"
         },
-        "style": "bar",
-        "position": "bottom",
-        "align": "left",
-        "font": "oswald",
-        "fontsize": 30,
-        "boxColor": "#10141e",
-        "boxOpacity": 0.94,
-        "reveal": {
-          "type": "slide-right",
-          "delay": 0.12,
-          "duration": 0.24,
-          "easing": "ease-out",
-          "distance": 32
+        {
+          "type": "setsar",
+          "value": "1"
+        },
+        {
+          "type": "scale",
+          "value": "1088:500:force_original_aspect_ratio=decrease:force_divisible_by=2"
+        },
+        {
+          "type": "pad",
+          "value": "1088:500:(ow-iw)/2:(oh-ih)/2:color=0x171d2b"
+        },
+        {
+          "type": "pad",
+          "value": "1092:504:2:2:color=0x687aaf"
+        },
+        {
+          "type": "pad",
+          "value": "1092:538:0:34:color=0x242e44"
+        },
+        {
+          "type": "pad",
+          "value": "1110:556:0:0:color=0x080b12"
+        },
+        {
+          "type": "pad",
+          "value": "1280:720:(ow-iw)/2:(oh-ih)/2:color=0x10141e"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 103,
+            "y": 99,
+            "w": 6,
+            "h": 6,
+            "color": "#91a7ff",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 117,
+            "y": 99,
+            "w": 6,
+            "h": 6,
+            "color": "#687aaf",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 131,
+            "y": 99,
+            "w": 6,
+            "h": 6,
+            "color": "#687aaf",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "perspective",
+          "value": "x0='W*0.025':y0='H*(0.018+0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':x1='W*0.975':y1='H*(0.018-0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':x2='0':y2='H*(0.982-0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':x3='W':y3='H*(0.982+0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':sense=destination:eval=frame:interpolation=linear"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 648,
+            "w": "iw",
+            "h": 72,
+            "color": "#10141e",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_feature }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#ffffff",
+            "x": "(w-text_w)*0.055",
+            "y": "(h-text_h)*0.955"
+          },
+          "reveal": {
+            "type": "slide-right",
+            "delay": 0.12,
+            "duration": 0.24,
+            "easing": "ease-out",
+            "distance": 32
+          }
+        },
+        {
+          "type": "scale",
+          "value": "output"
         }
-      }
+      ]
     },
     {
       "name": "outro",

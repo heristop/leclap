@@ -55,13 +55,13 @@ The registered output remains an opaque 1280×720, 30fps, 10-second scene. It is
 
 ## Template choreography
 
-| Template       | Motion personality                                                  | Review priority                                                    |
-| -------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| App Tutorial   | Quiet numbered cues, short lifts, stable screen walkthrough         | Preserve UI pixels and readable captions                           |
-| Square Promo   | Opposing editorial arrivals and restrained fixed-word overshoot     | Settle rapidly, then hold the final statement                      |
-| Product Launch | Centered vertical reveal and offer-first finish                     | Keep the optical axis stable and avoid decorative lateral movement |
-| Web App Promo  | Directional headline, quiet feature lift, split-column cue          | Direct attention toward the app without zooming its text           |
-| Story Reel     | Alternating caption anchors, brief chapter cues, held final chapter | Maintain continuity through cuts and keep faces clear              |
+| Template       | Motion personality                                                  | Review priority                                                              |
+| -------------- | ------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| App Tutorial   | Quiet numbered cues, short lifts, stable screen walkthrough         | Preserve UI pixels and readable captions                                     |
+| Square Promo   | Opposing editorial arrivals and restrained fixed-word overshoot     | Settle rapidly, then hold the final statement                                |
+| Product Launch | Centered vertical reveal and offer-first finish                     | Keep the optical axis stable and avoid decorative lateral movement           |
+| Web App Promo  | Directional headline, floating perspective capture, held final CTA  | Preserve the full capture and keep its caption outside the perspective plane |
+| Story Reel     | Alternating caption anchors, brief chapter cues, held final chapter | Maintain continuity through cuts and keep faces clear                        |
 
 Review entrance frames at 15fps or denser, a settled hold, the last 0.3 seconds before a cut, and the final frame. Validate maximum form-copy lengths with the actual bundled fonts. Contact sheets prove composition and timing states; playback or dense sequences are needed to assess motion feel. Audio level measurements do not replace listening.
 
@@ -73,3 +73,13 @@ Review entrance frames at 15fps or denser, a settled hold, the last 0.3 seconds 
 - A bounded multi-video Remotion montage registered through the current trusted catalog, with decoding/memory measurements and source timing checks.
 
 Keep native motion small and portable; use Remotion where its layout and typography capabilities avoid rebuilding a browser compositor.
+
+## Floating screen capture
+
+The shared [Web App Promo template](../../packages/leclap-creative-kit/src/templates/web-app-promo.json) now frames the uploaded recording as a floating screen. Native JSON filters contain the full input, add a thin border/window header and a hard depth edge, and animate a shallow perspective sweep over six seconds. The real cursor and UI animations stay in the recorded footage; no simulated clicks or highlights are added. The recording is conformed to 30fps before perspective so a 25fps source retains its six-second timing.
+
+The `perspective` filter uses destination corner expressions, evaluated per frame. Its `0.055` vertical corner travel and `0.025` top inset are the advanced JSON controls for this recipe. The feature caption is drawn afterwards on a level band. A final `scale` with `value: "output"` conforms the completed layout to the actual export dimensions without stretching; the authored composition is landscape, with letterboxing if exported in another orientation. The recording step defaults to screen capture and also allows upload.
+
+The template works with desktop FFmpeg and the app's pinned WASM core. FFmpeg's perspective filter is GPL; the existing mobile LGPL compatibility path drops that filter with a warning and retains the flat framed recording and caption. This recipe is a perspective projection of a recorded plane, not a mesh/lighting engine. No Three.js dependency or intermediate video is needed.
+
+The shared editor now retains advanced video filter stages around editable text. Opening, editing and saving the sample keeps its framing, projection and output conformance. Retained filters can be edited through the JSON view; the lightweight live canvas does not simulate the projection, so use a rendered preview to judge the result.

@@ -3,7 +3,7 @@
 import type { TemplateDescriptor, Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import type { EditorSection, EditorState, FormField, AudioMix, MediaChoice } from './model';
 import { pruneEmpty } from './prune';
-import { overlayFiltersFrom } from './overlay-filters';
+import { overlayFiltersFrom, videoFiltersFrom } from './overlay-filters';
 import {
   DEFAULT_LOCALE,
   globalAnimationFrom,
@@ -76,7 +76,7 @@ type VideoSection = Extract<EditorSection, { kind: 'video' }>;
 // VideoSegment path — emitted as `type: 'video'` + `options.videoUrl`. Recorder-only metadata
 // (countdown, capture modes, framing guide, filming instructions) is dropped: nothing is filmed.
 function clipDescriptorFrom(section: VideoSection, videoUrl: MediaChoice, index: number): Section {
-  const filters = overlayFiltersFrom(section.overlays);
+  const filters = videoFiltersFrom(section.overlays, section.filterStages);
   const overlayInputs = overlayInputsFrom(section);
 
   return {
@@ -100,7 +100,7 @@ function clipDescriptorFrom(section: VideoSection, videoUrl: MediaChoice, index:
 function videoDescriptorFrom(section: VideoSection, index: number): Section {
   if (section.videoUrl) return clipDescriptorFrom(section, section.videoUrl, index);
 
-  const filters = overlayFiltersFrom(section.overlays);
+  const filters = videoFiltersFrom(section.overlays, section.filterStages);
   const description = section.description?.trim();
   const overlayInputs = overlayInputsFrom(section);
 

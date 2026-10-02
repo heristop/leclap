@@ -1,6 +1,7 @@
 // Pure: text overlays -> drawtext filters for the descriptor. Shared by the video/color/image
 // section builders.
 import type { Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { VideoFilterStage } from './video-filter-types';
 import { findFont } from '../fonts';
 import { resolveAccentBar, type AccentBar } from './accent-bar';
 import type { TextEffect, TextOverlay } from './model';
@@ -182,4 +183,31 @@ export function overlayFiltersFrom(overlays: TextOverlay[] | undefined): StoredF
 
     return [drawtextFilterFrom(o), ...accentBarFilters(o)];
   });
+}
+
+// Reinsert advanced native filters at their retained text slots. If the author deletes text,
+// stages keep their boundary at the next surviving import slot (or the end).
+export function videoFiltersFrom(overlays: TextOverlay[], stages: VideoFilterStage[] | undefined): StoredFilter[] {
+  const filters: StoredFilter[] = [];
+
+  for (let index = 0; index <= overlays.length; index++) {
+    for (const stage of stages ?? []) {
+      const anchor = overlays.findIndex(
+        (overlay) => overlay.filterSlot !== undefined && overlay.filterSlot >= stage.beforeOverlay
+      );
+      let position = overlays.length;
+
+      if (anchor >= 0) position = anchor;
+
+      if (stage.beforeOverlay === 0) position = 0;
+
+      if (position === index) {
+        filters.push(...(JSON.parse(JSON.stringify(stage.filters)) as StoredFilter[]));
+      }
+    }
+
+    if (index < overlays.length) filters.push(...overlayFiltersFrom([overlays[index]]));
+  }
+
+  return filters;
 }

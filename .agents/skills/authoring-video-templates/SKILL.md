@@ -20,7 +20,7 @@ Sources of truth (in order of authority):
 ## Two layers: structured sugar vs. raw filters
 
 - **Structured sugar** (prefer this): `transition`, `look`, `grade`, `motion`, `audio`, `layers`, animation `inputs`, and text sugar (`caption`, `titleCard`, `lowerThird`, `reveal`, `global.overlays`/`look`/`grade`). Editor-friendly camelCase intents that compile to ordinary, on-device-safe FFmpeg filters.
-- **Raw filters** (escape hatch): `filters[]`, `inputs[].filters`, `maps[]` — passed to FFmpeg verbatim. Their `values` keys stay FFmpeg-native (`x/y/w/h/c/t/fontcolor/fontsize/fontfile/alpha/d/st/color/box/boxcolor/boxborderw`), **not** camelCase, by design.
+- **Raw filters** (escape hatch): `filters[]`, `inputs[].filters`, `maps[]` — passed to FFmpeg verbatim. A final `{ "type": "scale", "value": "output" }` conforms a custom frame to the actual project dimensions with aspect-preserving scale/pad and square pixels. Other arguments stay raw. Their `values` keys stay FFmpeg-native (`x/y/w/h/c/t/fontcolor/fontsize/fontfile/alpha/d/st/color/box/boxcolor/boxborderw`), **not** camelCase, by design.
 
 ## Structure
 

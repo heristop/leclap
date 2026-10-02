@@ -1,8 +1,9 @@
 // Reverse the drawtext encoding buildDescriptor emits: recover a TextOverlay (position fractions,
 // box color/opacity) from a stored section's drawtext filter values.
 import type { Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { VideoFilterStage } from './video-filter-types';
 import { ACCENT_BAR_DEFAULTS, type AccentBar } from './accent-bar';
-import { fontIdFromFile, type TextEffect, type TextOverlay } from './model';
+import { fontIdFromFile, type TextEffect, type TextOverlay, type EditorSection } from './model';
 import { DEFAULT_BOX_PADDING } from './overlay-filters';
 
 type StoredFilter = NonNullable<Section['filters']>[number];
@@ -263,4 +264,52 @@ export function overlaysFromFilters(filters: Section['filters']): TextOverlay[] 
 
     return [{ ...base, ...(accent === undefined ? {} : { accent }) }];
   });
+}
+
+// Keep native video processing in its original order relative to editable text. Kit accent bars
+// remain part of their text overlay, so they are not also retained as raw filters.
+export function filterStagesFromFilters(filters: Section['filters']): VideoFilterStage[] {
+  const list = filters ?? [];
+  const stages: VideoFilterStage[] = [];
+  let beforeOverlay = 0;
+
+  for (const [index, filter] of list.entries()) {
+    if (filter.type === 'drawtext') {
+      beforeOverlay++;
+      continue;
+    }
+    const previous: StoredFilter | undefined = list.at(index - 1);
+
+    if (
+      index > 0 &&
+      previous?.type === 'drawtext' &&
+      accentFrom(filter, Number(previous.values?.fontsize ?? 48)) !== undefined
+    ) {
+      continue;
+    }
+
+    let stage = stages.at(-1);
+
+    if (!stage || stage.beforeOverlay !== beforeOverlay) {
+      stage = { beforeOverlay, filters: [] };
+      stages.push(stage);
+    }
+    // Filter descriptors are plain JSON; this also works on native runtimes without structuredClone.
+    stage.filters.push(JSON.parse(JSON.stringify(filter)) as StoredFilter);
+  }
+
+  return stages;
+}
+
+export function videoFilterStateFrom(
+  filters: Section['filters']
+): Pick<Extract<EditorSection, { kind: 'video' }>, 'overlays' | 'filterStages'> {
+  const filterStages = filterStagesFromFilters(filters);
+
+  return {
+    overlays: overlaysFromFilters(filters).map((overlay, filterSlot) =>
+      filterStages.length > 0 ? { ...overlay, filterSlot } : overlay
+    ),
+    ...(filterStages.length > 0 ? { filterStages } : {}),
+  };
 }

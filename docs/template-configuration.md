@@ -595,6 +595,8 @@ Each entry takes the same placement/playback options as a section animation inpu
 
 `filters[]` is the **raw FFmpeg escape hatch** — each entry is passed through verbatim:
 
+For a hand-framed scene, a final `{ "type": "scale", "value": "output" }` is a LeClap shorthand: aspect-preserving scale and pad to the project's actual `videoConfig.scale`, then square pixels (`setsar=1`). It prevents a fixed-size custom frame from breaking concatenation when output orientation or resolution changes. Padding is black. Other `scale` values remain raw FFmpeg arguments.
+
 | Field    | Type               | Description                                                                                           |
 | -------- | ------------------ | ----------------------------------------------------------------------------------------------------- |
 | `type`   | `string`           | Raw FFmpeg filter name (`drawtext`, `drawbox`, `fade`, `vignette`, `boxblur`, `overlay`, `scale`, …). |

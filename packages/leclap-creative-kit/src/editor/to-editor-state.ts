@@ -27,7 +27,7 @@ import {
   type SectionFit,
   type AudioEffect,
 } from './model';
-import { overlaysFromFilters } from './overlay-parsing';
+import { overlaysFromFilters, videoFilterStateFrom } from './overlay-parsing';
 import { pruneEmpty } from './prune';
 import { animationsFrom, choiceFromMarker, imagesFrom, overlayOptionsFrom, watermarkFrom } from './to-editor-overlay';
 
@@ -202,7 +202,7 @@ function videoSectionFrom(s: Section): EditorSection {
     ...(images.length > 0 ? { images } : {}),
     duration: s.options?.duration ?? 8,
     mute: Boolean(s.options?.muteSection),
-    overlays: overlaysFromFilters(s.filters),
+    ...videoFilterStateFrom(s.filters),
     ...(description ? { description } : {}),
     countdown: Boolean(s.options?.countdown),
     countdownSeconds: s.options?.countdownDuration ?? 4,

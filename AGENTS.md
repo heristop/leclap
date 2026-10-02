@@ -10,6 +10,7 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 - Design system (brand, colors, typography): [`DESIGN.md`](./DESIGN.md)
 - Architecture & design patterns: [`docs/architecture.md`](./docs/architecture.md)
 - Template JSON reference: [`docs/template-configuration.md`](./docs/template-configuration.md)
+- Registered effect contracts, custom catalogs and authoring workflow: [`docs/effects-configuration.md`](./docs/effects-configuration.md) (regenerate tables with `pnpm docs:effects`).
 - Engine configuration (ProjectConfig, env vars, encoder tiers): [`docs/engine-configuration.md`](./docs/engine-configuration.md)
 - MCP runtime (media/output roots, trusted entry/catalog/browser, deadlines and cache): [`packages/leclap-mcp/README.md`](./packages/leclap-mcp/README.md#configuration)
 - FFmpeg detection/fallback: [`docs/architecture.md`](./docs/architecture.md#cross-platform-support)

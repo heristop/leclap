@@ -1,5 +1,12 @@
 import { lazy } from 'react';
-import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Navigate } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+  Route,
+  Navigate,
+  useLocation,
+} from 'react-router-dom';
 import { RootLayout } from '@/presentation/components/RootLayout';
 import { Home } from '@/presentation/pages/Home';
 import { RouteError } from '@/presentation/components/RouteError';
@@ -45,6 +52,18 @@ const DocExamples = lazyPage(() => import('@/presentation/pages/doc'), 'DocExamp
 const DocSchema = lazyPage(() => import('@/presentation/pages/doc'), 'DocSchema');
 const DocCli = lazyPage(() => import('@/presentation/pages/doc'), 'DocCli');
 const DocMcp = lazyPage(() => import('@/presentation/pages/doc'), 'DocMcp');
+const DocReference = lazyPage(() => import('@/presentation/pages/doc/References'), 'DocReference');
+const DocEffects = lazyPage(() => import('@/presentation/pages/doc/References'), 'DocEffects');
+const DocEngine = lazyPage(() => import('@/presentation/pages/doc/References'), 'DocEngine');
+const DocCreativeDirection = lazyPage(() => import('@/presentation/pages/doc/References'), 'DocCreativeDirection');
+
+const DocsAlias = () => {
+  const location = useLocation();
+
+  return (
+    <Navigate to={location.pathname.replace(/^\/docs(?=\/|$)/, '/doc') + location.search + location.hash} replace />
+  );
+};
 
 // Non-English languages are served under a path prefix (/fr, /de, …). Mounting the router under a
 // matching basename lets every existing route work unchanged within the active locale — `/fr/studio`
@@ -79,6 +98,7 @@ const router = createBrowserRouter(
       {/* Legacy path kept so existing bookmarks/links keep working. */}
       <Route path="/admin" element={<Navigate to="/templates" replace />} />
       <Route path="/design" element={<Design />} />
+      <Route path="/docs/*" element={<DocsAlias />} />
       <Route path="/doc" element={<DocLayout />}>
         <Route index element={<DocOverview />} />
         <Route path="sections" element={<DocSections />} />
@@ -94,6 +114,10 @@ const router = createBrowserRouter(
         <Route path="schema" element={<DocSchema />} />
         <Route path="cli" element={<DocCli />} />
         <Route path="mcp" element={<DocMcp />} />
+        <Route path="reference" element={<DocReference />} />
+        <Route path="effects" element={<DocEffects />} />
+        <Route path="engine" element={<DocEngine />} />
+        <Route path="creative-direction" element={<DocCreativeDirection />} />
       </Route>
       <Route path="/about" element={<About />} />
       <Route path="/compare/remotion" element={<CompareRemotion />} />

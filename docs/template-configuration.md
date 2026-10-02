@@ -786,6 +786,8 @@ Other breaking changes:
 
 ## Registered JSON effects (desktop authoring)
 
+See the [complete effect configuration reference](./effects-configuration.md) for every built-in/example prop, default, bound, asset slot, timing rule and registration workflow.
+
 An `effect` section references a versioned, registered graphics implementation while its editable controls remain ordinary JSON. The execution caller resolves effects into `project_video` clips before invoking the existing FFmpeg engine. The core exports `resolveTemplateEffects(template, renderer, { preflight })` for library consumers; it does not import Remotion or launch Chromium.
 
 ```json

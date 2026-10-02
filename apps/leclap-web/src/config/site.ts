@@ -105,6 +105,7 @@ export const UNINDEXED_PATHS: readonly string[] = [
   '/templates/:id/edit',
   '/partials',
   '/admin',
+  '/docs/*',
   // Retired: redirects to the home page's agentic section.
   '/use-cases/agentic-development',
   '*',

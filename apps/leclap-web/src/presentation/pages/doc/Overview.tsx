@@ -26,7 +26,9 @@ export const DocOverview = () => (
           audio, a form step or a reusable partial. Both keys are optional so partial descriptors validate
           incrementally, but a useful template has at least one section. An optional <Code>meta</Code> object carries a
           human name and description and <Code>creativeDirection</Code> authoring brief; <Code>partials</Code> carries
-          reusable section definitions. The brief does not select effects or change rendering automatically.
+          reusable section definitions. The brief does not select effects or change rendering automatically. See the{' '}
+          <Link to="/doc/reference">complete field reference</Link>, <Link to="/doc/effects">effect contracts</Link> and{' '}
+          <Link to="/doc/creative-direction">creative direction guide</Link>.
         </p>
         <p>
           The descriptor has two layers you can mix freely. The{' '}
@@ -64,11 +66,7 @@ export const DocOverview = () => (
         <p>
           <Link to="/doc/mcp">MCP server settings</Link> configure media containment, deadlines, trusted Remotion
           source, browser, catalog and cache. Registered effects currently require landscape 1280×720, 30 fps and ten
-          seconds. See the complete{' '}
-          <a href="https://github.com/heristop/leclap/blob/main/docs/engine-configuration.md">
-            engine configuration reference
-          </a>
-          .
+          seconds. See the complete <Link to="/doc/engine">engine configuration reference</Link>.
         </p>
       </Prose>
     </DocSection>

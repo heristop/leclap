@@ -104,6 +104,8 @@ Codec, quality-tier and segment-concurrency overrides use the library API; the C
 
 ## Registered effects and MCP runtime
 
+Effect-specific props, assets and cross-field rules are documented in [effects configuration](./effects-configuration.md).
+
 Native JSON scenes use the selected FFmpeg backend. A `type: "effect"` scene must first be resolved by a trusted renderer. Direct core compilation rejects unresolved effects with `effect_backend_unavailable`, including when `skipValidation` is set. The core's `resolveTemplateEffects` API accepts your renderer and optional preflight callback; it does not import Remotion or configure Chromium.
 
 The MCP registered-effect backend requires Node, optional Remotion peers, and a trusted entry registering every selected composition. Its current output contract is opaque H.264, landscape 1280×720, 30 fps, 300 frames / ten seconds. Other orientation or frame-rate settings are rejected for registered-effect templates; they do not adapt the composition. `render_remotion_clip` is a separate bring-your-own-composition route and does not use this fixed registered-effect contract.

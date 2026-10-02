@@ -14,6 +14,13 @@ packages:
 # cannot be published wrong; this setting is what keeps local development linked to the source.
 linkWorkspacePackages: true
 
+# Moti's declarations import React Native, but its manifest omits that peer.
+# Resolve it alongside the consuming app instead of an unrelated hoisted RN version.
+packageExtensions:
+  moti@0.30.0:
+    peerDependencies:
+      react-native: '*'
+
 allowBuilds:
   '@swc/core': true
   esbuild: true

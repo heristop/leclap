@@ -8,6 +8,7 @@ A template is a Zod-validated JSON descriptor: a `global` block plus an ordered 
 
 - [README — overview & quick start](https://raw.githubusercontent.com/heristop/leclap/main/README.md): what LeClap is, the monorepo layout, and how to get running.
 - [Template configuration reference](https://raw.githubusercontent.com/heristop/leclap/main/docs/template-configuration.md): the template JSON reference — global config, sections, the FFmpeg pipeline, and `{{ placeholders }}`.
+- [Registered effect contracts](https://raw.githubusercontent.com/heristop/leclap/main/docs/effects-configuration.md): generated built-in and example contracts, defaults, bounds, assets, registration, previews and revision-safe edits.
 - [Engine configuration reference](https://raw.githubusercontent.com/heristop/leclap/main/docs/engine-configuration.md): `ProjectConfig`, output precedence, encoder tiers, CLI bindings, MCP startup settings, deadlines and effect caching.
 - [Architecture](https://raw.githubusercontent.com/heristop/leclap/main/docs/architecture.md): system architecture and design patterns.
 - [FFmpeg fallback strategy](https://raw.githubusercontent.com/heristop/leclap/main/docs/architecture.md): how automatic FFmpeg detection (native / WASM) chooses a backend.
@@ -26,10 +27,15 @@ The descriptor field tables come from the engine's Zod schema. Runtime requireme
 - [Transitions](https://leclap.dev/doc/transitions): every xfade transition name plus `cut`, and the `transition` fields.
 - [Looks](https://leclap.dev/doc/looks): the named colour-grade presets applied via `look`.
 - [Colour grade](https://leclap.dev/doc/grade): manual `grade` controls — brightness, contrast, saturation, gamma, hue, per-range colour balance, blur, curves.
-- [Motion & layers](https://leclap.dev/doc/motion): `motion[]` effects (Ken Burns, rotate, crop, flip), the recording `framingGuide`, and background `layers[]`.
+- [Motion & layers](https://leclap.dev/doc/motion): `motion[]` effects (Ken Burns, rotate, crop, flip, shake, pulse), the recording `framingGuide`, and background `layers[]`.
 - [Audio](https://leclap.dev/doc/audio): final-mix volumes, normalisation, ducking, and per-section `audioFade` curves.
 - [Captions](https://leclap.dev/doc/captions): the `caption` sugar with its style, position and alignment options.
 - [Filters & maps](https://leclap.dev/doc/filters): the raw FFmpeg escape hatch — `filters[]`, filter values, and explicit `maps[]`.
+- [Complete template configuration](https://leclap.dev/doc/reference): every native feature and example, plus an exhaustive nested schema field index.
+- [Registered effects](https://leclap.dev/doc/effects): all built-in and example catalog props, asset slots, output constraints and authoring workflow.
+- [Creative direction](https://leclap.dev/doc/creative-direction): implement a visual brief with explicit native settings or registered effect props.
+- [Engine configuration](https://leclap.dev/doc/engine): host configuration, encoder tiers, platform requirements and MCP runtime settings.
+- [Animations & images](https://leclap.dev/doc/animations): overlay playback/placement, whole-video animation and six composited APNG recipe configurations.
 - [Examples](https://leclap.dev/doc/examples): copy-paste descriptors that render with `leclap render`.
 - [JSON Schema](https://leclap.dev/doc/schema): the full machine-readable schema for tooling and validation.
 

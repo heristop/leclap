@@ -232,7 +232,7 @@ Part of the [LeClap monorepo](../../README.md).
 
 ## JSON-first registered effects
 
-The opt-in desktop graphics backend can resolve `type: "effect"` sections directly from JSON before the existing FFmpeg pipeline compiles them. The first registered effect is `leclap.title-reveal@1.0.0`; configure a trusted Remotion entry exposing `LeclapTitle` (1280×720, 30 fps, 300 frames). [The runnable reference project](../../examples/llm-remotion-title) includes the component, JSON and media fixture generator.
+The opt-in desktop graphics backend can resolve `type: "effect"` sections directly from JSON before the existing FFmpeg pipeline compiles them. The builtin title effect is `leclap.title-reveal@1.0.0`; configure a trusted Remotion entry exposing `LeclapTitle` (1280×720, 30 fps, 300 frames). [The runnable reference project](../../examples/llm-remotion-title) includes the component, JSON and media fixture generator.
 
 - `get_effect_schema({ list: true })` lists builtin and operator-registered identities, descriptions, output and contract digests. Pass `id` and `version` to inspect strict props/assets; no arguments still returns the builtin title contract. `list: true` cannot be combined with identity fields.
 - `validate_template` checks references/props/assets and returns a content-based JSON revision.
@@ -242,7 +242,7 @@ The opt-in desktop graphics backend can resolve `type: "effect"` sections direct
 
 Remotion remains optional and requires the existing trusted-local opt-in. Set `LECLAP_MCP_REMOTION_BROWSER` / `--remotion-browser` to a compatible installed Chrome executable if you want to avoid browser setup downloads. Direct core compilation rejects unresolved effects before platform initialization. Library callers can use the exported `resolveTemplateEffects` callback API with their own trusted renderer.
 
-This delivery supports opaque title clips. It does not execute React scenes on a phone, provide a general effect marketplace, or claim text-fit/contrast inspection of Remotion graphics through the core's FFmpeg geometry checks. Preserve JSON, module source/dependencies, assets and render provenance together for reproducibility.
+Registered title effects produce opaque clips. The backend does not execute React scenes on a phone or provide a general effect marketplace. The core's FFmpeg geometry checks do not inspect Remotion graphics for text fit or contrast. Preserve JSON, module source/dependencies, assets and render provenance together for reproducibility.
 
 Registered jobs run in a separate worker under one setup-and-render deadline. Failed jobs are removed. Completed previews retain returned artifacts and provenance; compositions retain provenance after the FFmpeg worker consumes the temporary effect clips. Intermediate paths in `effectProvenance` describe consumed inputs and are not downloadable output artifacts. Relative effect asset paths resolve under `mediaDir`; absolute paths must remain inside it. Effect props/assets must contain concrete values rather than unresolved `{{ placeholders }}`.
 

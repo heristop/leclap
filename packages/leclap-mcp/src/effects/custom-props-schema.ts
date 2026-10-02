@@ -186,7 +186,7 @@ function normalizeDefault(schema: JsonPropsSchema, location: string, budget: Sch
   if (dataNodes > MAX_NORMALIZED_NODES || dataBytes > MAX_NORMALIZED_BYTES) {
     catalogError(`${location}: normalized default exceeds catalog JSON data budget.`);
   }
-  // Only now may Zod materialize nested defaults within the preflighted budget.
+  // Materialize nested defaults only after validating the expansion budget.
   const parsedDefault = z.fromJSONSchema(underlying).safeParse(value);
 
   if (!parsedDefault.success) catalogError(`${location}: default violates its schema.`);

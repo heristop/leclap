@@ -94,7 +94,7 @@ function easeProgress(progress: number, easing: string | undefined): number {
 
 // Motion can overshoot its resting position; opacity remains bounded to 0..1. `entering` animates toward
 // the resting state (offset → 0); exits animate away from it (0 → offset). `easing` is the reveal's
-// authored curve. Unset entrance/exit easing keeps the existing preview signature curve.
+// authored curve. Unspecified entrance/exit easing uses ease-out-expo.
 export function revealOffset(
   type: string,
   progress: number,

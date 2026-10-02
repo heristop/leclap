@@ -7,7 +7,7 @@ description: Use when creating or editing a video template JSON (the template de
 
 ## Overview
 
-A template is a JSON **descriptor** that the engine compiles into a video. Its main keys are `global` (project-wide defaults) and `sections` (the ordered list of scenes), with optional `meta` (display metadata and `creativeDirection`) and `partials` (reusable fragments). The descriptor is the LLM-clear authoring standard — validate against the schema, don't guess fields.
+A template is a JSON **descriptor** that the engine compiles into a video. Its main keys are `global` (project-wide defaults) and `sections` (the ordered list of scenes), with optional `meta` (display metadata and `creativeDirection`) and `partials` (reusable fragments). Validate descriptors against the schema; don't guess fields.
 
 Sources of truth (in order of authority):
 

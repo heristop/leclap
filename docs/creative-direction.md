@@ -117,6 +117,6 @@ before presenting an example as an actual promotion.
 
 Use `reveal.easing: "ease-out-back"` for a small overshoot on native headlines, captions and positioned text. Keep travel modest, leave room beyond the resting position and reserve the effect for a dominant beat. Calm instructional captions can keep `ease-out`. The easing uses ordinary FFmpeg expression math and needs no additional filter or worker.
 
-The shared animation library now offers `focus-lock`, `light-pass` and `frame-reveal` alongside the existing recipes. Their finite JSON layers expose position, size, start, duration and opacity for adjustment. See the [recipe fixture](../examples/overlay-effects/README.md) before placing an accent on real footage.
+The shared animation library includes `focus-lock`, `light-pass` and `frame-reveal`. Their finite JSON layers expose position, size, start, duration and opacity for adjustment. See the [recipe fixture](../examples/overlay-effects/README.md) before placing an accent on real footage.
 
 For per-word choreography on Node, discover `studio.editorial-type` through MCP and choose `blur-rise`, `split-slide` or `elastic-stagger` with explicit bounded props. See the [registered variants](../examples/llm-remotion-title/README.md#editorial-typography). These Remotion treatments require the configured worker; portable app samples use native text easing and bundled APNG inputs.

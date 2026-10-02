@@ -98,8 +98,8 @@ function ramp(delay: number, duration: number): string {
 /**
  * Wraps a 0→1 ramp expression `p` in an easing curve: ease-out = 1-(1-p)^3 (decelerates into place),
  * ease-in-out = smoothstep p*p*(3-2p); ease-out-back briefly overshoots travel. This pure expression
- * math adds no filter, so it is LGPL-safe on the on-device build. Linear/unset returns the ramp untouched, keeping every existing
- * descriptor's compiled output byte-identical. Shared with overlayMotionExpr (editor/inputSources.ts)
+ * math adds no filter, so it is LGPL-safe on the on-device build. Linear or unset easing returns
+ * the ramp unchanged. Shared with overlayMotionExpr (editor/inputSources.ts)
  * so a caption and a composited overlay with the same reveal settle identically.
  */
 export function easeRampExpr(rampExpr: string, easing: RevealEasing | undefined): string {

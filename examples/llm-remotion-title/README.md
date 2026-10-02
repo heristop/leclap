@@ -7,7 +7,7 @@ This reference project keeps creative controls in LeClap JSON. A trusted Remotio
 
 ## Typography samples
 
-The registered editorial composition now has standalone descriptors for [masked rise](./editorial-masked-rise.json), [word stagger](./editorial-word-stagger.json) and [highlight](./editorial-highlight.json), alongside the existing blur rise, split slide and elastic stagger examples. Each records its creative direction and bounded motion props. These reuse the existing registered composition and strict JSON contracts.
+The registered editorial composition has standalone descriptors for [masked rise](./editorial-masked-rise.json), [word stagger](./editorial-word-stagger.json) and [highlight](./editorial-highlight.json), alongside blur rise, split slide and elastic stagger examples. Each records its creative direction and bounded motion props. All use the same registered composition and strict JSON contracts.
 
 Browse their rendered previews and JSON in the web app’s `/showcase` page. The [showcase renderer](../showcase/README.md) generates the fixture media and composes them through the same trusted MCP entry and catalog used here.
 
@@ -73,7 +73,7 @@ The illustrative `template` and `expectedRevision` values above must be replaced
 
 The registry accepts versioned title and web app promo IDs with typed controls. Source remains in `remotion/` and is editable with normal code tools. Keep its exact source/dependency versions alongside the JSON to recreate the effect. Changing source changes the implementation identity recorded for the render.
 
-Opaque H.264 output is supported first. Transparent effects, full mobile graphics generation and a visual editor belong to later roadmap deliveries. Additional fixed-output compositions can be registered with an operator JSON catalog as described below. Bounded persistent effect caching is implemented below. Font width and visual pacing still need inspection of actual preview artifacts.
+Output is opaque H.264. Transparent effects, full mobile graphics generation and a visual editor are not supported by this example. Additional fixed-output compositions can be registered with an operator JSON catalog as described below. The persistent cache is described below. Font width and visual pacing still need inspection of actual preview artifacts.
 
 ## Initial measured baseline
 
@@ -93,7 +93,7 @@ The whole verification command reported a maximum resident set of about 566 MiB.
 
 ## Persistent effect reuse
 
-Registered previews and full title clips now reuse a bounded disk cache. By default it retains up to 512 MiB and 256 entries under the MCP media directory. Set `LECLAP_MCP_EFFECT_CACHE_MAX_BYTES=0` to disable it, or choose another integer byte budget. Preview replies include `cache`; composition replies include `effectCache`, each with `hits`, `misses` and `writes`.
+Registered previews and full title clips reuse a bounded disk cache. By default it retains up to 512 MiB and 256 entries under the MCP media directory. Set `LECLAP_MCP_EFFECT_CACHE_MAX_BYTES=0` to disable it, or choose another integer byte budget. Preview replies include `cache`; composition replies include `effectCache`, each with `hits`, `misses` and `writes`.
 
 Cache lookup follows fresh asset/source bundling and browser identification. This preserves invalidation for imported code and exact asset contents; it still pays preparation costs. The final FFmpeg assembly runs on each composition. One registered effect worker runs per MCP process, with at most eight queued jobs.
 
@@ -108,7 +108,7 @@ A subsequent local check on the same M2 Pro/runtime used a separate copy of the 
 
 Repeated PNGs, range clips and composed MP4s matched by SHA256 in this fixture. Headline-position changes, imported palette-code edits and a logo-file replacement each produced a miss and new provenance. Disabling caching produced no hits or writes without changing implementation identity. The measured cache held nine entries totaling 746,360 artifact/manifest bytes before the additional asset-edit check. Corrupt entries, lower budgets, metadata mismatches, eviction, cancellation and non-regular files are covered by unit regressions.
 
-The whole verification command reported about 950 MiB maximum resident set; this is not a sampled total across concurrent subprocesses. Cached composition avoids the effect encode while retaining the existing FFmpeg assembly work. Persistent bundle caching and whole-project incremental compilation remain separate future deliveries.
+The whole verification command reported about 950 MiB maximum resident set; this is not a sampled total across concurrent subprocesses. Cached composition avoids the effect encode while retaining the existing FFmpeg assembly work. Persistent bundle caching and whole-project incremental compilation are not implemented.
 
 ## Ten-second web app promo
 

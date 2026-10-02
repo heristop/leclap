@@ -8,8 +8,7 @@
     "lib": ["es2024"],
     "types": ["node"],
     "paths": {
-      "ffmpeg-video-composer": ["../ffmpeg-video-composer/dist"],
-      "ffmpeg-video-composer/samples": ["../ffmpeg-video-composer/dist/samples.d.ts"]
+      "ffmpeg-video-composer": ["../ffmpeg-video-composer/dist"]
     }
   },
   "include": ["src/**/*"],

@@ -9,8 +9,7 @@
     "types": ["node"],
     "skipLibCheck": true,
     "paths": {
-      "ffmpeg-video-composer": ["../ffmpeg-video-composer/dist"],
-      "ffmpeg-video-composer/samples": ["../ffmpeg-video-composer/dist/samples.d.ts"]
+      "ffmpeg-video-composer": ["../ffmpeg-video-composer/dist"]
     }
   },
   "include": ["src/**/*"],

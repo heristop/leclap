@@ -89,6 +89,14 @@
             "description": "Health check that returns a fixed readiness string."
           },
           {
+            "name": "list_samples",
+            "description": "Discover packaged showcase samples, creative direction, required inputs and native or Remotion setup."
+          },
+          {
+            "name": "get_sample",
+            "description": "Retrieve a sample descriptor with embedded partials and its input requirements, without downloading media or rendering."
+          },
+          {
             "name": "get_template_schema",
             "description": "Return the authoritative template descriptor JSON Schema plus the authoring guide."
           },

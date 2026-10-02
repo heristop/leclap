@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { bundledVideoFor, fieldsFor, videoFor } from './fixtures.ts';
 import { previewVideoArgs } from './preview-export.ts';
+import { loadDescriptor } from './load-descriptor.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const catalog = JSON.parse(await fs.readFile(path.join(root, 'examples/showcase/catalog.json'), 'utf8'));
@@ -162,32 +163,6 @@ async function saveManifest() {
   );
   await fs.rename(temporary, manifestPath);
 }
-async function loadDescriptor(sample) {
-  const template = JSON.parse(await fs.readFile(path.join(root, sample.source), 'utf8'));
-
-  if (sample.section) {
-    const section = template.sections.find((section) => section.name === sample.section);
-
-    if (!section) throw new Error(`Missing scene ${sample.section}`);
-    template.sections = [section];
-    template.global.transition = { type: 'cut' };
-  }
-
-  if (!sample.source.startsWith('packages/leclap-creative-kit/')) return template;
-  const partialDir = path.join(root, 'packages/leclap-creative-kit/src/partials');
-  const refs = new Set(template.sections.filter((section) => section.type === 'partial').map((section) => section.ref));
-  const files = (await fs.readdir(partialDir)).filter((file) => file.endsWith('.json') && refs.has(file.slice(0, -5)));
-  const bundled = await Promise.all(
-    files.map(async (file) => ({
-      id: file.slice(0, -5),
-      ...JSON.parse(await fs.readFile(path.join(partialDir, file), 'utf8')),
-    }))
-  );
-
-  if (bundled.length > 0) template.partials = [...bundled, ...(template.partials ?? [])];
-
-  return template;
-}
 function validatedDescriptor(template, id) {
   const result = new TemplateValidator().validateTemplate(expandPartials(template));
 
@@ -271,7 +246,7 @@ async function renderOutput(sample, template, registered) {
   return output;
 }
 async function renderSample(sample) {
-  const original = await loadDescriptor(sample);
+  const original = await loadDescriptor(root, sample);
   const expanded = validatedDescriptor(original, sample.id);
   const registered = expanded.sections.some((section) => section.type === 'effect');
   const output = await renderOutput(sample, original, registered);

@@ -14,7 +14,7 @@ export async function resolveComposeEffects(
   const effectCache = { hits: 0, misses: 0, writes: 0 };
 
   try {
-    const prepared = await validateEffects(template, config);
+    const prepared = await validateEffects(template, config, signal);
     const effects = await resolveTemplateEffects(
       template,
       async (section) => {

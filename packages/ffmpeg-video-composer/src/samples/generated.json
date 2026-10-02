@@ -1304,16 +1304,6 @@
         },
         {
           "kind": "font",
-          "reference": "bebas",
-          "path": "sections[2].titleCard.headlineStyle.font"
-        },
-        {
-          "kind": "font",
-          "reference": "oswald",
-          "path": "sections[2].titleCard.subtitleStyle.font"
-        },
-        {
-          "kind": "font",
           "reference": "BebasNeue.ttf",
           "path": "sections[2].titleCard.filters[0].values.fontfile",
           "source": "preset"
@@ -2143,11 +2133,6 @@
           "path": "sections[1].filters[2].values.fontfile"
         },
         {
-          "kind": "font",
-          "reference": "bebas",
-          "path": "sections[2].caption.font"
-        },
-        {
           "kind": "animation",
           "reference": "/assets/animations/light_leak.apng",
           "path": "sections[2].inputs[0].url"
@@ -2620,11 +2605,6 @@
           "path": "sections[1].filters[2].values.fontfile"
         },
         {
-          "kind": "font",
-          "reference": "bebas",
-          "path": "sections[2].caption.font"
-        },
-        {
           "kind": "animation",
           "reference": "/assets/animations/shine_sweep.apng",
           "path": "sections[2].inputs[0].url"
@@ -3050,11 +3030,6 @@
           "kind": "font",
           "reference": "Oswald.ttf",
           "path": "sections[1].filters[3].values.fontfile"
-        },
-        {
-          "kind": "font",
-          "reference": "oswald",
-          "path": "sections[2].caption.font"
         },
         {
           "kind": "font",
@@ -3493,28 +3468,13 @@
       "assets": [
         {
           "kind": "font",
-          "reference": "bebas",
-          "path": "sections[1].caption.font"
-        },
-        {
-          "kind": "font",
           "reference": "Oswald.ttf",
           "path": "sections[1].filters[1].values.fontfile"
         },
         {
           "kind": "font",
-          "reference": "bebas",
-          "path": "sections[2].caption.font"
-        },
-        {
-          "kind": "font",
           "reference": "Oswald.ttf",
           "path": "sections[2].filters[1].values.fontfile"
-        },
-        {
-          "kind": "font",
-          "reference": "bebas",
-          "path": "sections[3].caption.font"
         },
         {
           "kind": "font",
@@ -6676,21 +6636,6 @@
       "formFields": [],
       "variables": [],
       "assets": [
-        {
-          "kind": "font",
-          "reference": "bebas",
-          "path": "sections[0].titleCard.headlineStyle.font"
-        },
-        {
-          "kind": "font",
-          "reference": "oswald",
-          "path": "sections[0].titleCard.kickerStyle.font"
-        },
-        {
-          "kind": "font",
-          "reference": "oswald",
-          "path": "sections[0].titleCard.subtitleStyle.font"
-        },
         {
           "kind": "font",
           "reference": "BebasNeue.ttf",

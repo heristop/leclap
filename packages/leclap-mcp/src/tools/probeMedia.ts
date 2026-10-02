@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { promisify } from 'node:util';
 
-import type { McpServer } from '@modelcontextprotocol/server';
+import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 
 import type { McpConfig } from '../config.js';
@@ -66,17 +66,46 @@ function errorResult(text: string): ToolError {
 // after first resolution.
 let cachedBin: string | undefined;
 
-async function resolveFfprobeBin(): Promise<string> {
+async function execProbe(bin: string, args: string[], signal?: AbortSignal) {
+  signal?.throwIfAborted();
+  const pending = execFileAsync(bin, args, { timeout: PROBE_TIMEOUT_MS, killSignal: 'SIGKILL' });
+  // Node's execFile signal path can send SIGTERM despite killSignal. Kill explicitly,
+  // then await the child callback so a preflight permit remains held until cleanup.
+  function abort() {
+    pending.child.kill('SIGKILL');
+  }
+  signal?.addEventListener('abort', abort, { once: true });
+
+  if (signal?.aborted) abort();
+
+  try {
+    const result = await pending;
+    signal?.throwIfAborted();
+
+    return result;
+  } catch (error) {
+    signal?.throwIfAborted();
+
+    throw error;
+  } finally {
+    signal?.removeEventListener('abort', abort);
+  }
+}
+
+async function resolveFfprobeBin(signal?: AbortSignal): Promise<string> {
+  signal?.throwIfAborted();
+
   if (cachedBin !== undefined) {
     return cachedBin;
   }
 
   try {
-    await execFileAsync('ffprobe', ['-version'], { timeout: PROBE_TIMEOUT_MS, killSignal: 'SIGKILL' });
+    await execProbe('ffprobe', ['-version'], signal);
     cachedBin = 'ffprobe';
 
     return cachedBin;
   } catch {
+    signal?.throwIfAborted();
     cachedBin = resolveStaticFfprobe();
 
     return cachedBin;
@@ -123,17 +152,14 @@ function resolveFfprobeBesideFfmpegStatic(): string {
 // Probe a local file by invoking ffprobe directly via execFile. This captures stdout into a buffer
 // (zero fd-1 pollution) and deliberately bypasses the core's DI-wired adapter, which logs via pino
 // straight to fd 1 — that would corrupt the MCP stdio JSON-RPC framing.
-export type ProbeRunner = (realPath: string) => Promise<FFProbeData>;
+export type ProbeRunner = (realPath: string, signal?: AbortSignal) => Promise<FFProbeData>;
 
-async function defaultRunner(realPath: string): Promise<FFProbeData> {
-  const bin = await resolveFfprobeBin();
-  const { stdout } = await execFileAsync(
+async function defaultRunner(realPath: string, signal?: AbortSignal): Promise<FFProbeData> {
+  const bin = await resolveFfprobeBin(signal);
+  const { stdout } = await execProbe(
     bin,
     ['-v', 'quiet', '-print_format', 'json', '-show_streams', '-show_format', realPath],
-    {
-      timeout: PROBE_TIMEOUT_MS,
-      killSignal: 'SIGKILL',
-    }
+    signal
   );
 
   return JSON.parse(stdout) as FFProbeData;
@@ -192,9 +218,12 @@ function durationFor(streams: FFProbeStream[], format: FFProbeData['format']): n
 export async function probeMedia(
   realPath: string,
   sizeBytes: number,
-  runner: ProbeRunner = defaultRunner
+  runner: ProbeRunner = defaultRunner,
+  signal?: AbortSignal
 ): Promise<ProbeInfos> {
-  const data = await runner(realPath);
+  signal?.throwIfAborted();
+  const data = await runner(realPath, signal);
+  signal?.throwIfAborted();
   const streams = data.streams ?? [];
   const videoStream = streams.find((s) => s.codec_type === 'video');
   const audioStream = streams.find((s) => s.codec_type === 'audio');
@@ -208,7 +237,7 @@ export async function probeMedia(
   };
 }
 
-async function handleProbe(args: { path: string }, config: McpConfig, runner: ProbeRunner) {
+async function handleProbe(args: { path: string }, config: McpConfig, runner: ProbeRunner, signal?: AbortSignal) {
   let realPath: string;
 
   try {
@@ -219,7 +248,7 @@ async function handleProbe(args: { path: string }, config: McpConfig, runner: Pr
 
   try {
     const { size } = await fs.stat(realPath);
-    const infos = await probeMedia(realPath, size, runner);
+    const infos = await probeMedia(realPath, size, runner, signal);
 
     return {
       content: [
@@ -247,6 +276,6 @@ export function registerProbe(server: McpServer, config: McpConfig, runner: Prob
       inputSchema,
       outputSchema,
     },
-    (args: { path: string }) => handleProbe(args, config, runner)
+    (args: { path: string }, ctx?: ServerContext) => handleProbe(args, config, runner, ctx?.mcpReq.signal)
   );
 }

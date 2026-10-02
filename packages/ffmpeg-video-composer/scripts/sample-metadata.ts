@@ -1,6 +1,7 @@
 import { PROMO_EFFECT_ID, PROMO_EFFECT_VERSION } from '../../leclap-mcp/src/effects/promo-registry';
 import { TITLE_EFFECT_ID, TITLE_EFFECT_VERSION } from '../../leclap-mcp/src/effects/title-definition';
 import { sampleFontAssets } from './sample-font-assets';
+import { findFont } from '../src/core/fonts';
 import type { Section, TemplateDescriptor } from '../src/schemas/template.schemas';
 import type {
   SampleAsset,
@@ -145,6 +146,8 @@ function assetKind(
   parent: Record<string, unknown>
 ): SampleAsset['kind'] | undefined {
   if (path.includes('.effect.assets.')) return 'effect-asset';
+
+  if (key === 'font' && findFont(value)) return undefined;
 
   if (key === 'fontfile' || key === 'font') return 'font';
 

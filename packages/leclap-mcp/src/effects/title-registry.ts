@@ -6,10 +6,11 @@ import type { McpConfig } from '../config.js';
 import { validateTemplate } from '../compose/validation.js';
 import { assertWithinMediaDir } from '../compose/pathGuard.js';
 import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
-import { probeMedia } from '../tools/probeMedia.js';
+import { probeMedia, type ProbeInfos } from '../tools/probeMedia.js';
+import { acquireEffectJobPermit } from './effect-job-budget.js';
 
 export * from './title-definition.js';
-import { getEffectDefinition } from './effect-catalog.js';
+import { getEffectDefinition, type EffectDefinition } from './effect-catalog.js';
 export interface PreparedTitle {
   section: EffectSection;
   props: Record<string, unknown>;
@@ -19,7 +20,9 @@ export interface PreparedTitle {
   definitionHash?: string;
 }
 export type EffectConfig = Pick<McpConfig, 'mediaDir'> &
-  Partial<Pick<McpConfig, 'allowRemotion' | 'remotionEntry' | 'browserExecutable' | 'effectCatalog'>>;
+  Partial<
+    Pick<McpConfig, 'allowRemotion' | 'remotionEntry' | 'browserExecutable' | 'effectCatalog' | 'renderTimeoutMs'>
+  >;
 
 export async function assertEffectBackend(config: EffectConfig): Promise<void> {
   if (!config.allowRemotion) {
@@ -62,7 +65,41 @@ async function prepareAsset(
   return real;
 }
 
-async function prepareSection(section: EffectSection, config: EffectConfig): Promise<PreparedTitle> {
+async function validateVideoAssets(
+  assets: PreparedTitle['assets'],
+  policies: EffectDefinition['assetVideoPolicies'],
+  probes: Map<string, ProbeInfos>,
+  signal: AbortSignal
+) {
+  await Object.entries(policies).reduce(async (previous, [key, policy]) => {
+    await previous;
+    signal.throwIfAborted();
+
+    if (!Object.hasOwn(assets, key)) return;
+    const file = assets[key];
+    let probe = probes.get(file);
+
+    if (!probe) {
+      const stat = await fs.stat(file);
+      probe = await probeMedia(file, stat.size, undefined, signal);
+      probes.set(file, probe);
+    }
+
+    if (!probe.videoCodec || probe.durationSeconds === null || probe.durationSeconds < policy.minVideoDurationSeconds) {
+      throw new Error(
+        `effect_asset_invalid: ${key} must contain at least ${policy.minVideoDurationSeconds} seconds of video.`
+      );
+    }
+  }, Promise.resolve());
+}
+
+async function prepareSection(
+  section: EffectSection,
+  config: EffectConfig,
+  probes: Map<string, ProbeInfos>,
+  signal: AbortSignal
+): Promise<PreparedTitle> {
+  signal.throwIfAborted();
   const definition = getEffectDefinition(section.effect.id, section.effect.version, config.effectCatalog);
 
   if (section.options.duration !== definition.output.durationSeconds) {
@@ -83,32 +120,47 @@ async function prepareSection(section: EffectSection, config: EffectConfig): Pro
     )
   ) as PreparedTitle['assets'];
 
-  await Promise.all(
-    Object.entries(definition.assetVideoPolicies).map(async ([key, policy]) => {
-      if (!Object.hasOwn(assets, key)) return;
-      const stat = await fs.stat(assets[key]);
-      const probe = await probeMedia(assets[key], stat.size);
-
-      if (
-        !probe.videoCodec ||
-        probe.durationSeconds === null ||
-        probe.durationSeconds < policy.minVideoDurationSeconds
-      ) {
-        throw new Error(
-          `effect_asset_invalid: ${key} must contain at least ${policy.minVideoDurationSeconds} seconds of video.`
-        );
-      }
-    })
-  );
+  await validateVideoAssets(assets, definition.assetVideoPolicies, probes, signal);
+  signal.throwIfAborted();
 
   return { section, props, assets, compositionId: definition.compositionId, definitionHash: definition.definitionHash };
+}
+
+async function prepareSections(sections: EffectSection[], config: EffectConfig, signal?: AbortSignal) {
+  const timeoutMs = config.renderTimeoutMs ?? 600_000;
+  const release = await acquireEffectJobPermit(timeoutMs, signal);
+  const controller = new AbortController();
+  const deadline = setTimeout(() => {
+    controller.abort(new Error(`Effect preflight timed out after ${timeoutMs}ms`));
+  }, timeoutMs);
+  const bounded = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
+
+  try {
+    bounded.throwIfAborted();
+    await assertEffectBackend(config);
+    const probes = new Map<string, ProbeInfos>();
+    const prepared = await sections.reduce(async (previous, section) => {
+      const prepared = await previous;
+      prepared.set(section.name, await prepareSection(section, config, probes, bounded));
+
+      return prepared;
+    }, Promise.resolve(new Map<string, PreparedTitle>()));
+    bounded.throwIfAborted();
+
+    return prepared;
+  } finally {
+    clearTimeout(deadline);
+    release();
+  }
 }
 
 /** Registry/schema/backend/asset preflight only: never bundles or renders source. */
 export async function validateEffects(
   template: Record<string, unknown>,
-  config: EffectConfig
+  config: EffectConfig,
+  signal?: AbortSignal
 ): Promise<Map<string, PreparedTitle>> {
+  signal?.throwIfAborted();
   const parsed = validateTemplate(template);
 
   if (!parsed.ok) throw new Error(parsed.message);
@@ -117,7 +169,6 @@ export async function validateEffects(
   );
 
   if (sections.length === 0) return new Map();
-  await assertEffectBackend(config);
   const global = parsed.descriptor.global;
 
   if (!isCompatibleOutput(global)) {
@@ -132,9 +183,8 @@ export async function validateEffects(
   const safety = await assertDescriptorSafe(parsed.descriptor, config.mediaDir);
 
   if (!safety.ok) throw new Error(safety.message);
-  const prepared = await Promise.all(sections.map((section) => prepareSection(section, config)));
 
-  return new Map(prepared.map((title) => [title.section.name, title]));
+  return prepareSections(sections, config, signal);
 }
 
 function isCompatibleOutput(global: { fps?: number; orientation?: string } | undefined) {

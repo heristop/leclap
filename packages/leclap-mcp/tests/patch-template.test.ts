@@ -3,6 +3,7 @@ import { templateRevision } from '../src/effects/template-revision.js';
 import { Client } from '@modelcontextprotocol/client';
 import { McpServer, InMemoryTransport } from '@modelcontextprotocol/server';
 import { patchTemplate, registerPatchTemplate } from '../src/tools/patchTemplate.js';
+import { validateTemplate } from '../src/compose/validation.js';
 
 const template = {
   sections: [
@@ -78,6 +79,132 @@ describe('JSON effect revisions', () => {
         ],
       })
     ).toThrow('Duplicate');
+  });
+});
+
+describe('patching effects in partials', () => {
+  const effect = {
+    ...template.sections[0],
+    name: '{{ slot }}',
+    effect: { ...template.sections[0].effect, props: { headline: '{{ headline }}', headlineY: 320 } },
+  };
+  const registered = {
+    id: 'title',
+    variables: { slot: 'intro', headline: 'Default' },
+    sections: [effect, template.sections[1]],
+  };
+  const instance = { type: 'partial', ref: 'title', prefix: 'first-', variables: { headline: 'First' } };
+
+  it('edits an inline partial by its expanded name while retaining authored variables and prefix', () => {
+    const authored = {
+      sections: [
+        {
+          ...instance,
+          ref: 'unregistered-inline-fallback',
+          variables: { slot: 'intro', headline: 'First' },
+          sections: [effect, template.sections[1]],
+        },
+      ],
+    };
+    const before = structuredClone(authored);
+    const result = patchTemplate({
+      template: authored,
+      expectedRevision: templateRevision(authored),
+      edits: [{ section: 'first-intro', props: { headlineY: 260 } }],
+    });
+    expect(result.template).toEqual({
+      sections: [
+        {
+          ...authored.sections[0],
+          sections: [
+            { ...effect, effect: { ...effect.effect, props: { headline: '{{ headline }}', headlineY: 260 } } },
+            template.sections[1],
+          ],
+        },
+      ],
+    });
+    expect(validateTemplate(result.template)).toMatchObject({
+      ok: true,
+      descriptor: {
+        sections: [
+          { name: 'first-intro', effect: { props: { headline: 'First', headlineY: 260 } } },
+          { name: 'first-outro' },
+        ],
+      },
+    });
+    expect(authored).toEqual(before);
+    expect(result.changedSections).toEqual(['first-intro']);
+  });
+
+  it('materializes only the selected registry instance and merges default variables under overrides', () => {
+    const second = { ...instance, prefix: 'second-', variables: { headline: 'Second' } };
+    const authored = { partials: [registered], sections: [instance, second, template.sections[0]] };
+    const before = structuredClone(authored);
+    const result = patchTemplate({
+      template: authored,
+      expectedRevision: templateRevision(authored),
+      edits: [
+        { section: 'first-intro', props: { headlineY: 260 } },
+        { section: 'first-intro', props: { headline: 'Edited' } },
+      ],
+    });
+    expect(result.template).toEqual({
+      partials: [registered],
+      sections: [
+        {
+          type: 'partial',
+          prefix: 'first-',
+          variables: { slot: 'intro', headline: 'First' },
+          sections: [
+            { ...effect, effect: { ...effect.effect, props: { headline: 'Edited', headlineY: 260 } } },
+            template.sections[1],
+          ],
+        },
+        second,
+        template.sections[0],
+      ],
+    });
+    expect(validateTemplate(result.template)).toMatchObject({
+      ok: true,
+      descriptor: {
+        sections: [
+          { name: 'first-intro', effect: { props: { headline: 'Edited', headlineY: 260 } } },
+          { name: 'first-outro' },
+          { name: 'second-intro', effect: { props: { headline: 'Second', headlineY: 320 } } },
+          { name: 'second-outro' },
+          template.sections[0],
+        ],
+      },
+    });
+    expect(result.revision).not.toBe(templateRevision(authored));
+    expect(authored).toEqual(before);
+  });
+
+  it('rejects a name shared by a partial and a top-level section', () => {
+    const authored = { partials: [registered], sections: [{ ...instance, prefix: '' }, template.sections[0]] };
+    expect(() =>
+      patchTemplate({
+        template: authored,
+        expectedRevision: templateRevision(authored),
+        edits: [{ section: 'intro', props: { headlineY: 260 } }],
+      })
+    ).toThrow('Ambiguous section name: intro');
+  });
+
+  it('rejects a mixed partial batch without changing shared definitions or caller instances', () => {
+    const authored = { partials: [registered], sections: [instance] };
+    const before = structuredClone(authored);
+    expect(() =>
+      patchTemplate({
+        template: authored,
+        expectedRevision: templateRevision(authored),
+        edits: [
+          { section: 'first-intro', props: { headlineY: 260 } },
+          { section: 'missing-intro', props: { headline: 'Wrong instance' } },
+        ],
+      })
+    ).toThrow('Unknown effect section: missing-intro');
+    expect(authored).toEqual(before);
   });
 });
 

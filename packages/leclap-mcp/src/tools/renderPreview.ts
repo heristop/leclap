@@ -37,7 +37,7 @@ const inputSchema = z
 type PreviewArgs = z.infer<typeof inputSchema>;
 const IMAGE_BYTES_LIMIT = 10 * 1024 * 1024;
 const CLIP_BYTES_LIMIT = 25 * 1024 * 1024;
-async function preflightPreview(args: PreviewArgs, config: McpConfig) {
+async function preflightPreview(args: PreviewArgs, config: McpConfig, signal?: AbortSignal) {
   const revision = templateRevision(args.template);
 
   if (args.expectedRevision && args.expectedRevision !== revision) {
@@ -55,7 +55,7 @@ async function preflightPreview(args: PreviewArgs, config: McpConfig) {
   const paths = await resolveVideoPaths(args.userVideoPaths ?? {}, config.mediaDir);
 
   if ('isError' in paths) throw new Error(paths.content[0].text);
-  const prepared = await validateEffects(args.template, config);
+  const prepared = await validateEffects(args.template, config, signal);
   const title = prepared.get(args.section);
 
   if (!title) throw new Error(`effect_section_not_found: ${args.section}`);
@@ -118,7 +118,7 @@ async function handlePreview(input: PreviewArgs, config: McpConfig, ctx?: Server
   try {
     const args = inputSchema.parse(input);
     ctx?.mcpReq.signal?.throwIfAborted();
-    const { revision, title } = await preflightPreview(args, config);
+    const { revision, title } = await preflightPreview(args, config, ctx?.mcpReq.signal);
     const job = await runTitleEffect(title, config, requestsFor(args), ctx?.mcpReq.signal);
     directory = job.directory;
     const { artifacts, content } = await previewArtifacts(job, args);

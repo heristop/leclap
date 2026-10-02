@@ -1,4 +1,5 @@
-import type { McpServer } from '@modelcontextprotocol/server';
+import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
+import { expandPartialsSafe } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 import { validateTemplate, effectKeyError, unsafeEffectValue } from '../compose/validation.js';
 import { templateRevision } from '../effects/template-revision.js';
@@ -32,7 +33,7 @@ const inputSchema = z
   .strict();
 type PatchArgs = z.infer<typeof inputSchema>;
 
-type EffectValidator = (template: Record<string, unknown>) => void | Promise<void>;
+type EffectValidator = (template: Record<string, unknown>, signal?: AbortSignal) => void | Promise<void>;
 
 type JsonObject = Record<string, z.infer<ReturnType<typeof z.json>>>;
 
@@ -40,17 +41,76 @@ function isObject(value: unknown): value is JsonObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function applyEdit(sections: unknown[], edit: z.infer<typeof editSchema>, seen: Set<string>): void {
-  const matches = sections.filter((section) => isObject(section) && section.name === edit.section);
+type SectionMatch = { section: JsonObject; partial?: JsonObject; index: number };
+
+function expandedSections(section: JsonObject, partials: JsonObject[string]): unknown[] {
+  const expanded = expandPartialsSafe({ sections: [section], partials });
+
+  if (!expanded.ok) throw new Error(`Invalid template: ${expanded.error.message}`);
+
+  return isObject(expanded.data) && Array.isArray(expanded.data.sections) ? expanded.data.sections : [];
+}
+
+function matchingSections(sections: unknown[], partials: JsonObject[string], name: string): SectionMatch[] {
+  return sections.flatMap((section) => {
+    if (!isObject(section)) return [];
+
+    return expandedSections(section, partials).flatMap((candidate, index) =>
+      isObject(candidate) && candidate.name === name
+        ? [{ section: candidate, partial: section.type === 'partial' ? section : undefined, index }]
+        : []
+    );
+  });
+}
+
+function materializeRegisteredPartial(partial: JsonObject, partials: JsonObject[string]): void {
+  const ref = typeof partial.ref === 'string' ? partial.ref.trim() : '';
+  const definition = Array.isArray(partials)
+    ? partials.findLast((candidate) => ref && isObject(candidate) && candidate.id === ref)
+    : undefined;
+
+  if (!isObject(definition) || !Array.isArray(definition.sections)) return;
+  partial.sections = structuredClone(definition.sections);
+
+  if (isObject(definition.variables) || isObject(partial.variables)) {
+    partial.variables = {
+      ...(isObject(definition.variables) ? definition.variables : {}),
+      ...(isObject(partial.variables) ? partial.variables : {}),
+    };
+  }
+  delete partial.ref;
+}
+
+function authoredSection(match: SectionMatch, partials: JsonObject[string]): JsonObject {
+  if (!match.partial) return match.section;
+
+  materializeRegisteredPartial(match.partial, partials);
+  // Core partial expansion retains source order: effective names include variables and prefixes,
+  // but the edit belongs at the same index in this instance's authored source.
+  const source = Array.isArray(match.partial.sections) ? match.partial.sections[match.index] : undefined;
+
+  if (!isObject(source)) throw new Error('Invalid partial source for selected effect section.');
+
+  return source;
+}
+
+function applyEdit(
+  sections: unknown[],
+  partials: JsonObject[string],
+  edit: z.infer<typeof editSchema>,
+  seen: Set<string>
+): void {
+  const matches = matchingSections(sections, partials, edit.section);
 
   if (matches.length > 1) {
     throw new Error(`Ambiguous section name: ${edit.section}`);
   }
-  const section = matches[0];
+  const match = matches.at(0);
 
-  if (!isObject(section) || section.type !== 'effect') {
+  if (match?.section.type !== 'effect') {
     throw new Error(`Unknown effect section: ${edit.section}`);
   }
+  const section = authoredSection(match, partials);
   const effect = section.effect;
 
   if (!isObject(effect)) {
@@ -84,7 +144,7 @@ export function patchTemplate(input: unknown) {
   const seen = new Set<string>();
 
   for (const edit of args.edits) {
-    applyEdit(sections, edit, seen);
+    applyEdit(sections, template.partials, edit, seen);
   }
   const validated = validateTemplate(template);
 
@@ -105,13 +165,14 @@ export function registerPatchTemplate(server: McpServer, validateEffects?: Effec
     {
       title: 'Patch Template',
       description:
-        'Atomically replace selected props of named effect sections in inline JSON. Pass the expected revision from validate_template. Returns updated JSON and revision; never rewrites effect source.',
+        'Atomically replace selected effect props in inline JSON. Use expanded section names including partial prefixes; editing a registry partial materializes only that instance. Pass the expected revision from validate_template. Returns updated JSON and revision; never rewrites effect source.',
       inputSchema,
     },
-    async (args: PatchArgs) => {
+    async (args: PatchArgs, ctx?: ServerContext) => {
       try {
+        ctx?.mcpReq.signal?.throwIfAborted();
         const result = patchTemplate(args);
-        await validateEffects?.(result.template);
+        await validateEffects?.(result.template, ctx?.mcpReq.signal);
 
         return { content: [{ type: 'text' as const, text: JSON.stringify(result) }], structuredContent: result };
       } catch (error) {

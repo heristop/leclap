@@ -237,7 +237,7 @@ The opt-in desktop graphics backend can resolve `type: "effect"` sections direct
 - `get_effect_schema({ list: true })` lists builtin and operator-registered identities, descriptions, output and contract digests. Pass `id` and `version` to inspect strict props/assets; no arguments still returns the builtin title contract. `list: true` cannot be combined with identity fields.
 - `validate_template` checks references/props/assets and returns a content-based JSON revision.
 - `render_preview` renders selected frames or an inclusive frame range from the effect scene; frame images are readable MCP image content.
-- `patch_template` atomically applies selected effect props to inline JSON using an expected revision; it returns updated JSON without changing source or unrelated sections.
+- `patch_template` atomically applies selected effect props to inline JSON using an expected revision. Use the expanded section name (including any partial prefix). Effects inside inline partials are editable; editing a registry partial materializes only that reference as an inline partial, preserving its variables and prefix. Other references and the shared definition remain unchanged.
 - `compose_video` resolves effect clips and sends the normalized template to the existing engine.
 
 Remotion remains optional and requires the existing trusted-local opt-in. Set `LECLAP_MCP_REMOTION_BROWSER` / `--remotion-browser` to a compatible installed Chrome executable if you want to avoid browser setup downloads. Direct core compilation rejects unresolved effects before platform initialization. Library callers can use the exported `resolveTemplateEffects` callback API with their own trusted renderer.
@@ -245,6 +245,8 @@ Remotion remains optional and requires the existing trusted-local opt-in. Set `L
 This delivery supports opaque title clips. It does not execute React scenes on a phone, provide a general effect marketplace, or claim text-fit/contrast inspection of Remotion graphics through the core's FFmpeg geometry checks. Preserve JSON, module source/dependencies, assets and render provenance together for reproducibility.
 
 Registered jobs run in a separate worker under one setup-and-render deadline. Failed jobs are removed. Completed previews retain returned artifacts and provenance; compositions retain provenance after the FFmpeg worker consumes the temporary effect clips. Intermediate paths in `effectProvenance` describe consumed inputs and are not downloadable output artifacts. Relative effect asset paths resolve under `mediaDir`; absolute paths must remain inside it. Effect props/assets must contain concrete values rather than unresolved `{{ placeholders }}`.
+
+Asset preflight shares the effect worker queue, probes videos sequentially, and reuses probe results for the same real file within a request. Its own deadline uses the configured render timeout. Request cancellation and that deadline stop active probes, including FFprobe discovery, before releasing the queue slot.
 
 Registered JSON effect previews and composition reuse rendered artifacts in
 `<mediaDir>/.leclap-effects/cache-v1`. Lookup happens after fresh asset staging,

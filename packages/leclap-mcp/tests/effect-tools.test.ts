@@ -14,6 +14,7 @@ import { runRender, runGeometryCheck } from '../src/compose/renderRunner.js';
 import type * as ComposerModule from 'ffmpeg-video-composer';
 import { nodeGeometryWarnings } from 'ffmpeg-video-composer';
 import { runTitleEffect } from '../src/effects/effect-runner.js';
+import { probeMedia } from '../src/tools/probeMedia.js';
 
 vi.mock('ffmpeg-video-composer', async (importOriginal) => ({
   ...(await importOriginal<typeof ComposerModule>()),
@@ -21,7 +22,13 @@ vi.mock('ffmpeg-video-composer', async (importOriginal) => ({
 }));
 vi.mock('../src/compose/renderRunner.js', () => ({ runRender: vi.fn(), runGeometryCheck: vi.fn() }));
 vi.mock('../src/tools/probeMedia.js', () => ({
-  probeMedia: async () => ({ durationSeconds: 10, videoCodec: 'h264' }),
+  probeMedia: vi.fn(async () => ({
+    durationSeconds: 10,
+    videoCodec: 'h264',
+    audioCodec: null,
+    sampleRate: null,
+    sizeBytes: 4,
+  })),
 }));
 vi.mock('../src/effects/effect-runner.js', () => ({ runTitleEffect: vi.fn() }));
 let dir: string;
@@ -38,6 +45,15 @@ function capture(register: any) {
     cfg
   );
   return handler;
+}
+
+function registerPatchForEffects(
+  server: Parameters<typeof registerPatchTemplate>[0],
+  config: Parameters<typeof registerCompose>[1]
+) {
+  registerPatchTemplate(server, async (patched, signal) => {
+    await validateEffects(patched, config, signal);
+  });
 }
 beforeEach(async () => {
   vi.clearAllMocks();
@@ -96,6 +112,43 @@ afterEach(async () => {
   await fs.rm(dir, { recursive: true, force: true });
 });
 describe('MCP registered effects', () => {
+  it.each([
+    ['compose_video', registerCompose],
+    ['render_preview', registerRenderPreview],
+    ['validate_template', registerValidateTemplate],
+    ['patch_template', registerPatchForEffects],
+  ] as const)('%s cancels an active effect preflight before rendering', async (name, register) => {
+    const controller = new AbortController();
+    let started = false;
+    cfg.renderTimeoutMs = 250;
+    vi.mocked(probeMedia).mockImplementationOnce(async (_file, _size, _runner, signal) => {
+      started = true;
+      return new Promise((_resolve, reject) =>
+        signal?.addEventListener(
+          'abort',
+          () => reject(signal.reason instanceof Error ? signal.reason : new Error('Probe aborted')),
+          { once: true }
+        )
+      );
+    });
+    const args =
+      name === 'patch_template'
+        ? {
+            template,
+            expectedRevision: templateRevision(template),
+            edits: [{ section: 'title', props: { headline: 'Updated' } }],
+          }
+        : { template, section: 'title', frames: [0] };
+    const pending = capture(register)(args, { mcpReq: { signal: controller.signal } });
+    await vi.waitFor(() => expect(started).toBe(true));
+    controller.abort(new Error('caller cancelled preflight'));
+    const result = await pending;
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('caller cancelled preflight');
+    expect(runTitleEffect).not.toHaveBeenCalled();
+    expect(runRender).not.toHaveBeenCalled();
+  });
+
   it('compose lowers effect to clip with provenance and leaves authored template unchanged', async () => {
     const raw = structuredClone(template);
     const result = await capture(registerCompose)({ template });

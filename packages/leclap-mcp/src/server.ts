@@ -79,8 +79,8 @@ export function createServer(input: McpConfig): McpServer {
     registerGetEffectSchema(server, config);
     registerRenderPreview(server, config);
   }
-  registerPatchTemplate(server, async (template) => {
-    await validateEffects(template, config);
+  registerPatchTemplate(server, async (template, signal) => {
+    await validateEffects(template, config, signal);
   });
   registerProbe(server, config);
 

@@ -305,7 +305,7 @@ async function handleValidate(args: ValidateArgs, config: RenderConfig, ctx?: Se
   }
 
   try {
-    await validateEffects(args.template, config);
+    await validateEffects(args.template, config, ctx?.mcpReq.signal);
   } catch (error) {
     return errorResult(`Effect validation failed: ${error instanceof Error ? error.message : String(error)}`);
   }

@@ -222,6 +222,27 @@ describe('packaged sample catalog', () => {
     });
   });
 
+  it('lists effective font files without treating preset font IDs as external assets', () => {
+    const requirements = sampleRequirements({
+      global: { overlays: [{ text: { en: 'Brand' }, font: 'archivo-black' }] },
+      sections: [
+        {
+          name: 'card',
+          type: 'color_background',
+          titleCard: { headline: { en: 'Title' }, headlineStyle: { font: 'bebas' } },
+          caption: { text: { en: 'Caption' }, font: 'oswald' },
+          filters: [{ type: 'drawtext', values: { text: { en: 'Raw text' }, fontfile: 'Custom.ttf' } }],
+        },
+      ],
+    });
+    expect(
+      requirements.assets
+        .filter(({ kind }) => kind === 'font')
+        .map(({ reference }) => reference)
+        .sort()
+    ).toEqual(['ArchivoBlack.ttf', 'BebasNeue.ttf', 'Custom.ttf', 'Oswald.ttf']);
+  });
+
   it('keeps committed generated data fresh against canonical sources', async () => {
     const { spawnSync } = await import('node:child_process');
     const result = spawnSync('pnpm', ['--filter', 'ffmpeg-video-composer', 'generate:samples', '--check'], {

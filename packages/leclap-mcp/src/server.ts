@@ -12,6 +12,7 @@ import { registerGetEffectSchema } from './tools/getEffectSchema.js';
 import { registerRenderPreview } from './tools/renderPreview.js';
 import { registerPatchTemplate } from './tools/patchTemplate.js';
 import { validateEffects } from './effects/title-registry.js';
+import { registerSamples } from './tools/samples.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
 
 // Each tool group is registered by a small `registerXxx(server, config)` function, called from
@@ -69,6 +70,7 @@ export function createServer(input: McpConfig): McpServer {
   );
 
   registerPing(server, config);
+  registerSamples(server);
   registerGetTemplateSchema(server);
   registerValidateTemplate(server, config);
   registerCompose(server, config);

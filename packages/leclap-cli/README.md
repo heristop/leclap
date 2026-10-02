@@ -20,6 +20,9 @@ pnpm render                          # runs the scaffolded `leclap render templa
 leclap init [name]        # scaffold a starter project (template.json + assets/ + README + scripts)
 leclap render <template>  # compile a video from a template JSON
 leclap validate <template> # check a template without rendering (schema + text layout)
+leclap samples list       # discover showcase samples (also --category, --backend, --query, --json)
+leclap samples show <id>  # inspect direction and requirements (also --json)
+leclap samples export <id> # raw descriptor JSON to stdout (or --output <new-file>)
 leclap diagnose           # check your FFmpeg setup
 leclap --help             # usage (per-command help with `leclap <command> --help`)
 leclap --version
@@ -28,6 +31,43 @@ leclap --version
 `leclap <template.json>` is a shorthand for `leclap render <template.json>`.
 
 `render` reads assets from `<cwd>/assets` and writes output under `<cwd>/build`.
+
+## `samples` — discover and adapt a showcase
+
+The installed CLI includes the same 32 samples as the [web showcase](https://leclap.dev/showcase/):
+22 native and 10 registered Remotion examples. Discovery and export work without a repository checkout,
+FFmpeg or Remotion, and do not download media or render effects.
+
+```bash
+leclap samples list --category typography --backend remotion --query blur
+leclap samples list --backend native --json
+leclap samples show web-app-promo
+leclap samples show editorial-blur-rise --json
+leclap samples export web-app-promo --output app-demo.json
+leclap samples export native-timing > timing.json
+# Customize copy and supply media before validating and rendering:
+leclap validate app-demo.json
+leclap render app-demo.json
+```
+
+`list --json` returns a metadata array. `show --json` returns the selected metadata plus `template`.
+`export` returns only the descriptor, with referenced partials embedded. `--output` creates a new file
+and fails if that path exists. Unknown IDs or invalid category/backend filters exit 1 with a stderr
+error; successful JSON stdout contains only JSON. Categories are `templates`, `typography`, `app-demos`,
+`overlays` and `evidence`; backends are `native` and `remotion`.
+
+Read `show` before rendering: it reports creative direction, project clip names/durations/capture hints,
+form fields and copy limits, variable defaults/placeholders, asset references and setup requirements.
+Supply your own media and fonts; preview videos/posters and showcase media are not shipped. Asset paths
+remain authored references and must resolve in your configured assets directory or be replaced.
+Effective font files from text presets are marked `source: "preset"`, with font family metadata when available.
+For native samples needing project clips or form inputs, use the library's `userVideoPaths`/`fields`
+configuration or MCP `compose_video`; the CLI render command has no clip/field binding flags.
+
+Registered effect samples require MCP's opted-in Node/Chromium backend, Remotion peers and a trusted
+configured entry that registers the named composition. Effects marked `customCatalog: true` additionally
+need the operator's `--effect-catalog`; exporting JSON does not install that catalog or executable source.
+The CLI does not render registered effect sections directly. See the [MCP setup](../leclap-mcp#operator-custom-effect-catalogs).
 
 ## `validate` — check before you render
 

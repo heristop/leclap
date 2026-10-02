@@ -85,11 +85,21 @@ pnpm app:expo     # Expo mobile app — compiles fully on-device (no server)
 Or use the CLI — [`@leclap/cli`](packages/leclap-cli) is the `leclap` dev tool:
 
 ```bash
+npx @leclap/cli samples list          # discover the packaged showcase
+npx @leclap/cli samples show web-app-promo
+npx @leclap/cli samples export native-timing --output timing.json
 npx @leclap/cli init my-video         # scaffold a starter project
 npx @leclap/cli render template.json  # render it (`leclap diagnose` checks your FFmpeg)
 ```
 
-Or drive it from an AI agent: the [`@leclap/mcp`](packages/leclap-mcp) server exposes the engine as MCP tools — schema → validate → render — with no LLM in the output path.
+Or drive it from an AI agent: the [`@leclap/mcp`](packages/leclap-mcp) server exposes the engine as MCP tools — sample discovery → customize → validate → render — with no LLM in the output path.
+
+The installed CLI and MCP expose all **32 showcase samples** (22 native, 10 Remotion), including creative
+direction and required clips, copy, fonts and assets. Exported descriptor JSON embeds referenced partials;
+supply your own media before rendering. Registered Remotion effects require the configured MCP
+Node/Chromium backend and, where indicated, a trusted operator catalog. Discovery itself needs neither
+FFmpeg nor Remotion. See [CLI sample commands](packages/leclap-cli/README.md#samples--discover-and-adapt-a-showcase)
+and [MCP discovery](packages/leclap-mcp/README.md#discover-samples-before-authoring).
 
 ## 📦 Monorepo
 

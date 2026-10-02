@@ -75,6 +75,27 @@ frames or a short range with `render_preview`; for native scenes render through 
 extract frames. Check both against the brief, fix concrete problems, and compose the final video.
 Validation checks the descriptor and geometry; it does not grade whether the design fulfills prose.
 
+## Discover an installed sample
+
+Start with `leclap samples list --category app-demos --backend native`, then
+`leclap samples show web-app-promo`. In MCP, call `list_samples` with those filters and
+`get_sample` with `{ "id": "web-app-promo" }`. Both expose the same 32 showcase entries, their authored
+creative direction and actual input requirements. Use `--query` / `query` to search direction as well as
+ID, title and description.
+
+Export with `leclap samples export web-app-promo --output app-demo.json` (creates a new file without
+overwriting), or take the MCP result's `template`. Partials are embedded. Adapt the brief and explicit
+settings together, replace sample copy, supply named clips and fields, then validate and render.
+Preview media is not packaged; provide or replace listed media and font references. Effective font
+requirements from presets are marked `source: "preset"` and retain family metadata when available.
+
+Native samples use existing FFmpeg backends. Registered Remotion samples remain discoverable with
+execution disabled, but rendering requires the opted-in MCP Node/Chromium backend, peers and a trusted
+configured entry. An effect marked `customCatalog: true` additionally requires operator registration
+through `--effect-catalog`; sample JSON includes no executable source. Inspect `requirements.setup`
+and the configured `get_effect_schema` contract before choosing supported props. The CLI discovery
+commands do not add direct registered-effect rendering.
+
 ## Examples to adapt
 
 - [Web App Promo](../packages/leclap-creative-kit/src/templates/web-app-promo.json): editorial hook,

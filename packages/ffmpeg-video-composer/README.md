@@ -74,3 +74,25 @@ MIT.
 This package does **not** bundle FFmpeg. It drives an FFmpeg you provide: your system binary, the optional `ffmpeg-static` package, or `@ffmpeg/ffmpeg` (WASM) in the browser — each under its own license.
 
 The optional on-device mobile engine (Android/iOS) lives in the monorepo, not in this package, and statically links an LGPLv3 FFmpeg built from source — see the [on-device compilation docs](https://github.com/heristop/leclap/blob/main/docs/on-device-compilation.md).
+
+## Packaged showcase samples
+
+Import the separate lightweight catalog entry point to discover the 32 showcase descriptors without
+loading the renderer, reading repository files or downloading media:
+
+```ts
+import { listSamples, getSample } from 'ffmpeg-video-composer/samples';
+
+const matches = listSamples({ category: 'app-demos', backend: 'native', query: 'screen' });
+const sample = getSample('web-app-promo');
+// Inspect sample.requirements, supply your clips/copy/assets, then validate sample.template and compile.
+```
+
+`listSamples` returns metadata without templates; `getSample` adds self-contained `template` JSON with
+referenced partials embedded. Results are independent copies. Invalid filters and unknown IDs throw
+clear errors. Preview media is not shipped; authored asset references must be supplied or replaced.
+Requirements include effective text-preset fonts (`source: 'preset'`), clips, fields, defaults and setup.
+Registered Remotion effects require the configured MCP Node backend and trusted catalogs where indicated.
+The registry stays separate from main browser/native bundles. CommonJS can use
+`require('ffmpeg-video-composer/samples')`. See the [CLI](../leclap-cli/README.md) and
+[MCP](../leclap-mcp/README.md) discovery workflows.

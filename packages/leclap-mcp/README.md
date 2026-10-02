@@ -5,8 +5,9 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the
 
 An AI agent (Claude Desktop, Cursor, …) is the LLM; this server helps it **author a customized
 template with nice effects** from the schema, then validates and renders it **deterministically** to
-an mp4. The server ships **no built-in template catalog** — it is decoupled from the app's
-creative-kit — so it stays a generic authoring tool. Remotion-assisted authoring is a bonus path.
+an mp4. The server includes the 32 showcase samples through the shared packaged catalog, with
+creative direction, descriptors and required inputs. It works without the app or private creative-kit
+at runtime. Remotion-assisted authoring is an optional path.
 The result is _agent-composable, deterministic, reproducible_ video — the opposite of generative
 video models, which sample rather than render.
 
@@ -14,6 +15,8 @@ video models, which sample rather than render.
 
 | Tool                   | Description                                                                                                                                                  |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `list_samples`         | Discover sample metadata and required inputs, filtered by category/backend/query → `{ samples }`                                                             |
+| `get_sample`           | Get a sample by stable ID → metadata, requirements and self-contained `template` JSON                                                                        |
 | `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                                                          |
 | `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields, geometry? }`                                      |
 | `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4 |
@@ -21,9 +24,9 @@ video models, which sample rather than render.
 | `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                        |
 | `ping`                 | Liveness check                                                                                                                                               |
 
-Typical agent flow: `get_template_schema` → author an inline descriptor (optionally prepend a
-`render_remotion_clip` intro) → `validate_template` (instant, iterate until valid) → `compose_video`
-→ read the returned `outputPath`.
+Typical agent flow: `list_samples` → `get_sample` → inspect requirements and customize media/copy →
+`get_template_schema` → `validate_template` (iterate until valid) → `compose_video` → read the returned
+`outputPath`. Author a fresh descriptor from the schema when no sample fits.
 
 `validate_template` also reports, render-free, text that would run off the frame or out of title-safe,
 collide with other text, sit under a band, be too small, lack contrast, or sit over footage with no box,
@@ -41,6 +44,39 @@ media-dir sandbox as `compose_video`, reads assets from the media dir, and runs 
 render worker under the same timeout. It adds a `render` field (`measured`, `seconds`, and
 `unavailable` when it could not render — no FFmpeg with `drawtext`, a failed render, or a timeout);
 the render-free findings come back either way.
+
+### Discover samples before authoring
+
+Both discovery tools are always available, even with Remotion disabled. They read packaged data only:
+no media downloads, effect execution or repository access. `list_samples` accepts optional `category`
+(`templates`, `typography`, `app-demos`, `overlays`, `evidence`), `backend` (`native`, `remotion`) and
+case-insensitive `query` (up to 4000 characters). `get_sample` takes `id` (1–200 characters).
+
+```json
+{ "name": "list_samples", "arguments": { "category": "app-demos", "backend": "native" } }
+```
+
+```json
+{ "name": "get_sample", "arguments": { "id": "web-app-promo" } }
+```
+
+Results include identical JSON in text and `structuredContent`; `get_sample` puts the descriptor at
+`template` alongside its metadata. Unknown IDs return `isError` with a discovery hint. Required inputs
+include named clips and durations/capture hints, form fields and limits, variables/defaults/placeholders,
+assets, effective preset font files (`source: "preset"`) and versioned effects. Replace the sample copy,
+supply clips by `userVideoPaths` and form values by `fields`, customize `global.variables`, then pass
+`template` to `validate_template` and `compose_video`. Referenced partials are embedded in the descriptor.
+
+The 22 native samples use FFmpeg; the 10 registered effect samples require `--allow-remotion`, Remotion
+peers and a trusted `--remotion-entry`. Effects with `customCatalog: true` also require the operator's
+`--effect-catalog` and the matching composition in that entry. Sample discovery does not enable execution,
+install a catalog or supply React source. Inspect `requirements.setup` and, after operator setup,
+`get_effect_schema` before editing effect props. See [operator catalogs](#operator-custom-effect-catalogs).
+
+Preview videos/posters and media are not bundled. Supply or replace authored asset references and fonts;
+relative references must resolve under the configured media directory. The `source`, `showcasePath` and
+`preview` values describe authoring/showcase locations, not installed local files. To save descriptor JSON
+outside MCP, use `leclap samples export <id> --output <new-file>`.
 
 ### Recipe: video evidence for a pull or merge request
 
@@ -149,7 +185,7 @@ From a checkout, swap the command for `"command": "node"` with
 
 Then ask the agent to _"compose a 10-second vertical title card with a fade-in and music, then render it"_ —
 it fetches the schema, authors a descriptor, validates it, and renders. Open the returned `outputPath`.
-(There is no catalog to list: the server authors templates rather than serving stock ones.)
+Or ask it to list native app demos, retrieve `web-app-promo`, replace the copy and bind your screen recording, then validate and render.
 
 ### Inspector
 

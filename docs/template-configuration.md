@@ -1,6 +1,6 @@
 # 🧩 Template Configuration
 
-A **template** is a JSON document that describes a video: its global settings and the ordered sections that make it up. The compiler (`ffmpeg-video-composer`) turns a template plus a `ProjectConfig` (build/assets dirs, locale, user-supplied form values, recorded clips) into a finished video. The same descriptor renders on Node, in the browser via WebAssembly, and fully on-device on React Native.
+A **template** is a JSON document that describes a video: its global settings and the ordered sections that make it up. The compiler (`ffmpeg-video-composer`) turns a template plus a `ProjectConfig` (build/assets dirs, locale, user-supplied form values, recorded clips) into a finished video. Native descriptor scenes render on Node, in the browser via WebAssembly, and fully on-device on React Native. Registered effect scenes require a configured backend to resolve them into compatible clips before composition.
 
 This is the template descriptor reference. Upgrading an older template? See [Migrating older templates](#migrating-older-templates).
 
@@ -26,7 +26,8 @@ Because `filters[]` is a raw pass-through, its `values` keys stay **FFmpeg-nativ
 {
   "meta": {/* Optional display metadata */},
   "global": {/* GlobalConfig — project-wide defaults */},
-  "sections": [/* ordered Section[] — each becomes a clip, composed in order */],
+  "sections": [/* ordered Section[] — scenes, forms, or partial references */],
+  "partials": [/* optional reusable fragment definitions */],
 }
 ```
 
@@ -74,21 +75,22 @@ Project-wide defaults and the options a builder/editor exposes to end users. `gl
 
 ## Sections
 
-`sections` is a discriminated union on `type`. Every section shares the **base fields** below, then adds type-specific `options`.
+`sections` is a discriminated union on `type`. Native sections share the **base fields** below, then add type-specific `options`. Registered `effect` scenes require an effect reference and duration; see [Registered JSON effects](#registered-json-effects-desktop-authoring).
 
 ### Section types
 
-| `type`             | Renders                                                                                      |
-| ------------------ | -------------------------------------------------------------------------------------------- |
-| `video`            | A pre-recorded / asset-backed clip (`options.videoUrl`).                                     |
-| `project_video`    | A clip captured from the device camera (supports a `framingGuide`).                          |
-| `form`             | A text-input form (`options.fields`); collects values for `{{ field }}`.                     |
-| `color_background` | A solid or layered colour background (`options.backgroundColor`, `layers`).                  |
-| `image_background` | A still image background (`options.pictureUrl`).                                             |
-| `music`            | An audio-only / timeline-padding section (no video).                                         |
-| `partial`          | Expands inline to a reusable partial's sections (see [Partial sections](#partial-sections)). |
+| `type`             | Renders                                                                                                                                     |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `video`            | A pre-recorded / asset-backed clip (`options.videoUrl`).                                                                                    |
+| `project_video`    | A clip captured from the device camera (supports a `framingGuide`).                                                                         |
+| `form`             | A text-input form (`options.fields`); collects values for `{{ field }}`.                                                                    |
+| `color_background` | A solid or layered colour background (`options.backgroundColor`, `layers`).                                                                 |
+| `image_background` | A still image background (`options.pictureUrl`).                                                                                            |
+| `music`            | An audio-only / timeline-padding section (no video).                                                                                        |
+| `partial`          | Expands inline to a reusable partial's sections (see [Partial sections](#partial-sections)).                                                |
+| `effect`           | Registered JSON effect resolved into a clip before composition (see [Registered JSON effects](#registered-json-effects-desktop-authoring)). |
 
-Renderable visual segments live in `packages/ffmpeg-video-composer/src/editor/segments/`; `SegmentFactory` maps `type` → class. A `partial` is not rendered directly — it is expanded into real sections before validation and compile.
+Native visual segments live in `packages/ffmpeg-video-composer/src/editor/segments/`; `SegmentFactory` maps `type` → class. A `partial` is expanded into real sections before validation and compile. An `effect` is resolved by the caller's backend before the native engine runs.
 
 ### Partial sections
 
@@ -106,7 +108,7 @@ A `partial` section pulls in a reusable fragment from the shared registry ([`@le
 
 Expansion happens **before** schema validation and compile, so everything downstream only sees real sections.
 
-### Base fields (all sections)
+### Base fields (native sections)
 
 | Field         | Type             | Description                                                                                                      |
 | ------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -130,7 +132,7 @@ Expansion happens **before** schema validation and compile, so everything downst
 
 ### Options
 
-Common options (`BaseSectionOptionsSchema`, `strict`) shared by all sections, plus per-type extras. **All durations are in seconds.**
+Common options (`BaseSectionOptionsSchema`, `strict`) shared by native sections, plus per-type extras. Effect sections require `duration` and reject `useVideoSection`, `videoUrl` and `pictureUrl`. **All durations are in seconds.**
 
 | Field                                      | Type                                        | Description                                                                                                                                                                   |
 | ------------------------------------------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -177,7 +179,7 @@ The validator rejects:
 
 - a non-`cut` transition on the **last** rendering section (nothing to transition into — `dangling_transition`);
 - an effective transition duration **≥** the smaller of the two adjacent _declared_ `options.duration`s (`transition_too_long`);
-- `kenburns` motion on any section other than `image_background` (`motion_unsupported_section`).
+- `kenburns` motion outside `image_background`, `video`, `project_video` or `effect` (`motion_unsupported_section`).
 
 ### xfade transition names
 
@@ -230,7 +232,7 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
 
 ```jsonc
 [
-  { "type": "kenburns", "direction": "in", "intensity": 1.2 }, // image_background only
+  { "type": "kenburns", "direction": "in", "intensity": 1.2 }, // still background or video clip
   { "type": "rotate", "angle": 5 },
   { "type": "crop", "w": 1280, "h": 720, "x": 0, "y": 0 },
   { "type": "flip", "axis": "horizontal" },
@@ -239,14 +241,14 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
 ]
 ```
 
-| `type`     | Fields                                                                                           | Notes                                                                                                                                                     |
-| ---------- | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `kenburns` | `direction?` (`in`/`out`/`left`/`right`/`up`/`down`), `intensity?` (1.01..2, default 1.15)       | `zoompan` on stills — **`image_background` only**.                                                                                                        |
-| `rotate`   | `angle` (degrees, + = clockwise)                                                                 | `rotate`.                                                                                                                                                 |
-| `crop`     | `w`, `h` (required), `x?`, `y?` (px or FFmpeg expression)                                        | `crop`; default offset centres the crop.                                                                                                                  |
-| `flip`     | `axis` (`horizontal` / `vertical`)                                                               | `hflip` / `vflip`.                                                                                                                                        |
-| `shake`    | `intensity?` (jitter amplitude px, 1..20, default 6), `frequency?` (Hz, 0.5..8, default 2)       | Handheld shake: a wandering `crop` window, scaled back to the section's output size so it never shrinks the frame. No section-type restriction.           |
-| `pulse`    | `intensity?` (peak zoom, 1.01..1.3, default 1.08), `frequency?` (pulses/sec, 0.25..4, default 1) | Rhythmic `zoompan` zoom in/out around the frame centre, mirroring `kenburns`'s still-vs-video (`d=frames` / `d=1`) handling. No section-type restriction. |
+| `type`     | Fields                                                                                           | Notes                                                                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `kenburns` | `direction?` (`in`/`out`/`left`/`right`/`up`/`down`), `intensity?` (1.01..2, default 1.15)       | `zoompan` on `image_background`, `video`, `project_video` or resolved `effect` clips. Video uses one output frame per input frame after fps normalization. |
+| `rotate`   | `angle` (degrees, + = clockwise)                                                                 | `rotate`.                                                                                                                                                  |
+| `crop`     | `w`, `h` (required), `x?`, `y?` (px or FFmpeg expression)                                        | `crop`; default offset centres the crop.                                                                                                                   |
+| `flip`     | `axis` (`horizontal` / `vertical`)                                                               | `hflip` / `vflip`.                                                                                                                                         |
+| `shake`    | `intensity?` (jitter amplitude px, 1..20, default 6), `frequency?` (Hz, 0.5..8, default 2)       | Handheld shake: a wandering `crop` window, scaled back to the section's output size so it never shrinks the frame. No section-type restriction.            |
+| `pulse`    | `intensity?` (peak zoom, 1.01..1.3, default 1.08), `frequency?` (pulses/sec, 0.25..4, default 1) | Rhythmic `zoompan` zoom in/out around the frame centre, mirroring `kenburns`'s still-vs-video (`d=frames` / `d=1`) handling. No section-type restriction.  |
 
 ## Audio
 
@@ -272,7 +274,7 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
 | `telephone` | `highpass=f=300,lowpass=f=3400` |
 | `muffled`   | `lowpass=f=1200`                |
 
-> `speed` ≠ 1 retimes audio via `atemp`, which is **clamped to `[0.5, 2]`**. Outside that range, video and audio can desync — split into multiple `atemp` stages or avoid extreme speeds.
+> `speed` ≠ 1 retimes audio via `atempo`, which is **clamped to `[0.5, 2]`**. Outside that range, video and audio can desync — split into multiple `atempo` stages or avoid extreme speeds.
 
 ## Layers
 
@@ -307,7 +309,7 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
 
 ## Chroma key
 
-A visual section (`project_video`, `image`, `color_background`) may declare a `chromaKey` block to **key out a solid screen colour** (green/blue screen) and composite the clip over a flat background colour. The section inverts internally to a colour base + a keyed-clip overlay (`colorkey` → `format=rgba` → `overlay`).
+A native visual section (`video`, `project_video`, `image_background`, `color_background`) may declare a `chromaKey` block to **key out a solid screen colour** (green/blue screen) and composite the clip over a flat background colour. The section inverts internally to a colour base + a keyed-clip overlay (`colorkey` → `format=rgba` → `overlay`).
 
 ```jsonc
 { "color": "#00b140", "similarity": 0.3, "blend": 0.1, "background": "#101418" }
@@ -609,8 +611,10 @@ For a hand-framed scene, a final `{ "type": "scale", "value": "output" }` is a L
 | `value`  | `string \| number` | Single scalar arg for simple filters.                                                                 |
 | `values` | `FilterValues`     | Structured args — **FFmpeg-native keys** (see below).                                                 |
 | `range`  | `string`           | Active window as `"start:end"` in seconds.                                                            |
+| `reveal` | `Reveal`           | Animated entrance for positioned `drawtext` (see [Reveal](#reveal)).                                  |
+| `exit`   | `Exit`             | Animated departure for positioned `drawtext` (see [Exit](#exit)).                                     |
 
-`values` keys (kept FFmpeg-native **by design**): `x`, `y`, `w`, `h`, `c`, `t`, `text` (a `Translation`), `fontcolor`, `fontsize`, `fontfile`, `alpha`, `d`, `st`, `color`, `box`, `boxcolor`, `boxborderw`.
+`values` keys (kept FFmpeg-native **by design**): `x`, `y`, `w`, `h`, `c`, `t`, `text` (a `Translation`), `fontcolor`, `fontsize`, `fontfile`, `alpha`, `d`, `st`, `color`, `box`, `boxcolor`, `boxborderw`, `shadowcolor`, `shadowx`, `shadowy`, `bordercolor`, `borderw`, `enable`.
 
 `text`, `title`, `description`, and form-field `label` are `Translation` objects (`{ "en": "…", "fr": "…" }`) for i18n.
 
@@ -794,9 +798,9 @@ An `effect` section references a versioned, registered graphics implementation w
       "springDamping": 18
     },
     "assets": {
-      "background": "media/background.mp4",
-      "logo": "media/logo.png",
-      "font": "media/font.ttf"
+      "background": "/absolute/path/to/media/background.mp4",
+      "logo": "/absolute/path/to/media/logo.png",
+      "font": "/absolute/path/to/media/font.ttf"
     }
   },
   "options": { "duration": 10 }
@@ -805,8 +809,8 @@ An `effect` section references a versioned, registered graphics implementation w
 
 Effect IDs and exact semantic versions are required; props contain JSON values only. The core validates the reference contract, while the registered backend validates its specific props, asset slots and runtime support. Every effect is preflighted before effect rendering begins. Resolution preserves section filters, transitions and compositing options.
 
-The first MCP backend supports `leclap.title-reveal@1.0.0` through a trusted configured Remotion entry (`LeclapTitle` composition, 1280×720, 30 fps, 300 frames). Enable the existing Remotion opt-in and configure the entry; see [the runnable example](../examples/llm-remotion-title). Asset paths stay under the configured media directory. This is desktop rendering; native/browser callers may consume the resulting compatible clip but do not execute React code locally.
+The Node MCP backend includes `leclap.title-reveal@1.0.0` (`LeclapTitle`) and `leclap.web-app-promo@1.0.0` (`LeclapWebAppPromo`), plus operator-registered effects from a configured catalog. Discover the available effects with `get_effect_schema` and `{ "list": true }`, then request an exact id/version to inspect prop defaults/bounds, asset slots and runtime requirements. The current output contract is 1280×720, 30 fps, 300 frames (10 seconds). Enable the Remotion opt-in and configure a trusted entry; see [the runnable example](../examples/llm-remotion-title). The example paths above are placeholders: replace them with absolute regular local files contained under the configured media directory, including a background video at least 10 seconds long for the title effect. Inspect selected frames or a short range with `render_preview` before `compose_video`. This is desktop rendering; native/browser callers may consume the resulting compatible clip but do not execute React code locally.
 
-Calling the core compile API with an unresolved effect reports `effect_backend_unavailable` before platform initialization. Ordinary templates are unchanged. To use another effect implementation, provide a trusted renderer/preflight callback to the generic resolution API; the initial MCP catalog deliberately exposes one registered effect.
+Calling the core compile API with an unresolved effect reports `effect_backend_unavailable` before platform initialization. Ordinary templates are unchanged. Library consumers can provide another trusted renderer/preflight callback to the generic resolution API; MCP operators can register bounded JSON prop and asset contracts in their configured catalog.
 
 For reproducibility, retain the JSON, exact implementation/dependencies, resolved assets/fonts and render settings. JSON syntax alone does not guarantee identical pixels across rendering backends or identical encoded bytes.

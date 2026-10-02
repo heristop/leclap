@@ -9,7 +9,7 @@
 Describe a video in one JSON _template_ — sections, filters, music, overlays — then render **that same template** on a phone (React Native, **on-device**) or in the **browser** (WebAssembly). No upload, no server, no generative model: the render is deterministic and reproducible, not sampled.
 
 [![CI](https://github.com/heristop/leclap/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/leclap/actions/workflows/ci.yml)
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24-brightgreen.svg)](https://nodejs.org/en/)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D24.11.0-brightgreen.svg)](https://nodejs.org/en/)
 [![pnpm](https://img.shields.io/badge/pnpm-12-f69220.svg)](https://pnpm.io/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -65,7 +65,7 @@ The workflow is explicit: **implement → collect evidence → author template �
 
 ## 🚀 Quick start
 
-> 💡 **Recommended: [mise](https://mise.jdx.dev).** `mise install` provisions the exact pinned toolchain — **Node 24, pnpm 12, FFmpeg 8.1.1, and Rust** — so every contributor and CI run identical versions. Managing versions yourself? Bring **Node ≥ 24** and **pnpm 12**.
+> 💡 **Recommended: [mise](https://mise.jdx.dev).** `mise install` provisions **Node 24, pnpm 12, FFmpeg 8.1.1, and stable Rust**. Node/pnpm release lines and Rust stable can advance; `packageManager` pins pnpm to **12.6.0**. Managing versions yourself? Bring **Node ≥ 24.11.0** and **pnpm 12.6.0**.
 
 ```bash
 git clone https://github.com/heristop/leclap.git
@@ -74,9 +74,10 @@ mise install     # Node 24, pnpm 12, FFmpeg 8.1.1 + Rust
 pnpm install
 ```
 
-Then pick an app:
+Build the shared core, then pick an app:
 
 ```bash
+pnpm --filter ffmpeg-video-composer build
 pnpm app:web      # web app — compiles videos in-browser (no server)
 pnpm app:expo     # Expo mobile app — compiles fully on-device (no server)
 ```
@@ -92,7 +93,7 @@ Or drive it from an AI agent: the [`@leclap/mcp`](packages/leclap-mcp) server ex
 
 ## 📦 Monorepo
 
-pnpm workspaces (`apps/*`, `packages/*`) — no turbo/nx. The root is a private orchestrator (`leclap`); `ffmpeg-video-composer`, `@leclap/cli`, and `@leclap/mcp` are published to npm. The web and mobile apps both run the same core — the mobile app drives it **fully on-device** via the embedded native engine (no server), the web app in-browser via WASM.
+pnpm workspaces (`apps/*`, `packages/*`, plus `examples/llm-remotion-title`) — no turbo/nx. The root is a private orchestrator (`leclap`); `ffmpeg-video-composer`, `@leclap/cli`, and `@leclap/mcp` are published to npm. The web and mobile apps both run the same core — the mobile app drives it **fully on-device** via the embedded native engine (no server), the web app in-browser via WASM.
 
 | Package                                                   | Description                                                                      |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------- |

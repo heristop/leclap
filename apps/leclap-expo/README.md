@@ -1,17 +1,19 @@
 # @leclap/expo — LeClap mobile
 
-Expo / React Native client for LeClap. It compiles videos **fully on-device** through an embedded native FFmpeg engine ([`ffmpeg-engine`](../../packages/ffmpeg-engine)) — no server — rendering the same [`@leclap/creative-kit`](../../packages/leclap-creative-kit) templates as the web app and CLI. Record a clip per template section from the camera, preview, then compile.
+Expo / React Native client for LeClap. It renders videos **on-device** through an embedded native FFmpeg engine ([`ffmpeg-engine`](../../packages/ffmpeg-engine)) — no server — rendering the same [`@leclap/creative-kit`](../../packages/leclap-creative-kit) templates as the web app and CLI. Record a clip per template section from the camera, preview, then compile. Bundled assets are staged locally; remote assets can still require downloads.
 
 ## Prerequisites
 
-- **Node ≥ 24**, plus the repo toolchain (`mise install` from the root).
-- A device/simulator, and **Xcode** (iOS) / **Android Studio** (Android) for native builds.
+- **Node ≥ 24.11.0**, plus the repo toolchain (`mise install` from the root).
+- A device/simulator and native dev client with the embedded engine; Expo Go does not include it.
+- **Xcode** (iOS) / **Android Studio** (Android) for native builds. Rebuild the ignored engine binaries with `scripts/ffmpeg/build-engine.sh`; the current engine scripts assume macOS (including the Android NDK host toolchain). See [On-Device Compilation](../../docs/on-device-compilation.md#building-the-engine-locally).
 
 ## Run
 
 ```bash
 pnpm install            # from the repo root
-pnpm start              # Metro dev server   (or: pnpm android · pnpm ios · pnpm web)
+pnpm app:expo           # Metro dev server, from the repo root
+pnpm app:android        # or pnpm app:ios, to build/run the native app
 ```
 
 Everything runs locally — there is no backend to start. On an Android device/emulator, forward the Metro port for the dev client:
@@ -24,7 +26,7 @@ adb reverse tcp:8081 tcp:8081
 
 - **Routing** — Expo Router (file-based) under `app/`; feature modules under `src/features/` (editor, projects, templates).
 - **Permissions** — camera + microphone (recording) and photo library (saving). Grant them in device settings if prompted.
-- **Troubleshooting** — clear the cache with `npx expo start --clear`; for Android, re-run `adb reverse` after restarting Metro.
+- **Troubleshooting** — clear the cache with `pnpm --filter @leclap/expo exec expo start --clear`; for Android, re-run `adb reverse` after restarting Metro.
 
 ---
 

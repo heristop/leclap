@@ -1,26 +1,22 @@
 {
   "meta": {
-    "name": "Product Launch",
-    "description": "A polished vertical launch: eased title reveals, a clean product shot with your pitch and offer, and a clear closing card. Record or upload your product clip."
+    "name": "Web App Promo",
+    "description": "A landscape promo for your web app: an eased headline, an ungraded screen recording with a feature caption, and a closing call to action. Upload a screen capture or record a walkthrough."
   },
   "global": {
-    "orientation": "portrait",
-    "variables": {
-      "brand": "YOUR BRAND"
-    },
+    "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "upbeat-electronic.mp3"
+      "name": "the-builder.mp3"
     },
-    "allowedMusic": ["upbeat-electronic", "future-bass-energy", "the-builder", "indie-rock-dreamy", "arcadia"],
+    "allowedMusic": ["the-builder", "upbeat-electronic", "lofi-chill"],
     "allowUploadMusic": true,
     "transition": {
-      "type": "fade",
-      "duration": 0.35
+      "type": "cut"
     },
     "audio": {
       "sourceVolume": 1,
-      "musicVolume": 0.25,
+      "musicVolume": 0.18,
       "musicFade": 0.8,
       "ducking": {
         "threshold": 0.05,
@@ -28,60 +24,46 @@
         "attack": 20,
         "release": 400
       }
-    },
-    "overlays": [
-      {
-        "text": {
-          "en": "{{ form_1_name }}"
-        },
-        "position": "top-right",
-        "color": "#ffffff",
-        "size": 26,
-        "effect": {
-          "shadow": true
-        },
-        "reveal": {
-          "type": "fade",
-          "delay": 0.18,
-          "duration": 0.65,
-          "distance": 32,
-          "easing": "ease-out"
-        },
-        "sections": ["video_1"]
-      }
-    ]
+    }
   },
   "sections": [
     {
       "name": "form_1",
       "type": "form",
       "title": {
-        "en": "Your product"
+        "en": "Your app story"
       },
       "description": {
-        "en": "The name and one-line pitch over your clip, with your offer on the closing card"
+        "en": "The headline, feature and invitation shown in your promo"
       },
       "options": {
         "fields": [
           {
-            "name": "form_1_name",
-            "maxLength": 13,
+            "name": "form_1_app",
+            "maxLength": 20,
             "label": {
-              "en": "Product name"
+              "en": "App name"
             }
           },
           {
-            "name": "form_1_tagline",
-            "maxLength": 24,
+            "name": "form_1_promise",
+            "maxLength": 32,
             "label": {
-              "en": "One-line pitch"
+              "en": "One-line promise"
             }
           },
           {
-            "name": "form_1_price",
-            "maxLength": 12,
+            "name": "form_1_feature",
+            "maxLength": 38,
             "label": {
-              "en": "Price or offer"
+              "en": "Feature to show"
+            }
+          },
+          {
+            "name": "form_1_cta",
+            "maxLength": 28,
+            "label": {
+              "en": "Call to action"
             }
           }
         ]
@@ -90,19 +72,15 @@
     {
       "name": "intro",
       "type": "color_background",
-      "transition": {
-        "type": "smoothup",
-        "duration": 0.35
-      },
       "titleCard": {
         "kicker": {
-          "en": "INTRODUCING"
+          "en": "MEET {{ form_1_app }}"
         },
         "headline": {
-          "en": "{{ form_1_name }}"
+          "en": "{{ form_1_promise }}"
         },
         "subtitle": {
-          "en": "{{ form_1_tagline }}"
+          "en": "A better way to work."
         },
         "accent": "#a69bff",
         "reveal": {
@@ -112,21 +90,21 @@
           "distance": 32,
           "easing": "ease-out"
         },
-        "effect": {
-          "shadow": true
-        },
         "headlineStyle": {
           "font": "bebas",
-          "fontsize": 70
+          "fontsize": 64
         },
         "subtitleStyle": {
           "font": "oswald",
-          "fontsize": 32,
+          "fontsize": 24,
           "color": "#d7d5e8"
+        },
+        "effect": {
+          "shadow": true
         }
       },
       "options": {
-        "backgroundColor": "#0b0e24",
+        "backgroundColor": "#10101b",
         "duration": 3,
         "layers": [
           {
@@ -157,46 +135,31 @@
     {
       "name": "video_1",
       "type": "project_video",
-      "look": "vivid-pop",
-      "inputs": [
-        {
-          "name": "reticle",
-          "url": "/assets/animations/corner_brackets.apng",
-          "type": "animation",
-          "options": {
-            "loop": true,
-            "persistent": true,
-            "position": "0:0",
-            "scale": "720:1280",
-            "opacity": 0.28
-          }
-        }
-      ],
+      "title": {
+        "en": "Show your app"
+      },
+      "description": {
+        "en": "Upload a landscape screen recording or film a walkthrough. Keep the feature you want to show above the caption band."
+      },
       "lowerThird": {
         "title": {
-          "en": "{{ form_1_name }}"
+          "en": "{{ form_1_feature }}"
         },
         "subtitle": {
-          "en": "{{ form_1_tagline }}"
+          "en": "{{ form_1_app }}"
+        },
+        "badge": {
+          "en": "IN ACTION"
         },
         "accent": "#a69bff",
+        "boxOpacity": 0.88,
         "reveal": {
           "type": "rise",
-          "delay": 0.35,
+          "delay": 0.3,
           "duration": 0.65,
           "distance": 32,
           "easing": "ease-out"
-        },
-        "effect": {
-          "shadow": true
-        },
-        "boxOpacity": 0.78
-      },
-      "title": {
-        "en": "Show your product"
-      },
-      "description": {
-        "en": "Keep the product steady and centred — the name and pitch reveal along the bottom"
+        }
       },
       "options": {
         "duration": 8,
@@ -204,25 +167,20 @@
         "countdown": true,
         "countdownDuration": 2,
         "musicVolume": 0.04
-      },
-      "filters": [
-        {
-          "type": "vignette"
-        }
-      ]
+      }
     },
     {
       "name": "outro",
       "type": "color_background",
       "titleCard": {
         "kicker": {
-          "en": "MAKE IT YOURS"
+          "en": "{{ form_1_app }}"
         },
         "headline": {
-          "en": "{{ form_1_name }}"
+          "en": "{{ form_1_cta }}"
         },
         "subtitle": {
-          "en": "{{ form_1_price }}"
+          "en": "{{ form_1_promise }}"
         },
         "accent": "#a69bff",
         "align": "center",
@@ -235,11 +193,11 @@
         },
         "headlineStyle": {
           "font": "bebas",
-          "fontsize": 70
+          "fontsize": 64
         },
         "subtitleStyle": {
           "font": "oswald",
-          "fontsize": 32,
+          "fontsize": 24,
           "color": "#d7d5e8"
         },
         "fade": {
@@ -250,7 +208,7 @@
         }
       },
       "options": {
-        "backgroundColor": "#0b0e24",
+        "backgroundColor": "#10101b",
         "duration": 3,
         "layers": [
           {

@@ -13,6 +13,7 @@ import { NOT_FOUND_HANDLE } from '@/hooks/use-not-found';
 const lazyPage = (factory: () => Promise<Record<string, unknown>>, name: string) =>
   lazy(() => factory().then((module) => ({ default: module[name] as React.ComponentType })));
 
+const Showcase = lazyPage(() => import('@/presentation/pages/Showcase'), 'Showcase');
 const StudioHome = lazyPage(() => import('@/presentation/pages/StudioHome'), 'StudioHome');
 const Builder = lazyPage(() => import('@/presentation/pages/Builder'), 'Builder');
 const StudioTemplateBuilderPage = lazyPage(
@@ -63,6 +64,7 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <Route element={<RootLayout />} errorElement={<RouteError />}>
       <Route path="/" element={<Home />} />
+      <Route path="/showcase" element={<Showcase />} />
       <Route path="/studio" element={<StudioHome />} />
       <Route path="/studio/new" element={<Builder />} />
       <Route path="/studio/builder" element={<StudioTemplateBuilderPage />} />

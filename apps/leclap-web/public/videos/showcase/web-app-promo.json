@@ -1,0 +1,419 @@
+{
+  "meta": {
+    "name": "Web App Promo",
+    "description": "A landscape app launch with directional typography, a floating perspective screen recording and a clear final call to action.",
+    "creativeDirection": "Audience: people evaluating a web app. Direction: a confident editorial product demo, with the real interface as the evidence. Use a dark ink canvas, white condensed headline type, lavender motion and a pink brand signature. Give the hook, floating screen and invitation different compositions; keep captions clear of controls. Use a shallow perspective sweep on the capture and short eased type entrances with a small overshoot on the main headline and play mark, then hold the final CTA. Avoid simulated interactions, unsupported product claims, constant camera movement and repeated footer bands. Review the screen interaction, text settling, longest allowed copy and final hold; retain the flat framed fallback on mobile."
+  },
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": true,
+    "music": {
+      "name": "upbeat-electronic.mp3"
+    },
+    "allowedMusic": ["the-builder", "upbeat-electronic", "lofi-chill"],
+    "allowUploadMusic": true,
+    "transition": {
+      "type": "cut"
+    },
+    "audio": {
+      "sourceVolume": 1,
+      "musicVolume": 0.22,
+      "musicFade": 0.8,
+      "ducking": {
+        "threshold": 0.05,
+        "ratio": 8,
+        "attack": 20,
+        "release": 400
+      }
+    }
+  },
+  "sections": [
+    {
+      "name": "form_1",
+      "type": "form",
+      "title": {
+        "en": "Your app story"
+      },
+      "description": {
+        "en": "The headline, feature and invitation shown in your promo"
+      },
+      "options": {
+        "fields": [
+          {
+            "name": "form_1_app",
+            "maxLength": 20,
+            "label": {
+              "en": "App name"
+            }
+          },
+          {
+            "name": "form_1_promise",
+            "maxLength": 26,
+            "label": {
+              "en": "One-line promise"
+            }
+          },
+          {
+            "name": "form_1_feature",
+            "maxLength": 38,
+            "label": {
+              "en": "Feature to show"
+            }
+          },
+          {
+            "name": "form_1_cta",
+            "maxLength": 24,
+            "label": {
+              "en": "Call to action"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "intro",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#10141e",
+        "duration": 1.9,
+        "layers": [
+          {
+            "color": "#91a7ff",
+            "x": 0,
+            "y": 0,
+            "w": 18,
+            "h": "ih"
+          },
+          {
+            "color": "#242e44",
+            "x": 900,
+            "y": 0,
+            "w": 380,
+            "h": "ih"
+          }
+        ]
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_app }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#91a7ff",
+            "x": 64,
+            "y": 74
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0,
+            "duration": 0.18,
+            "easing": "ease-out"
+          },
+          "exit": {
+            "type": "fade",
+            "after": 1.73,
+            "duration": 0.13,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_promise }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 72,
+            "fontcolor": "#ffffff",
+            "x": 64,
+            "y": 260
+          },
+          "reveal": {
+            "type": "slide-right",
+            "delay": 0.04,
+            "duration": 0.38,
+            "distance": 60,
+            "easing": "ease-out-back"
+          },
+          "exit": {
+            "type": "slide-left",
+            "after": 1.65,
+            "duration": 0.2,
+            "easing": "ease-out",
+            "distance": 42
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_feature }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 28,
+            "fontcolor": "#c9d3ea",
+            "x": 64,
+            "y": 405
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.11,
+            "duration": 0.24,
+            "easing": "ease-out",
+            "distance": 22
+          },
+          "exit": {
+            "type": "rise",
+            "after": 1.68,
+            "duration": 0.16,
+            "easing": "ease-out",
+            "distance": 16
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "01"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 112,
+            "fontcolor": "#91a7ff",
+            "x": 980,
+            "y": 510
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.18,
+            "duration": 0.24,
+            "easing": "ease-out",
+            "distance": 32
+          },
+          "exit": {
+            "type": "fade",
+            "after": 1.7,
+            "duration": 0.16,
+            "easing": "ease-out"
+          }
+        }
+      ]
+    },
+    {
+      "name": "video_1",
+      "type": "project_video",
+      "title": {
+        "en": "Show your app"
+      },
+      "description": {
+        "en": "Upload a landscape screen recording. The full capture sits in a floating window with a gentle perspective sweep; the feature caption stays outside the screen."
+      },
+      "options": {
+        "duration": 6,
+        "forceAspectRatio": false,
+        "countdown": true,
+        "countdownDuration": 2,
+        "forceOriginalAspectRatio": false,
+        "captureMode": "screen",
+        "allowedCaptureModes": ["screen", "upload"]
+      },
+      "filters": [
+        {
+          "type": "fps",
+          "value": "30"
+        },
+        {
+          "type": "setsar",
+          "value": "1"
+        },
+        {
+          "type": "scale",
+          "value": "1088:500:force_original_aspect_ratio=decrease:force_divisible_by=2"
+        },
+        {
+          "type": "pad",
+          "value": "1088:500:(ow-iw)/2:(oh-ih)/2:color=0x171d2b"
+        },
+        {
+          "type": "pad",
+          "value": "1092:504:2:2:color=0x687aaf"
+        },
+        {
+          "type": "pad",
+          "value": "1092:538:0:34:color=0x242e44"
+        },
+        {
+          "type": "pad",
+          "value": "1110:556:0:0:color=0x080b12"
+        },
+        {
+          "type": "pad",
+          "value": "1280:720:(ow-iw)/2:(oh-ih)/2:color=0x10141e"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 103,
+            "y": 99,
+            "w": 6,
+            "h": 6,
+            "color": "#91a7ff",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 117,
+            "y": 99,
+            "w": 6,
+            "h": 6,
+            "color": "#687aaf",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 131,
+            "y": 99,
+            "w": 6,
+            "h": 6,
+            "color": "#687aaf",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "perspective",
+          "value": "x0='W*0.025':y0='H*(0.018+0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':x1='W*0.975':y1='H*(0.018-0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':x2='0':y2='H*(0.982-0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':x3='W':y3='H*(0.982+0.055*(cos(PI*min(in/180,1))*(1-min(in/180,1))))':sense=destination:eval=frame:interpolation=linear"
+        },
+        {
+          "type": "drawbox",
+          "values": {
+            "x": 0,
+            "y": 648,
+            "w": "iw",
+            "h": 72,
+            "color": "#10141e",
+            "t": "fill"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_feature }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#ffffff",
+            "x": "(w-text_w)*0.055",
+            "y": "(h-text_h)*0.955"
+          },
+          "reveal": {
+            "type": "slide-right",
+            "delay": 0.12,
+            "duration": 0.24,
+            "easing": "ease-out",
+            "distance": 32
+          }
+        },
+        {
+          "type": "scale",
+          "value": "output"
+        }
+      ]
+    },
+    {
+      "name": "outro",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#10141e",
+        "duration": 2.3
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_cta }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 84,
+            "fontcolor": "#ffffff",
+            "x": 64,
+            "y": 152
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.02,
+            "duration": 0.4,
+            "distance": 36,
+            "easing": "ease-out-back"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_promise }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 34,
+            "fontcolor": "#91a7ff",
+            "x": 64,
+            "y": 280
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0.14,
+            "duration": 0.22,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_app }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#FF8AAE",
+            "x": 64,
+            "y": 64
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0,
+            "duration": 0.2,
+            "distance": 12,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "▶"
+            },
+            "fontfile": "Anton.ttf",
+            "fontsize": 380,
+            "fontcolor": "#91a7ff",
+            "x": 930,
+            "y": 260
+          },
+          "reveal": {
+            "type": "slide-left",
+            "delay": 0.04,
+            "duration": 0.5,
+            "distance": 120,
+            "easing": "ease-out-back"
+          }
+        }
+      ]
+    }
+  ]
+}

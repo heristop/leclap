@@ -21,6 +21,10 @@ This study applies motion design principles to LeClap's existing native JSON and
 
 The underlying people, locations and physical props are source footage. LeClap can compose that footage with typography and overlays; these motion controls do not generate it.
 
+## Type impact
+
+[`type-impact.json`](./type-impact.json) is a new three-scene native typography study: opposing headline arrivals, a pink counterpoint and a stable final invitation. Its creative direction calls for fast entrances followed by readable holds. Configure `reveal` / `exit` duration, distance, easing and delay on each text filter; the final title card exposes line stagger. It uses bundled Bebas Neue and Oswald fonts and needs no footage. Watch it in the web app at `/showcase?sample=type-impact`.
+
 ## Native controls
 
 [`native-timing.json`](./native-timing.json) is a landscape, asset-free demonstration with bundled fonts. It includes a broadcast-inspired frame, a title card with configurable line stagger, and coordinated exits on positioned text.

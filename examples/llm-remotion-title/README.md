@@ -5,6 +5,12 @@ See the [creative-direction guide](../../docs/creative-direction.md) for CLI and
 
 This reference project keeps creative controls in LeClap JSON. A trusted Remotion component renders the title effect; LeClap then composes it with the ordinary outro section and exports the video.
 
+## Typography samples
+
+The registered editorial composition now has standalone descriptors for [masked rise](./editorial-masked-rise.json), [word stagger](./editorial-word-stagger.json) and [highlight](./editorial-highlight.json), alongside the existing blur rise, split slide and elastic stagger examples. Each records its creative direction and bounded motion props. These reuse the existing registered composition and strict JSON contracts.
+
+Browse their rendered previews and JSON in the web app’s `/showcase` page. The [showcase renderer](../showcase/README.md) generates the fixture media and composes them through the same trusted MCP entry and catalog used here.
+
 ## Prepare
 
 From the repository root, build the core and MCP packages. Install the workspace's pinned dependencies:

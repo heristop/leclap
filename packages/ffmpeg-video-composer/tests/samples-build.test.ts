@@ -18,14 +18,14 @@ describe('isolated installed samples entry', () => {
       for (const format of ['module', 'commonjs']) {
         const script =
           format === 'module'
-            ? "import { listSamples, getSample } from 'ffmpeg-video-composer/samples'; console.log(JSON.stringify([listSamples().length,getSample('product-reveal').requirements.effects[0].id]));"
-            : "const { listSamples, getSample } = require('ffmpeg-video-composer/samples'); console.log(JSON.stringify([listSamples().length,getSample('product-reveal').requirements.effects[0].id]));";
+            ? "import { listSamples, getSample } from 'ffmpeg-video-composer/samples'; console.log(JSON.stringify([listSamples().length,getSample('product-reveal').requirements.effects[0].id,[...new Set(getSample('pr-evidence').requirements.assets.filter(a=>a.source==='preset').map(a=>a.reference))].sort()]));"
+            : "const { listSamples, getSample } = require('ffmpeg-video-composer/samples'); console.log(JSON.stringify([listSamples().length,getSample('product-reveal').requirements.effects[0].id,[...new Set(getSample('pr-evidence').requirements.assets.filter(a=>a.source==='preset').map(a=>a.reference))].sort()]));";
         const result = spawnSync(process.execPath, ['--input-type', format, '-e', script], {
           cwd: directory,
           encoding: 'utf8',
         });
         expect(result.status, result.stderr).toBe(0);
-        expect(JSON.parse(result.stdout)).toEqual([32, 'studio.product-reveal']);
+        expect(JSON.parse(result.stdout)).toEqual([32, 'studio.product-reveal', ['Anton.ttf', 'Oswald.ttf']]);
       }
     } finally {
       await rm(directory, { recursive: true, force: true });

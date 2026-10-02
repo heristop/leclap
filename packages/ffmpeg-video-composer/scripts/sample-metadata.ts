@@ -1,5 +1,6 @@
 import { PROMO_EFFECT_ID, PROMO_EFFECT_VERSION } from '../../leclap-mcp/src/effects/promo-registry';
 import { TITLE_EFFECT_ID, TITLE_EFFECT_VERSION } from '../../leclap-mcp/src/effects/title-definition';
+import { sampleFontAssets } from './sample-font-assets';
 import type { Section, TemplateDescriptor } from '../src/schemas/template.schemas';
 import type {
   SampleAsset,
@@ -166,12 +167,13 @@ function assetKind(
 function assets(content: Content): SampleAsset[] {
   const result: SampleAsset[] = [];
   walk(content, (reference, path, key, parent) => {
-    const kind = assetKind(reference, path, key, parent);
-    // Inline generated panels/data URLs are self-contained, not external media requirements.
-    if (!kind || reference.startsWith('panel:') || reference.startsWith('data:')) return;
     const matches = tokens(reference);
     const defaultValue =
       matches.length === 1 && matches[0].token === reference ? content.global?.variables?.[matches[0].name] : undefined;
+    const resolved = typeof defaultValue === 'string' ? defaultValue : reference;
+    const kind = assetKind(resolved, path, key, parent);
+    // Inline generated panels/data URLs are self-contained, not external media requirements.
+    if (!kind || resolved.startsWith('panel:') || resolved.startsWith('data:')) return;
     result.push({ kind, reference, path, default: defaultValue });
   });
   const global = content.global;
@@ -191,6 +193,12 @@ function setup(requirements: Omit<SampleRequirements, 'setup'>): string[] {
   if (requirements.assets.length > 0) {
     result.push(
       'Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.'
+    );
+  }
+
+  if (requirements.assets.some((asset) => asset.source === 'preset')) {
+    result.push(
+      'Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.'
     );
   }
 
@@ -226,7 +234,7 @@ export function sampleRequirements(template: TemplateDescriptor): SampleRequirem
     projectVideos: projectVideos(template.sections ?? []),
     formFields: fields,
     variables: variables(content, fields),
-    assets: assets(content),
+    assets: [...assets(content), ...sampleFontAssets(template)],
     effects: effects(template.sections ?? []),
   };
 

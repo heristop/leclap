@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { listSamples, getSample, SAMPLE_CATEGORIES, SAMPLE_BACKENDS } from '../src/samples';
 import { TemplateValidator } from '../src/services/TemplateValidator';
+import { sampleRequirements } from '../scripts/sample-metadata';
+import type { TemplateDescriptor } from '../src/schemas/template.schemas';
 
 const root = new URL('../../../', import.meta.url);
 const readJson = async (relative: string) => JSON.parse(await readFile(new URL(relative, root), 'utf8'));
@@ -144,6 +146,80 @@ describe('packaged sample catalog', () => {
     ]);
     expect(custom.requirements.setup.join(' ')).toMatch(/--effect-catalog/);
     expect(custom.requirements.setup.join(' ')).toMatch(/--allow-remotion/);
+  });
+
+  it.each(['pr-evidence', 'before-after'])('discloses effective title card and lower third fonts for %s', (id) => {
+    const presetFonts = getSample(id).requirements.assets.filter((asset) => asset.source === 'preset');
+    expect([...new Set(presetFonts.map(({ reference }) => reference))].sort()).toEqual(['Anton.ttf', 'Oswald.ttf']);
+    expect(presetFonts.some(({ path }) => path.includes('.titleCard.'))).toBe(true);
+    expect(presetFonts.some(({ path }) => path.includes('.lowerThird.'))).toBe(true);
+  });
+
+  it('uses real preset defaults and overrides while preserving descriptors and placeholders', () => {
+    const template: TemplateDescriptor = {
+      global: { overlays: [{ text: { en: '{{ brand }}' } }, { text: { en: 'Override' }, font: 'archivo-black' }] },
+      sections: [
+        {
+          name: 'card',
+          type: 'color_background',
+          titleCard: {
+            kicker: { en: '{{ project }}' },
+            headline: { en: '{{ headline }}' },
+            subtitle: { en: ' ' },
+            kickerStyle: { font: 'playfair' },
+            headlineStyle: { font: { family: 'Inter', weight: 700, style: 'italic' } },
+            subtitleStyle: { font: 'pacifico' },
+          },
+        },
+        { name: 'default-caption', type: 'project_video', caption: { text: { en: '{{ caption }}' } } },
+        { name: 'subtle-caption', type: 'project_video', caption: { text: { en: 'Subtle' }, style: 'subtle' } },
+        {
+          name: 'override-caption',
+          type: 'project_video',
+          caption: { text: { en: 'Override' }, style: 'subtle', font: 'bebas' },
+        },
+        { name: 'empty-caption', type: 'project_video', caption: { text: { en: ' ' }, font: 'lobster' } },
+        {
+          name: 'default-lower-third',
+          type: 'project_video',
+          lowerThird: { title: { en: '{{ title }}' }, subtitle: { en: 'Subtitle' }, badge: { en: 'Badge' } },
+        },
+      ],
+    };
+    const original = structuredClone(template);
+    const requirements = sampleRequirements(template);
+    const presetFonts = requirements.assets.filter((asset) => asset.source === 'preset');
+    expect([...new Set(presetFonts.map(({ reference }) => reference))].sort()).toEqual([
+      'Anton.ttf',
+      'ArchivoBlack.ttf',
+      'BebasNeue.ttf',
+      'Oswald.ttf',
+      'PlayfairDisplay.ttf',
+      'Rubik.ttf',
+      'google-inter-700-italic.ttf',
+    ]);
+    expect(presetFonts.find(({ reference }) => reference === 'google-inter-700-italic.ttf')?.font).toEqual({
+      family: 'Inter',
+      weight: 700,
+      style: 'italic',
+    });
+    expect(requirements.variables).toContainEqual(
+      expect.objectContaining({ name: 'headline', placeholders: ['{{ headline }}'] })
+    );
+    expect(requirements.variables).toContainEqual(
+      expect.objectContaining({ name: 'brand', placeholders: ['{{ brand }}'] })
+    );
+    expect(template).toEqual(original);
+  });
+
+  it('classifies an exact-placeholder image default without rewriting the authored watermark', () => {
+    expect(
+      getSample('drink-and-code').requirements.assets.find(({ reference }) => reference === '{{ watermark }}')
+    ).toMatchObject({
+      kind: 'image',
+      reference: '{{ watermark }}',
+      default: 'pictures/logo.png',
+    });
   });
 
   it('keeps committed generated data fresh against canonical sources', async () => {

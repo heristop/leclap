@@ -1,4 +1,5 @@
 import type { TemplateDescriptor, Translation, FramingGuide } from '../schemas/template.schemas';
+import type { FontRef } from '../core/fonts';
 
 export const SAMPLE_CATEGORIES = ['templates', 'typography', 'app-demos', 'overlays', 'evidence'] as const;
 export const SAMPLE_BACKENDS = ['native', 'remotion'] as const;
@@ -44,11 +45,15 @@ export interface SampleVariable {
 
 export interface SampleAsset {
   kind: 'video' | 'image' | 'animation' | 'font' | 'music' | 'effect-asset' | 'asset';
-  /** Authored reference, including relative paths and placeholders, without rewriting. */
+  /** Authored reference without rewriting, or an engine-resolved font filename when source=preset. */
   reference: string;
-  /** Descriptor location after partial expansion. */
+  /** Descriptor location after partial expansion, including a virtual filter path for resolved presets. */
   path: string;
   default?: string | string[];
+  /** Marks effective font requirements derived from pure text presets, including their overrides. */
+  source?: 'preset';
+  /** Family metadata retained when the effective file comes from an object font reference. */
+  font?: FontRef;
 }
 
 export interface SampleEffect {

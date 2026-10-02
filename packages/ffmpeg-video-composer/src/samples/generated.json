@@ -238,7 +238,7 @@
           "path": "sections[0].inputs[0].url"
         },
         {
-          "kind": "animation",
+          "kind": "image",
           "reference": "{{ watermark }}",
           "path": "sections[0].inputs[1].url",
           "default": "pictures/logo.png"
@@ -1311,12 +1311,25 @@
           "kind": "font",
           "reference": "oswald",
           "path": "sections[2].titleCard.subtitleStyle.font"
+        },
+        {
+          "kind": "font",
+          "reference": "BebasNeue.ttf",
+          "path": "sections[2].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[2].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -2158,12 +2171,25 @@
           "kind": "music",
           "reference": "upbeat-electronic.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "BebasNeue.ttf",
+          "path": "sections[2].caption.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "global.overlays[0].filters[0].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -2622,12 +2648,19 @@
           "kind": "music",
           "reference": "upbeat-electronic.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "BebasNeue.ttf",
+          "path": "sections[2].caption.filters[0].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -3042,12 +3075,19 @@
           "kind": "music",
           "reference": "the-builder.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].caption.filters[0].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -3485,12 +3525,31 @@
           "kind": "music",
           "reference": "indie-rock-dreamy.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "BebasNeue.ttf",
+          "path": "sections[1].caption.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "BebasNeue.ttf",
+          "path": "sections[2].caption.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "BebasNeue.ttf",
+          "path": "sections[3].caption.filters[0].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -3982,12 +4041,43 @@
           "kind": "music",
           "reference": "future-bass-energy.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[0].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[8].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[8].titleCard.filters[2].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -4687,12 +4777,31 @@
           "kind": "music",
           "reference": "lofi-sentimental-jazz.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[3].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -5182,12 +5291,19 @@
           "kind": "music",
           "reference": "romantic-piano.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "Rubik.ttf",
+          "path": "sections[1].caption.filters[0].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -5494,12 +5610,43 @@
           "kind": "music",
           "reference": "party-dance.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[1].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[1].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -5773,12 +5920,43 @@
           "kind": "music",
           "reference": "party-dance.mp3",
           "path": "global.music.name"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[1].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[1].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -6522,12 +6700,31 @@
           "kind": "font",
           "reference": "Oswald.ttf",
           "path": "sections[1].filters[1].values.fontfile"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "BebasNeue.ttf",
+          "path": "sections[0].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[3].values.fontfile",
+          "source": "preset"
         }
       ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
         "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -7983,10 +8180,73 @@
           "source": "global"
         }
       ],
-      "assets": [],
+      "assets": [
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[0].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[3].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[3].titleCard.filters[2].values.fontfile",
+          "source": "preset"
+        }
+      ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },
@@ -8201,10 +8461,73 @@
           "source": "global"
         }
       ],
-      "assets": [],
+      "assets": [
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[0].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[3].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[3].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[3].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        }
+      ],
       "effects": [],
       "setup": [
         "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
         "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
       ]
     },

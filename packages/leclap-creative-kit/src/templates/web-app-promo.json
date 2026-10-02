@@ -7,7 +7,7 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "the-builder.mp3"
+      "name": "upbeat-electronic.mp3"
     },
     "allowedMusic": ["the-builder", "upbeat-electronic", "lofi-chill"],
     "allowUploadMusic": true,
@@ -16,7 +16,7 @@
     },
     "audio": {
       "sourceVolume": 1,
-      "musicVolume": 0.18,
+      "musicVolume": 0.22,
       "musicFade": 0.8,
       "ducking": {
         "threshold": 0.05,
@@ -47,7 +47,7 @@
           },
           {
             "name": "form_1_promise",
-            "maxLength": 32,
+            "maxLength": 26,
             "label": {
               "en": "One-line promise"
             }
@@ -61,7 +61,7 @@
           },
           {
             "name": "form_1_cta",
-            "maxLength": 28,
+            "maxLength": 24,
             "label": {
               "en": "Call to action"
             }
@@ -85,14 +85,14 @@
         "accent": "#a69bff",
         "reveal": {
           "type": "rise",
-          "delay": 0.18,
-          "duration": 0.65,
-          "distance": 32,
+          "delay": 0.08,
+          "duration": 0.5,
+          "distance": 24,
           "easing": "ease-out"
         },
         "headlineStyle": {
           "font": "bebas",
-          "fontsize": 64
+          "fontsize": 80
         },
         "subtitleStyle": {
           "font": "oswald",
@@ -105,7 +105,7 @@
       },
       "options": {
         "backgroundColor": "#10101b",
-        "duration": 3,
+        "duration": 2.2,
         "layers": [
           {
             "color": "#191832",
@@ -116,15 +116,15 @@
           },
           {
             "color": "#25213f",
-            "x": "iw*0.78",
+            "x": "iw*0.92",
             "y": 0,
-            "w": "iw*0.22",
+            "w": "iw*0.08",
             "h": "ih"
           },
           {
             "color": "#a69bff",
             "opacity": 0.8,
-            "x": "iw*0.78",
+            "x": "iw*0.92",
             "y": 0,
             "w": 3,
             "h": "ih"
@@ -162,11 +162,10 @@
         }
       },
       "options": {
-        "duration": 8,
+        "duration": 6,
         "forceAspectRatio": true,
         "countdown": true,
-        "countdownDuration": 2,
-        "musicVolume": 0.04
+        "countdownDuration": 2
       }
     },
     {
@@ -186,14 +185,14 @@
         "align": "center",
         "reveal": {
           "type": "rise",
-          "delay": 0.18,
-          "duration": 0.65,
-          "distance": 32,
+          "delay": 0.08,
+          "duration": 0.5,
+          "distance": 24,
           "easing": "ease-out"
         },
         "headlineStyle": {
           "font": "bebas",
-          "fontsize": 64
+          "fontsize": 72
         },
         "subtitleStyle": {
           "font": "oswald",
@@ -209,7 +208,7 @@
       },
       "options": {
         "backgroundColor": "#10101b",
-        "duration": 3,
+        "duration": 2.4,
         "layers": [
           {
             "color": "#191832",
@@ -220,15 +219,15 @@
           },
           {
             "color": "#25213f",
-            "x": "iw*0.78",
+            "x": "iw*0.92",
             "y": 0,
-            "w": "iw*0.22",
+            "w": "iw*0.08",
             "h": "ih"
           },
           {
             "color": "#a69bff",
             "opacity": 0.8,
-            "x": "iw*0.78",
+            "x": "iw*0.92",
             "y": 0,
             "w": 3,
             "h": "ih"

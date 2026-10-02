@@ -1,7 +1,8 @@
 {
   "meta": {
     "name": "Native motion timing study",
-    "description": "Asset-free landscape demonstration of staggered type and eased exits."
+    "description": "Asset-free landscape demonstration of staggered type and eased exits.",
+    "creativeDirection": "Direction: an asset-free timing study with condensed white typography on dark ink. Establish hierarchy through staggered entrances, then demonstrate an eased exit in a separate scene. Use native title and drawtext controls so the same authored timing can be reviewed across backends. Avoid constant motion and obscuring text with accents. Inspect the first reveal, line stagger, readable hold, exit midpoint and final frame; change timing explicitly rather than interpreting this brief during rendering."
   },
   "global": {
     "orientation": "landscape",

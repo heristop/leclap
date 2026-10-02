@@ -13,6 +13,12 @@
         "description": {
           "description": "Short human-readable template summary for catalogs and agents.",
           "type": "string"
+        },
+        "creativeDirection": {
+          "description": "Authoring brief (1..4000 characters): audience, visual hierarchy, typography, palette, motion, pacing, avoidances and review criteria. Guides humans/agents; never interpreted or executed by the renderer. Implement the direction explicitly in sections, filters and effect props.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
         }
       },
       "additionalProperties": false

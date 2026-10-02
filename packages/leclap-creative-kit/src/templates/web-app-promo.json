@@ -1,7 +1,8 @@
 {
   "meta": {
     "name": "Web App Promo",
-    "description": "A landscape app launch with directional typography, a floating perspective screen recording and a clear final call to action."
+    "description": "A landscape app launch with directional typography, a floating perspective screen recording and a clear final call to action.",
+    "creativeDirection": "Audience: people evaluating a web app. Direction: a confident editorial product demo, with the real interface as the evidence. Use a dark ink canvas, white condensed headline type, lavender motion and a pink brand signature. Give the hook, floating screen and invitation different compositions; keep captions clear of controls. Use a shallow perspective sweep on the capture and short eased type entrances, then hold the final CTA. Avoid simulated interactions, unsupported product claims, constant camera movement and repeated footer bands. Review the screen interaction, text settling, longest allowed copy and final hold; retain the flat framed fallback on mobile."
   },
   "global": {
     "orientation": "landscape",
@@ -396,7 +397,7 @@
           "type": "drawtext",
           "values": {
             "text": {
-              "en": "\u25b6"
+              "en": "▶"
             },
             "fontfile": "Anton.ttf",
             "fontsize": 380,

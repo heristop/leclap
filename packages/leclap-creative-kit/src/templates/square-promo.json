@@ -1,7 +1,8 @@
 {
   "meta": {
     "name": "Square Promo",
-    "description": "A bold editorial square campaign: contrasting panels, staggered lateral typography, a full-bleed product clip and a graphic closing invitation."
+    "description": "A bold editorial square campaign: contrasting panels, staggered lateral typography, a full-bleed product clip and a graphic closing invitation.",
+    "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use brief opposing motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size."
   },
   "global": {
     "orientation": "square",
@@ -191,7 +192,7 @@
         "en": "Record your clip"
       },
       "description": {
-        "en": "Filmed square \u2014 captioned with your headline"
+        "en": "Filmed square — captioned with your headline"
       },
       "options": {
         "duration": 6,

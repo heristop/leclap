@@ -69,9 +69,17 @@ scenes. It needs the **optional peer deps** `@remotion/renderer` + `@remotion/bu
 ### Prompt
 
 `compose-video` — a guided authoring prompt (surfaces as `/compose-video` in clients like Claude
-Desktop). Takes optional `goal` and `orientation` arguments and primes the agent with the schema,
+Desktop). Takes optional `goal`, `orientation` and `creativeDirection` arguments and primes the agent with the schema,
 the premium building-block recipes (which filters give which look, the bundled font list, the
 on-device filter allowlist), and the `validate_template` → `compose_video` loop.
+
+`creativeDirection` is a plain-text visual brief (1–4000 characters). The prompt guides the agent to
+store it in `meta.creativeDirection`, translate it into explicit native settings or registered effect
+props, vary layouts by scene purpose, and inspect entrance, settling and ending against the brief.
+`get_template_schema` exposes the metadata contract. It is reference material; the renderer does not
+interpret the prose. Registered scenes use `render_preview`; native scenes need an engine render and
+frame extraction. These are prompt arguments, not extra `compose_video` arguments. See the
+[creative-direction workflow and examples](../../docs/creative-direction.md).
 
 ## Run
 

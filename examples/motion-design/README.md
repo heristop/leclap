@@ -1,5 +1,8 @@
 # Editorial motion, with deterministic controls
 
+The example descriptors include `meta.creativeDirection` with their visual intent and review criteria.
+See the [creative-direction guide](../../docs/creative-direction.md) for CLI and MCP authoring.
+
 This study applies motion design principles to LeClap's existing native JSON and registered Remotion paths. It accompanies the distinct tutorial, square promo, product launch, web app promo and story reel templates in the creative kit.
 
 ## Reference video analysis

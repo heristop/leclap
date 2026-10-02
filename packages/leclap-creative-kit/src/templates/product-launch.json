@@ -1,7 +1,8 @@
 {
   "meta": {
     "name": "Product Launch",
-    "description": "A minimal vertical reveal: large centred product typography, a clean full-frame shot, and an offer-led closing with fast, staggered motion."
+    "description": "A minimal vertical reveal: large centred product typography, a clean full-frame shot, and an offer-led closing with fast, staggered motion.",
+    "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation."
   },
   "global": {
     "orientation": "portrait",

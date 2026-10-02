@@ -404,7 +404,7 @@ export const DEFAULT_TRANSITION: DefaultTransition = { type: 'cut', duration: DE
 // a freshly-added one. The guide is a recording aid only — never burned into the video.
 export const DEFAULT_FRAMING_OPACITY = 0.45;
 
-export interface EditorState {
+export interface EditorState extends Pick<NonNullable<TemplateDescriptor['meta']>, 'creativeDirection'> {
   id: string;
   name: string;
   description: string;

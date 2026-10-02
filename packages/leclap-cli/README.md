@@ -81,6 +81,21 @@ leclap init my-video --no-mcp --no-remotion # bare CLI-render starter only
 leclap init my-video --mcp --no-remotion    # MCP wiring, no Remotion
 ```
 
+## Creative direction
+
+Every starter includes `meta.creativeDirection`, an editable visual brief describing its initial
+composition. Supply your own when scaffolding:
+
+```bash
+leclap init demo --no-remotion --no-mcp \
+  --creative-direction "Bold editorial. Dark ink, white type, restrained motion and a readable final hold."
+```
+
+The brief is plain text (1–4000 characters), validated with the descriptor and preserved by the editor.
+It guides a human or agent; the flag does not redesign the starter or change rendering automatically.
+Translate it into explicit sections, filters or registered effect props, then validate and inspect the
+render. See the [creative-direction workflow](../../docs/creative-direction.md).
+
 ## Relation to `@leclap/mcp`
 
 The CLI and the MCP are two front-ends to the **same** engine:

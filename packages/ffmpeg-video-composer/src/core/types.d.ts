@@ -95,6 +95,7 @@ export interface TemplateDescriptor {
 interface TemplateMeta {
   name?: string;
   description?: string;
+  creativeDirection?: string;
 }
 
 export interface TemplateDescriptorGlobal {

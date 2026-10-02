@@ -5,6 +5,10 @@ import { z } from 'zod';
 // Short authoring guide prepended to the JSON Schema so an agent knows how to read it.
 const GUIDE = [
   'Template authoring guide:',
+  'Use meta.creativeDirection for a 1..4000-character authoring brief: audience, hierarchy, typography, ' +
+    'palette, motion, pacing, avoidances and review criteria. Implement it through explicit section settings ' +
+    'and effect props; metadata never changes rendering automatically. Keep rendered copy separate. ' +
+    'Review entrance, settling, readable hold and ending against the brief. Vary composition by scene purpose.',
   'A template has an optional top-level `global` (project-wide defaults) and an ordered `sections` ' +
     'array — each section becomes a clip and they are composed in order.',
   'Each section has a `name`, a `type` (video, project_video, form, color_background, ' +

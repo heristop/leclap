@@ -38,10 +38,16 @@ All top-level keys are optional (so partial descriptors can be validated increme
 
 Optional human-facing metadata embedded in the descriptor, used by template browsers and agent catalogs.
 
-| Field         | Type     | Description                                     |
-| ------------- | -------- | ----------------------------------------------- |
-| `name`        | `string` | Human-readable template name.                   |
-| `description` | `string` | Short template summary for catalogs and agents. |
+| Field               | Type     | Description                                                                                            |
+| ------------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| `name`              | `string` | Human-readable template name.                                                                          |
+| `description`       | `string` | Short template summary for catalogs and agents.                                                        |
+| `creativeDirection` | `string` | Optional authoring brief, trimmed, 1–4000 characters. Guides humans/agents; does not change rendering. |
+
+Use `meta.creativeDirection` to record audience, hierarchy, typography, palette, motion, pacing,
+avoidances and review criteria. Implement it through explicit section settings and effect props;
+the renderer never interprets or executes this prose. See [creative direction](./creative-direction.md)
+for distinct example treatments, the CLI starter flag and MCP prompt arguments.
 
 ## `global`
 

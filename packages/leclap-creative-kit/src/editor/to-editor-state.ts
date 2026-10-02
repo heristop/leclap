@@ -29,6 +29,7 @@ import {
 } from './model';
 import { overlaysFromFilters, videoFilterStateFrom } from './overlay-parsing';
 import { pruneEmpty } from './prune';
+import { editorIdentityFrom } from './template-meta';
 import { animationsFrom, choiceFromMarker, imagesFrom, overlayOptionsFrom, watermarkFrom } from './to-editor-overlay';
 
 function formSectionFrom(s: Section): EditorSection {
@@ -360,10 +361,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
 
   return {
     id: template.id,
-    // The descriptor's own identity (meta) wins over the wrapper, per field, so an imported JSON
-    // brings its name/description along; legacy descriptors without meta keep the wrapper values.
-    name: template.descriptor.meta?.name ?? template.name,
-    description: template.descriptor.meta?.description ?? template.description,
+    ...editorIdentityFrom(template),
     orientation: template.orientation,
     sections: editorSectionsFrom(template.descriptor),
     globalVariables: globalVariablesFrom(global),

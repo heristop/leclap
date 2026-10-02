@@ -1,7 +1,8 @@
 {
   "meta": {
     "name": "Overlay effect recipes",
-    "description": "Synthetic review fixture with adaptive shapes and labels for the shared composited effect presets."
+    "description": "Synthetic review fixture with adaptive shapes and labels for the shared composited effect presets.",
+    "creativeDirection": "Direction: an honest synthetic test fixture for Interface Focus, Product Spotlight and Celebration Burst. Each accent must support a different focal element: a control, a product shape or a celebratory beat. Keep labels readable, movement short and the focal element visible after the effect settles. Avoid treating the fixture as a real app demonstration or placing every overlay on every scene. Review burst density, spotlight bounds, focus-ring placement, entrance and final visibility in the rendered output."
   },
   "global": {
     "orientation": "landscape",

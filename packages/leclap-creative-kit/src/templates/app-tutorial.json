@@ -1,7 +1,8 @@
 {
   "meta": {
     "name": "App Tutorial",
-    "description": "A screen-first square lesson with numbered steps, calm mint typography and a letterboxed walkthrough."
+    "description": "A screen-first square lesson with numbered steps, calm mint typography and a letterboxed walkthrough.",
+    "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Use restrained entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction."
   },
   "global": {
     "orientation": "square",

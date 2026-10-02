@@ -1,4 +1,7 @@
 {
+  "meta": {
+    "creativeDirection": "Direction: a landscape web-app launch progressing from promise to screenshot showcase to invitation. Use white type on deep ink, a lavender accent and a shallow camera tilt; let the screenshot dominate the middle beat. Coordinate headline and feature entrances without covering the interface, then hold the approved CTA. This example uses synthetic media; replace it with a verified product screenshot for a real promotion. Avoid invented product claims, continuous camera motion and tiny type. Review the hook, screenshot crop, camera settling, longest copy and final CTA using selected preview frames."
+  },
   "global": {
     "orientation": "landscape",
     "fps": 30,

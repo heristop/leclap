@@ -120,6 +120,12 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 - **[📱 On-Device Compilation](docs/on-device-compilation.md)** — the serverless Expo compile pipeline.
 - **[🤖 AGENTS.md](AGENTS.md)** — repo layout, commands, and conventions for contributors and AI agents.
 
+### Creative direction
+
+Record the visual brief in `meta.creativeDirection`, then implement it with explicit JSON settings or
+registered Remotion props. The CLI starter and MCP authoring prompt accept the same direction.
+See [the guide and distinct example treatments](docs/creative-direction.md).
+
 ## 🤝 Contributing & License
 
 Issues and PRs welcome. Keep changes formatted (`pnpm fmt`) and lint-clean (`pnpm lint`) before committing. The code is licensed under the [MIT License](LICENSE).

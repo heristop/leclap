@@ -1,5 +1,8 @@
 # JSON title effects through LeClap
 
+The example descriptors include `meta.creativeDirection` with their visual intent and review criteria.
+See the [creative-direction guide](../../docs/creative-direction.md) for CLI and MCP authoring.
+
 This reference project keeps creative controls in LeClap JSON. A trusted Remotion component renders the title effect; LeClap then composes it with the ordinary outro section and exports the video.
 
 ## Prepare

@@ -2,6 +2,11 @@
 
 Start with a verified brief: audience, purpose, product facts, approved copy, local assets, output format and target duration. Inspect the actual product repository or recording before choosing a demo asset. Label synthetic fixtures as illustrations; do not invent product features.
 
+Keep the visual intention in `meta.creativeDirection` alongside the descriptor. The reference JSON
+files each include a direction suited to their composition. This optional prose is preserved when
+editing; rendering still uses explicit JSON settings and effect props. For CLI and MCP entry points,
+see the [creative-direction guide](../../docs/creative-direction.md).
+
 ## Plan the composition
 
 Write one row per scene before authoring JSON:

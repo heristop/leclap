@@ -1,7 +1,8 @@
 {
   "meta": {
     "name": "Story Reel",
-    "description": "A full-bleed three-chapter reel with alternating caption anchors, snappy opposing entrances and clean rhythmic cuts."
+    "description": "A full-bleed three-chapter reel with alternating caption anchors, snappy opposing entrances and clean rhythmic cuts.",
+    "creativeDirection": "Audience: people watching a vertical three-chapter story. Direction: full-bleed footage throughout, with alternating caption anchors and clean rhythmic cuts. Use readable, high-contrast captions as punctuation rather than turning each chapter into a title card. Oppose entrance directions to distinguish chapters; let the footage remain dominant after the short reveal. Avoid a repeated lower-third band, continuous shake and cutting away before the message settles. Review each chapter crop, text against the actual footage, the joins and the last readable frame."
   },
   "global": {
     "orientation": "portrait",
@@ -94,7 +95,7 @@
         "en": "Scene 1"
       },
       "description": {
-        "en": "Film your first moment \u2014 keep it short and punchy"
+        "en": "Film your first moment — keep it short and punchy"
       },
       "options": {
         "duration": 4,

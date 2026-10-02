@@ -1,5 +1,8 @@
 # Composited effect recipes
 
+The example descriptors include `meta.creativeDirection` with their visual intent and review criteria.
+See the [creative-direction guide](../../docs/creative-direction.md) for CLI and MCP authoring.
+
 The three effect recipes combine existing transparent APNG assets. They add useful compositions and playback defaults, rather than new generated animations or a second renderer. The same ordinary JSON inputs render through LeClap's Node, browser/WASM and native FFmpeg routes.
 
 | Recipe              | Purpose                                      | Direction                                                                                         |

@@ -105,6 +105,15 @@ describe('reveal easing mirror', () => {
     expect(revealOffset('fade', 0.5, 60, true, 'ease-out').opacity).toBeCloseTo(0.875, 5);
   });
 
+  it('overshoots native motion without letting entrance or exit opacity exceed its bounds', () => {
+    const enter = revealOffset('rise', 0.5, 80, true, 'ease-out-back');
+    expect(enter.translateY).toBeCloseTo(-7.0158, 4);
+    expect(enter.opacity).toBe(1);
+    const exit = revealOffset('rise', 0.5, 80, false, 'ease-out-back');
+    expect(exit.opacity).toBe(0);
+    expect(revealOffset('rise', 1, 80, true, 'ease-out-back').translateY).toBe(0);
+  });
+
   it('ease-in-out samples the smoothstep curve (p*p*(3-2p))', () => {
     expect(revealOffset('fade', 0.5, 60, true, 'ease-in-out').opacity).toBeCloseTo(0.5, 5);
     expect(revealOffset('fade', 0.25, 60, true, 'ease-in-out').opacity).toBeCloseTo(0.15625, 5);

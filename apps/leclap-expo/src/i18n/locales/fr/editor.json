@@ -386,6 +386,18 @@
       "celebration-burst": {
         "name": "Explosion festive",
         "description": "Un bref accent de confettis et d’étincelles."
+      },
+      "focus-lock": {
+        "name": "Verrouillage du focus",
+        "description": "Un cadre à coins avec un cercle discret."
+      },
+      "light-pass": {
+        "name": "Passage de lumière",
+        "description": "Un bref voile lumineux et une petite étincelle."
+      },
+      "frame-reveal": {
+        "name": "Révélation du cadre",
+        "description": "Un cadre fin et un unique reflet lumineux."
       }
     }
   },

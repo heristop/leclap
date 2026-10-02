@@ -617,6 +617,18 @@
       "celebration-burst": {
         "name": "Explosion festive",
         "description": "Un bref accent de confettis et d’étincelles."
+      },
+      "focus-lock": {
+        "name": "Verrouillage du focus",
+        "description": "Un cadre à coins avec un cercle discret."
+      },
+      "light-pass": {
+        "name": "Passage de lumière",
+        "description": "Un bref voile lumineux et une petite étincelle."
+      },
+      "frame-reveal": {
+        "name": "Révélation du cadre",
+        "description": "Un cadre fin et un unique reflet lumineux."
       }
     }
   },
@@ -869,8 +881,9 @@
     "easingLinear": "Linéaire",
     "easingEaseOut": "Décélérée",
     "easingEaseInOut": "Douce",
-    "easingHint": "Rythme de l'entrée — Décélérée glisse jusqu'à sa place, Douce accélère puis se pose.",
-    "summaryDefault": "minutage par défaut"
+    "easingHint": "Comment le mouvement se termine — décélération douce ou bref dépassement de la position finale.",
+    "summaryDefault": "minutage par défaut",
+    "easingEaseOutBack": "Décélération avec dépassement"
   },
   "exit": {
     "easing": "Courbe de sortie",

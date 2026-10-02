@@ -331,9 +331,9 @@
                         "exclusiveMinimum": 0
                       },
                       "easing": {
-                        "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                        "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                         "type": "string",
-                        "enum": ["linear", "ease-out", "ease-in-out"]
+                        "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                       }
                     },
                     "required": ["type"],
@@ -447,9 +447,9 @@
                         "exclusiveMinimum": 0
                       },
                       "easing": {
-                        "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                        "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                         "type": "string",
-                        "enum": ["linear", "ease-out", "ease-in-out"]
+                        "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                       }
                     },
                     "required": ["type"],
@@ -899,9 +899,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -1151,9 +1151,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -1178,9 +1178,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -1474,9 +1474,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -1501,9 +1501,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -1788,9 +1788,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -1815,9 +1815,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -2068,9 +2068,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -2223,9 +2223,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -3022,9 +3022,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -3274,9 +3274,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -3301,9 +3301,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -3597,9 +3597,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -3624,9 +3624,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -3911,9 +3911,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -3938,9 +3938,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -4191,9 +4191,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -4346,9 +4346,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -5188,9 +5188,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -5440,9 +5440,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -5467,9 +5467,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -5763,9 +5763,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -5790,9 +5790,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -6077,9 +6077,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -6104,9 +6104,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -6357,9 +6357,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -6512,9 +6512,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -7338,9 +7338,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -7590,9 +7590,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -7617,9 +7617,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -7913,9 +7913,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -7940,9 +7940,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -8227,9 +8227,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -8254,9 +8254,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -8507,9 +8507,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -8662,9 +8662,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -9461,9 +9461,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -9713,9 +9713,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -9740,9 +9740,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -10036,9 +10036,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -10063,9 +10063,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -10350,9 +10350,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -10377,9 +10377,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -10630,9 +10630,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -10785,9 +10785,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -11455,9 +11455,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -11879,9 +11879,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -12052,9 +12052,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -12304,9 +12304,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -12331,9 +12331,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -12627,9 +12627,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -12654,9 +12654,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -12941,9 +12941,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -12968,9 +12968,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -13221,9 +13221,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -13376,9 +13376,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -14175,9 +14175,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -14427,9 +14427,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -14454,9 +14454,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -14750,9 +14750,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -14777,9 +14777,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -15064,9 +15064,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -15091,9 +15091,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -15344,9 +15344,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -15499,9 +15499,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -16298,9 +16298,9 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                   "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out"]
+                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                 }
                               },
                               "required": ["type"],
@@ -16550,9 +16550,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -16577,9 +16577,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -16873,9 +16873,9 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   }
                                 },
                                 "required": ["type"],
@@ -16900,9 +16900,9 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                                     "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -17187,9 +17187,9 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             }
                           },
                           "required": ["type"],
@@ -17214,9 +17214,9 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
                               "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out"]
+                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -17467,9 +17467,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],
@@ -17622,9 +17622,9 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates into place; ease-in-out ramps up and settles. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
                             "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out"]
+                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
                           }
                         },
                         "required": ["type"],

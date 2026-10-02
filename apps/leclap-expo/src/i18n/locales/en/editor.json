@@ -386,6 +386,18 @@
       "celebration-burst": {
         "name": "Celebration burst",
         "description": "A short confetti and sparkle accent."
+      },
+      "focus-lock": {
+        "name": "Focus lock",
+        "description": "A bracket frame with one soft ring."
+      },
+      "light-pass": {
+        "name": "Light pass",
+        "description": "A brief light wash and a small sparkle."
+      },
+      "frame-reveal": {
+        "name": "Frame reveal",
+        "description": "A fine frame with a single shine sweep."
       }
     }
   },

@@ -386,6 +386,18 @@
       "celebration-burst": {
         "name": "Explosión festiva",
         "description": "Un breve acento de confeti y destellos."
+      },
+      "focus-lock": {
+        "name": "Foco fijo",
+        "description": "Un marco de esquinas con un anillo suave."
+      },
+      "light-pass": {
+        "name": "Paso de luz",
+        "description": "Un breve baño de luz y un pequeño destello."
+      },
+      "frame-reveal": {
+        "name": "Revelado del marco",
+        "description": "Un marco fino con un único barrido de brillo."
       }
     }
   },

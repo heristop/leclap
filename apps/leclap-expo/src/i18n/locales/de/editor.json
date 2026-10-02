@@ -386,6 +386,18 @@
       "celebration-burst": {
         "name": "Festlicher Akzent",
         "description": "Ein kurzer Konfetti- und Funkelakzent."
+      },
+      "focus-lock": {
+        "name": "Fokusrahmen",
+        "description": "Ein Eckrahmen mit einem dezenten Ring."
+      },
+      "light-pass": {
+        "name": "Lichtpassage",
+        "description": "Ein kurzer Lichtschein und ein kleiner Funkelakzent."
+      },
+      "frame-reveal": {
+        "name": "Rahmenenthüllung",
+        "description": "Ein feiner Rahmen mit einem einzelnen Lichtstreifen."
       }
     }
   },

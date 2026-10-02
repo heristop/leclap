@@ -22,6 +22,7 @@ const EASING_LABEL_KEYS = {
   linear: 'easingLinear',
   'ease-out': 'easingEaseOut',
   'ease-in-out': 'easingEaseInOut',
+  'ease-out-back': 'easingEaseOutBack',
 } as const;
 
 const MOVING: ExitType[] = ['rise', 'slide-left', 'slide-right'];

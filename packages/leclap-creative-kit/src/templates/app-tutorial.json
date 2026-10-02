@@ -2,7 +2,7 @@
   "meta": {
     "name": "App Tutorial",
     "description": "A screen-first square lesson with numbered steps, calm mint typography and a letterboxed walkthrough.",
-    "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Use restrained entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction."
+    "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Stagger the numbered instruction with short, restrained directional entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction."
   },
   "global": {
     "orientation": "square",
@@ -118,9 +118,10 @@
             "y": 105
           },
           "reveal": {
-            "type": "fade",
-            "delay": 0.05,
-            "duration": 0.18,
+            "type": "slide-right",
+            "delay": 0.07,
+            "duration": 0.24,
+            "distance": 14,
             "easing": "ease-out"
           },
           "exit": {
@@ -144,10 +145,10 @@
           },
           "reveal": {
             "type": "rise",
-            "delay": 0.12,
-            "duration": 0.28,
-            "easing": "ease-out",
-            "distance": 38
+            "delay": 0.13,
+            "duration": 0.32,
+            "distance": 24,
+            "easing": "ease-out"
           },
           "exit": {
             "type": "rise",
@@ -290,9 +291,10 @@
             "y": 810
           },
           "reveal": {
-            "type": "fade",
-            "delay": 0.2,
-            "duration": 0.2,
+            "type": "slide-right",
+            "delay": 0.24,
+            "duration": 0.26,
+            "distance": 18,
             "easing": "ease-out"
           }
         }

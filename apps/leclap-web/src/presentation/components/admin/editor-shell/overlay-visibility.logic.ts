@@ -87,10 +87,12 @@ function easeProgress(progress: number, easing: string | undefined): number {
 
   if (easing === 'ease-in-out') return p * p * (3 - 2 * p);
 
+  if (easing === 'ease-out-back') return p * (1 + (p - 1) * (2.70158 * (p - 1) - 1));
+
   return easeOutExpo(p);
 }
 
-// The offset/opacity of one reveal/exit style at an eased 0..1 progress. `entering` animates toward
+// Motion can overshoot its resting position; opacity remains bounded to 0..1. `entering` animates toward
 // the resting state (offset → 0); exits animate away from it (0 → offset). `easing` is the reveal's
 // authored curve. Unset entrance/exit easing keeps the existing preview signature curve.
 export function revealOffset(
@@ -102,7 +104,7 @@ export function revealOffset(
 ): { opacity: number; translateX: number; translateY: number } {
   const eased = easeProgress(progress, easing);
   const remaining = entering ? 1 - eased : eased;
-  const opacity = entering ? eased : 1 - eased;
+  const opacity = Math.min(1, Math.max(0, entering ? eased : 1 - eased));
   const direction = entering ? 1 : -1;
 
   if (type === 'fade') return { opacity, translateX: 0, translateY: 0 };

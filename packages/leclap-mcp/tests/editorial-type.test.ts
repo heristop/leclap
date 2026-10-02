@@ -84,6 +84,32 @@ describe('registered editorial typography', () => {
 });
 
 describe('deterministic editorial frame timing', () => {
+  it.each(['blur-rise', 'split-slide', 'elastic-stagger'] as const)('discovers and settles the %s mode', (mode) => {
+    expect(definition().props.parse({ mode })).toMatchObject({ mode });
+    const props = { ...editorialDefaults, mode, entranceDurationFrames: 40, staggerFrames: 8, travelPx: 100 };
+    for (let index = 0; index < 16; index++) {
+      expect(editorialTiming(160, index, props)).toMatchObject({
+        opacity: 1,
+        translateX: 0,
+        translateY: 0,
+        blurPx: 0,
+        scale: 1,
+      });
+    }
+  });
+
+  it('separates blur, opposing travel and elastic overshoot without altering the final layout', () => {
+    expect(editorialTiming(0, 0, { ...editorialDefaults, mode: 'blur-rise' })).toMatchObject({ blurPx: 8 });
+    const split = { ...editorialDefaults, mode: 'split-slide' as const };
+    expect(editorialTiming(0, 0, split).translateX).toBe(-56);
+    expect(editorialTiming(0, 1, split).translateX).toBe(56);
+    const elastic = { ...editorialDefaults, mode: 'elastic-stagger' as const, entranceDurationFrames: 20 };
+    const beat = editorialTiming(10, 0, elastic);
+    expect(beat.translateY).toBeLessThan(0);
+    expect(beat.scale).toBeGreaterThan(1);
+    expect(beat.opacity).toBe(1);
+  });
+
   it('preserves copy while coalescing excess words into at most sixteen animation items', () => {
     expect(editorialWords('  Make   your next story  ')).toEqual(['Make', 'your', 'next', 'story']);
     const words = Array.from({ length: 25 }, (_, index) => `w${index}`);

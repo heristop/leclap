@@ -38,6 +38,9 @@ const NATIVE_ASPECTS: Record<string, number> = {
   sparkle: 1280 / 720,
   tap_pulse: 1,
   spec_orbit: 720 / 1280,
+  pulse_ring: 1280 / 720,
+  light_leak: 1280 / 720,
+  white_border: 1280 / 720,
 };
 
 // Fit the asset's actual canvas inside the recipe region without distorting circular or drawn shapes.
@@ -118,6 +121,63 @@ export const ANIMATION_EFFECT_PRESETS: AnimationEffectPreset[] = [
         'sparkle',
         { width: 0.68, height: 0.6, centerY: 0.5 },
         { start: 0.65, duration: 2, opacity: 0.7 }
+      ),
+    ],
+  },
+  {
+    id: 'focus-lock',
+    nameKey: 'animation.effects.focus-lock.name',
+    descriptionKey: 'animation.effects.focus-lock.description',
+    build: (orientation) => [
+      centeredLayer(
+        orientation,
+        'corner_brackets',
+        { width: 0.76, height: 0.64, centerY: 0.52 },
+        { start: 0.08, duration: 1.8, opacity: 0.45 }
+      ),
+      centeredLayer(
+        orientation,
+        'pulse_ring',
+        { width: 0.48, height: 0.4, centerY: 0.52 },
+        { start: 0.2, duration: 2, opacity: 0.4 }
+      ),
+    ],
+  },
+  {
+    id: 'light-pass',
+    nameKey: 'animation.effects.light-pass.name',
+    descriptionKey: 'animation.effects.light-pass.description',
+    build: (orientation) => [
+      centeredLayer(
+        orientation,
+        'light_leak',
+        { width: 1, height: 0.88, centerY: 0.5 },
+        { start: 0.04, duration: 2, opacity: 0.2 }
+      ),
+      centeredLayer(
+        orientation,
+        'sparkle',
+        { width: 0.46, height: 0.44, centerY: 0.5 },
+        { start: 0.35, duration: 2, opacity: 0.35 }
+      ),
+    ],
+  },
+  {
+    id: 'frame-reveal',
+    nameKey: 'animation.effects.frame-reveal.name',
+    descriptionKey: 'animation.effects.frame-reveal.description',
+    build: (orientation) => [
+      centeredLayer(
+        orientation,
+        'white_border',
+        { width: 0.88, height: 0.72, centerY: 0.52 },
+        { start: 0.06, duration: 1.8, opacity: 0.35 }
+      ),
+      centeredLayer(
+        orientation,
+        'shine_sweep',
+        { width: 0.88, height: 0.72, centerY: 0.52 },
+        { start: 0.18, duration: 2.52, opacity: 0.3 }
       ),
     ],
   },

@@ -7,7 +7,7 @@
 import type { FontInput } from './fonts';
 
 export type RevealType = 'none' | 'fade' | 'rise' | 'slide-left' | 'slide-right';
-export type RevealEasing = 'linear' | 'ease-out' | 'ease-in-out';
+export type RevealEasing = 'linear' | 'ease-out' | 'ease-in-out' | 'ease-out-back';
 export type Reveal =
   | RevealType
   | { type: RevealType; delay?: number; duration?: number; distance?: number; easing?: RevealEasing };

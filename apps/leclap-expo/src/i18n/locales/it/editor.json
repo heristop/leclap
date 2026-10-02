@@ -386,6 +386,18 @@
       "celebration-burst": {
         "name": "Esplosione festosa",
         "description": "Un breve accento di coriandoli e scintille."
+      },
+      "focus-lock": {
+        "name": "Blocco del fuoco",
+        "description": "Una cornice angolare con un anello delicato."
+      },
+      "light-pass": {
+        "name": "Passaggio di luce",
+        "description": "Un breve velo luminoso e un piccolo scintillio."
+      },
+      "frame-reveal": {
+        "name": "Rivelazione della cornice",
+        "description": "Una cornice sottile con un unico riflesso luminoso."
       }
     }
   },

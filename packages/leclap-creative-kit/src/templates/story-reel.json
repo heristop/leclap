@@ -2,7 +2,7 @@
   "meta": {
     "name": "Story Reel",
     "description": "A full-bleed three-chapter reel with alternating caption anchors, snappy opposing entrances and clean rhythmic cuts.",
-    "creativeDirection": "Audience: people watching a vertical three-chapter story. Direction: full-bleed footage throughout, with alternating caption anchors and clean rhythmic cuts. Use readable, high-contrast captions as punctuation rather than turning each chapter into a title card. Oppose entrance directions to distinguish chapters; let the footage remain dominant after the short reveal. Avoid a repeated lower-third band, continuous shake and cutting away before the message settles. Review each chapter crop, text against the actual footage, the joins and the last readable frame."
+    "creativeDirection": "Audience: people watching a vertical three-chapter story. Direction: full-bleed footage throughout, with alternating caption anchors and clean rhythmic cuts. Use readable, high-contrast captions as punctuation rather than turning each chapter into a title card. Oppose entrance directions to distinguish chapters; let the footage remain dominant after the short reveal. Avoid a repeated lower-third band, continuous shake and cutting away before the message settles. Review each chapter crop, text against the actual footage, the joins and the last readable frame. Alternate the chapter indicator side and give each caption one small overshoot, then hold the footage without decorative overlays."
   },
   "global": {
     "orientation": "portrait",
@@ -85,9 +85,9 @@
         "reveal": {
           "type": "slide-right",
           "delay": 0.07,
-          "duration": 0.26,
-          "easing": "ease-out",
-          "distance": 56
+          "duration": 0.34,
+          "easing": "ease-out-back",
+          "distance": 40
         },
         "box": true
       },
@@ -159,9 +159,9 @@
         "reveal": {
           "type": "slide-left",
           "delay": 0.07,
-          "duration": 0.26,
-          "easing": "ease-out",
-          "distance": 56
+          "duration": 0.34,
+          "easing": "ease-out-back",
+          "distance": 40
         },
         "box": true
       },
@@ -189,7 +189,7 @@
             },
             "fontcolor": "#ffffff",
             "fontsize": 36,
-            "x": "w-text_w-44",
+            "x": 44,
             "y": 240,
             "fontfile": "Oswald.ttf",
             "box": 1,
@@ -197,11 +197,11 @@
             "boxborderw": 10
           },
           "reveal": {
-            "type": "slide-left",
+            "type": "slide-right",
             "delay": 0,
-            "duration": 0.16,
-            "easing": "ease-out",
-            "distance": 24
+            "duration": 0.2,
+            "distance": 24,
+            "easing": "ease-out"
           },
           "exit": {
             "type": "fade",
@@ -233,9 +233,9 @@
         "reveal": {
           "type": "rise",
           "delay": 0.07,
-          "duration": 0.28,
-          "easing": "ease-out",
-          "distance": 42
+          "duration": 0.34,
+          "easing": "ease-out-back",
+          "distance": 32
         },
         "box": true
       },

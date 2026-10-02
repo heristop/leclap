@@ -1,7 +1,7 @@
 export type EditorialProps = {
   headline: string;
   kicker: string;
-  mode: 'masked-rise' | 'word-stagger' | 'highlight';
+  mode: 'masked-rise' | 'word-stagger' | 'highlight' | 'blur-rise' | 'split-slide' | 'elastic-stagger';
   accent: 'lavender' | 'mint' | 'orange';
   entranceDurationFrames: number;
   staggerFrames: number;
@@ -37,20 +37,35 @@ function progress(frame: number, start: number, duration: number): number {
 
 /** Pure frame-time sampling; geometry never changes during the highlight sweep. */
 export function editorialTiming(frame: number, index: number, props: EditorialProps, durationInFrames = 300) {
-  const start = props.mode === 'word-stagger' ? index * props.staggerFrames : 0;
+  const staggered = ['word-stagger', 'blur-rise', 'split-slide', 'elastic-stagger'].includes(props.mode);
+  const start = staggered ? index * props.staggerFrames : 0;
   const entrance = progress(frame, start, props.entranceDurationFrames);
+  const linear = Math.min(1, Math.max(0, (frame - start) / props.entranceDurationFrames));
+  const elastic = linear * (1 + (linear - 1) * (2.70158 * (linear - 1) - 1));
+  const movement = props.mode === 'elastic-stagger' ? elastic : entrance;
   const highlightProgress =
     props.mode === 'highlight' ? progress(frame, props.entranceDurationFrames, props.entranceDurationFrames) : 1;
   const sceneOpacity = Math.min(1, Math.max(0, (durationInFrames - 1 - frame) / 12));
 
   return {
     progress: entrance,
-    opacity: entrance,
-    translateY: props.mode === 'highlight' ? 0 : props.travelPx * (1 - entrance),
-    scale: props.mode === 'word-stagger' ? 0.96 + 0.04 * entrance : 1,
+    opacity: Math.min(1, Math.max(0, movement)),
+    translateX:
+      props.mode === 'split-slide' && entrance < 1 ? (index % 2 === 0 ? -1 : 1) * props.travelPx * (1 - entrance) : 0,
+    translateY: props.mode === 'highlight' || props.mode === 'split-slide' ? 0 : props.travelPx * (1 - movement),
+    scale: editorialScale(props.mode, movement),
+    blurPx: props.mode === 'blur-rise' ? 8 * (1 - entrance) : 0,
     highlightProgress,
     sceneOpacity,
   };
+}
+
+function editorialScale(mode: EditorialProps['mode'], movement: number): number {
+  if (mode === 'word-stagger') return 0.96 + 0.04 * movement;
+
+  if (mode === 'elastic-stagger') return 0.92 + 0.08 * movement;
+
+  return 1;
 }
 
 /** Bounded search over a measured, unanimated layout; fitting never samples frame-time transforms. */

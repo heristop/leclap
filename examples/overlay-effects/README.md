@@ -3,15 +3,18 @@
 The example descriptors include `meta.creativeDirection` with their visual intent and review criteria.
 See the [creative-direction guide](../../docs/creative-direction.md) for CLI and MCP authoring.
 
-The three effect recipes combine existing transparent APNG assets. They add useful compositions and playback defaults, rather than new generated animations or a second renderer. The same ordinary JSON inputs render through LeClap's Node, browser/WASM and native FFmpeg routes.
+The six effect recipes combine existing transparent APNG assets. They add useful compositions and playback defaults, rather than new generated animations or a second renderer. The same ordinary JSON inputs render through LeClap's Node, browser/WASM and native FFmpeg routes.
 
 | Recipe              | Purpose                                      | Direction                                                                                         |
 | ------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------- |
 | `interface-focus`   | Draw attention to an actual interface action | A restrained bracket frame and a localized tap cue. Place the cue over the recorded interaction.  |
 | `product-spotlight` | Give a product detail a brief reveal         | One soft light sweep with orbiting detail highlights. Preserve readable copy and product colours. |
 | `celebration-burst` | Mark a success, offer or final invitation    | A short confetti beat with a secondary sparkle. Use it once around the event.                     |
+| `focus-lock`        | Introduce a framed detail                    | Bracket corners and one soft ring; this is a focus accent, not a simulated click.                 |
+| `light-pass`        | Give footage a brief lighting beat           | A low-opacity light wash with one small sparkle, clear of controls and copy.                      |
+| `frame-reveal`      | Introduce a framed composition               | A fine border with a passing shine; both clear after the reveal.                                  |
 
-The shared creative-kit `ANIMATION_EFFECT_PRESETS` catalog describes these recipes. Each expands into two ordinary `inputs[]` entries, so saved templates retain the portable JSON contract. The app's animation library exposes the same choices alongside individual assets. Complete source cycles finish within 2.8 seconds; each preview scene then holds cleanly without the effect.
+The shared creative-kit `ANIMATION_EFFECT_PRESETS` catalog describes these recipes. Each expands into two ordinary `inputs[]` entries, so saved templates retain the portable JSON contract. The app's animation library exposes the same choices alongside individual assets. Each recipe uses a finite playback window ending within 2.8 seconds; each preview scene then holds cleanly without the effect. A shorter window can trim a source cycle.
 
 ## Playback and placement
 
@@ -25,7 +28,7 @@ Keep at most two animated layers active in each recipe. Apply them within the re
 
 ## Preview fixture
 
-[`preview-template.json`](./preview-template.json) contains three six-second scenes with contrasting backgrounds, bundled fonts and bundled overlays. Landscape is the default. It needs no user footage. The illustrative target and product panel are synthetic shapes, not a captured product interface. Their positions and sizes use frame-relative expressions: the target is centred at 50% of the width and 52% of the height; the title and footer stay separate from it.
+[`preview-template.json`](./preview-template.json) contains three six-second scenes and three four-second scenes with contrasting backgrounds, bundled fonts and bundled overlays. Landscape is the default. It needs no user footage. The illustrative target and product panel are synthetic shapes, not a captured product interface. Their positions and sizes use frame-relative expressions: the target is centred at 50% of the width and 52% of the height; the title and footer stay separate from it.
 
 For portrait or square previews, set `global.orientation` to the desired output and rebuild each section's `inputs` from its shared preset's `build(orientation)` result. The resulting concrete overlay coordinates match that output's dimensions; the fixture's background shapes and text positions adapt through their expressions. Inspect all three orientations without moving the labels onto the target.
 

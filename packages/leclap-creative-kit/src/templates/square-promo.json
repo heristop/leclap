@@ -2,7 +2,7 @@
   "meta": {
     "name": "Square Promo",
     "description": "A bold editorial square campaign: contrasting panels, staggered lateral typography, a full-bleed product clip and a graphic closing invitation.",
-    "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use brief opposing motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size."
+    "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use one brief light pass on the footage and opposing overshoot motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size."
   },
   "global": {
     "orientation": "square",
@@ -144,9 +144,9 @@
           "reveal": {
             "type": "slide-right",
             "delay": 0.04,
-            "duration": 0.28,
-            "easing": "ease-out",
-            "distance": 80
+            "duration": 0.38,
+            "distance": 80,
+            "easing": "ease-out-back"
           },
           "exit": {
             "type": "slide-left",
@@ -170,10 +170,10 @@
           },
           "reveal": {
             "type": "slide-left",
-            "delay": 0.12,
-            "duration": 0.24,
-            "easing": "ease-out",
-            "distance": 44
+            "delay": 0.14,
+            "duration": 0.32,
+            "distance": 44,
+            "easing": "ease-out"
           },
           "exit": {
             "type": "slide-right",
@@ -223,7 +223,23 @@
         "effect": {
           "shadow": true
         }
-      }
+      },
+      "inputs": [
+        {
+          "name": "light_pass",
+          "type": "animation",
+          "url": "/assets/animations/light_leak.apng",
+          "options": {
+            "position": "0:236",
+            "scale": "1080:608",
+            "fit": "contain",
+            "persistent": false,
+            "start": 0.04,
+            "duration": 2,
+            "opacity": 0.14
+          }
+        }
+      ]
     },
     {
       "name": "outro",
@@ -258,14 +274,15 @@
             "fontfile": "BebasNeue.ttf",
             "fontsize": 152,
             "fontcolor": "#e6ff72",
-            "x": "'64+(1-(1+2.2*pow((min(1,max(0,(t-0.04)/0.36)))-1,3)+1.2*pow((min(1,max(0,(t-0.04)/0.36)))-1,2)))*70'",
+            "x": 64,
             "y": 230
           },
           "reveal": {
-            "type": "fade",
+            "type": "slide-left",
             "delay": 0.04,
-            "duration": 0.24,
-            "easing": "ease-out"
+            "duration": 0.4,
+            "distance": 70,
+            "easing": "ease-out-back"
           }
         },
         {
@@ -277,14 +294,15 @@
             "fontfile": "BebasNeue.ttf",
             "fontsize": 152,
             "fontcolor": "#e6ff72",
-            "x": "'64+(1-(1+2.2*pow((min(1,max(0,(t-0.12)/0.36)))-1,3)+1.2*pow((min(1,max(0,(t-0.12)/0.36)))-1,2)))*-70'",
+            "x": 64,
             "y": 510
           },
           "reveal": {
-            "type": "fade",
+            "type": "slide-right",
             "delay": 0.12,
-            "duration": 0.24,
-            "easing": "ease-out"
+            "duration": 0.4,
+            "distance": 70,
+            "easing": "ease-out-back"
           }
         },
         {

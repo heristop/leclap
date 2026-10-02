@@ -411,7 +411,7 @@ Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes
 | `slide-left`  | Enters from the right (+fade).                       |
 | `slide-right` | Enters from the left (+fade).                        |
 
-`delay` (s, default 0.3, ≥0), `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only). Optional `easing` is `linear` (default), `ease-out` (cubic-out) or `ease-in-out` (smoothstep); it curves both text alpha and travel. In `titleCard`/`lowerThird` the lines enter top-to-bottom. Title cards accept `stagger` (seconds, 0..1, default 0.15) between non-empty lines; zero reveals them together. Empty lines consume no stagger slot, and the accent bar follows its associated emitted line. Lower thirds retain the fixed 0.15-second stagger.
+`delay` (s, default 0.3, ≥0), `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only). Optional `easing` is `linear` (default), `ease-out` (cubic-out), `ease-in-out` (smoothstep), or `ease-out-back` (about 10% travel overshoot). It curves text travel and alpha; back easing clamps alpha to 0..1 while allowing position to overshoot. In `titleCard`/`lowerThird` the lines enter top-to-bottom. Title cards accept `stagger` (seconds, 0..1, default 0.15) between non-empty lines; zero reveals them together. Empty lines consume no stagger slot, and the accent bar follows its associated emitted line. Lower thirds retain the fixed 0.15-second stagger.
 
 ## Exit
 
@@ -422,7 +422,7 @@ A positioned text overlay (a `drawtext` filter on a section, as the builder emit
 "exit": { "type": "slide-left", "after": 2.5, "duration": 0.6, "distance": 60, "easing": "ease-out" }
 ```
 
-The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The one extra field is **`after`** — seconds from the section start when the exit begins; omit it and the engine times the exit to **end at the section's end**. `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only) and `easing` (`linear`/`ease-out`/`ease-in-out`, default `linear`) behave as for `reveal`. `after` must be ≥0. Rise exits travel upward, slide-left exits travel left and slide-right exits travel right. Omitted easing preserves historical output. Exits remain positioned `drawtext` controls; caption/titleCard/lowerThird blocks do not gain an `exit` field.
+The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The one extra field is **`after`** — seconds from the section start when the exit begins; omit it and the engine times the exit to **end at the section's end**. `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only) and `easing` (`linear`/`ease-out`/`ease-in-out`/`ease-out-back`, default `linear`) behave as for `reveal`. `after` must be ≥0. Rise exits travel upward, slide-left exits travel left and slide-right exits travel right. Omitted easing preserves historical output. Exits remain positioned `drawtext` controls; caption/titleCard/lowerThird blocks do not gain an `exit` field.
 
 ## Title cards
 

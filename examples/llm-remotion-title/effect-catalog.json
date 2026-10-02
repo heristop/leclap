@@ -35,7 +35,7 @@
       "id": "studio.editorial-type",
       "version": "1.0.0",
       "compositionId": "LeclapEditorialType",
-      "description": "Asset-free masked, word-staggered or highlighted editorial typography; fixed opaque landscape output with bounded frame-time controls.",
+      "description": "Asset-free masked, staggered, highlighted, blur-rise, opposing-slide or elastic editorial typography with bounded frame-time controls.",
       "propsSchema": {
         "type": "object",
         "properties": {
@@ -53,7 +53,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["masked-rise", "word-stagger", "highlight"],
+            "enum": ["masked-rise", "word-stagger", "highlight", "blur-rise", "split-slide", "elastic-stagger"],
             "default": "masked-rise"
           },
           "accent": {

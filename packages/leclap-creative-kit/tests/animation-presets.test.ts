@@ -24,6 +24,9 @@ const nativeAspects: Record<string, number> = {
   sparkle: 1280 / 720,
   tap_pulse: 1,
   spec_orbit: 720 / 1280,
+  pulse_ring: 1280 / 720,
+  light_leak: 1280 / 720,
+  white_border: 1280 / 720,
 };
 
 describe('bundled animation defaults', () => {
@@ -63,11 +66,14 @@ describe('bundled animation defaults', () => {
 });
 
 describe('animation effect presets', () => {
-  it('exposes three distinct discoverable recipes', () => {
+  it('exposes six distinct discoverable recipes', () => {
     expect(ANIMATION_EFFECT_PRESETS.map((preset) => preset.id)).toEqual([
       'interface-focus',
       'product-spotlight',
       'celebration-burst',
+      'focus-lock',
+      'light-pass',
+      'frame-reveal',
     ]);
     for (const preset of ANIMATION_EFFECT_PRESETS) {
       expect(preset.nameKey).toBe(`animation.effects.${preset.id}.name`);

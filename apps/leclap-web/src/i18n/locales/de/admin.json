@@ -617,6 +617,18 @@
       "celebration-burst": {
         "name": "Festlicher Akzent",
         "description": "Ein kurzer Konfetti- und Funkelakzent."
+      },
+      "focus-lock": {
+        "name": "Fokusrahmen",
+        "description": "Ein Eckrahmen mit einem dezenten Ring."
+      },
+      "light-pass": {
+        "name": "Lichtpassage",
+        "description": "Ein kurzer Lichtschein und ein kleiner Funkelakzent."
+      },
+      "frame-reveal": {
+        "name": "Rahmenenthüllung",
+        "description": "Ein feiner Rahmen mit einem einzelnen Lichtstreifen."
       }
     }
   },
@@ -869,8 +881,9 @@
     "easingLinear": "Linear",
     "easingEaseOut": "Ausklingend",
     "easingEaseInOut": "Sanft",
-    "easingHint": "Tempoverlauf des Eingangs — Ausklingend gleitet in Position, Sanft beschleunigt und setzt weich auf.",
-    "summaryDefault": "Standard-Timing"
+    "easingHint": "Wie Bewegung endet — sanft abbremsen oder kurz über die Endposition hinausgehen.",
+    "summaryDefault": "Standard-Timing",
+    "easingEaseOutBack": "Abbremsen mit Überschwingen"
   },
   "exit": {
     "easing": "Ausgangskurve",

@@ -21,6 +21,10 @@ const GUIDE = [
     '(sourceVolume, musicVolume, normalize, ducking) and options.audioFade; color_background `layers`; ' +
     'and project_video `framingGuide` (a recording-UI overlay, never rendered). They compile to ' +
     'ordinary on-device-safe FFmpeg filters. `filters[]` remains the raw escape hatch (FFmpeg-native keys).',
+  'Text reveal easing accepts linear, ease-out, ease-in-out and ease-out-back. Back easing overshoots travel by ' +
+    'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
+    'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +
+    'with get_effect_schema. These registered Remotion modes need a Node worker, not the portable native path.',
   'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +
     'cut-only templates use a fast stream-copy concat.',
   'Strings may contain `{{ variables }}` (from global.variables), `{{ colorN }}` (1-indexed from ' +

@@ -94,7 +94,12 @@ leclap init demo --no-remotion --no-mcp \
 The brief is plain text (1–4000 characters), validated with the descriptor and preserved by the editor.
 It guides a human or agent; the flag does not redesign the starter or change rendering automatically.
 Translate it into explicit sections, filters or registered effect props, then validate and inspect the
-render. See the [creative-direction workflow](../../docs/creative-direction.md).
+render. For a stronger native headline beat, set `reveal.easing` to `"ease-out-back"`; it allows a small
+travel overshoot while keeping opacity bounded. For per-word blur, opposing slides or elastic
+staggering, use the [registered Remotion variants](../../examples/llm-remotion-title/README.md#editorial-typography)
+with the configured Node worker.
+
+See the [creative-direction workflow](../../docs/creative-direction.md).
 
 ## Relation to `@leclap/mcp`
 

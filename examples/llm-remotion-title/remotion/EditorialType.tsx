@@ -41,7 +41,7 @@ function EditorialWords({
             boxSizing: 'border-box',
             verticalAlign: 'top',
             padding: '0.06em 0.025em',
-            overflow: props.mode === 'masked-rise' ? 'hidden' : undefined,
+            overflow: props.mode === 'masked-rise' || props.mode === 'split-slide' ? 'hidden' : undefined,
           }}
         >
           <span
@@ -49,7 +49,10 @@ function EditorialWords({
               display: 'block',
               position: 'relative',
               opacity: timing?.opacity,
-              transform: timing ? `translateY(${timing.translateY}px) scale(${timing.scale})` : undefined,
+              transform: timing
+                ? `translate(${timing.translateX}px, ${timing.translateY}px) scale(${timing.scale})`
+                : undefined,
+              filter: timing?.blurPx ? `blur(${timing.blurPx}px)` : undefined,
               transformOrigin: 'left bottom',
             }}
           >
@@ -148,7 +151,7 @@ export function EditorialType(props: EditorialProps) {
             top: 198,
             width: safeWidth,
             height: 420,
-            overflow: 'hidden',
+            overflow: ['blur-rise', 'split-slide', 'elastic-stagger'].includes(props.mode) ? 'visible' : 'hidden',
             ...copyStyle,
             fontSize: fontSize ?? 104,
           }}

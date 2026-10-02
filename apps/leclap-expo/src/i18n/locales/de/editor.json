@@ -371,7 +371,22 @@
     "mirrorVertical": "Vertikal",
     "add": "Animation hinzufügen",
     "layer": "Animation {{number}}",
-    "remove": "Animation entfernen"
+    "remove": "Animation entfernen",
+    "effects": {
+      "label": "Effektkombinationen",
+      "interface-focus": {
+        "name": "Interface-Fokus",
+        "description": "Ein Detail mit einem kurzen Impuls einrahmen."
+      },
+      "product-spotlight": {
+        "name": "Produkt im Fokus",
+        "description": "Eine sanfte Umlaufbewegung und ein einzelner Lichtstreifen."
+      },
+      "celebration-burst": {
+        "name": "Festlicher Akzent",
+        "description": "Ein kurzer Konfetti- und Funkelakzent."
+      }
+    }
   },
   "overlays": {
     "kind": "Overlays",

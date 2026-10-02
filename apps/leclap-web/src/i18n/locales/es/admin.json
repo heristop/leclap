@@ -603,7 +603,22 @@
     "keepLastFrame": "Mantener el último fotograma",
     "dragHint": "Arrastra para mover · esquina para redimensionar · flechas para ajustar",
     "reset": "Restablecer a los valores predeterminados",
-    "placementGroup": "Colocación"
+    "placementGroup": "Colocación",
+    "effects": {
+      "label": "Combinaciones de efectos",
+      "interface-focus": {
+        "name": "Enfoque de interfaz",
+        "description": "Enmarca un detalle con un breve pulso."
+      },
+      "product-spotlight": {
+        "name": "Producto destacado",
+        "description": "Una órbita suave y un único reflejo."
+      },
+      "celebration-burst": {
+        "name": "Explosión festiva",
+        "description": "Un breve acento de confeti y destellos."
+      }
+    }
   },
   "element": {
     "resize": "Redimensionar elemento",

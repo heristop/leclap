@@ -603,7 +603,22 @@
     "keepLastFrame": "Garder la dernière image",
     "dragHint": "Glisse pour déplacer · coin pour redimensionner · flèches pour ajuster",
     "reset": "Revenir aux valeurs par défaut",
-    "placementGroup": "Placement"
+    "placementGroup": "Placement",
+    "effects": {
+      "label": "Combinaisons d’effets",
+      "interface-focus": {
+        "name": "Focus interface",
+        "description": "Encadrez un détail avec une brève pulsation."
+      },
+      "product-spotlight": {
+        "name": "Mise en lumière",
+        "description": "Une orbite douce et un seul reflet."
+      },
+      "celebration-burst": {
+        "name": "Explosion festive",
+        "description": "Un bref accent de confettis et d’étincelles."
+      }
+    }
   },
   "element": {
     "resize": "Redimensionner l’élément",

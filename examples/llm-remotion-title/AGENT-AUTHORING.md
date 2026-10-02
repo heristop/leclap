@@ -16,7 +16,7 @@ This is an example storyboard, not a mandatory three-card layout. A tutorial may
 
 ## Select the rendering route
 
-- Use ordinary LeClap JSON for footage, titles, captions, layers, cuts, audio and existing text entrance/exit controls. It runs through the cross-platform engine.
+- Use ordinary LeClap JSON for footage, titles, captions, layers, cuts, audio and existing text entrance/exit controls. It runs through the cross-platform engine. For brief composited accents, use the shared [overlay effect recipes](../overlay-effects/README.md): Interface Focus, Product Spotlight and Celebration Burst expand into ordinary animated inputs.
 - Call `get_effect_schema({ list: true })` for trusted registered Remotion effects, then request the exact ID/version contract. Use Remotion when the storyboard needs per-word choreography, a camera move, or a custom product component beyond the ordinary primitives.
 - Register new operator-owned components through the existing catalog. The registered effect route currently requires opaque H.264 at 1280×720, 30 fps and 300 frames. Do not put those effects into square/portrait samples expecting automatic adaptation.
 - Keep source, props and assets fixed for reproducibility. Remotion motion must depend on frame time; avoid wall-clock timers, CSS transitions and unseeded randomness. Reuse the existing Remotion worker, rather than adding a second HTML/browser renderer.

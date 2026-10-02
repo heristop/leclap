@@ -603,7 +603,22 @@
     "keepLastFrame": "Mantieni l’ultimo frame",
     "dragHint": "Trascina per spostare · angolo per ridimensionare · frecce per piccoli spostamenti",
     "reset": "Ripristina i valori predefiniti",
-    "placementGroup": "Posizionamento"
+    "placementGroup": "Posizionamento",
+    "effects": {
+      "label": "Combinazioni di effetti",
+      "interface-focus": {
+        "name": "Focus interfaccia",
+        "description": "Inquadra un dettaglio con un breve impulso."
+      },
+      "product-spotlight": {
+        "name": "Prodotto in evidenza",
+        "description": "Un movimento orbitale delicato e un singolo riflesso."
+      },
+      "celebration-burst": {
+        "name": "Esplosione festosa",
+        "description": "Un breve accento di coriandoli e scintille."
+      }
+    }
   },
   "element": {
     "resize": "Ridimensiona elemento",

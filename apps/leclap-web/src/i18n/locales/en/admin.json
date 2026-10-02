@@ -603,7 +603,22 @@
     "keepLastFrame": "Keep last frame",
     "dragHint": "Drag to move · corner to resize · arrows to nudge",
     "reset": "Reset to default",
-    "placementGroup": "Placement"
+    "placementGroup": "Placement",
+    "effects": {
+      "label": "Effect combinations",
+      "interface-focus": {
+        "name": "Interface focus",
+        "description": "Frame a detail with a brief pulse."
+      },
+      "product-spotlight": {
+        "name": "Product spotlight",
+        "description": "A soft orbit and a single shine sweep."
+      },
+      "celebration-burst": {
+        "name": "Celebration burst",
+        "description": "A short confetti and sparkle accent."
+      }
+    }
   },
   "element": {
     "resize": "Resize element",

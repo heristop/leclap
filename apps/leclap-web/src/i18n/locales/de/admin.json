@@ -603,7 +603,22 @@
     "keepLastFrame": "Letztes Bild behalten",
     "dragHint": "Ziehen zum Bewegen · Ecke zum Skalieren · Pfeile zum Justieren",
     "reset": "Auf Standard zurücksetzen",
-    "placementGroup": "Platzierung"
+    "placementGroup": "Platzierung",
+    "effects": {
+      "label": "Effektkombinationen",
+      "interface-focus": {
+        "name": "Interface-Fokus",
+        "description": "Ein Detail mit einem kurzen Impuls einrahmen."
+      },
+      "product-spotlight": {
+        "name": "Produkt im Fokus",
+        "description": "Eine sanfte Umlaufbewegung und ein einzelner Lichtstreifen."
+      },
+      "celebration-burst": {
+        "name": "Festlicher Akzent",
+        "description": "Ein kurzer Konfetti- und Funkelakzent."
+      }
+    }
   },
   "element": {
     "resize": "Element skalieren",

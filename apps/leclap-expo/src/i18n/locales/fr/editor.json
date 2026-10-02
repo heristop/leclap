@@ -371,7 +371,22 @@
     "mirrorVertical": "Vertical",
     "add": "Ajouter une animation",
     "layer": "Animation {{number}}",
-    "remove": "Retirer l’animation"
+    "remove": "Retirer l’animation",
+    "effects": {
+      "label": "Combinaisons d’effets",
+      "interface-focus": {
+        "name": "Focus interface",
+        "description": "Encadrez un détail avec une brève pulsation."
+      },
+      "product-spotlight": {
+        "name": "Mise en lumière",
+        "description": "Une orbite douce et un seul reflet."
+      },
+      "celebration-burst": {
+        "name": "Explosion festive",
+        "description": "Un bref accent de confettis et d’étincelles."
+      }
+    }
   },
   "overlays": {
     "kind": "Surimpressions",

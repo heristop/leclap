@@ -371,7 +371,22 @@
     "mirrorVertical": "Verticale",
     "add": "Aggiungi un'animazione",
     "layer": "Animazione {{number}}",
-    "remove": "Rimuovi animazione"
+    "remove": "Rimuovi animazione",
+    "effects": {
+      "label": "Combinazioni di effetti",
+      "interface-focus": {
+        "name": "Focus interfaccia",
+        "description": "Inquadra un dettaglio con un breve impulso."
+      },
+      "product-spotlight": {
+        "name": "Prodotto in evidenza",
+        "description": "Un movimento orbitale delicato e un singolo riflesso."
+      },
+      "celebration-burst": {
+        "name": "Esplosione festosa",
+        "description": "Un breve accento di coriandoli e scintille."
+      }
+    }
   },
   "overlays": {
     "kind": "Sovrimpressioni",

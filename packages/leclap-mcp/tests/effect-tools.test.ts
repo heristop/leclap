@@ -213,6 +213,8 @@ describe('MCP registered effects', () => {
   it('effect schema exposes defaults and backend limitations', async () => {
     const result = await capture(registerGetEffectSchema)({});
     expect(result.structuredContent.id).toBe('leclap.title-reveal');
+    expect(result.structuredContent.assetExtensions.background).toEqual(['.mp4', '.mov', '.webm', '.m4v']);
+    expect(result.structuredContent.assetVideoPolicies).toEqual({ background: { minVideoDurationSeconds: 10 } });
     expect(result.structuredContent.props.properties.headline.default).toBe('LECLAP');
     expect(result.structuredContent.output).toMatchObject({ width: 1280, height: 720, fps: 30, durationInFrames: 300 });
   });
@@ -398,3 +400,30 @@ it.each(['props', 'assets'])(
     expect(runTitleEffect).not.toHaveBeenCalled();
   }
 );
+
+it('discovers custom asset extensions, required slots and explicit video duration policies', async () => {
+  cfg.effectCatalog = parseCustomEffectCatalog({
+    schemaVersion: 1,
+    effects: [
+      {
+        id: 'studio.asset-scene',
+        version: '1.0.0',
+        compositionId: 'AssetScene',
+        propsSchema: { type: 'object', properties: {}, additionalProperties: false },
+        assets: {
+          clip: { extensions: ['.mp4'], minVideoDurationSeconds: 12 },
+          logo: { extensions: ['.png', '.webp'], required: false },
+        },
+      },
+    ],
+  });
+  const result = await capture(registerGetEffectSchema)({ id: 'studio.asset-scene', version: '1.0.0' });
+  expect(result.isError).toBeUndefined();
+  expect(result.structuredContent.assets.required).toEqual(['clip']);
+  expect(result.structuredContent.assetExtensions).toEqual({ clip: ['.mp4'], logo: ['.png', '.webp'] });
+  expect(result.structuredContent.assetVideoPolicies).toEqual({ clip: { minVideoDurationSeconds: 12 } });
+  const text = JSON.parse(result.content[0].text);
+  expect(text.assetExtensions).toEqual(result.structuredContent.assetExtensions);
+  expect(text.assetVideoPolicies).toEqual(result.structuredContent.assetVideoPolicies);
+  expect(runTitleEffect).not.toHaveBeenCalled();
+});

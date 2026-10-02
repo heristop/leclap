@@ -54,6 +54,8 @@ export function registerGetEffectSchema(server: McpServer, config: Pick<McpConfi
           definitionHash: definition.definitionHash,
           props: z.toJSONSchema(definition.props),
           assets: z.toJSONSchema(definition.assets),
+          assetExtensions: definition.assetExtensions,
+          assetVideoPolicies: definition.assetVideoPolicies,
           timing: definition.timing,
           runtime: {
             backend: 'Remotion/Chromium (Node MCP only)',

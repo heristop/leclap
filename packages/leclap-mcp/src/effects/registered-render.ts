@@ -41,9 +41,10 @@ async function snapshotAssets(title: PreparedTitle, directory: string, signal?: 
   const publicDir = path.join(directory, 'assets');
   await fs.mkdir(publicDir);
   const entries = await Promise.all(
-    Object.entries(title.assets).map(async ([key, file]) => {
+    Object.entries(title.assets).map(async ([key, file], index) => {
       signal?.throwIfAborted();
-      const staged = `${key}${path.extname(file).toLowerCase()}`;
+      // Numeric names remain distinct on case-insensitive filesystems and never include asset keys.
+      const staged = `asset-${index}${path.extname(file).toLowerCase()}`;
       const target = path.join(publicDir, staged);
       await fs.copyFile(file, target);
       // Remotion embeds public file mtimes in index.html; make snapshot metadata reproducible.

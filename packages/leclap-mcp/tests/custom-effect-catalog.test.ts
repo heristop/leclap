@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { getEffectDefinition, listEffectDefinitions } from '../src/effects/effect-catalog.js';
 import { loadCustomEffectCatalog, parseCustomEffectCatalog } from '../src/effects/custom-effect-catalog.js';
@@ -370,11 +372,15 @@ describe('custom effect catalog', () => {
     const script = `import {loadCustomEffectCatalog} from ${JSON.stringify(moduleUrl)};
       try { loadCustomEffectCatalog(${JSON.stringify(fifo)}); }
       catch (error) { console.log(error.message); }`;
-    const child = spawnSync(process.execPath, ['--import', 'tsx/esm', '--input-type=module', '-e', script], {
+    const loaderUrl = pathToFileURL(createRequire(import.meta.url).resolve('tsx/esm')).href;
+    const child = spawnSync(process.execPath, ['--import', loaderUrl, '--input-type=module', '-e', script], {
+      cwd: fileURLToPath(new URL('../../../', import.meta.url)),
       timeout: 2000,
       encoding: 'utf8',
     });
-    expect(child.status).toBe(0);
+    const diagnostics = `error=${child.error?.message ?? 'none'}; signal=${child.signal}; stderr=${child.stderr}`;
+    expect(child.error, diagnostics).toBeUndefined();
+    expect(child.status, diagnostics).toBe(0);
     expect(child.stdout).toMatch(/effect_catalog_invalid.*regular file/);
   });
   it('loads bounded regular JSON files and reports malformed or oversized files', () => {

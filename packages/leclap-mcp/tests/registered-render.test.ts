@@ -72,11 +72,11 @@ describe('registered immutable Remotion job', () => {
     const second = await prepareTitleJob(title, config);
     expect(first.directory).not.toBe(second.directory);
     expect(first.provenance.hash).toBe(second.provenance.hash);
-    expect((await fs.stat(path.join(first.directory, 'assets/logo.png'))).mtimeMs).toBe(0);
+    expect((await fs.stat(path.join(first.directory, 'assets/asset-1.png'))).mtimeMs).toBe(0);
     expect(first.provenance.renderer.browserVersion).toBe('Chromium 123.0.0');
-    expect(first.inputProps.background).toBe('background.mp4');
+    expect(first.inputProps.background).toBe('asset-0.mp4');
     await fs.writeFile(title.assets.background, 'changed');
-    expect(await fs.readFile(path.join(first.serveUrl, 'public/background.mp4'), 'utf8')).toBe('background.mp4');
+    expect(await fs.readFile(path.join(first.serveUrl, 'public/asset-0.mp4'), 'utf8')).toBe('background.mp4');
     const full = await renderTitleJob(first, { kind: 'video' });
     const still = await renderTitleJob(first, { kind: 'still', frame: 42 });
     const range = await renderTitleJob(first, { kind: 'range', from: 30, to: 59 });
@@ -169,4 +169,29 @@ it.each([
   (modules as any).bundle = bundle;
   await expect(prepareTitleJob({ ...title, ...metadata }, config)).rejects.toThrow(/effect_metadata_invalid/);
   expect(bundle).not.toHaveBeenCalled();
+});
+
+it('stages case-distinct custom asset keys into separate files with independent hashes', async () => {
+  const upper = path.join(dir, 'upper.png');
+  const lower = path.join(dir, 'lower.png');
+  await fs.writeFile(upper, 'upper image');
+  await fs.writeFile(lower, 'lower image');
+  const custom = {
+    ...title,
+    section: { ...title.section, effect: { id: 'studio.case-assets', version: '1.0.0' } },
+    compositionId: 'CaseAssets',
+    definitionHash: 'a'.repeat(64),
+    props: {},
+    assets: { Logo: upper, logo: lower },
+  };
+  const job = await prepareTitleJob(custom, config);
+  const first = String(job.inputProps.Logo);
+  const second = String(job.inputProps.logo);
+  expect(first.toLowerCase()).not.toBe(second.toLowerCase());
+  expect(await fs.readdir(path.join(job.directory, 'assets'))).toHaveLength(2);
+  expect(await fs.readFile(path.join(job.serveUrl, 'public', first), 'utf8')).toBe('upper image');
+  expect(await fs.readFile(path.join(job.serveUrl, 'public', second), 'utf8')).toBe('lower image');
+  expect(job.provenance.assetHashes.Logo).not.toBe(job.provenance.assetHashes.logo);
+  const repeated = await prepareTitleJob(custom, config);
+  expect(repeated.provenance.hash).toBe(job.provenance.hash);
 });

@@ -32,6 +32,26 @@ leclap --version
 
 `render` reads assets from `<cwd>/assets` and writes output under `<cwd>/build`.
 
+## Render configuration
+
+```bash
+leclap render template.json \
+  --assets ./assets --build ./build \
+  --video demo=./clips/screen.mp4 \
+  --field form_1_title="Your next release" \
+  --locale en --orientation landscape --output ./exports/promo.mp4
+```
+
+Use the descriptor's effective section and field names. Repeat `--video` and `--field` to bind
+multiple inputs; later values win for the same key. All relative file/directory paths resolve from
+the working directory. `--orientation` overrides `template.global.orientation`, while frame rate
+comes from `global.fps`. `--output` copies the finished video after successful compilation.
+
+Codec, quality tier and segment concurrency are configured through the library's `ProjectConfig`;
+the published CLI has no flags for those fields. MCP server flags belong to `leclap-mcp`, not
+`leclap render`. See [engine configuration](../../docs/engine-configuration.md) for all defaults,
+platform constraints and environment-variable scope.
+
 ## `samples` — discover and adapt a showcase
 
 The installed CLI includes the same 32 samples as the [web showcase](https://leclap.dev/showcase/):
@@ -61,8 +81,8 @@ form fields and copy limits, variable defaults/placeholders, asset references an
 Supply your own media and fonts; preview videos/posters and showcase media are not shipped. Asset paths
 remain authored references and must resolve in your configured assets directory or be replaced.
 Effective font files from text presets are marked `source: "preset"`, with font family metadata when available.
-For native samples needing project clips or form inputs, use the library's `userVideoPaths`/`fields`
-configuration or MCP `compose_video`; the CLI render command has no clip/field binding flags.
+For native samples needing project clips or form inputs, pass repeatable `--video section=path` and
+`--field key=value` flags, or use the library's `userVideoPaths`/`fields` or MCP `compose_video` bindings.
 
 Registered effect samples require MCP's opted-in Node/Chromium backend, Remotion peers and a trusted
 configured entry that registers the named composition. Effects marked `customCatalog: true` additionally

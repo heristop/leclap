@@ -38,6 +38,10 @@ when the storyboard needs choreography or components beyond those primitives. Re
 use the configured Node/Chromium backend; their output contract currently fixes landscape 1280×720,
 30 fps and 300 frames. Check the effect schema rather than assuming orientation or prop support.
 
+Keep the brief and motion settings in template JSON, media/field bindings and encoder choices in
+host `ProjectConfig`, and Remotion entry/catalog/browser/deadline/cache settings in MCP startup
+configuration. See [engine configuration](./engine-configuration.md) for precedence and defaults.
+
 Direction metadata adds no rendering work. Native cuts avoid the full-timeline re-encode required by
 non-cut transitions. Reuse unchanged registered-effect requests through the existing cache, and
 preview the changed beat before rendering the whole video. Pin source, props, assets and runtime for
@@ -88,6 +92,10 @@ overwriting), or take the MCP result's `template`. Partials are embedded. Adapt 
 settings together, replace sample copy, supply named clips and fields, then validate and render.
 Preview media is not packaged; provide or replace listed media and font references. Effective font
 requirements from presets are marked `source: "preset"` and retain family metadata when available.
+
+For the CLI, bind native inputs with repeatable `--video section=path` and `--field key=value` flags.
+Use the effective section name, including any partial prefix. MCP accepts the corresponding
+`userVideoPaths` and `fields` objects in `compose_video`.
 
 Native samples use existing FFmpeg backends. Registered Remotion samples remain discoverable with
 execution disabled, but rendering requires the opted-in MCP Node/Chromium backend, peers and a trusted

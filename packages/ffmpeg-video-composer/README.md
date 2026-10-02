@@ -33,6 +33,24 @@ const result = await compile(projectConfig, template);
 `compile()` resolves `null` when a render fails. To learn why, pass a reporter as the third argument: its
 `onError(error)` receives the error that stopped the render, once, before `compile()` resolves.
 
+## Host configuration
+
+`ProjectConfig` supplies paths, `fields`, `userVideoPaths`, `currentLocale`, `qualityTier`, and
+codec/hardware/audio/video blocks. These blocks merge per field with defaults. Set output orientation
+in `template.global.orientation`; `global.fps` overrides host `videoConfig.fps`. Default landscape
+output is 1280×720 at 30 fps; portrait swaps the base dimensions and square forces 1080×1080.
+
+Use `hardwareConfig.preset` explicitly when selecting an encoder preset: the default remains
+`ultrafast` even when quality tier changes. `hardwareConfig.maxRenderConcurrency` defaults to three
+segments on Node/static and is forced to one on WASM/native. The [engine configuration reference](https://github.com/heristop/leclap/blob/main/docs/engine-configuration.md)
+lists all fields, defaults, environment variables and platform exceptions.
+
+Registered JSON effects require resolution before any core compile entry. Use `resolveTemplateEffects`
+with a trusted renderer/preflight callback, then compile its returned descriptor with its
+`userVideoPaths` merged into your project bindings. The core does not launch Remotion. The optional
+[MCP registered-effect backend](../leclap-mcp/README.md#configuration) configures its entry, browser,
+catalog, deadlines and cache separately, and currently renders fixed ten-second landscape effects.
+
 Prefer the command line? Use [`@leclap/cli`](https://github.com/heristop/leclap/tree/main/packages/leclap-cli):
 
 ```bash
@@ -51,15 +69,19 @@ npx @leclap/cli diagnose                  # check your FFmpeg setup
 
 ## FFmpeg detection order
 
-The library picks the best available FFmpeg automatically:
+The Node entry detects FFmpeg in this order:
 
 1. **System FFmpeg** — your installed binary (fastest, recommended for production).
 2. **Static FFmpeg** — bundled binary via the optional `ffmpeg-static` package. It ships `ffmpeg` only.
    Templates that probe media (transitions, music, whole-video overlays, `project_video` clips) also
    need an `ffprobe`, either from the optional `ffprobe-static` package or next to the `ffmpeg-static`
    binary. Without one they stop before rendering, with an error that names the missing binary.
-3. **WebAssembly** — `@ffmpeg/ffmpeg` in the browser (2 GB input limit).
-4. **None** — a clear error message with installation guidance.
+3. **None** — a clear error message with installation guidance. WASM is not a pure-Node fallback.
+
+Browser hosts import `/browser` and register WASM directly; inputs and intermediate copies consume
+WASM memory, so the approximate 2 GB input ceiling is not a supported project-size guarantee.
+React Native hosts import `/reactnative` and inject their on-device engine. Registered React effects
+run on the configured Node backend; browser/native composition can consume the resulting clips.
 
 Run `npx @leclap/cli diagnose` to see what your environment provides.
 

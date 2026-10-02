@@ -33,7 +33,12 @@ Because `filters[]` is a raw pass-through, its `values` keys stay **FFmpeg-nativ
 
 All top-level keys are optional (so partial descriptors can be validated incrementally), but a useful template has at least one section.
 
-**All durations are in SECONDS, everywhere** — `options.duration`, `transition.duration`, `audioFade.in.duration`, `countdownDuration`, etc.
+**Native descriptor durations are in seconds** — `options.duration`, `transition.duration`, `audioFade.in.duration`, `countdownDuration`, etc. Registered-effect props can use frame counts or other units defined by their effect schema; do not assume they use seconds.
+
+Host paths, media bindings, encoder/quality settings and MCP startup options live outside the descriptor;
+see [engine configuration](./engine-configuration.md). `global.orientation` determines the output
+layout, and `global.fps` takes precedence over host `videoConfig.fps`. `meta.creativeDirection` is
+an authoring brief and does not override either configuration layer.
 
 ## `meta`
 
@@ -812,5 +817,12 @@ Effect IDs and exact semantic versions are required; props contain JSON values o
 The Node MCP backend includes `leclap.title-reveal@1.0.0` (`LeclapTitle`) and `leclap.web-app-promo@1.0.0` (`LeclapWebAppPromo`), plus operator-registered effects from a configured catalog. Discover the available effects with `get_effect_schema` and `{ "list": true }`, then request an exact id/version to inspect prop defaults/bounds, asset slots and runtime requirements. The current output contract is 1280×720, 30 fps, 300 frames (10 seconds). Enable the Remotion opt-in and configure a trusted entry; see [the runnable example](../examples/llm-remotion-title). The example paths above are placeholders: replace them with absolute regular local files contained under the configured media directory, including a background video at least 10 seconds long for the title effect. Inspect selected frames or a short range with `render_preview` before `compose_video`. This is desktop rendering; native/browser callers may consume the resulting compatible clip but do not execute React code locally.
 
 Calling the core compile API with an unresolved effect reports `effect_backend_unavailable` before platform initialization. Ordinary templates are unchanged. Library consumers can provide another trusted renderer/preflight callback to the generic resolution API; MCP operators can register bounded JSON prop and asset contracts in their configured catalog.
+
+Configure the MCP entry, browser, catalog, media root, timeout and cache through its startup flags,
+not effect props or `ProjectConfig`. See [registered-effect configuration](./engine-configuration.md#registered-effects-and-mcp-runtime).
+Use expanded effect section names, including partial prefixes, for preview and patch requests.
+`patch_template` preserves inline partial authoring and materializes only a selected registry instance;
+other references and the shared definition remain unchanged. JSON revisions guard edits, while
+render provenance records observed inputs; neither guarantees identical bytes across hosts.
 
 For reproducibility, retain the JSON, exact implementation/dependencies, resolved assets/fonts and render settings. JSON syntax alone does not guarantee identical pixels across rendering backends or identical encoded bytes.

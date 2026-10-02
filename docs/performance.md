@@ -10,6 +10,10 @@ How to measure where a compile spends its time and turn that into ranked optimiz
 
 ## Phase timing (`FVC_PERF`)
 
+For runtime controls, see the [engine configuration reference](./engine-configuration.md). Node/static FFmpeg segments default to a concurrency of three, capped by the section count; `ProjectConfig.hardwareConfig.maxRenderConcurrency` can narrow or widen that work. WASM and on-device adapters remain serial. `FVC_RENDER_CONCURRENCY` is a dev compile-script setting, not a published CLI flag.
+
+MCP registered effects use a separate single-job queue with at most eight waiters. Queue wait, asset preflight and worker setup/render each have their own timeout; this is not one request-wide deadline. Preflight probes sequentially and deduplicates real paths within a request. The persistent effect cache saves rendering on a hit, but asset staging, bundling, browser identification and final FFmpeg assembly still run. Measure those stages separately from core compile spans when comparing cold and warm effect renders.
+
 The pipeline is instrumented with a lightweight, gated timer (`packages/ffmpeg-video-composer/src/utils/perf-timer.ts`). Build the core before invoking the dev compile script: `pnpm --filter ffmpeg-video-composer build`. It is a **no-op unless `FVC_PERF` is set** to a truthy value other than `0`, so normal compiles and the test suite pay only a boolean check.
 
 ```bash

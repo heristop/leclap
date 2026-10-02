@@ -4,6 +4,25 @@ The Expo app renders templates on-device through the same `ffmpeg-video-composer
 
 > For the overall system architecture — including how FFmpeg detection selects a backend — see [`architecture.md`](./architecture.md#cross-platform-support).
 
+## Host configuration
+
+The app's `CoreCompilationService` builds `ProjectConfig` from the descriptor and recorded clips.
+It stages assets locally, maps effective section names into `userVideoPaths`, passes form `fields`,
+and forwards an optional `qualityTier`. Android uses `libopenh264` + AAC; iOS uses
+`h264_videotoolbox` + AAC. The host sets `hwaccel: null` and `preset: 'medium'`; these encoder
+families use their own bitrate arguments rather than libx264 presets.
+
+Descriptor `global.orientation` resolves dimensions and `global.fps` overrides host fps. Segment
+rendering is serial, regardless of `hardwareConfig.maxRenderConcurrency`, because the native
+engine serializes FFmpeg invocation. `compileReactNative` always validates descriptors.
+
+MCP settings such as `--effect-catalog`, `--remotion-entry`, worker timeout and effect-cache budget
+configure the separate Node server, not this engine. Registered React effects must be rendered on
+that backend or another trusted renderer and supplied as compatible clips; unresolved `effect`
+sections are rejected before native platform initialization. Native motion, text easing and APNG
+overlay recipes use the on-device FFmpeg route. See [engine configuration](./engine-configuration.md)
+for the complete field/default reference and reproducibility limits.
+
 ## Why
 
 The native backend embeds the FFmpeg `ffmpeg`/`ffprobe` programs (pinned to n8.0, with `drawtext` enabled) in a Rust library. It is another `AbstractFFmpeg` implementation in the existing director/builder pipeline: shared managers build commands, and the backend executes them. Runtime support depends on the built codecs/filters and available media, rather than a promise that every descriptor renders offline.

@@ -143,11 +143,17 @@ graph TD
 
 ## Architecture Overview
 
+Rendering separates descriptor settings, host `ProjectConfig`, and MCP runtime configuration.
+The descriptor owns scene/motion settings and orientation/fps; hosts bind media and choose encoders.
+MCP configures containment, deadlines and an optional trusted Node/Remotion backend. Registered
+effects are preflighted and resolved to ordinary clips before entering this pipeline. The
+[engine configuration reference](./engine-configuration.md) documents precedence and current limits.
+
 The FFmpeg Video Composer follows a layered architecture with clear separation of concerns:
 
 ### 🚀 Entry Points
 
-- **`packages/leclap-cli/src/index.ts`** - Published `leclap` CLI (`init`, `render`, `validate`, `diagnose`)
+- **`packages/leclap-cli/src/index.ts`** - Published `leclap` CLI (`init`, `render`, `validate`, `samples`, `diagnose`)
 - **`packages/ffmpeg-video-composer/src/index.ts`** - Node library entry point; initializes adapters through `PlatformBridge`
 - **`packages/ffmpeg-video-composer/src/browser.ts`** - Browser entry point; registers WASM, IndexedDB, browser logging and events directly
 - **`packages/ffmpeg-video-composer/src/reactnative.ts`** - React Native entry point; registers an injected native engine, Expo filesystem, logging and events directly

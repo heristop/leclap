@@ -37,14 +37,14 @@
         },
         {
           "name": "LECLAP_MCP_RENDER_TIMEOUT_MS",
-          "description": "Per-render timeout in milliseconds. Defaults to 600000.",
+          "description": "Separate queue, effect-preflight and worker setup/render deadlines in milliseconds, not an end-to-end budget. Defaults to 600000.",
           "format": "number",
           "isRequired": false,
           "isSecret": false
         },
         {
           "name": "LECLAP_MCP_ALLOW_REMOTION",
-          "description": "Opt in to the Remotion clip renderer, which executes local JavaScript. Off by default.",
+          "description": "Enable effect discovery, effect previews and the Remotion clip renderer. Rendering executes local JavaScript. Off by default.",
           "format": "boolean",
           "isRequired": false,
           "isSecret": false
@@ -110,7 +110,7 @@
           },
           {
             "name": "probe_media",
-            "description": "Inspect a local media file and report its streams, duration, and dimensions."
+            "description": "Inspect a local media file and report stream codecs, duration, audio sample rate and size."
           },
           {
             "name": "render_remotion_clip",
@@ -130,7 +130,7 @@
           }
         ],
         "prompts": ["compose-video"],
-        "notes": "render_remotion_clip is registered only when LECLAP_MCP_ALLOW_REMOTION is set, because it executes caller-supplied local JavaScript. Registered JSON effects also require the Remotion opt-in for rendering and use operator-configured trusted source; callers cannot select executable source through effect JSON."
+        "notes": "Eight tools are always registered. get_effect_schema, render_preview and render_remotion_clip require the Remotion opt-in. Registered JSON effects use operator-configured trusted source and require a configured backend for validation, patching and rendering; callers cannot select executable source through effect JSON. patch_template remains registered when Remotion is disabled."
       }
     }
   }

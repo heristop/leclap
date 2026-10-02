@@ -3,6 +3,8 @@
 The example descriptors include `meta.creativeDirection` with their visual intent and review criteria.
 See the [creative-direction guide](../../docs/creative-direction.md) for CLI and MCP authoring.
 
+The [engine configuration reference](../../docs/engine-configuration.md) separates descriptor orientation/fps from host paths, media bindings and encoder settings. These native overlay recipes need no MCP Remotion opt-in or effect catalog. Their concrete placement must match the selected output orientation.
+
 The six effect recipes combine transparent APNG assets with placement and playback settings. They use ordinary JSON inputs and render through LeClap's Node, browser/WASM and native FFmpeg routes.
 
 | Recipe              | Purpose                                      | Direction                                                                                         |

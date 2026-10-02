@@ -12,6 +12,12 @@ The Web App Promo preview uses the [recorded LeClap canvas fixture](./media/READ
 
 ## Rebuild previews
 
+Preview rendering uses native `ProjectConfig` for media/fields and the MCP configuration for
+registered effects. See [engine configuration](../../docs/engine-configuration.md) and the
+[trusted effect startup example](../llm-remotion-title/README.md#custom-product-reveal). The catalog
+JSON and exported descriptors do not select executable source. Playback copies are 960×540 at
+24 fps; that does not change the registered source composition's 1280×720, 30 fps, ten-second contract.
+
 Use the repository’s pinned Node/pnpm versions, install dependencies, and build the core and MCP packages. System FFmpeg (with `drawtext`) and FFprobe must be available. Registered effects need the existing Remotion/Chromium setup; evidence examples use Playwright from the web app and require its Chromium browser. House evidence cards require Python 3.
 
 ```sh

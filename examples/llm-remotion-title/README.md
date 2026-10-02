@@ -5,6 +5,11 @@ See the [creative-direction guide](../../docs/creative-direction.md) for CLI and
 
 This reference project keeps creative controls in LeClap JSON. A trusted Remotion component renders the title effect; LeClap then composes it with the ordinary outro section and exports the video.
 
+See [engine configuration](../../docs/engine-configuration.md) for the boundary between descriptor,
+host `ProjectConfig` and MCP runtime settings. Native output orientation/fps can vary; this registered
+backend requires opaque H.264 at landscape 1280×720, 30 fps, 300 frames. Entry, browser, catalog,
+media/output roots, timeout and cache budget are startup settings, never effect props.
+
 ## Typography samples
 
 The registered editorial composition has standalone descriptors for [masked rise](./editorial-masked-rise.json), [word stagger](./editorial-word-stagger.json) and [highlight](./editorial-highlight.json), alongside blur rise, split slide and elastic stagger examples. Each records its creative direction and bounded motion props. All use the same registered composition and strict JSON contracts.
@@ -47,6 +52,12 @@ For storyboard planning, template variety and frame review, follow the [agent au
 3. Use `render_preview` with `section: "intro"` and either `frames: [0, 15, 30, 150, 299]` or `frameRange: { "from": 0, "to": 89 }` (inclusive). Pass the expected revision to reject stale requests.
 4. Call `patch_template` with the JSON, expected revision and a batch of semantic prop edits.
 5. Inspect the new preview, then pass the revised JSON to `compose_video`. Use `get_effect_schema` without arguments for the title catalog, or pass its exact `id` and `version`.
+
+For effects inside partials, preview and patch by the expanded section name, including its prefix.
+Patching a registered partial materializes only that reference as an inline partial; shared definitions
+and other instances remain unchanged. Queue wait, asset preflight, effect worker setup/render and
+final FFmpeg rendering have separate deadlines. Cancellation stops active probes before releasing
+the shared queue permit; repeated real paths are probed once per preflight request.
 
 Example edit request:
 

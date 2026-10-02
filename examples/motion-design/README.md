@@ -3,6 +3,8 @@
 The example descriptors include `meta.creativeDirection` with their visual intent and review criteria.
 See the [creative-direction guide](../../docs/creative-direction.md) for CLI and MCP authoring.
 
+See [engine configuration](../../docs/engine-configuration.md) for descriptor orientation/fps, host media and encoder settings, and the separate MCP settings for trusted registered effects. Native recipes use the cross-platform FFmpeg route; registered effects use the fixed landscape Node contract described below.
+
 This study applies motion design principles to LeClap's existing native JSON and registered Remotion paths. It accompanies the distinct tutorial, square promo, product launch, web app promo and story reel templates in the creative kit.
 
 ## Reference video analysis

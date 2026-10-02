@@ -12,6 +12,8 @@ this crate links against. Full architecture:
 
 ## How it fits together
 
+Runtime output settings belong to the TypeScript host's `ProjectConfig`, not this crate's build flags. The Expo host selects AAC with Android `libopenh264` or iOS `h264_videotoolbox`; template `global.orientation` and `global.fps` resolve the output geometry and frame rate. Native commands remain serial, and registered React effects must be rendered on Node before their clips can be composed locally. See [host configuration](../../docs/on-device-compilation.md#host-configuration) and the [engine configuration reference](../../docs/engine-configuration.md).
+
 ```text
 template JSON
   → ffmpeg-video-composer (reactnative.ts)         build the ffmpeg argv

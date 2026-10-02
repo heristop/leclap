@@ -147,12 +147,32 @@ keep working — the stdio entry serves both eras from the same tool definitions
 
 ### Configuration
 
-| Setting         | Flag                  | Env                            | Default             |
-| --------------- | --------------------- | ------------------------------ | ------------------- |
-| Output dir      | `--output-dir`        | `LECLAP_MCP_OUTPUT_DIR`        | `~/.leclap/renders` |
-| Media allowlist | `--media-dir`         | `LECLAP_MCP_MEDIA_DIR`         | `~/.leclap/media`   |
-| Remotion opt-in | `--allow-remotion`    | `LECLAP_MCP_ALLOW_REMOTION`    | off                 |
-| Render timeout  | `--render-timeout-ms` | `LECLAP_MCP_RENDER_TIMEOUT_MS` | `600000` (10 min)   |
+| Setting                       | Flag                       | Env                                 | Default                                     |
+| ----------------------------- | -------------------------- | ----------------------------------- | ------------------------------------------- |
+| Output dir                    | `--output-dir`             | `LECLAP_MCP_OUTPUT_DIR`             | `~/.leclap/renders`                         |
+| Media allowlist / assets root | `--media-dir`              | `LECLAP_MCP_MEDIA_DIR`              | `~/.leclap/media`                           |
+| Remotion opt-in               | `--allow-remotion`         | `LECLAP_MCP_ALLOW_REMOTION`         | Off                                         |
+| Stage/worker timeout          | `--render-timeout-ms`      | `LECLAP_MCP_RENDER_TIMEOUT_MS`      | `600000` ms (10 min)                        |
+| Trusted Remotion entry        | `--remotion-entry`         | `LECLAP_MCP_REMOTION_ENTRY`         | Unset                                       |
+| Chrome executable             | `--remotion-browser`       | `LECLAP_MCP_REMOTION_BROWSER`       | Unset; Remotion manages its browser         |
+| Operator effect catalog       | `--effect-catalog`         | `LECLAP_MCP_EFFECT_CATALOG`         | Unset; builtin contracts only               |
+| Effect cache bytes            | `--effect-cache-max-bytes` | `LECLAP_MCP_EFFECT_CACHE_MAX_BYTES` | `536870912` (512 MiB); `0` disables caching |
+
+Precedence is flag → environment → default. Paths resolve from the server's working directory;
+supplied `~` values are not expanded. A bare `--allow-remotion`, `=true` / `=1`, or environment
+`true` / `1` enables Remotion; explicit `=false` / `=0` overrides the environment. Catalog changes
+require restart. See the complete [engine configuration reference](../../docs/engine-configuration.md)
+for host configuration, output precedence, stage deadlines and cache behavior.
+
+`compose_video` uses `mediaDir` as the engine's `assetsDir` and creates one `buildDir` per render.
+Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy; its `template.global` controls
+orientation and fps. Codec, quality-tier and FFmpeg segment-concurrency fields are library host
+settings, not arbitrary MCP tool arguments.
+
+Eight tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
+`validate_template`, `compose_video`, `patch_template` and `probe_media`. Opt-in adds
+`get_effect_schema`, `render_preview` and `render_remotion_clip`. Patch availability does not bypass
+effect-backend validation.
 
 Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoPaths`,
 `probe_media`) must resolve **inside** the media-dir (symlink-safe containment check). The
@@ -264,11 +284,12 @@ Preview results expose `cache: {hits, misses, writes}`; composition results expo
 an aggregate `effectCache` when the template contains effects. Individual effect
 results also carry `metadata.cache` (`hit`, `miss`, `disabled` or `bypass`).
 
-Each MCP process runs one registered effect worker at a time with at most eight
-pending jobs. Queue waiting is bounded by `renderTimeoutMs` and request cancellation;
-after admission, worker setup and rendering have a separate `renderTimeoutMs`
-deadline. FFmpeg composition retains its existing worker policy. Independent MCP
-processes can reuse the disk cache but do not coalesce rendering jobs.
+Each MCP process admits one registered-effect preflight or render job at a time, with at most eight
+pending jobs. Queue wait, asset preflight and worker setup/render each have separate
+`renderTimeoutMs` deadlines; this is not an end-to-end request budget. Use `1..2147483647` ms for the
+effect queue. The final FFmpeg worker has its own render deadline. Independent MCP processes can
+reuse the disk cache but do not coalesce rendering jobs. Standalone `probe_media` has a fixed
+30-second process timeout and supports request cancellation.
 
 ### Web app promo reference
 

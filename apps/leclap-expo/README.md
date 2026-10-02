@@ -2,6 +2,15 @@
 
 Expo / React Native client for LeClap. It renders videos **on-device** through an embedded native FFmpeg engine ([`ffmpeg-engine`](../../packages/ffmpeg-engine)) — no server — rendering the same [`@leclap/creative-kit`](../../packages/leclap-creative-kit) templates as the web app and CLI. Record a clip per template section from the camera, preview, then compile. Bundled assets are staged locally; remote assets can still require downloads.
 
+## Engine configuration
+
+The host stages assets and binds clips/form values into `ProjectConfig`, then injects the native
+engine into `compileReactNative`. Descriptor `global.orientation` / `global.fps` determine output;
+the app can forward `qualityTier`. Android selects `libopenh264`, iOS selects `h264_videotoolbox`,
+both with AAC and serial segment rendering. Registered Remotion effects render on a separate
+configured Node backend and must arrive as compatible clips. See [on-device host configuration](../../docs/on-device-compilation.md#host-configuration)
+and the complete [engine configuration reference](../../docs/engine-configuration.md).
+
 ## Prerequisites
 
 - **Node ≥ 24.11.0**, plus the repo toolchain (`mise install` from the root).

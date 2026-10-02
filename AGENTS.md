@@ -11,6 +11,7 @@ A template-based, cross-platform FFmpeg video composer. A JSON template describe
 - Architecture & design patterns: [`docs/architecture.md`](./docs/architecture.md)
 - Template JSON reference: [`docs/template-configuration.md`](./docs/template-configuration.md)
 - Engine configuration (ProjectConfig, env vars, encoder tiers): [`docs/engine-configuration.md`](./docs/engine-configuration.md)
+- MCP runtime (media/output roots, trusted entry/catalog/browser, deadlines and cache): [`packages/leclap-mcp/README.md`](./packages/leclap-mcp/README.md#configuration)
 - FFmpeg detection/fallback: [`docs/architecture.md`](./docs/architecture.md#cross-platform-support)
 
 ## Repository layout
@@ -29,7 +30,7 @@ pnpm workspaces (`apps/*`, `packages/*`, plus `examples/llm-remotion-title`); no
 | `apps/leclap-expo`               | `@leclap/expo`                            | Expo / React Native app — on-device native-engine compiles, Tamagui UI _(reference)_.                                                |
 | `apps/leclap-web`                | `@leclap/web`                             | React 19 + Vite + Tailwind web app — in-browser FFmpeg via WASM _(reference)_.                                                       |
 
-The user-facing CLI is `@leclap/cli` (`leclap render|init|diagnose`). The `compile`/`diagnose` monorepo dev scripts still live in `packages/ffmpeg-video-composer` (root `pnpm compile` / `pnpm diagnose` delegate to them).
+The user-facing CLI is `@leclap/cli` (`leclap render|init|validate|samples|diagnose`). The `compile`/`diagnose` monorepo dev scripts still live in `packages/ffmpeg-video-composer` (root `pnpm compile` / `pnpm diagnose` delegate to them).
 
 ## Setup
 

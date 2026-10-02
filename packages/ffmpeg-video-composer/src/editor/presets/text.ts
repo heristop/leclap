@@ -195,7 +195,7 @@ export function applyReveal(
 
 // An exit animation — fade out (and optionally slide/rise out) starting `after` seconds in (default:
 // timed so it ends at the section's end). Same vocabulary as a reveal; a bare type or the full object.
-export type Exit = { type: RevealType; after?: number; duration?: number; distance?: number };
+export type Exit = { type: RevealType; after?: number; duration?: number; distance?: number; easing?: RevealEasing };
 export type ExitInput = RevealType | Exit;
 
 function normalizeExit(input: ExitInput): Exit {
@@ -230,7 +230,7 @@ function enterTerm(enter: Reveal): PhaseTerm {
 // exit is timed to end at the section end when `after` is omitted.
 function exitTerm(ex: Exit, duration: number): PhaseTerm {
   const exDur = ex.duration ?? DEFAULT_DURATION;
-  const r = ramp(ex.after ?? Math.max(0, duration - exDur), exDur);
+  const r = easeRampExpr(ramp(ex.after ?? Math.max(0, duration - exDur), exDur), ex.easing);
   const dist = num(ex.distance ?? DEFAULT_DISTANCE);
   const ease = `(${r})*${dist}`;
   const alpha = `(1-(${r}))`;
@@ -363,9 +363,9 @@ export function revealEnableExpr(input: RevealInput | undefined): string | undef
 }
 
 // Shifts a reveal's delay by its line index so stacked lines enter in sequence.
-export function staggered(reveal: RevealInput, index: number): Reveal {
+export function staggered(reveal: RevealInput, index: number, step = STAGGER_STEP): Reveal {
   const obj = normalize(reveal);
   const baseDelay = obj.delay ?? DEFAULT_DELAY;
 
-  return { ...obj, delay: Number((baseDelay + index * STAGGER_STEP).toFixed(4)) };
+  return { ...obj, delay: Number((baseDelay + index * step).toFixed(4)) };
 }

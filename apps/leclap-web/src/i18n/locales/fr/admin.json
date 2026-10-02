@@ -873,6 +873,7 @@
     "summaryDefault": "minutage par défaut"
   },
   "exit": {
+    "easing": "Courbe de sortie",
     "label": "Sortie",
     "after": "Commence après",
     "summaryDefault": "se termine à la fin de la section",
@@ -913,6 +914,7 @@
     "summaryOff": "désactivé"
   },
   "titleCard": {
+    "stagger": "Délai entre les lignes",
     "kicker": "Accroche",
     "kickerPlaceholder": "ex. DÉCOUVRE",
     "headline": "Titre",

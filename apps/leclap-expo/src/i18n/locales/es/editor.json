@@ -175,6 +175,7 @@
     "similarity": "Intensidad"
   },
   "titleCard": {
+    "stagger": "Retraso entre líneas",
     "hint": "Una tarjeta limpia de antetítulo / titular / subtítulo, ajustada a la orientación.",
     "kicker": "Antetítulo",
     "kickerPlaceholder": "p. ej. PRESENTAMOS",

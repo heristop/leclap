@@ -1171,6 +1171,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -1489,6 +1494,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -1797,6 +1807,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -3279,6 +3294,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -3597,6 +3617,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -3905,6 +3930,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -5430,6 +5460,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -5748,6 +5783,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -6056,6 +6096,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -7565,6 +7610,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -7883,6 +7933,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -8191,6 +8246,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -9673,6 +9733,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -9991,6 +10056,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -10299,6 +10369,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -11385,6 +11460,12 @@
                       }
                     ]
                   },
+                  "stagger": {
+                    "description": "Seconds between non-empty line entrances, 0..1 (default 0.15). Zero reveals all lines together; the accent follows its line.",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
                   "effect": {
                     "description": "Drop shadow / outline applied to every line for legibility.",
                     "type": "object",
@@ -12243,6 +12324,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -12561,6 +12647,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -12869,6 +12960,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -14351,6 +14447,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -14669,6 +14770,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -14977,6 +15083,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -16459,6 +16570,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -16777,6 +16893,11 @@
                                     "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
+                                  "easing": {
+                                    "description": "Progress curve for the exit movement and alpha (default linear).",
+                                    "type": "string",
+                                    "enum": ["linear", "ease-out", "ease-in-out"]
+                                  },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
                                     "type": "number",
@@ -17085,6 +17206,11 @@
                               "type": "string",
                               "enum": ["none", "fade", "rise", "slide-left", "slide-right"],
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
+                            },
+                            "easing": {
+                              "description": "Progress curve for the exit movement and alpha (default linear).",
+                              "type": "string",
+                              "enum": ["linear", "ease-out", "ease-in-out"]
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",

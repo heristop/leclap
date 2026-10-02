@@ -28,7 +28,7 @@ it('registers a third asset-free generic composition matching the catalog and te
   expect(definition.props.parse(effect.props)).toEqual(effect.props);
   expect(definition.assets.parse(effect.assets)).toEqual({});
   const root = await fs.readFile(path.join(example, 'remotion/Root.tsx'), 'utf8');
-  expect(root.match(/<Composition/g)).toHaveLength(3);
+  expect(root.match(/<Composition/g)).toHaveLength(4);
   expect(root).toContain('id="LeclapProductReveal"');
   const source = await fs.readFile(path.join(example, 'remotion/ProductReveal.tsx'), 'utf8');
   expect(source).toContain('useCurrentFrame');

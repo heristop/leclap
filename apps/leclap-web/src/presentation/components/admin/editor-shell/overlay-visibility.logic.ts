@@ -27,6 +27,7 @@ interface NormalizedReveal {
 
 interface NormalizedExit {
   type: string;
+  easing?: string;
   after?: number;
   duration: number;
   distance: number;
@@ -60,6 +61,7 @@ function normalizeExit(exit: Exit | undefined): NormalizedExit | null {
     type: obj.type,
     ...(typeof exit === 'object' && exit.after !== undefined ? { after: exit.after } : {}),
     duration: typeof exit === 'string' ? EXIT_DEFAULTS.duration : (exit.duration ?? EXIT_DEFAULTS.duration),
+    ...(typeof exit === 'object' && exit.easing !== undefined ? { easing: exit.easing } : {}),
     distance: typeof exit === 'string' ? EXIT_DEFAULTS.distance : (exit.distance ?? EXIT_DEFAULTS.distance),
   };
 }
@@ -90,7 +92,7 @@ function easeProgress(progress: number, easing: string | undefined): number {
 
 // The offset/opacity of one reveal/exit style at an eased 0..1 progress. `entering` animates toward
 // the resting state (offset → 0); exits animate away from it (0 → offset). `easing` is the reveal's
-// authored curve; exits have no easing field and keep the signature curve.
+// authored curve. Unset entrance/exit easing keeps the existing preview signature curve.
 export function revealOffset(
   type: string,
   progress: number,
@@ -101,14 +103,15 @@ export function revealOffset(
   const eased = easeProgress(progress, easing);
   const remaining = entering ? 1 - eased : eased;
   const opacity = entering ? eased : 1 - eased;
+  const direction = entering ? 1 : -1;
 
   if (type === 'fade') return { opacity, translateX: 0, translateY: 0 };
 
-  if (type === 'rise') return { opacity, translateX: 0, translateY: distance * remaining };
+  if (type === 'rise') return { opacity, translateX: 0, translateY: direction * distance * remaining };
 
-  if (type === 'slide-left') return { opacity, translateX: distance * remaining, translateY: 0 };
+  if (type === 'slide-left') return { opacity, translateX: direction * distance * remaining, translateY: 0 };
 
-  if (type === 'slide-right') return { opacity, translateX: -distance * remaining, translateY: 0 };
+  if (type === 'slide-right') return { opacity, translateX: -direction * distance * remaining, translateY: 0 };
 
   return { opacity: 1, translateX: 0, translateY: 0 };
 }
@@ -146,7 +149,7 @@ export function overlayVisibilityAt(
 
   if (localT < exitStart + leave.duration) {
     const progress = (localT - exitStart) / leave.duration;
-    const sample = revealOffset(leave.type, progress, leave.distance, false);
+    const sample = revealOffset(leave.type, progress, leave.distance, false, leave.easing);
 
     return { phase: 'exit', progress, ...sample };
   }

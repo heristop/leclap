@@ -175,6 +175,7 @@
     "similarity": "Stärke"
   },
   "titleCard": {
+    "stagger": "Zeilenabstand in Sekunden",
     "hint": "Eine saubere Kicker- / Überschrift- / Untertitel-Karte – an die Ausrichtung angepasst.",
     "kicker": "Kicker",
     "kickerPlaceholder": "z. B. NEU VORGESTELLT",

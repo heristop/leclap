@@ -175,6 +175,7 @@
     "similarity": "Intensité"
   },
   "titleCard": {
+    "stagger": "Délai entre les lignes",
     "hint": "Un carton accroche / titre / sous-titre épuré — dimensionné selon l’orientation.",
     "kicker": "Accroche",
     "kickerPlaceholder": "ex. DÉCOUVRE",

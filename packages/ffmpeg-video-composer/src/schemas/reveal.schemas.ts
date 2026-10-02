@@ -40,6 +40,10 @@ export const RevealSchema = z
 export const ExitObjectSchema = z
   .object({
     type: z.enum(REVEAL_TYPES).describe('Exit style: none, fade, rise (up/out), slide-left, slide-right.'),
+    easing: z
+      .enum(REVEAL_EASINGS)
+      .optional()
+      .describe('Progress curve for the exit movement and alpha (default linear).'),
     after: z
       .number()
       .min(0)

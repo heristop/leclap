@@ -1,0 +1,31 @@
+{
+  "global": {
+    "orientation": "landscape",
+    "fps": 30,
+    "musicEnabled": false
+  },
+  "sections": [
+    {
+      "name": "editorial",
+      "type": "effect",
+      "options": {
+        "duration": 10
+      },
+      "effect": {
+        "id": "studio.editorial-type",
+        "version": "1.0.0",
+        "props": {
+          "headline": "Make your next story",
+          "kicker": "CREATIVE DIRECTION",
+          "mode": "masked-rise",
+          "accent": "orange",
+          "entranceDurationFrames": 18,
+          "staggerFrames": 3,
+          "travelPx": 56,
+          "highlightWord": 0
+        },
+        "assets": {}
+      }
+    }
+  ]
+}

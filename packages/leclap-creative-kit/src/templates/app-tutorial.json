@@ -94,8 +94,13 @@
           "reveal": {
             "type": "fade",
             "delay": 0,
-            "duration": 0.3,
-            "distance": 90,
+            "duration": 0.18,
+            "easing": "ease-out"
+          },
+          "exit": {
+            "type": "fade",
+            "after": 1.61,
+            "duration": 0.17,
             "easing": "ease-out"
           }
         },
@@ -113,9 +118,14 @@
           },
           "reveal": {
             "type": "fade",
-            "delay": 0.1,
-            "duration": 0.3,
-            "distance": 90,
+            "delay": 0.05,
+            "duration": 0.18,
+            "easing": "ease-out"
+          },
+          "exit": {
+            "type": "fade",
+            "after": 1.59,
+            "duration": 0.17,
             "easing": "ease-out"
           }
         },
@@ -133,10 +143,17 @@
           },
           "reveal": {
             "type": "rise",
-            "delay": 0.14,
-            "duration": 0.3,
-            "distance": 90,
-            "easing": "ease-out"
+            "delay": 0.12,
+            "duration": 0.28,
+            "easing": "ease-out",
+            "distance": 38
+          },
+          "exit": {
+            "type": "rise",
+            "after": 1.56,
+            "duration": 0.2,
+            "easing": "ease-out",
+            "distance": 18
           }
         },
         {
@@ -153,9 +170,14 @@
           },
           "reveal": {
             "type": "fade",
-            "delay": 0.28,
-            "duration": 0.3,
-            "distance": 90,
+            "delay": 0.24,
+            "duration": 0.2,
+            "easing": "ease-out"
+          },
+          "exit": {
+            "type": "fade",
+            "after": 1.59,
+            "duration": 0.17,
             "easing": "ease-out"
           }
         }
@@ -192,9 +214,9 @@
         "reveal": {
           "type": "slide-right",
           "delay": 0.15,
-          "duration": 0.4,
-          "distance": 36,
-          "easing": "ease-out"
+          "duration": 0.24,
+          "easing": "ease-out",
+          "distance": 24
         }
       }
     },
@@ -229,10 +251,10 @@
           },
           "reveal": {
             "type": "rise",
-            "delay": 0.08,
-            "duration": 0.3,
-            "distance": 90,
-            "easing": "ease-out"
+            "delay": 0.06,
+            "duration": 0.28,
+            "easing": "ease-out",
+            "distance": 42
           }
         },
         {
@@ -249,9 +271,8 @@
           },
           "reveal": {
             "type": "fade",
-            "delay": 0.24,
-            "duration": 0.3,
-            "distance": 90,
+            "delay": 0.13,
+            "duration": 0.22,
             "easing": "ease-out"
           }
         },
@@ -269,9 +290,8 @@
           },
           "reveal": {
             "type": "fade",
-            "delay": 0.32,
-            "duration": 0.3,
-            "distance": 90,
+            "delay": 0.2,
+            "duration": 0.2,
             "easing": "ease-out"
           }
         }

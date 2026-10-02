@@ -1,4 +1,5 @@
 import { Composition } from 'remotion';
+import { EditorialType, editorialDefaults } from './EditorialType';
 import { ProductReveal, productRevealDefaults } from './ProductReveal';
 import { Title } from './Title';
 import { WebAppPromo, promoDefaults } from './WebAppPromo';
@@ -6,6 +7,15 @@ import { WebAppPromo, promoDefaults } from './WebAppPromo';
 export function Root({ includePromo = true }: { includePromo?: boolean }) {
   return (
     <>
+      <Composition
+        id="LeclapEditorialType"
+        component={EditorialType}
+        durationInFrames={300}
+        fps={30}
+        width={1280}
+        height={720}
+        defaultProps={editorialDefaults}
+      />
       <Composition
         id="LeclapProductReveal"
         component={ProductReveal}

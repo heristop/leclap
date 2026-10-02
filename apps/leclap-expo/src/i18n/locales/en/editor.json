@@ -175,6 +175,7 @@
     "similarity": "Strength"
   },
   "titleCard": {
+    "stagger": "Line delay",
     "hint": "A clean kicker / headline / subtitle card — sized to the orientation.",
     "kicker": "Kicker",
     "kickerPlaceholder": "e.g. INTRODUCING",

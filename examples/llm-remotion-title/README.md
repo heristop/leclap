@@ -158,3 +158,30 @@ Alternatively set `LECLAP_MCP_EFFECT_CATALOG` alongside the earlier environment 
 5. Submit the revised object to `compose_video`. The effect alone produces an opaque H.264 video at 1280×720, 30 fps, 300 frames / ten seconds. Repeat unchanged previews/compositions to inspect cache hits; prop, composition mapping or contract changes invalidate reuse.
 
 This example needs compatible local Chrome or Remotion browser setup and the existing optional Remotion peers. Catalog registration uses the supported strict JSON Schema subset and resource bounds documented in the [MCP guide](../../packages/leclap-mcp/README.md#operator-custom-effect-catalogs); arbitrary schemas, inline source and custom output formats are rejected. Visual text fit remains a preview inspection step.
+
+## Editorial typography
+
+[editorial-template.json](./editorial-template.json) selects the asset-free `studio.editorial-type@1.0.0` effect. The same operator catalog and generic `remotion/index.ts` entry register `LeclapEditorialType`; use the startup command above and restart after catalog edits. No fixture generation is required for this example.
+
+The effect renders an opaque 1280×720, 30 fps, 300-frame scene. It uses local system Arial typography; exact glyph appearance depends on the render host and browser. This registration does not provide transparent output or automatic square/portrait adaptation.
+
+| Property                 | Bounds / default                                     | Purpose                                                                                        |
+| ------------------------ | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `headline`               | 1..80 characters; `Make your next story`             | Dominant copy, with wrapping and long-token breaks inside a safe text area                     |
+| `kicker`                 | 0..32 characters; `CREATIVE DIRECTION`               | Small context label; an empty string removes it                                                |
+| `mode`                   | `masked-rise` (default), `word-stagger`, `highlight` | Clipped word rise, staggered rise with scale from .96, or fixed text with an accent-band sweep |
+| `accent`                 | `lavender`, `mint`, `orange` (default)               | Frame accent and highlighted band                                                              |
+| `entranceDurationFrames` | Integer 8..40; 18                                    | Duration of each eased entrance; in highlight mode, also the band sweep duration               |
+| `staggerFrames`          | Integer 0..8; 3                                      | Per-item delay in word-stagger mode; ignored by the other modes                                |
+| `travelPx`               | Number 0..100; 56                                    | Rise distance; ignored by highlight mode                                                       |
+| `highlightWord`          | Integer 0..15; 0                                     | Zero-based animation item to highlight; indexes beyond the copy select its last item           |
+
+Before capture, an invisible unanimated copy block measures the actual word containers and spacing. A bounded 32..104px font-size search fits that static layout to the safe area; the selected size remains fixed across the animated frames. Copy is normalized into words with ordinary wrapping; additional words after item 15 are grouped into the final item without dropping text. The slowest word-stagger settings finish by frame 160, leaving over four seconds of settled hold before the final twelve-frame fade. Highlight mode first reveals the text, then sweeps the band without changing text positions. Frame 299 contains only the opaque background after the fade.
+
+1. Discover with `get_effect_schema({ list: true })`, then request `{ id: "studio.editorial-type", version: "1.0.0" }`.
+2. Submit the actual JSON object from `editorial-template.json` to `validate_template` and retain its revision.
+3. Preview `section: "editorial"` at frames `[0, 4, 9, 18, 36, 160, 240, 287, 293, 299]` with the returned revision. An inclusive `frameRange: { from: 0, to: 59 }` shows the default entrance and highlight sweep.
+4. Patch the selected mode through `edits: [{ section: "editorial", props: { mode: "word-stagger", staggerFrames: 5, accent: "mint" } }]`. For emphasis, choose `mode: "highlight"` and an explicit `highlightWord`. Save the returned JSON/revision and preview again.
+5. Submit the revised object to `compose_video`. Repeat unchanged requests to reuse the existing registered-effect cache.
+
+Before export, review all three modes with maximum-length copy, an unbroken wide-glyph token and more than sixteen short words. Check frames around the last word's settling time when duration/stagger are at their maximum; the default short preview does not cover that full entrance. Whitespace-only headlines fail render preparation with a clear error. The supported catalog string subset checks length but cannot reject whitespace during validation. The pure timing, bounded fitting and real catalog contracts are tested in `packages/leclap-mcp/tests/editorial-type.test.ts`; visual fit and pacing still require actual render inspection.

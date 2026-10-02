@@ -873,6 +873,7 @@
     "summaryDefault": "default timing"
   },
   "exit": {
+    "easing": "Exit easing",
     "label": "Exit",
     "after": "Starts after",
     "summaryDefault": "ends at section end",
@@ -913,6 +914,7 @@
     "summaryOff": "off"
   },
   "titleCard": {
+    "stagger": "Line delay",
     "kicker": "Kicker",
     "kickerPlaceholder": "e.g. INTRODUCING",
     "headline": "Headline",

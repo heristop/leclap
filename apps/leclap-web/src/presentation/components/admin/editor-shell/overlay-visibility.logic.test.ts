@@ -20,7 +20,7 @@ describe('revealOffset', () => {
     expect(settled.opacity).toBe(1);
 
     const leaving = revealOffset('rise', 1, 60, false);
-    expect(leaving.translateY).toBe(60);
+    expect(leaving.translateY).toBe(-60);
     expect(leaving.opacity).toBe(0);
   });
 
@@ -84,6 +84,17 @@ describe('overlayVisibilityAt', () => {
 // The authored `easing` mirrors the engine's expression curves (linear ramp, cubic-out, smoothstep);
 // an UNSET easing keeps the monitor's signature ease-out-expo feel, unchanged for old templates.
 describe('reveal easing mirror', () => {
+  it('samples authored exit easing and native departure directions', () => {
+    const exit = { type: 'rise', after: 2, duration: 1, distance: 80, easing: 'ease-out' } as const;
+    expect(overlayVisibilityAt(undefined, exit, 2.5, 4)).toMatchObject({
+      opacity: 0.125,
+      translateY: -70,
+    });
+    expect(revealOffset('slide-left', 0.5, 80, false, 'linear').translateX).toBe(-40);
+    expect(revealOffset('slide-right', 0.5, 80, false, 'linear').translateX).toBe(40);
+    expect(overlayVisibilityAt(undefined, { ...exit, easing: 'ease-in-out' }, 2.25, 4).opacity).toBe(0.84375);
+  });
+
   it('linear easing samples the raw progress', () => {
     const mid = revealOffset('rise', 0.5, 60, true, 'linear');
     expect(mid.opacity).toBeCloseTo(0.5, 5);

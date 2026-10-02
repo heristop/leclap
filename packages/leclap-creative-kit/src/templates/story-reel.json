@@ -83,10 +83,10 @@
         "boxOpacity": 0.7,
         "reveal": {
           "type": "slide-right",
-          "delay": 0.12,
-          "duration": 0.3,
-          "distance": 85,
-          "easing": "ease-out"
+          "delay": 0.07,
+          "duration": 0.26,
+          "easing": "ease-out",
+          "distance": 56
         },
         "box": true
       },
@@ -124,8 +124,14 @@
           "reveal": {
             "type": "slide-left",
             "delay": 0,
-            "duration": 0.25,
-            "distance": 45,
+            "duration": 0.16,
+            "easing": "ease-out",
+            "distance": 24
+          },
+          "exit": {
+            "type": "fade",
+            "after": 3.88,
+            "duration": 0.12,
             "easing": "ease-out"
           }
         }
@@ -151,10 +157,10 @@
         "boxOpacity": 0.7,
         "reveal": {
           "type": "slide-left",
-          "delay": 0.12,
-          "duration": 0.3,
-          "distance": 85,
-          "easing": "ease-out"
+          "delay": 0.07,
+          "duration": 0.26,
+          "easing": "ease-out",
+          "distance": 56
         },
         "box": true
       },
@@ -192,8 +198,14 @@
           "reveal": {
             "type": "slide-left",
             "delay": 0,
-            "duration": 0.25,
-            "distance": 45,
+            "duration": 0.16,
+            "easing": "ease-out",
+            "distance": 24
+          },
+          "exit": {
+            "type": "fade",
+            "after": 3.88,
+            "duration": 0.12,
             "easing": "ease-out"
           }
         }
@@ -219,10 +231,10 @@
         "boxOpacity": 0.7,
         "reveal": {
           "type": "rise",
-          "delay": 0.12,
-          "duration": 0.3,
-          "distance": 85,
-          "easing": "ease-out"
+          "delay": 0.07,
+          "duration": 0.28,
+          "easing": "ease-out",
+          "distance": 42
         },
         "box": true
       },
@@ -260,9 +272,9 @@
           "reveal": {
             "type": "slide-left",
             "delay": 0,
-            "duration": 0.25,
-            "distance": 45,
-            "easing": "ease-out"
+            "duration": 0.16,
+            "easing": "ease-out",
+            "distance": 24
           }
         }
       ]

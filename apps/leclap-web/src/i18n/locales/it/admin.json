@@ -873,6 +873,7 @@
     "summaryDefault": "tempistica predefinita"
   },
   "exit": {
+    "easing": "Curva di uscita",
     "label": "Uscita",
     "after": "Inizia dopo",
     "summaryDefault": "termina alla fine della sezione",
@@ -913,6 +914,7 @@
     "summaryOff": "off"
   },
   "titleCard": {
+    "stagger": "Ritardo tra le righe",
     "kicker": "Occhiello",
     "kickerPlaceholder": "es. IN ARRIVO",
     "headline": "Titolo",

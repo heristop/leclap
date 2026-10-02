@@ -175,6 +175,7 @@
     "similarity": "Intensità"
   },
   "titleCard": {
+    "stagger": "Ritardo tra le righe",
     "hint": "Un cartello pulito con occhiello / titolo / sottotitolo — dimensionato in base all’orientamento.",
     "kicker": "Occhiello",
     "kickerPlaceholder": "es. IN ARRIVO",

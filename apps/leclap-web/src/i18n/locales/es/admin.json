@@ -873,6 +873,7 @@
     "summaryDefault": "tiempos predeterminados"
   },
   "exit": {
+    "easing": "Curva de salida",
     "label": "Salida",
     "after": "Empieza después de",
     "summaryDefault": "termina al final de la sección",
@@ -913,6 +914,7 @@
     "summaryOff": "desactivado"
   },
   "titleCard": {
+    "stagger": "Retraso entre líneas",
     "kicker": "Antetítulo",
     "kickerPlaceholder": "p. ej. PRESENTAMOS",
     "headline": "Titular",

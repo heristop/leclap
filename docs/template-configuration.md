@@ -405,7 +405,7 @@ Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes
 | `slide-left`  | Enters from the right (+fade).                       |
 | `slide-right` | Enters from the left (+fade).                        |
 
-`delay` (s, default 0.3), `duration` (s, default 0.6), `distance` (px, default 60, rise/slide only). In `titleCard`/`lowerThird` the lines are staggered top-to-bottom automatically.
+`delay` (s, default 0.3, ≥0), `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only). Optional `easing` is `linear` (default), `ease-out` (cubic-out) or `ease-in-out` (smoothstep); it curves both text alpha and travel. In `titleCard`/`lowerThird` the lines enter top-to-bottom. Title cards accept `stagger` (seconds, 0..1, default 0.15) between non-empty lines; zero reveals them together. Empty lines consume no stagger slot, and the accent bar follows its associated emitted line. Lower thirds retain the fixed 0.15-second stagger.
 
 ## Exit
 
@@ -413,10 +413,10 @@ A positioned text overlay (a `drawtext` filter on a section, as the builder emit
 
 ```jsonc
 "exit": "fade"
-"exit": { "type": "slide-left", "after": 2.5, "duration": 0.6, "distance": 60 }
+"exit": { "type": "slide-left", "after": 2.5, "duration": 0.6, "distance": 60, "easing": "ease-out" }
 ```
 
-The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The one extra field is **`after`** — seconds from the section start when the exit begins; omit it and the engine times the exit to **end at the section's end**. `duration` (s, default 0.6) and `distance` (px, default 60, rise/slide only) behave as for `reveal`.
+The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The one extra field is **`after`** — seconds from the section start when the exit begins; omit it and the engine times the exit to **end at the section's end**. `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only) and `easing` (`linear`/`ease-out`/`ease-in-out`, default `linear`) behave as for `reveal`. `after` must be ≥0. Rise exits travel upward, slide-left exits travel left and slide-right exits travel right. Omitted easing preserves historical output. Exits remain positioned `drawtext` controls; caption/titleCard/lowerThird blocks do not gain an `exit` field.
 
 ## Title cards
 
@@ -437,14 +437,15 @@ A `color_background` section takes a section-level `titleCard` that collapses th
 }
 ```
 
-| Field                          | Type             | Description                                                                            |
-| ------------------------------ | ---------------- | -------------------------------------------------------------------------------------- |
-| `kicker`/`headline`/`subtitle` | `Translation`    | The three lines (all optional; emit only what has text).                               |
-| `accent`                       | hex              | Draws an underline bar and tints the kicker.                                           |
-| `align`                        | `left`\|`center` | Horizontal alignment (default `left`).                                                 |
-| `background`                   | hex              | Fade colour (defaults to the section background).                                      |
-| `reveal`                       | `Reveal`         | Staggered entrance for the lines (default `rise`).                                     |
-| `fade`                         | `{ in?, out? }`  | Auto fade-in / fade-out over the card (both default on; set `out: false` on an outro). |
+| Field                          | Type             | Description                                                                               |
+| ------------------------------ | ---------------- | ----------------------------------------------------------------------------------------- |
+| `kicker`/`headline`/`subtitle` | `Translation`    | The three lines (all optional; emit only what has text).                                  |
+| `accent`                       | hex              | Draws an underline bar and tints the kicker.                                              |
+| `align`                        | `left`\|`center` | Horizontal alignment (default `left`).                                                    |
+| `background`                   | hex              | Fade colour (defaults to the section background).                                         |
+| `stagger`                      | number           | Seconds between non-empty line entrances, 0..1 (default 0.15); zero starts them together. |
+| `reveal`                       | `Reveal`         | Staggered entrance for the lines (default `rise`).                                        |
+| `fade`                         | `{ in?, out? }`  | Auto fade-in / fade-out over the card (both default on; set `out: false` on an outro).    |
 
 ## Lower thirds
 

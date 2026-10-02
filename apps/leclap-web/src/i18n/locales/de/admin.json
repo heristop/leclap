@@ -873,6 +873,7 @@
     "summaryDefault": "Standard-Timing"
   },
   "exit": {
+    "easing": "Ausgangskurve",
     "label": "Ausgang",
     "after": "Startet nach",
     "summaryDefault": "endet am Abschnittsende",
@@ -913,6 +914,7 @@
     "summaryOff": "aus"
   },
   "titleCard": {
+    "stagger": "Zeilenabstand in Sekunden",
     "kicker": "Kicker",
     "kickerPlaceholder": "z. B. NEU VORGESTELLT",
     "headline": "Überschrift",

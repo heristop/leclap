@@ -31,6 +31,32 @@ Everything runs locally — there is no backend to start. On an Android device/e
 adb reverse tcp:8081 tcp:8081
 ```
 
+If Metro uses another port, forward that port instead and update **Change Bundle Location** in the
+Android developer menu. An installed dev client can retain the address from a previous session.
+
+## Native build checks
+
+After staging the engine binaries, generate the native projects with
+`pnpm --filter @leclap/expo exec expo prebuild --no-install`, then install iOS pods with
+`pod install --project-directory=apps/leclap-expo/ios`. The `withIosDeploymentTarget` config plugin
+raises dependency targets to the app's iOS deployment floor (16.4 by default), preserving higher
+requirements. This also fixes older dependency privacy bundles rejected by Xcode 27. Keep the
+lockfile: `expo-modules-jsi` 56.0.14 includes the Swift callback fix required by this toolchain.
+
+From the repository root, an Android ARM64 debug build and an unsigned iOS ARM64 simulator build are:
+
+```bash
+(cd apps/leclap-expo/android && ./gradlew :app:assembleDebug -PreactNativeArchitectures=arm64-v8a)
+xcodebuild -workspace apps/leclap-expo/ios/LeClap.xcworkspace -scheme LeClap \
+  -configuration Debug -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build
+```
+
+These compile the app against the staged engine; they do not rebuild FFmpeg or Rust. To check video
+compilation, run the dev client, complete a template's text and clip steps, then select **Create My
+Video**. Confirm that the result plays with its animated text and audio. The `leclap://ffmpeg-spike`
+route only exercises raw native FFmpeg commands; it does not verify the template composition flow.
+
 ## Notes
 
 - **Routing** — Expo Router (file-based) under `app/`; feature modules under `src/features/` (editor, projects, templates).

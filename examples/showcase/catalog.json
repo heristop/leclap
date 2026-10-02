@@ -2,6 +2,13 @@
   "schemaVersion": 1,
   "samples": [
     {
+      "id": "drink-and-code",
+      "title": "Drink & code",
+      "description": "A complete multi-scene composition from the original example.",
+      "category": "templates",
+      "source": "examples/drink-and-code/drink-and-code.json"
+    },
+    {
       "id": "type-impact",
       "title": "Type impact",
       "description": "Big type. Opposing entrances. A clean final hold.",
@@ -11,7 +18,7 @@
     {
       "id": "web-app-promo",
       "title": "Web App Promo",
-      "description": "A landscape app launch with directional typography, a floating perspective screen recording and a clear final call to action.",
+      "description": "A cinematic app launch: masked editorial type, an uncluttered 3D screen reveal and a confident closing invitation.",
       "category": "templates",
       "source": "packages/leclap-creative-kit/src/templates/web-app-promo.json"
     },
@@ -223,13 +230,6 @@
       "description": "Editorial cards and measured before/after panels.",
       "category": "evidence",
       "source": "examples/agentic-pr-video/evidence-skill/template.json"
-    },
-    {
-      "id": "drink-and-code",
-      "title": "Drink & code",
-      "description": "A complete multi-scene composition from the original example.",
-      "category": "templates",
-      "source": "examples/drink-and-code/drink-and-code.json"
     }
   ]
 }

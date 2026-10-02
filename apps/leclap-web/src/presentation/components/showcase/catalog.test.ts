@@ -26,7 +26,8 @@ describe('showcase catalog', () => {
 
   it('recovers unknown URL values without a broken player', () => {
     expect(validCategory('missing')).toBe('all');
-    expect(selectedSample('missing').id).toBe('type-impact');
+    expect(selectedSample(null).id).toBe('drink-and-code');
+    expect(selectedSample('missing').id).toBe('drink-and-code');
     expect(selectedSample('square-promo').id).toBe('square-promo');
   });
 
@@ -43,6 +44,25 @@ describe('showcase catalog', () => {
     );
     expect(fields).toEqual({ app: 'LeClap', headline: 'A lo' });
     expect(defaults).toEqual({ app: 'LeClap' });
+  });
+
+  it('preserves the authored soundtrack on the default film and app promo', () => {
+    const media = path.join(root, 'apps/leclap-web/public/videos/showcase');
+    const manifest = JSON.parse(readFileSync(path.join(media, 'manifest.json'), 'utf8'));
+    for (const id of ['drink-and-code', 'web-app-promo']) {
+      expect(manifest.samples.find((sample: { id: string }) => sample.id === id).hasAudio).toBe(true);
+      expect(readFileSync(path.join(media, `${id}.mp4`)).includes(Buffer.from('mp4a'))).toBe(true);
+    }
+  });
+
+  it('keeps the promo scene timing at the authored 11.6 seconds', () => {
+    const manifest = JSON.parse(
+      readFileSync(path.join(root, 'apps/leclap-web/public/videos/showcase/manifest.json'), 'utf8')
+    );
+    const promo = manifest.samples.find((sample: { id: string }) => sample.id === 'web-app-promo');
+    expect(promo.duration).toBeGreaterThanOrEqual(11.5);
+    expect(promo.duration).toBeLessThan(11.7);
+    expect(existsSync(path.join(root, promo.mediaSource))).toBe(true);
   });
 
   it('ships a playable preview, poster and source for every sample', () => {

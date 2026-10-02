@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Product Launch",
-    "description": "A polished vertical launch: eased title reveals, a clean product shot with your pitch and offer, and a clear closing card. Record or upload your product clip."
+    "description": "A minimal vertical reveal: large centred product typography, a clean full-frame shot, and an offer-led closing with fast, staggered motion."
   },
   "global": {
     "orientation": "portrait",
@@ -15,8 +15,7 @@
     "allowedMusic": ["upbeat-electronic", "future-bass-energy", "the-builder", "indie-rock-dreamy", "arcadia"],
     "allowUploadMusic": true,
     "transition": {
-      "type": "fade",
-      "duration": 0.35
+      "type": "cut"
     },
     "audio": {
       "sourceVolume": 1,
@@ -28,28 +27,7 @@
         "attack": 20,
         "release": 400
       }
-    },
-    "overlays": [
-      {
-        "text": {
-          "en": "{{ form_1_name }}"
-        },
-        "position": "top-right",
-        "color": "#ffffff",
-        "size": 26,
-        "effect": {
-          "shadow": true
-        },
-        "reveal": {
-          "type": "fade",
-          "delay": 0.18,
-          "duration": 0.65,
-          "distance": 32,
-          "easing": "ease-out"
-        },
-        "sections": ["video_1"]
-      }
-    ]
+    }
   },
   "sections": [
     {
@@ -90,113 +68,97 @@
     {
       "name": "intro",
       "type": "color_background",
-      "transition": {
-        "type": "smoothup",
-        "duration": 0.35
-      },
-      "titleCard": {
-        "kicker": {
-          "en": "INTRODUCING"
-        },
-        "headline": {
-          "en": "{{ form_1_name }}"
-        },
-        "subtitle": {
-          "en": "{{ form_1_tagline }}"
-        },
-        "accent": "#a69bff",
-        "reveal": {
-          "type": "rise",
-          "delay": 0.08,
-          "duration": 0.5,
-          "distance": 24,
-          "easing": "ease-out"
-        },
-        "effect": {
-          "shadow": true
-        },
-        "headlineStyle": {
-          "font": "bebas",
-          "fontsize": 88
-        },
-        "subtitleStyle": {
-          "font": "oswald",
-          "fontsize": 32,
-          "color": "#d7d5e8"
-        }
-      },
       "options": {
-        "backgroundColor": "#0b0e24",
-        "duration": 2.4,
+        "backgroundColor": "#090909",
+        "duration": 2.1,
         "layers": [
           {
-            "color": "#191832",
-            "x": 0,
-            "y": 0,
-            "w": "iw",
-            "h": "ih*0.22"
-          },
-          {
-            "color": "#25213f",
-            "x": "iw*0.92",
-            "y": 0,
-            "w": "iw*0.08",
-            "h": "ih"
-          },
-          {
-            "color": "#a69bff",
-            "opacity": 0.8,
-            "x": "iw*0.92",
-            "y": 0,
-            "w": 3,
-            "h": "ih"
+            "color": "#c8bc9c",
+            "x": 290,
+            "y": 475,
+            "w": 140,
+            "h": 3
           }
         ]
-      }
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "INTRODUCING"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 32,
+            "fontcolor": "#c8bc9c",
+            "x": "(w-text_w)/2",
+            "y": 385
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_name }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 88,
+            "fontcolor": "#ffffff",
+            "x": "(w-text_w)/2",
+            "y": 535
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.12,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          },
+          "exit": {
+            "type": "slide-left",
+            "after": 1.8,
+            "duration": 0.2,
+            "distance": 70
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_tagline }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 32,
+            "fontcolor": "#c8bc9c",
+            "x": "(w-text_w)/2",
+            "y": 685
+          },
+          "reveal": {
+            "type": "slide-left",
+            "delay": 0.25,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        }
+      ]
     },
     {
       "name": "video_1",
       "type": "project_video",
       "look": "vivid-pop",
-      "inputs": [
-        {
-          "name": "reticle",
-          "url": "/assets/animations/corner_brackets.apng",
-          "type": "animation",
-          "options": {
-            "loop": true,
-            "persistent": true,
-            "position": "0:0",
-            "scale": "720:1280",
-            "opacity": 0.28
-          }
-        }
-      ],
-      "lowerThird": {
-        "title": {
-          "en": "{{ form_1_name }}"
-        },
-        "subtitle": {
-          "en": "{{ form_1_tagline }}"
-        },
-        "accent": "#a69bff",
-        "reveal": {
-          "type": "rise",
-          "delay": 0.35,
-          "duration": 0.65,
-          "distance": 32,
-          "easing": "ease-out"
-        },
-        "effect": {
-          "shadow": true
-        },
-        "boxOpacity": 0.78
-      },
       "title": {
         "en": "Show your product"
       },
       "description": {
-        "en": "Keep the product steady and centred — the name and pitch reveal along the bottom"
+        "en": "Record or upload a product shot. The product name appears along the bottom; the offer appears on the closing card."
       },
       "options": {
         "duration": 6,
@@ -208,74 +170,109 @@
         {
           "type": "vignette"
         }
-      ]
+      ],
+      "caption": {
+        "text": {
+          "en": "{{ form_1_name }}"
+        },
+        "style": "subtle",
+        "position": "bottom",
+        "align": "center",
+        "font": "bebas",
+        "fontsize": 60,
+        "reveal": {
+          "type": "rise",
+          "delay": 0.1,
+          "duration": 0.32,
+          "distance": 64,
+          "easing": "ease-out"
+        },
+        "effect": {
+          "shadow": true
+        },
+        "box": true,
+        "boxColor": "#090909",
+        "boxOpacity": 0.65
+      }
     },
     {
       "name": "outro",
       "type": "color_background",
-      "titleCard": {
-        "kicker": {
-          "en": "MAKE IT YOURS"
-        },
-        "headline": {
-          "en": "{{ form_1_name }}"
-        },
-        "subtitle": {
-          "en": "{{ form_1_price }}"
-        },
-        "accent": "#a69bff",
-        "align": "center",
-        "reveal": {
-          "type": "rise",
-          "delay": 0.08,
-          "duration": 0.5,
-          "distance": 24,
-          "easing": "ease-out"
-        },
-        "headlineStyle": {
-          "font": "bebas",
-          "fontsize": 88
-        },
-        "subtitleStyle": {
-          "font": "oswald",
-          "fontsize": 32,
-          "color": "#d7d5e8"
-        },
-        "fade": {
-          "out": false
-        },
-        "effect": {
-          "shadow": true
-        }
-      },
       "options": {
-        "backgroundColor": "#0b0e24",
-        "duration": 2.6,
+        "backgroundColor": "#090909",
+        "duration": 2.1,
         "layers": [
           {
-            "color": "#191832",
-            "x": 0,
-            "y": 0,
-            "w": "iw",
-            "h": "ih*0.22"
-          },
-          {
-            "color": "#25213f",
-            "x": "iw*0.92",
-            "y": 0,
-            "w": "iw*0.08",
-            "h": "ih"
-          },
-          {
-            "color": "#a69bff",
-            "opacity": 0.8,
-            "x": "iw*0.92",
-            "y": 0,
-            "w": 3,
-            "h": "ih"
+            "color": "#c8bc9c",
+            "x": 290,
+            "y": 900,
+            "w": 140,
+            "h": 3
           }
         ]
-      }
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_price }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 88,
+            "fontcolor": "#c8bc9c",
+            "x": "(w-text_w)/2",
+            "y": 440
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.08,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_name }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 64,
+            "fontcolor": "#ffffff",
+            "x": "(w-text_w)/2",
+            "y": 590
+          },
+          "reveal": {
+            "type": "slide-left",
+            "delay": 0.23,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "MAKE IT YOURS"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 32,
+            "fontcolor": "#c8bc9c",
+            "x": "(w-text_w)/2",
+            "y": 780
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0.38,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        }
+      ]
     }
   ]
 }

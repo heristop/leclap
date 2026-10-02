@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Web App Promo",
-    "description": "A landscape promo for your web app: an eased headline, an ungraded screen recording with a feature caption, and a closing call to action. Upload a screen capture or record a walkthrough."
+    "description": "A landscape interface showcase with a split composition, fast staggered promise, screen capture with a readable feature caption and a wide call-to-action."
   },
   "global": {
     "orientation": "landscape",
@@ -72,65 +72,114 @@
     {
       "name": "intro",
       "type": "color_background",
-      "titleCard": {
-        "kicker": {
-          "en": "MEET {{ form_1_app }}"
-        },
-        "headline": {
-          "en": "{{ form_1_promise }}"
-        },
-        "subtitle": {
-          "en": "A better way to work."
-        },
-        "accent": "#a69bff",
-        "reveal": {
-          "type": "rise",
-          "delay": 0.08,
-          "duration": 0.5,
-          "distance": 24,
-          "easing": "ease-out"
-        },
-        "headlineStyle": {
-          "font": "bebas",
-          "fontsize": 80
-        },
-        "subtitleStyle": {
-          "font": "oswald",
-          "fontsize": 24,
-          "color": "#d7d5e8"
-        },
-        "effect": {
-          "shadow": true
-        }
-      },
       "options": {
-        "backgroundColor": "#10101b",
-        "duration": 2.2,
+        "backgroundColor": "#10141e",
+        "duration": 1.9,
         "layers": [
           {
-            "color": "#191832",
+            "color": "#91a7ff",
             "x": 0,
             "y": 0,
-            "w": "iw",
-            "h": "ih*0.22"
-          },
-          {
-            "color": "#25213f",
-            "x": "iw*0.92",
-            "y": 0,
-            "w": "iw*0.08",
+            "w": 18,
             "h": "ih"
           },
           {
-            "color": "#a69bff",
-            "opacity": 0.8,
-            "x": "iw*0.92",
+            "color": "#242e44",
+            "x": 900,
             "y": 0,
-            "w": 3,
+            "w": 380,
             "h": "ih"
           }
         ]
-      }
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_app }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#91a7ff",
+            "x": 64,
+            "y": 74
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_promise }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 72,
+            "fontcolor": "#ffffff",
+            "x": 64,
+            "y": 260
+          },
+          "reveal": {
+            "type": "slide-right",
+            "delay": 0.08,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          },
+          "exit": {
+            "type": "slide-left",
+            "after": 1.6,
+            "duration": 0.2,
+            "distance": 70
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_feature }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 28,
+            "fontcolor": "#c9d3ea",
+            "x": 64,
+            "y": 405
+          },
+          "reveal": {
+            "type": "slide-left",
+            "delay": 0.22,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "01"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 112,
+            "fontcolor": "#91a7ff",
+            "x": 980,
+            "y": 510
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.18,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        }
+      ]
     },
     {
       "name": "video_1",
@@ -141,99 +190,111 @@
       "description": {
         "en": "Upload a landscape screen recording or film a walkthrough. Keep the feature you want to show above the caption band."
       },
-      "lowerThird": {
-        "title": {
-          "en": "{{ form_1_feature }}"
-        },
-        "subtitle": {
-          "en": "{{ form_1_app }}"
-        },
-        "badge": {
-          "en": "IN ACTION"
-        },
-        "accent": "#a69bff",
-        "boxOpacity": 0.88,
-        "reveal": {
-          "type": "rise",
-          "delay": 0.3,
-          "duration": 0.65,
-          "distance": 32,
-          "easing": "ease-out"
-        }
-      },
       "options": {
         "duration": 6,
         "forceAspectRatio": true,
         "countdown": true,
-        "countdownDuration": 2
+        "countdownDuration": 2,
+        "forceOriginalAspectRatio": true
+      },
+      "caption": {
+        "text": {
+          "en": "{{ form_1_feature }}"
+        },
+        "style": "bar",
+        "position": "bottom",
+        "align": "left",
+        "font": "oswald",
+        "fontsize": 30,
+        "boxColor": "#10141e",
+        "boxOpacity": 0.94,
+        "reveal": {
+          "type": "slide-right",
+          "delay": 0.2,
+          "duration": 0.35,
+          "distance": 75,
+          "easing": "ease-out"
+        }
       }
     },
     {
       "name": "outro",
       "type": "color_background",
-      "titleCard": {
-        "kicker": {
-          "en": "{{ form_1_app }}"
-        },
-        "headline": {
-          "en": "{{ form_1_cta }}"
-        },
-        "subtitle": {
-          "en": "{{ form_1_promise }}"
-        },
-        "accent": "#a69bff",
-        "align": "center",
-        "reveal": {
-          "type": "rise",
-          "delay": 0.08,
-          "duration": 0.5,
-          "distance": 24,
-          "easing": "ease-out"
-        },
-        "headlineStyle": {
-          "font": "bebas",
-          "fontsize": 72
-        },
-        "subtitleStyle": {
-          "font": "oswald",
-          "fontsize": 24,
-          "color": "#d7d5e8"
-        },
-        "fade": {
-          "out": false
-        },
-        "effect": {
-          "shadow": true
-        }
-      },
       "options": {
-        "backgroundColor": "#10101b",
-        "duration": 2.4,
+        "backgroundColor": "#91a7ff",
+        "duration": 2,
         "layers": [
           {
-            "color": "#191832",
+            "color": "#10141e",
             "x": 0,
-            "y": 0,
+            "y": 610,
             "w": "iw",
-            "h": "ih*0.22"
-          },
-          {
-            "color": "#25213f",
-            "x": "iw*0.92",
-            "y": 0,
-            "w": "iw*0.08",
-            "h": "ih"
-          },
-          {
-            "color": "#a69bff",
-            "opacity": 0.8,
-            "x": "iw*0.92",
-            "y": 0,
-            "w": 3,
-            "h": "ih"
+            "h": 110
           }
         ]
-      }
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_cta }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 80,
+            "fontcolor": "#10141e",
+            "x": 64,
+            "y": 230
+          },
+          "reveal": {
+            "type": "slide-right",
+            "delay": 0.06,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_promise }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 32,
+            "fontcolor": "#10141e",
+            "x": 64,
+            "y": 355
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.22,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_app }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#ffffff",
+            "x": 64,
+            "y": 650
+          },
+          "reveal": {
+            "type": "slide-left",
+            "delay": 0.35,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        }
+      ]
     }
   ]
 }

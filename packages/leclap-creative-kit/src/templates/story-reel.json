@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Story Reel",
-    "description": "Three punchy vertical moments with eased, readable captions and scene markers. Clean cuts keep the rhythm moving; your last scene closes the story."
+    "description": "A full-bleed three-chapter reel with alternating caption anchors, snappy opposing entrances and clean rhythmic cuts."
   },
   "global": {
     "orientation": "portrait",
@@ -71,29 +71,30 @@
         "text": {
           "en": "{{ form_1_scene1 }}"
         },
-        "style": "bar",
-        "position": "bottom",
-        "align": "center",
+        "style": "bold",
+        "position": "lower-third",
+        "align": "left",
         "effect": {
           "shadow": true
         },
         "font": "bebas",
         "fontsize": 44,
         "boxColor": "#0b0e24",
-        "boxOpacity": 0.78,
+        "boxOpacity": 0.7,
         "reveal": {
-          "type": "rise",
-          "delay": 0.1,
-          "duration": 0.5,
-          "distance": 24,
+          "type": "slide-right",
+          "delay": 0.12,
+          "duration": 0.3,
+          "distance": 85,
           "easing": "ease-out"
-        }
+        },
+        "box": true
       },
       "title": {
         "en": "Scene 1"
       },
       "description": {
-        "en": "Film your first moment — keep it short and punchy"
+        "en": "Film your first moment \u2014 keep it short and punchy"
       },
       "options": {
         "duration": 4,
@@ -121,10 +122,10 @@
             "boxborderw": 10
           },
           "reveal": {
-            "type": "fade",
-            "delay": 0.08,
-            "duration": 0.5,
-            "distance": 24,
+            "type": "slide-left",
+            "delay": 0,
+            "duration": 0.25,
+            "distance": 45,
             "easing": "ease-out"
           }
         }
@@ -138,23 +139,24 @@
         "text": {
           "en": "{{ form_1_scene2 }}"
         },
-        "style": "bar",
-        "position": "bottom",
-        "align": "center",
+        "style": "bold",
+        "position": "top",
+        "align": "right",
         "effect": {
           "shadow": true
         },
         "font": "bebas",
         "fontsize": 44,
         "boxColor": "#0b0e24",
-        "boxOpacity": 0.78,
+        "boxOpacity": 0.7,
         "reveal": {
-          "type": "rise",
-          "delay": 0.1,
-          "duration": 0.5,
-          "distance": 24,
+          "type": "slide-left",
+          "delay": 0.12,
+          "duration": 0.3,
+          "distance": 85,
           "easing": "ease-out"
-        }
+        },
+        "box": true
       },
       "title": {
         "en": "Scene 2"
@@ -181,17 +183,17 @@
             "fontcolor": "#ffffff",
             "fontsize": 36,
             "x": "w-text_w-44",
-            "y": 80,
+            "y": 240,
             "fontfile": "Oswald.ttf",
             "box": 1,
             "boxcolor": "#0b0e24@0.55",
             "boxborderw": 10
           },
           "reveal": {
-            "type": "fade",
-            "delay": 0.08,
-            "duration": 0.5,
-            "distance": 24,
+            "type": "slide-left",
+            "delay": 0,
+            "duration": 0.25,
+            "distance": 45,
             "easing": "ease-out"
           }
         }
@@ -205,7 +207,7 @@
         "text": {
           "en": "{{ form_1_scene3 }}"
         },
-        "style": "bar",
+        "style": "bold",
         "position": "bottom",
         "align": "center",
         "effect": {
@@ -214,14 +216,15 @@
         "font": "bebas",
         "fontsize": 44,
         "boxColor": "#0b0e24",
-        "boxOpacity": 0.78,
+        "boxOpacity": 0.7,
         "reveal": {
           "type": "rise",
-          "delay": 0.1,
-          "duration": 0.5,
-          "distance": 24,
+          "delay": 0.12,
+          "duration": 0.3,
+          "distance": 85,
           "easing": "ease-out"
-        }
+        },
+        "box": true
       },
       "title": {
         "en": "Scene 3"
@@ -255,10 +258,10 @@
             "boxborderw": 10
           },
           "reveal": {
-            "type": "fade",
-            "delay": 0.08,
-            "duration": 0.5,
-            "distance": 24,
+            "type": "slide-left",
+            "delay": 0,
+            "duration": 0.25,
+            "distance": 45,
             "easing": "ease-out"
           }
         }

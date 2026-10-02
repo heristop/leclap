@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "App Tutorial",
-    "description": "A clear square walkthrough: an eased topic card, your screen recording in its original colours and aspect ratio, a readable step caption, and a concise closing card."
+    "description": "A screen-first square lesson with numbered steps, calm mint typography and a letterboxed walkthrough."
   },
   "global": {
     "orientation": "square",
@@ -58,93 +58,112 @@
     {
       "name": "intro",
       "type": "color_background",
-      "titleCard": {
-        "kicker": {
-          "en": "HOW TO"
-        },
-        "headline": {
-          "en": "{{ form_1_topic }}"
-        },
-        "subtitle": {
-          "en": "One action. A better workflow."
-        },
-        "accent": "#2dd4bf",
-        "reveal": {
-          "type": "rise",
-          "delay": 0.08,
-          "duration": 0.5,
-          "distance": 24,
-          "easing": "ease-out"
-        },
-        "effect": {
-          "shadow": true
-        },
-        "headlineStyle": {
-          "font": "bebas",
-          "fontsize": 80
-        },
-        "subtitleStyle": {
-          "font": "oswald",
-          "fontsize": 32,
-          "color": "#d7e8e5"
-        }
-      },
       "options": {
-        "backgroundColor": "#0f1419",
-        "duration": 2.2,
+        "backgroundColor": "#edf4ed",
+        "duration": 1.8,
         "layers": [
           {
-            "color": "#191832",
-            "x": 0,
-            "y": 0,
-            "w": "iw",
-            "h": "ih*0.22"
+            "color": "#c8e4d7",
+            "x": 64,
+            "y": 64,
+            "w": 120,
+            "h": 120
           },
           {
-            "color": "#2dd4bf",
-            "opacity": 0.16,
-            "x": "iw*0.92",
-            "y": 0,
-            "w": "iw*0.08",
-            "h": "ih"
-          },
-          {
-            "color": "#2dd4bf",
-            "opacity": 0.8,
-            "x": "iw*0.92",
-            "y": 0,
-            "w": 3,
-            "h": "ih"
+            "color": "#172c25",
+            "x": 64,
+            "y": 280,
+            "w": 952,
+            "h": 3
           }
         ]
-      }
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "01"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 72,
+            "fontcolor": "#172c25",
+            "x": 88,
+            "y": 86
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "QUICK LESSON"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 28,
+            "fontcolor": "#436354",
+            "x": 224,
+            "y": 105
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0.1,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_topic }}"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 76,
+            "fontcolor": "#172c25",
+            "x": 64,
+            "y": 350
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.14,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "WATCH. THEN TRY."
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#436354",
+            "x": 64,
+            "y": 690
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0.28,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        }
+      ]
     },
     {
       "name": "video_1",
       "type": "project_video",
-      "lowerThird": {
-        "title": {
-          "en": "QUICK WALKTHROUGH"
-        },
-        "subtitle": {
-          "en": "{{ form_1_step }}"
-        },
-        "badge": {
-          "en": "STEP"
-        },
-        "accent": "#2dd4bf",
-        "boxOpacity": 0.88,
-        "reveal": {
-          "type": "rise",
-          "delay": 0.25,
-          "duration": 0.5,
-          "distance": 24,
-          "easing": "ease-out"
-        },
-        "effect": {
-          "shadow": true
-        }
-      },
       "title": {
         "en": "Record your screen"
       },
@@ -157,75 +176,106 @@
         "countdown": true,
         "countdownDuration": 2,
         "forceOriginalAspectRatio": true
+      },
+      "caption": {
+        "text": {
+          "en": "01  /  {{ form_1_step }}"
+        },
+        "style": "bar",
+        "position": "bottom",
+        "align": "left",
+        "font": "oswald",
+        "fontsize": 32,
+        "color": "#edf4ed",
+        "boxColor": "#172c25",
+        "boxOpacity": 0.92,
+        "reveal": {
+          "type": "slide-right",
+          "delay": 0.15,
+          "duration": 0.4,
+          "distance": 36,
+          "easing": "ease-out"
+        }
       }
     },
     {
       "name": "outro",
       "type": "color_background",
-      "titleCard": {
-        "kicker": {
-          "en": "NOW TRY IT"
-        },
-        "headline": {
-          "en": "YOU'RE ALL SET"
-        },
-        "subtitle": {
-          "en": "{{ form_1_topic }}"
-        },
-        "headlineStyle": {
-          "font": "bebas",
-          "fontsize": 80
-        },
-        "subtitleStyle": {
-          "font": "oswald",
-          "fontsize": 32,
-          "color": "#d7e8e5"
-        },
-        "accent": "#2dd4bf",
-        "align": "center",
-        "reveal": {
-          "type": "rise",
-          "delay": 0.08,
-          "duration": 0.5,
-          "distance": 24,
-          "easing": "ease-out"
-        },
-        "effect": {
-          "shadow": true
-        },
-        "fade": {
-          "out": false
-        }
-      },
       "options": {
-        "backgroundColor": "#0f1419",
-        "duration": 2.4,
+        "backgroundColor": "#edf4ed",
+        "duration": 1.8,
         "layers": [
           {
-            "color": "#191832",
-            "x": 0,
-            "y": 0,
-            "w": "iw",
-            "h": "ih*0.22"
-          },
-          {
-            "color": "#2dd4bf",
-            "opacity": 0.16,
-            "x": "iw*0.92",
-            "y": 0,
-            "w": "iw*0.08",
-            "h": "ih"
-          },
-          {
-            "color": "#2dd4bf",
-            "opacity": 0.8,
-            "x": "iw*0.92",
-            "y": 0,
-            "w": 3,
-            "h": "ih"
+            "color": "#172c25",
+            "x": 64,
+            "y": 64,
+            "w": 952,
+            "h": 3
           }
         ]
-      }
+      },
+      "filters": [
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "YOUR TURN"
+            },
+            "fontfile": "BebasNeue.ttf",
+            "fontsize": 110,
+            "fontcolor": "#172c25",
+            "x": 64,
+            "y": 250
+          },
+          "reveal": {
+            "type": "rise",
+            "delay": 0.08,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "{{ form_1_topic }}"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 48,
+            "fontcolor": "#436354",
+            "x": 64,
+            "y": 430
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0.24,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        },
+        {
+          "type": "drawtext",
+          "values": {
+            "text": {
+              "en": "02  /  TRY IT IN YOUR APP"
+            },
+            "fontfile": "Oswald.ttf",
+            "fontsize": 30,
+            "fontcolor": "#172c25",
+            "x": 64,
+            "y": 810
+          },
+          "reveal": {
+            "type": "fade",
+            "delay": 0.32,
+            "duration": 0.3,
+            "distance": 90,
+            "easing": "ease-out"
+          }
+        }
+      ]
     }
   ]
 }

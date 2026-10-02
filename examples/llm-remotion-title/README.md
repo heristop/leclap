@@ -29,6 +29,8 @@ LECLAP_MCP_OUTPUT_DIR=/absolute/path/examples/llm-remotion-title/build
 
 If using an installed compatible Chrome instead of downloading Chromium, set `LECLAP_MCP_REMOTION_BROWSER` to its executable path.
 
+For storyboard planning, template variety and frame review, follow the [agent authoring recipe](./AGENT-AUTHORING.md).
+
 ## Agent workflow
 
 1. Read `get_template_schema` and `get_effect_schema` for the registered `leclap.title-reveal@1.0.0` effect.

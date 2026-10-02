@@ -7,7 +7,7 @@ import { TemplateValidator } from '@/services/TemplateValidator';
 const library = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../leclap-creative-kit/src');
 
 describe('app promo sample contracts', () => {
-  for (const id of ['product-launch', 'web-app-promo']) {
+  for (const id of ['product-launch', 'web-app-promo', 'app-tutorial', 'square-promo', 'story-reel']) {
     it(`${id} fits the longest allowed form copy with bundled fonts`, async () => {
       const raw = JSON.parse(fs.readFileSync(path.join(library, 'templates', `${id}.json`), 'utf8'));
       const validator = new TemplateValidator();

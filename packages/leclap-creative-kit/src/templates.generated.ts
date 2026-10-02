@@ -21,6 +21,6 @@ export const TEMPLATE_DESCRIPTORS: Record<string, TemplateDescriptor> = {
   'present-yourself': PresentYourself as TemplateDescriptor,
   'product-launch': ProductLaunch,
   'square-promo': SquarePromo,
-  'story-reel': StoryReel as TemplateDescriptor,
+  'story-reel': StoryReel,
   'web-app-promo': WebAppPromo,
 };

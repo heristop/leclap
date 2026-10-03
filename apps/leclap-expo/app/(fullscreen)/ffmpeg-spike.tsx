@@ -26,6 +26,7 @@ export default function FFmpegSpikeScreen() {
 
   const player = useVideoPlayer(outputUri, (p) => {
     p.loop = true;
+    p.play();
   });
 
   const append = useCallback((line: string) => {

@@ -43,3 +43,11 @@ New UI copy is supplied in English, French, German, Spanish and Italian. The ref
 ## Verification
 
 Run Expo unit tests and typechecking, lint changed code, check both native Metro bundles, and review the gallery, empty search, render cancellation and export disclosure at phone and tablet sizes. Browser rendering of native components is useful for layout review, but does not verify native safe areas, VoiceOver/TalkBack, device text sizing or permission/share sheets. Those require a simulator or device pass.
+
+## Launcher assets and native compilation check
+
+The Expo launcher uses `assets/images/icon.png`, an opaque 1024-pixel rendering of `assets/icon-source.svg`. The transparent disc in `assets/images/logo.png` is reserved for the in-app logo. The operating system applies the launcher corner mask; the SVG supplies a full-bleed gradient and an inset clapper. Android adaptive artwork uses a smaller mark inside its central 66/108 safe region.
+
+Run `pnpm gen:icons` after editing the SVG, then `pnpm gen:icons:native` to refresh existing prebuilt native assets. A native rebuild and reinstall is required to update the installed launcher. Generated iOS/Android directories remain untracked.
+
+Open `leclap://ffmpeg-spike` in the development app to run two consecutive offline compositions through the production JSON pipeline. Each pass validates H.264 video, AAC audio, 1280×720 at 30 fps, and approximately three seconds of output. The diagnostic preview starts automatically. This is an engine-to-preview check using bundled footage, not a camera or complete editor/export test. Evidence and exact scope are recorded in `.github/media/pr-73/expo/README.md`.

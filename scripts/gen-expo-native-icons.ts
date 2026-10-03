@@ -14,6 +14,8 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const expo = resolve(root, 'apps/leclap-expo');
 const disc = readFileSync(resolve(root, 'apps/leclap-web/public/favicon.svg'), 'utf8');
 const launcher = readFileSync(resolve(expo, 'assets/icon-source.svg'), 'utf8');
+// Android masks the central 66/108 area; keep the mark inside that safe zone.
+const adaptive = launcher.replace('scale(0.86)', 'scale(0.56)');
 
 if (!existsSync(resolve(expo, 'ios')) && !existsSync(resolve(expo, 'android'))) {
   console.log('No prebuilt ios/android dirs — nothing to refresh (managed workflow).');
@@ -23,7 +25,7 @@ if (!existsSync(resolve(expo, 'ios')) && !existsSync(resolve(expo, 'android'))) 
 // Cache one render per (source, size).
 const cache = new Map<string, Buffer>();
 const png = (svg: string, size: number): Buffer => {
-  const key = `${svg.length}:${size}`;
+  const key = `${size}:${svg}`;
   const cached = cache.get(key);
 
   if (cached) return cached;
@@ -53,7 +55,7 @@ const webpTargets: [number, string, string][] = Object.entries(DENSITIES).flatMa
   ([d, s]): [number, string, string][] => [
     [Math.round(48 * s), `android/app/src/main/res/mipmap-${d}/ic_launcher.webp`, launcher],
     [Math.round(48 * s), `android/app/src/main/res/mipmap-${d}/ic_launcher_round.webp`, launcher],
-    [Math.round(108 * s), `android/app/src/main/res/mipmap-${d}/ic_launcher_foreground.webp`, launcher],
+    [Math.round(108 * s), `android/app/src/main/res/mipmap-${d}/ic_launcher_foreground.webp`, adaptive],
   ]
 );
 

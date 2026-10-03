@@ -42,3 +42,5 @@ Independent review identified Reanimated’s cached startup preference and Tamag
 `ios-json-e2e.png` captures the native diagnostic screen on iPhone 17 Pro / iOS 26.5 Simulator after two consecutive production JSON compilations. `ios-json-e2e.mp4` is the second native output: 3.023 seconds, H.264/AAC, 1280×720, 30 fps. The bundled synthetic footage, rising title/caption, pulse motion and music compile entirely on-device. Both native probes passed; the copied output also decoded with host FFmpeg without errors. Playback was visually verified in the native player after enabling autoplay in the diagnostic screen.
 
 This checks the diagnostic deep-link → production composition → native probe → video preview path. It does not verify camera capture, the gallery editor/export flow, or a physical iPhone.
+
+`ios-launcher.png` shows the revised launcher on the simulator home screen after a successful Xcode Debug build and reinstall. The icon uses the full-bleed gradient, larger clapper and platform corner mask.

@@ -13,8 +13,8 @@
     "timesUp": "Se acabó el tiempo"
   },
   "permissions": {
-    "checking": "Comprobando permisos de cámara...",
-    "title": "Se requiere permiso de cámara",
+    "checking": "Comprobando los permisos de grabación...",
+    "title": "Permisos de grabación necesarios",
     "message": "Concede permisos de cámara y micrófono para grabar vídeo.",
     "allow": "Permitir cámara y micrófono",
     "settings": "Abrir ajustes"

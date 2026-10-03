@@ -51,3 +51,9 @@ The Expo launcher uses `assets/images/icon.png`, an opaque 1024-pixel rendering 
 Run `pnpm gen:icons` after editing the SVG, then `pnpm gen:icons:native` to refresh existing prebuilt native assets. A native rebuild and reinstall is required to update the installed launcher. Generated iOS/Android directories remain untracked.
 
 Open `leclap://ffmpeg-spike` in the development app to run two consecutive offline compositions through the production JSON pipeline. Each pass validates H.264 video, AAC audio, 1280×720 at 30 fps, and approximately three seconds of output. The diagnostic preview starts automatically. This is an engine-to-preview check using bundled footage, not a camera or complete editor/export test. Evidence and exact scope are recorded in `.github/media/pr-73/expo/README.md`.
+
+## iOS recording permission verification
+
+Enter a scenario’s recording section to request camera and microphone access in sequence. Either denial must keep recording blocked and expose Open Settings; the status heading covers both permissions. If Settings opens its root page, navigate to Apps → LeClap. After changing permissions, return to the app and reopen the recording section if iOS relaunched it. With both permissions granted, a simulator may report “No camera device available”; that is separate from permission denial. Test real capture on a physical iPhone.
+
+For repeatable simulator checks, use a fresh test device or the supported `xcrun simctl privacy <device> reset all com.heristop.leclap` command. If reset fails and tccd logs report `Database failed to open during _doEval`, restart the simulator without erasing its data and retry. Do not edit TCC databases or force-grant permissions: those actions would bypass the flow being tested. Use normal simulator code signing for native builds. Evidence and tested OS versions are in `.github/media/pr-73/expo/README.md`.

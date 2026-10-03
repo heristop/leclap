@@ -44,3 +44,15 @@ Independent review identified Reanimated’s cached startup preference and Tamag
 This checks the diagnostic deep-link → production composition → native probe → video preview path. It does not verify camera capture, the gallery editor/export flow, or a physical iPhone.
 
 `ios-launcher.png` shows the revised launcher on the simulator home screen after a successful Xcode Debug build and reinstall. The icon uses the full-bleed gradient, larger clapper and platform corner mask.
+
+## Native iOS permission checks — 2026-10-03
+
+- `ios-camera-permission.png` and `ios-microphone-permission.png`: native first-use prompts on iPhone 17 Pro / iOS 26.5 after recovering the simulator privacy service. Camera was denied and microphone allowed.
+- `ios-recording-permission-denied.png`: camera denial blocks recording and shows the Settings recovery action; the heading now covers both recording permissions.
+- A clean iPhone 16 Pro / iOS 18.6 installation also showed both native prompts. Allowing camera and denying microphone blocked recording. `ios-permission-settings.png` shows that combination in Settings. After enabling microphone in Settings and returning to the app, reopening the recorder cleared the permission gate; `ios-permission-granted.png` shows the simulator hardware limitation instead.
+
+The iOS 26.5 simulator initially rejected requests with `Database failed to open during _doEval` in tccd logs. Rebuilding with normal simulator signing alone did not fix it; shutting down and booting the simulator restored its privacy database access and native prompts. No privacy database was edited and no permission was forced with a grant command. The standard React Native Settings action opened Settings, requiring manual navigation to Apps → LeClap in these simulator tests.
+
+These checks verify prompts, both denial combinations, persisted Settings values and permission-gate clearing after a Settings change/relaunch. They do not prove live camera capture on physical hardware or an uninterrupted AppState-only refresh: iOS relaunched the app after changing microphone access.
+
+After a supported reset, the iOS 26.5 simulator also passed the both-granted case through its native Allow buttons; `ios26-permission-granted.png` shows that the permission gate clears and only the missing simulator camera hardware remains. Both permissions are left enabled on the main simulator. All 245 Expo tests passed after the localized heading/checking-copy update.

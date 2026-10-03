@@ -75,19 +75,36 @@ export function expandPartialsWithRegistry(
     return descriptor;
   }
 
-  const registry = partialsById(partials);
+  return { ...descriptor, sections: expandSections(sections, partialsById(partials), []) };
+}
+
+// Expand refs recursively: a partial may itself contain partial refs, which must not survive into
+// validation or compilation (the compiler would skip them silently). `stack` holds the refs being
+// expanded so a partial that includes itself fails loudly instead of recursing forever.
+function expandSections(
+  sections: Section[],
+  registry: Record<string, TemplatePartial | undefined>,
+  stack: string[]
+): Section[] {
   const expanded: Section[] = [];
 
   for (const section of sections) {
-    if (isPartialRef(section)) {
-      expanded.push(...expandRefSection(section, registry));
+    if (!isPartialRef(section)) {
+      expanded.push(section);
       continue;
     }
 
-    expanded.push(section);
+    const ref = (section.ref ?? '').trim();
+
+    if (ref && stack.includes(ref)) {
+      throw new Error(`Cyclic template partial: "${ref}"`);
+    }
+
+    const nested = ref ? [...stack, ref] : stack;
+    expanded.push(...expandSections(expandRefSection(section, registry), registry, nested));
   }
 
-  return { ...descriptor, sections: expanded };
+  return expanded;
 }
 
 // Expand using the registry carried in the descriptor itself (`descriptor.partials`). Inline partials

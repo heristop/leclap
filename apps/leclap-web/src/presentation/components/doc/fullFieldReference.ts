@@ -9,6 +9,7 @@ type ReferenceNode = Omit<JsonSchemaNode, 'properties' | 'items' | 'anyOf' | 'on
   anyOf?: ReferenceNode[];
   oneOf?: ReferenceNode[];
   additionalProperties?: boolean | ReferenceNode;
+  multipleOf?: number;
   exclusiveMinimum?: number;
   exclusiveMaximum?: number;
   minLength?: number;
@@ -41,6 +42,8 @@ export function fullConstraints(node: ReferenceNode): string {
   for (const key of Object.keys(boundLabels) as (keyof typeof boundLabels)[]) {
     if (node[key] !== undefined) constraints.push(`${boundLabels[key]} ${node[key]}`);
   }
+
+  if (node.multipleOf !== undefined) constraints.push(`multiple of ${node.multipleOf}`);
 
   if (node.pattern) constraints.push(`pattern ${node.pattern}`);
 

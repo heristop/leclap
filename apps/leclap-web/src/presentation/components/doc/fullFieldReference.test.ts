@@ -34,6 +34,7 @@ describe('complete schema reference', () => {
       fullConstraints({
         enum: ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
         exclusiveMinimum: 0,
+        multipleOf: 100,
         maxLength: 80,
         minItems: 3,
         maxItems: 3,
@@ -41,9 +42,19 @@ describe('complete schema reference', () => {
         additionalProperties: false,
       })
     ).toBe(
-      'one of a, b, c, d, e, f, g · > 0 · length ≤ 80 · items ≥ 3 · items ≤ 3 · pattern ^x · unknown keys rejected'
+      'one of a, b, c, d, e, f, g · > 0 · length ≤ 80 · items ≥ 3 · items ≤ 3 · multiple of 100 · pattern ^x · unknown keys rejected'
     );
   });
+  it('exposes font weight steps from the actual descriptor schema', () => {
+    const rows = fullReferenceGroups().flatMap((group) => group.rows);
+    expect(
+      rows.some(
+        (row) =>
+          row.name.includes('.font') && row.name.endsWith('.weight') && row.constraints.includes('multiple of 100')
+      )
+    ).toBe(true);
+  });
+
   it('keeps union variants distinct and requiredness local to their parent', () => {
     const rows = recursiveFieldRows(
       {

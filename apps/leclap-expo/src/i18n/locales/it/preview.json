@@ -46,7 +46,9 @@
       "uploading": "Caricamento… {{percent}} %",
       "done": "Caricamento completato",
       "error": "Errore — tocca per riprovare"
-    }
+    },
+    "shareErrorTitle": "Condivisione non disponibile",
+    "shareErrorBody": "Impossibile condividere il video. Riprova."
   },
   "sheet": {
     "close": "Chiudi",

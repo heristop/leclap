@@ -46,7 +46,9 @@
       "uploading": "Uploading… {{percent}}%",
       "done": "Upload complete",
       "error": "Upload failed — tap to retry"
-    }
+    },
+    "shareErrorTitle": "Sharing unavailable",
+    "shareErrorBody": "Could not share the video. Please try again."
   },
   "sheet": {
     "close": "Close",

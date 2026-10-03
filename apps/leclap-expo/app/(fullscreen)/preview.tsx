@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { VideoView } from 'expo-video';
@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, fonts, withAlpha } from '@/src/styles/theme';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
+import { ExportSheet } from '@/src/features/editor/components/ExportSheet';
 import CropOverlay from '@/src/features/editor/components/CropOverlay';
 import { buildErrorMessage, isCropApplied, isTrimApplied } from '@/src/features/editor/preview/previewHelpers';
 import { styles } from '@/src/features/editor/preview/previewStyles';
@@ -139,7 +140,13 @@ export default function PreviewPage() {
       </View>
 
       {mode === 'view' && (
-        <PreviewToolbar
+        <PreviewViewControls
+          key={videoUri}
+          videoUri={videoUri}
+          sectionName={sectionName}
+          onPause={() => {
+            player.pause();
+          }}
           saving={saving}
           canEdit={canEdit}
           trimActive={isTrimApplied(trim, duration)}
@@ -173,6 +180,45 @@ export default function PreviewPage() {
 
       {mode === 'crop' && <CropEditPanel onReset={resetCrop} onCancel={cancelMode} onApply={applyMode} />}
     </View>
+  );
+}
+
+function PreviewViewControls({
+  videoUri,
+  sectionName,
+  onPause,
+  ...toolbarProps
+}: React.ComponentProps<typeof PreviewToolbar> & {
+  videoUri?: string;
+  sectionName?: string;
+  onPause: () => void;
+}) {
+  const [exportVisible, setExportVisible] = useState(false);
+  const canExport = Boolean(videoUri && !sectionName);
+
+  return (
+    <>
+      <PreviewToolbar
+        {...toolbarProps}
+        onExport={
+          canExport
+            ? () => {
+                onPause();
+                setExportVisible(true);
+              }
+            : undefined
+        }
+      />
+      {canExport && videoUri ? (
+        <ExportSheet
+          visible={exportVisible}
+          videoUri={videoUri}
+          onClose={() => {
+            setExportVisible(false);
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 

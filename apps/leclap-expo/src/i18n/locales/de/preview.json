@@ -46,7 +46,9 @@
       "uploading": "Upload… {{percent}} %",
       "done": "Upload abgeschlossen",
       "error": "Fehlgeschlagen — erneut versuchen"
-    }
+    },
+    "shareErrorTitle": "Teilen nicht verfügbar",
+    "shareErrorBody": "Das Video konnte nicht geteilt werden. Bitte versuche es erneut."
   },
   "sheet": {
     "close": "Schließen",

@@ -30,6 +30,8 @@ Clappy is decorative and hidden from assistive technology; adjacent text communi
 
 The render overlay reads the real engine progress store. A progress bar exposes the percentage to screen readers, stage text can wrap, and Cancel remains available while rendering. The privacy message describes the existing on-device compilation path.
 
+The finished-video preview opens Export from its toolbar; recorded-section previews retain Trim, Crop and Retake instead. Each output URI owns a separate export session, so previous save/upload completions cannot disable a new render. Sharing uses `expo-sharing` to attach the MP4 on both Android and iOS, with retry feedback on failure. Adding that native module requires rebuilding existing development clients.
+
 Export offers Save and Share first; uploading to a URL is disclosed on demand. The sheet preserves the bottom safe area, scrolls with the keyboard and exposes expanded, busy and disabled states. Media-library permission and asset modules load when Save is requested. Permission failures return the action to a recoverable state.
 
 New UI copy is supplied in English, French, German, Spanish and Italian. The refined controls use at least 48-point/dp targets. Primary actions use deeper lavender with white labels; ordinary lavender remains the brand accent.

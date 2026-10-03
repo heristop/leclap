@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Share, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Sheet } from '@/src/features/templates/components/Sheet';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -130,14 +130,34 @@ const saveLabel = (state: SaveState, t: TFunction<'preview'>): string => t(`expo
 const uploadLabel = (state: UploadState, progress: number, t: TFunction<'preview'>): string =>
   t(`export.upload.${state}`, { percent: progress });
 
-export const ExportSheet = ({ visible, videoUri, onClose }: ExportSheetProps) => {
+// An output owns its entire export session. Pending work from the previous output can only
+// update its unmounted session, never disable actions for the new file.
+export const ExportSheet = (props: ExportSheetProps) => <ExportSession key={props.videoUri} {...props} />;
+
+const ExportSession = ({ visible, videoUri, onClose }: ExportSheetProps) => {
   const { t } = useTranslation('preview');
   const [uploadOpen, setUploadOpen] = useState(false);
   const { state: saveState, save } = useSaveToGallery();
   const { state: uploadState, progress, url, setUrl, upload } = useUpload();
 
-  const handleShare = () => {
-    Share.share({ url: videoUri, title: t('export.shareTitle') }).catch(() => {});
+  const [sharing, setSharing] = useState(false);
+  const handleShare = async () => {
+    setSharing(true);
+
+    try {
+      const { isAvailableAsync, shareAsync } = await import('expo-sharing');
+
+      if (!(await isAvailableAsync())) throw new Error('Sharing unavailable');
+      await shareAsync(videoUri, {
+        mimeType: 'video/mp4',
+        UTI: 'public.mpeg-4',
+        dialogTitle: t('export.shareTitle'),
+      });
+    } catch {
+      Alert.alert(t('export.shareErrorTitle'), t('export.shareErrorBody'));
+    } finally {
+      setSharing(false);
+    }
   };
 
   return (
@@ -165,7 +185,11 @@ export const ExportSheet = ({ visible, videoUri, onClose }: ExportSheetProps) =>
           icon="share-outline"
           label={t('export.share')}
           sublabel={t('export.shareBody')}
-          onPress={handleShare}
+          onPress={() => {
+            handleShare().catch(() => {});
+          }}
+          disabled={sharing}
+          busy={sharing}
         />
 
         <View style={styles.uploadSection}>

@@ -46,7 +46,9 @@
       "uploading": "Subiendo… {{percent}} %",
       "done": "Subida completada",
       "error": "Error — toca para reintentar"
-    }
+    },
+    "shareErrorTitle": "No se puede compartir",
+    "shareErrorBody": "No se pudo compartir el vídeo. Vuelve a intentarlo."
   },
   "sheet": {
     "close": "Cerrar",

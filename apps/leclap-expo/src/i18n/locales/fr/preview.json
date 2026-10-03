@@ -46,7 +46,9 @@
       "uploading": "Envoi… {{percent}} %",
       "done": "Envoi terminé",
       "error": "Échec — touche pour réessayer"
-    }
+    },
+    "shareErrorTitle": "Partage indisponible",
+    "shareErrorBody": "Impossible de partager la vidéo. Réessayez."
   },
   "sheet": {
     "close": "Fermer",

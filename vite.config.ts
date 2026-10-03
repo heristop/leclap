@@ -329,6 +329,15 @@ export default defineConfig({
         },
       },
       {
+        // The installed native renderer exercises output replacement and async state isolation.
+        // Keep this compatibility allowance limited to these component regressions.
+        files: [
+          'apps/leclap-expo/src/features/editor/components/ExportSheet.test.ts',
+          'apps/leclap-expo/src/features/editor/preview/PreviewPage.test.ts',
+        ],
+        rules: { 'typescript/no-deprecated': 'off' },
+      },
+      {
         // Build/codegen scripts and Cucumber step definitions are tooling, not shipped package
         // source — exempt from the function-declaration convention.
         files: ['scripts/**', '**/scripts/**', '**/features/**'],

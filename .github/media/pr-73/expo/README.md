@@ -6,7 +6,7 @@ Captured on 2026-10-03 after the Expo polish at `ef8c86f9` and its export review
 
 The JPEGs are unmodified browser screenshots of the actual React Native components rendered through React Native Web in a temporary fixture. They are **not native device screenshots**. Phone viewport: 390×844; tablet: 768×1024. Fonts, translations, SVG mascot and posters come from the app.
 
-- `gallery-phone.jpg` / `gallery-tablet.jpg`: production Header, TemplateList and CustomTabBar with the ten bundled templates. The fixture supplies catalog data and inert navigation; it does not mount the full routed Scenarios screen or its Create action.
+- `gallery-phone.jpg` / `gallery-tablet.jpg`: refreshed after equalizing card heights within each row on phone and tablet, using natural content height rather than a fixed clipped height. Production Header, TemplateList and CustomTabBar with the ten bundled templates. The fixture supplies catalog data and inert navigation; it does not mount the full routed Scenarios screen or its Create action.
 - `search-phone.jpg`: refreshed after removing the duplicate browser focus outline; Tab/Shift+Tab returns to the input with the enclosing lavender border still visible. Entered “portrait” through the real search control; focused input retained and one matching template shown.
 - `empty-search-phone.jpg`: entered “unmatched”; the actual clear-search control restored ten results.
 - `export-phone.jpg` / `upload-phone.jpg`: production ExportSheet with a fixture output URI. Opening the actual disclosure reveals the URL field and a disabled empty-URL upload action; Close dismisses the sheet. Save, system Share and a real upload were not invoked in the browser.

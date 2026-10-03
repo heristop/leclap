@@ -58,7 +58,7 @@ export default function TemplateCard({ template, onPress }: TemplateCardProps) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surfaceRaised, borderRadius: 16, overflow: 'hidden' },
+  card: { flexGrow: 1, backgroundColor: colors.surfaceRaised, borderRadius: 16, overflow: 'hidden' },
   cover: {
     aspectRatio: 4 / 3,
     overflow: 'hidden',
@@ -69,10 +69,17 @@ const styles = StyleSheet.create({
   poster: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
   customCover: { backgroundColor: colors.primaryMuted },
   customBadge: { ...typography.smallText, color: colors.primaryDark, marginTop: spacing.s, fontWeight: '600' },
-  copy: { padding: spacing.m, gap: spacing.s, backgroundColor: colors.surfaceRaised },
+  copy: { flexGrow: 1, padding: spacing.m, gap: spacing.s, backgroundColor: colors.surfaceRaised },
   title: { ...typography.heading, color: colors.text, lineHeight: 26 },
   description: { ...typography.caption, lineHeight: 20 },
-  metadata: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.s, marginTop: spacing.xs },
+  metadata: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: spacing.s,
+    marginTop: 'auto',
+    paddingTop: spacing.xs,
+  },
   format: {
     ...typography.smallText,
     color: colors.primaryDark,

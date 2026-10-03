@@ -56,3 +56,11 @@ The iOS 26.5 simulator initially rejected requests with `Database failed to open
 These checks verify prompts, both denial combinations, persisted Settings values and permission-gate clearing after a Settings change/relaunch. They do not prove live camera capture on physical hardware or an uninterrupted AppState-only refresh: iOS relaunched the app after changing microphone access.
 
 After a supported reset, the iOS 26.5 simulator also passed the both-granted case through its native Allow buttons; `ios26-permission-granted.png` shows that the permission gate clears and only the missing simulator camera hardware remains. Both permissions are left enabled on the main simulator. All 245 Expo tests passed after the localized heading/checking-copy update.
+
+## Android launcher refinement — 2026-10-03
+
+`android-launcher-icon.png` captures the installed Debug build in the Pixel 3a API 34 app drawer. The adaptive icon now uses a transparent clapper foreground and a separate opaque lavender-to-pink gradient background, matching the iOS artwork without a nested disc.
+
+`android-icon-masks.png` is a generated artwork preview of circular, rounded-square, and monochrome variants. The monochrome preview illustrates the alpha silhouette; the actual themed tint depends on the launcher and wallpaper. Native themed-mode switching was not exercised.
+
+Validation: `:app:assembleDebug -PreactNativeArchitectures=arm64-v8a` succeeded; APK installed and launched on the emulator. Expo configuration resolves all three adaptive layers. Both icon generators completed, and formatting, lint, and diff checks passed. Prebuilt native resources remain untracked and can be refreshed with `pnpm gen:icons:native`.

@@ -46,7 +46,7 @@ Run Expo unit tests and typechecking, lint changed code, check both native Metro
 
 ## Launcher assets and native compilation check
 
-The Expo launcher uses `assets/images/icon.png`, an opaque 1024-pixel rendering of `assets/icon-source.svg`. The transparent disc in `assets/images/logo.png` is reserved for the in-app logo. The operating system applies the launcher corner mask; the SVG supplies a full-bleed gradient and an inset clapper. Android adaptive artwork uses a smaller mark inside its central 66/108 safe region.
+The Expo launcher uses `assets/images/icon.png`, an opaque 1024-pixel rendering of `assets/icon-source.svg`. The transparent disc in `assets/images/logo.png` is reserved for the in-app logo. The operating system applies the launcher corner mask; the SVG supplies a full-bleed gradient and an inset clapper. Android adaptive icons use separate transparent clapper, full-bleed gradient background, and monochrome layers. The clapper stays inside the central 66/108 safe region; Android supplies the launcher mask and wallpaper tint for themed icons. Sources are `assets/adaptive-{foreground,background,monochrome}.svg`, wired through `android.adaptiveIcon` in `app.json`.
 
 Run `pnpm gen:icons` after editing the SVG, then `pnpm gen:icons:native` to refresh existing prebuilt native assets. A native rebuild and reinstall is required to update the installed launcher. Generated iOS/Android directories remain untracked.
 

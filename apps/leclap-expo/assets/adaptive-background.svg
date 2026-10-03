@@ -23,17 +23,8 @@
       <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#1C1540" flood-opacity="0.32"/>
     </filter>
   </defs>
-  <g transform="translate(300 300) scale(0.56) translate(-298 -304)" filter="url(#lsh)">
-    <!-- board -->
-    <rect x="96" y="302" width="408" height="194" rx="40" fill="url(#lcBoard)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
-    <!-- bottom clap -->
-    <rect x="132" y="252" width="372" height="58" rx="18" fill="url(#lcs)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
-    <!-- top clap (above the bottom clap) -->
-    <g transform="rotate(-25 140 250)">
-      <rect x="132" y="192" width="372" height="58" rx="18" fill="url(#lcs)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
-    </g>
-    <!-- hinge wedge: rounded vertical rect (1:1.2) on top, dot centered -->
-    <rect x="90" y="216" width="80" height="96" rx="24" fill="url(#lcBoard)" stroke="#5E51AC" stroke-width="24" stroke-linejoin="round"/>
-    <circle cx="130" cy="264" r="17" fill="#FFF6D0" stroke="#5E51AC" stroke-width="6"/>
-  </g>
+  <!-- full-bleed gradient (opaque) so the app-icon circle/squircle is filled, not just the disc -->
+  <rect width="600" height="600" fill="url(#lcg)"/>
+  <!-- The platform supplies the corner mask; the mark stays comfortably inset. -->
+  <rect width="600" height="600" fill="url(#lcSheen)"/>
 </svg>

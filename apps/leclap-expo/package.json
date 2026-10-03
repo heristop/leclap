@@ -86,6 +86,7 @@
     "@babel/core": "^7.29.7",
     "@babel/plugin-proposal-decorators": "^7.29.7",
     "@babel/runtime": "^8.0.5",
+    "@expo/metro-config": "~57.0.12",
     "@swc/jest": "^0.2.39",
     "@types/jest": "^29.5.14",
     "@types/react": "~19.2.18",

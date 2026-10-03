@@ -23,6 +23,26 @@ sections are rejected before native platform initialization. Native motion, text
 overlay recipes use the on-device FFmpeg route. See [engine configuration](./engine-configuration.md)
 for the complete field/default reference and reproducibility limits.
 
+## Expo dependency upgrades and validation
+
+The reference app uses Expo SDK **57**, React Native **0.86.3**, React **19.2.3**,
+Reanimated **4.5.1** and Worklets **0.10.1**. Expo modules follow the SDK's bundled version
+recommendations. Keep the workspace lockfile, run `expo install --check` and Expo Doctor,
+then regenerate native projects and install iOS pods after upgrading. The
+`expo-build-properties` plugin enables the scene lifecycle required by iOS 27; the existing
+NDK 27.1 and iOS deployment target plugins still apply.
+
+Build the Android ARM64 debug app and unsigned iOS ARM64 simulator app as described in the
+[mobile README](../apps/leclap-expo/README.md#native-build-checks). Native app builds use the
+staged FFmpeg/Rust binaries; they do not rebuild that toolchain.
+
+The `leclap://ffmpeg-spike` diagnostic compiles a bounded JSON descriptor twice through the
+production `compileOnDevice` service. It covers title/caption reveals, footage, a zoom pulse
+and bundled music. Each pass verifies H.264/AAC, 1280×720, 30 fps and approximately three
+seconds with native ffprobe. Unit tests also reject invalid duration, frame rate, dimensions,
+audio and failed native calls. Hydrate the bundled sample from Git LFS and start Metro first.
+A simulator/emulator check does not replace signed release builds or physical-device testing.
+
 ## Why
 
 The native backend embeds the FFmpeg `ffmpeg`/`ffprobe` programs (pinned to n8.0, with `drawtext` enabled) in a Rust library. It is another `AbstractFFmpeg` implementation in the existing director/builder pipeline: shared managers build commands, and the backend executes them. Runtime support depends on the built codecs/filters and available media, rather than a promise that every descriptor renders offline.

@@ -14,6 +14,7 @@ and the complete [engine configuration reference](../../docs/engine-configuratio
 ## Prerequisites
 
 - **Node ≥ 24.11.0**, plus the repo toolchain (`mise install` from the root).
+- **Expo SDK 57**, React Native **0.86.3** and React **19.2.3**, with SDK-matched Expo modules.
 - A device/simulator and native dev client with the embedded engine; Expo Go does not include it.
 - **Xcode** (iOS) / **Android Studio** (Android) for native builds. Rebuild the ignored engine binaries with `scripts/ffmpeg/build-engine.sh`; the current engine scripts assume macOS (including the Android NDK host toolchain). See [On-Device Compilation](../../docs/on-device-compilation.md#building-the-engine-locally).
 
@@ -40,8 +41,10 @@ After staging the engine binaries, generate the native projects with
 `pnpm --filter @leclap/expo exec expo prebuild --no-install`, then install iOS pods with
 `pod install --project-directory=apps/leclap-expo/ios`. The `withIosDeploymentTarget` config plugin
 raises dependency targets to the app's iOS deployment floor (16.4 by default), preserving higher
-requirements. This also fixes older dependency privacy bundles rejected by Xcode 27. Keep the
-lockfile: `expo-modules-jsi` 56.0.14 includes the Swift callback fix required by this toolchain.
+requirements. This also fixes older dependency privacy bundles rejected by Xcode 27.
+`expo-build-properties` enables the scene lifecycle required by iOS 27. Keep the lockfile and
+regenerate both native projects after dependency or plugin changes. Reanimated 4.5.1 and Worklets
+0.10.1 are paired with this SDK; Expo Go does not contain the custom FFmpeg engine.
 
 From the repository root, an Android ARM64 debug build and an unsigned iOS ARM64 simulator build are:
 
@@ -55,7 +58,13 @@ xcodebuild -workspace apps/leclap-expo/ios/LeClap.xcworkspace -scheme LeClap \
 These compile the app against the staged engine; they do not rebuild FFmpeg or Rust. To check video
 compilation, run the dev client, complete a template's text and clip steps, then select **Create My
 Video**. Confirm that the result plays with its animated text and audio. The `leclap://ffmpeg-spike`
-route only exercises raw native FFmpeg commands; it does not verify the template composition flow.
+route automatically compiles a bounded three-second JSON template twice through `compileOnDevice`.
+It covers animated title/caption text, recorded footage, a zoom pulse and bundled music, using the
+platform encoder and asset staging from the production service. Each pass probes the output and
+requires H.264/AAC, 1280×720 at 30 fps and approximately three seconds; failed runs stop immediately.
+Keep Metro running and use `adb reverse` on Android. Hydrate `assets/sample.mp4` from Git LFS before
+bundling: a pointer file cannot be decoded. For a full product check, also compile a catalog template
+through the editor and confirm playback.
 
 ## Notes
 

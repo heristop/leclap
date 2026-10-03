@@ -7,7 +7,6 @@
     "icon": "./assets/images/logo.png",
     "scheme": "leclap",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -58,7 +57,15 @@
       ],
       "./plugins/withNdkVersion.js",
       "./plugins/withIosDeploymentTarget.js",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

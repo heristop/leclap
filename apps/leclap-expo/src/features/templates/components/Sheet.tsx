@@ -3,6 +3,9 @@
 import React, { type ReactNode } from 'react';
 import { Modal, View, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useReducedMotion } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
 interface SheetProps {
@@ -12,33 +15,43 @@ interface SheetProps {
   children: ReactNode;
 }
 
-export const Sheet = ({ visible, title, onClose, children }: SheetProps) => (
-  <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-    <TouchableWithoutFeedback onPress={onClose} accessibilityLabel="Dismiss">
-      <View style={styles.backdrop} />
-    </TouchableWithoutFeedback>
-    <View style={styles.sheet}>
-      <View style={styles.handle} />
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
-        <TouchableOpacity
-          onPress={onClose}
-          accessibilityRole="button"
-          accessibilityLabel="Close"
-          style={styles.closeBtn}
+export const Sheet = ({ visible, title, onClose, children }: SheetProps) => {
+  const insets = useSafeAreaInsets();
+  const reduced = useReducedMotion();
+  const { t } = useTranslation('preview');
+
+  return (
+    <Modal visible={visible} transparent animationType={reduced ? 'fade' : 'slide'} onRequestClose={onClose}>
+      <TouchableWithoutFeedback onPress={onClose} accessibilityLabel={t('sheet.dismiss')}>
+        <View style={styles.backdrop} />
+      </TouchableWithoutFeedback>
+      <View accessibilityViewIsModal style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.m) }]}>
+        <View style={styles.handle} />
+        <View style={styles.header}>
+          <Text style={styles.title}>{title}</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel={t('sheet.close')}
+            style={styles.closeBtn}
+          >
+            <Ionicons name="close" size={22} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+        <ScrollView
+          contentContainerStyle={styles.body}
+          keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
         >
-          <Ionicons name="close" size={22} color={colors.textSecondary} />
-        </TouchableOpacity>
+          {children}
+        </ScrollView>
       </View>
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-        {children}
-      </ScrollView>
-    </View>
-  </Modal>
-);
+    </Modal>
+  );
+};
 
 const styles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(27,24,48,0.45)' },
+  backdrop: { ...StyleSheet.absoluteFill, backgroundColor: colors.scrim },
   sheet: {
     position: 'absolute',
     left: 0,
@@ -66,7 +79,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.s,
     paddingBottom: spacing.s,
   },
-  title: { ...typography.subtitle, color: colors.text },
-  closeBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  title: { ...typography.subtitle, color: colors.text, flex: 1 },
+  closeBtn: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center' },
   body: { paddingHorizontal: spacing.l },
 });

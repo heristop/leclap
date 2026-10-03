@@ -19,7 +19,7 @@ export default function AppLayout() {
 
   return (
     <>
-      <Header />
+      <Header variant="light" showSlogan={false} />
 
       <Tabs
         tabBar={(props) => <CustomTabBar {...props} />}

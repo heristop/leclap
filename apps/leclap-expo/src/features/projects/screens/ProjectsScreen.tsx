@@ -5,9 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/src/types';
-import { colors, spacing, typography, fonts } from '@/src/styles/theme';
+import { colors, spacing, typography } from '@/src/styles/theme';
 import { elevation } from '@/src/styles/elevation';
-import { KineticHeading } from '@/src/components/kinetic/kinetic-heading';
+import { Clappy } from '@/src/components/clappy/Clappy';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import SwipeableProjectItem from '@/src/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/src/components/ui/dialog/ConfirmDialog';
@@ -19,9 +19,7 @@ function EmptyState() {
 
   return (
     <View style={styles.emptyContainer}>
-      <View style={styles.emptyIconWrap}>
-        <Ionicons name="videocam-outline" size={40} color={colors.primary} />
-      </View>
+      <Clappy size={144} state="welcome" />
       <Text style={styles.emptyTitle}>{t('empty.title')}</Text>
       <Text style={styles.emptyText}>{t('empty.subtitle')}</Text>
     </View>
@@ -56,10 +54,10 @@ function useProjectsScreenState() {
   const handleRefresh = () => {
     setRefreshing(true);
     loadProjects()
-      .then(() => {
+      .catch(console.error)
+      .finally(() => {
         setRefreshing(false);
-      })
-      .catch(console.error);
+      });
   };
 
   const handleDeleteProject = async (projectId: string) => {
@@ -127,26 +125,30 @@ export default function ProjectsScreen() {
   } = useProjectsScreenState();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={['left', 'right']} style={styles.container}>
       <View style={styles.innerContainer}>
-        <Text style={styles.kicker}>{t('kicker')}</Text>
-        <View style={styles.titleWrap}>
-          <KineticHeading text={t('title')} level="displayM" />
-        </View>
-
-        <PressableScale
-          style={styles.createNewButton}
-          haptic="medium"
-          onPress={() => {
-            router.push('/(app)');
-          }}
-          accessibilityLabel={t('createNew')}
-        >
-          <Ionicons name="add-circle" size={22} color="white" />
-          <Text style={styles.createNewButtonText}>{t('createNew')}</Text>
-        </PressableScale>
-
         <FlatList
+          ListHeaderComponent={
+            <View style={styles.header}>
+              <View style={styles.titleWrap}>
+                <Text accessibilityRole="header" style={styles.screenTitle}>
+                  {t('title')}
+                </Text>
+              </View>
+
+              <PressableScale
+                style={styles.createNewButton}
+                haptic="medium"
+                onPress={() => {
+                  router.push('/(app)');
+                }}
+                accessibilityLabel={t('createNew')}
+              >
+                <Ionicons name="add-circle" size={22} color={colors.onPrimary} />
+                <Text style={styles.createNewButtonText}>{t('createNew')}</Text>
+              </PressableScale>
+            </View>
+          }
           data={projects}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
@@ -201,16 +203,8 @@ const styles = StyleSheet.create({
   innerContainer: {
     flex: 1,
   },
-  kicker: {
-    fontFamily: fonts.poppins.semiBold,
-    fontSize: 11,
-    letterSpacing: 1.6,
-    textTransform: 'uppercase',
-    color: colors.primary,
-    marginHorizontal: spacing.m,
-    marginTop: spacing.s,
-    marginBottom: spacing.xs,
-  },
+  header: { paddingTop: spacing.l },
+  screenTitle: { ...typography.displayM, color: colors.textStrong },
   titleWrap: {
     marginHorizontal: spacing.m,
     marginBottom: spacing.m,
@@ -220,48 +214,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.s,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDark,
     paddingVertical: spacing.m,
     marginHorizontal: spacing.m,
     marginBottom: spacing.m,
     borderRadius: 14,
     ...elevation.raised,
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.12,
   },
   createNewButtonText: {
     ...typography.body,
-    color: 'white',
+    color: colors.onPrimary,
     fontWeight: '600',
     fontSize: 16,
   },
   list: {
-    padding: spacing.m,
+    paddingBottom: spacing.l,
   },
-  emptyList: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.l,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    padding: spacing.l,
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    margin: spacing.m,
-    ...elevation.card,
-  },
-  emptyIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    backgroundColor: 'rgba(124,131,253,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing.s,
-  },
+  emptyList: { flexGrow: 1, paddingBottom: spacing.l },
+  emptyContainer: { alignItems: 'center', paddingHorizontal: spacing.l, paddingVertical: spacing.xl, gap: spacing.s },
   emptyTitle: {
-    ...typography.subtitle,
+    ...typography.title,
+    color: colors.text,
+    textAlign: 'center',
     marginTop: spacing.m,
     marginBottom: spacing.s,
   },
@@ -269,5 +244,7 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.textSecondary,
     textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 320,
   },
 });

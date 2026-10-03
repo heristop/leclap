@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +9,8 @@ import type { Template } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
 import Button from '../../../components/ui/Button';
-import * as Haptics from 'expo-haptics';
+import { Clappy } from '@/src/components/clappy/Clappy';
+import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 
 interface BrowseTemplatesScreenProps {
   onRecordPress?: () => void;
@@ -18,22 +19,18 @@ interface BrowseTemplatesScreenProps {
 const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplatesScreenProps) => {
   const router = useRouter();
   const { t } = useTranslation('templates');
-  const { data: templates = [], isLoading, error, refetch } = useTemplates();
+  const { data: templates = [], isPending: isLoading, error, refetch } = useTemplates();
   // The catalog is bundled and renders on-device, so being offline never degrades the experience.
   const offlineForUi = false;
 
   const handleSelectTemplate = (template: Template) => {
-    const navigate = () => {
-      router.push({
-        pathname: '/template/[id]',
-        params: { id: template.name },
-      });
-    };
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).then(navigate).catch(navigate);
+    router.push({
+      pathname: '/template/[id]',
+      params: { id: template.name },
+    });
   };
 
   const goCreateTemplate = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     router.push('/(fullscreen)/create-template');
   };
 
@@ -51,9 +48,10 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.errorText}>{error instanceof Error ? error.message : t('loadError')}</Text>
+        <Clappy state="error" size={128} />
+        <Text style={styles.errorText}>{t('loadError')}</Text>
         <Text style={styles.errorSubtext}>{t('loadErrorHint')}</Text>
-        <View style={{ marginTop: spacing.m, alignItems: 'center', height: 160 }}>
+        <View style={{ marginTop: spacing.m, alignItems: 'center' }}>
           <Button
             variant="primary"
             onPress={() => {
@@ -77,22 +75,22 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         onSelectTemplate={handleSelectTemplate}
         isOffline={offlineForUi}
         onRefresh={() => {
-          refetch().catch(console.error);
+          return refetch().then(() => {});
         }}
-        kicker={t('kicker')}
         screenTitle={t('screenTitle')}
         subtitle={t('subtitle')}
       />
 
-      <TouchableOpacity
+      <PressableScale
         testID="create-template-fab"
         onPress={goCreateTemplate}
         style={styles.fab}
-        activeOpacity={0.85}
+        haptic="medium"
         accessibilityLabel={t('createTemplate')}
       >
-        <Ionicons name="add" size={28} color="#fff" />
-      </TouchableOpacity>
+        <Ionicons name="add" size={22} color={colors.onPrimary} />
+        <Text style={styles.fabText}>{t('createTemplate')}</Text>
+      </PressableScale>
     </View>
   );
 };
@@ -125,7 +123,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     ...typography.subtitle,
-    color: colors.error,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: spacing.m,
   },
@@ -139,18 +137,23 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: spacing.l,
     bottom: spacing.l,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
+    maxWidth: '88%',
+    minHeight: 52,
+    paddingHorizontal: spacing.m,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    gap: spacing.s,
+    borderRadius: 16,
+    backgroundColor: colors.primaryDark,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.primary,
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.2,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 6 },
     elevation: 8,
   },
+  fabText: { ...typography.body, color: colors.onPrimary, fontWeight: '600', flexShrink: 1 },
 });
 
 export default BrowseTemplatesScreen;

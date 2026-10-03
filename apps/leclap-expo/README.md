@@ -2,6 +2,8 @@
 
 Expo / React Native client for LeClap. It renders videos **on-device** through an embedded native FFmpeg engine ([`ffmpeg-engine`](../../packages/ffmpeg-engine)) — no server — rendering the same [`@leclap/creative-kit`](../../packages/leclap-creative-kit) templates as the web app and CLI. Record a clip per template section from the camera, preview, then compile. Bundled assets are staged locally; remote assets can still require downloads.
 
+For the mobile gallery, Clappy states, accessibility and poster maintenance, see the [Expo experience guide](../../docs/expo-experience.md).
+
 ## Engine configuration
 
 The host stages assets and binds clips/form values into `ProjectConfig`, then injects the native

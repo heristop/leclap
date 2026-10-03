@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react';
 import { Pressable, type StyleProp, type ViewStyle, type AccessibilityRole } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 import { motion } from '@/src/styles/motion';
 import { useHapticPress, type HapticStyle } from '@/src/hooks/use-haptic-press';
 
@@ -35,8 +35,12 @@ export function PressableScale({
   testID,
 }: PressableScaleProps) {
   const scale = useSharedValue(1);
+  const reduced = useReducedMotion();
   const handlePress = useHapticPress(onPress, haptic);
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: reduced ? 1 : scale.value }],
+    opacity: reduced && scale.value !== 1 ? 0.75 : 1,
+  }));
 
   return (
     <AnimatedPressable

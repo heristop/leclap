@@ -3,11 +3,16 @@ import { View } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Pattern, Rect, Stop } from 'react-native-svg';
 import Animated, {
   useAnimatedStyle,
-  useReducedMotion,
   useSharedValue,
   withSequence,
   withTiming,
+  cancelAnimation,
+  interpolate,
+  Easing,
+  ReduceMotion,
 } from 'react-native-reanimated';
+import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
+import { motion } from '@/src/styles/motion';
 import {
   ARM,
   BOARD,
@@ -24,18 +29,85 @@ import {
 
 export type ClappyState = 'welcome' | 'working' | 'success' | 'search' | 'error';
 
+const rotations: Record<ClappyState, number[]> = {
+  welcome: [0, -7, 3, 0],
+  search: [0, -8, -5, 0],
+  error: [0, 2, -2, 0],
+  success: [0, -3, 2, 0],
+  working: [0, 0, 0, 0],
+};
+const lifts: Record<ClappyState, number> = { welcome: -0.025, success: -0.045, search: 0, error: 0, working: 0 };
+const mouths: Record<ClappyState, string> = {
+  welcome: 'M278 442 Q289 458 300 445 Q311 458 322 442',
+  search: 'M278 442 Q289 458 300 445 Q311 458 322 442',
+  error: 'M280 458 Q300 438 320 458',
+  working: 'M286 452 L314 452',
+  success: '',
+};
+
 /** The same Clappy as the films and web app. Decorative; accompanying copy carries the state. */
-export function Clappy({ size = 112, state = 'welcome' }: { size?: number; state?: ClappyState }) {
+export function Clappy({
+  size = 112,
+  state = 'welcome',
+  active = true,
+}: {
+  size?: number;
+  state?: ClappyState;
+  active?: boolean;
+}) {
   const id = useId().replace(/[^A-Za-z0-9_-]/g, '');
-  const reduced = useReducedMotion();
-  const tilt = useSharedValue(0);
+  const { reducedMotion, appActive } = useMotionPreferences();
+  const reaction = useSharedValue(1);
+  const moving = active && appActive && !reducedMotion && state !== 'working';
   useEffect(() => {
-    tilt.value =
-      reduced || state === 'working'
-        ? 0
-        : withSequence(withTiming(state === 'success' ? -3 : 2, { duration: 130 }), withTiming(0, { duration: 210 }));
-  }, [state, reduced, tilt]);
-  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${tilt.value}deg` }] }));
+    reaction.set(1);
+
+    if (moving) {
+      reaction.set(0);
+      reaction.set(
+        withSequence(
+          ReduceMotion.Never,
+          withTiming(0.35, {
+            duration: motion.clappy.anticipate,
+            easing: Easing.out(Easing.quad),
+            reduceMotion: ReduceMotion.Never,
+          }),
+          withTiming(0.65, {
+            duration: motion.clappy.react,
+            easing: Easing.inOut(Easing.quad),
+            reduceMotion: ReduceMotion.Never,
+          }),
+          withTiming(1, {
+            duration: motion.clappy.settle,
+            easing: Easing.out(Easing.cubic),
+            reduceMotion: ReduceMotion.Never,
+          })
+        )
+      );
+    }
+
+    return () => {
+      cancelAnimation(reaction);
+    };
+  }, [state, moving, reaction]);
+  // Animate the composited wrapper, never the SVG paths or React tree on every frame.
+  const animatedStyle = useAnimatedStyle(() => {
+    const phase = moving ? reaction.get() : 1;
+    const stops = [0, 0.35, 0.65, 1];
+    const rotation = rotations[state];
+    const lift = size * lifts[state];
+
+    return {
+      transform: [
+        {
+          translateX: interpolate(phase, stops, state === 'search' ? [0, size * 0.025, size * 0.015, 0] : [0, 0, 0, 0]),
+        },
+        { translateY: interpolate(phase, stops, [0, lift, lift * 0.3, 0]) },
+        { rotate: `${interpolate(phase, stops, rotation)}deg` },
+        { scale: interpolate(phase, stops, state === 'success' ? [1, 1.06, 1.02, 1] : [1, 1, 1, 1]) },
+      ],
+    };
+  });
   const proud = state === 'success';
   const focused = state === 'working';
   const gradient = `url(#${id}-board)`;
@@ -138,13 +210,7 @@ export function Clappy({ size = 112, state = 'welcome' }: { size?: number; state
               <Path d="M287 458 Q300 471 313 458 Q300 463 287 458 Z" fill={CHEEK} />
             </G>
           ) : (
-            <Path
-              d={focused ? 'M286 452 L314 452' : 'M278 442 Q289 458 300 445 Q311 458 322 442'}
-              fill="none"
-              stroke={OUTLINE}
-              strokeWidth={9}
-              strokeLinecap="round"
-            />
+            <Path d={mouths[state]} fill="none" stroke={OUTLINE} strokeWidth={9} strokeLinecap="round" />
           )}
         </Svg>
       </Animated.View>

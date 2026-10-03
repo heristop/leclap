@@ -11,7 +11,9 @@ The JPEGs are unmodified browser screenshots of the actual React Native componen
 - `empty-search-phone.jpg`: entered “unmatched”; the actual clear-search control restored ten results.
 - `export-phone.jpg` / `upload-phone.jpg`: production ExportSheet with a fixture output URI. Opening the actual disclosure reveals the URL field and a disabled empty-URL upload action; Close dismisses the sheet. Save, system Share and a real upload were not invoked in the browser.
 - `render-phone.jpg`: production CompileProgressOverlay driven by its real Zustand store with controlled 42% progress. Cancel invokes the fixture cancellation callback and closes the overlay. This does not represent a timed engine render.
-- `ui-snapshot-walkthrough.mp4`: **14.4-second snapshot slideshow**, six real phone captures held for 2.4 seconds each. Captions identify the fixture states. It is not a continuous screen recording and does not demonstrate animation timing. H.264, 480×960, 30 fps, no audio.
+- `export-tablet.jpg`: refreshed motion pass, centered 640-point sheet with URL disclosure at 768×1024.
+- `clappy-react-commits.jpg`: diagnostic component fixture, one measured React Profiler commit when switching welcome to success; the wrapper animation schedules no per-frame React updates. This is not an FPS or native device benchmark.
+- `ui-snapshot-walkthrough.mp4`: **14.4-second snapshot slideshow from the earlier polish**, six real phone captures held for 2.4 seconds each. Captions identify the fixture states. It is not a continuous screen recording and does not demonstrate animation timing. H.264, 480×960, 30 fps, no audio.
 
 Browser captures verify layout, filtering, disclosure and cancellation callbacks. They do not verify native permission/share sheets, safe areas, keyboard avoidance, VoiceOver/TalkBack or system text scaling.
 
@@ -28,3 +30,9 @@ An independent review found three issues: the export sheet was not connected to 
 Fresh checks on the fixes: 232 Expo tests across 32 suites (six added component regressions), Expo typechecking, ten poster checks, changed-source formatting/lint, SDK dependency compatibility and production Hermes exports for iOS/Android passed. The existing preview seek immutability warning remains.
 
 Native rebuilding with `expo-sharing` also passed: Android ARM64 debug APK and iOS ARM64 simulator Debug app on Xcode 27. Disk exhaustion interrupted the initial simultaneous attempts; retrying after cleaning generated Xcode output succeeded. The iOS retry disabled debug symbols to reduce disk use (`GCC_GENERATE_DEBUGGING_SYMBOLS=NO DEBUG_INFORMATION_FORMAT=`) and did not require signing. Build success does not establish native system-sheet interaction or accessibility verification.
+
+## Responsive motion refinement
+
+Clappy now uses finite 510 ms reactions, transform-only UI-thread animation, a shared live accessibility/foreground subscription and focus/compile guards. Presses activate immediately with interruptible feedback; tab indicator fades do not move layout, and engine progress scales a full-width bar from the left. The tablet sheet is centered and capped at 640 points. Gallery, empty search, tablet export, render cancellation and the diagnostic mascot captures were refreshed in this pass.
+
+Independent review identified Reanimated’s cached startup preference and Tamagui’s fallback spring for an undefined transition. Guarded animations now explicitly select `ReduceMotion.Never`, and reduced/inactive buttons use `0ms`. Re-review found no remaining actionable findings. Fresh validation: 245 Expo tests in 34 suites, Expo typechecking, changed-source lint/format, and iOS/Android production Hermes exports. Compared with the earlier export, Hermes bytecode increased by 9,368 bytes on iOS (0.114%) and 6,295 bytes on Android (0.075%). No dependencies were added. Native frame-rate, gesture responsiveness and thermal behavior still require device profiling.

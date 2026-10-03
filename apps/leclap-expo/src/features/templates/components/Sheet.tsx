@@ -1,10 +1,11 @@
 // A bottom sheet built on RN Modal (no @gorhom/bottom-sheet in the app). Dismissible via the
 // backdrop, the grab handle's close button, or the hardware back button. Content scrolls.
 import React, { type ReactNode } from 'react';
-import { Modal, View, Text, TouchableOpacity, TouchableWithoutFeedback, ScrollView, StyleSheet } from 'react-native';
+import { Modal, View, Text, TouchableWithoutFeedback, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useReducedMotion } from 'react-native-reanimated';
+import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
+import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useTranslation } from 'react-i18next';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
@@ -17,11 +18,11 @@ interface SheetProps {
 
 export const Sheet = ({ visible, title, onClose, children }: SheetProps) => {
   const insets = useSafeAreaInsets();
-  const reduced = useReducedMotion();
+  const { reducedMotion } = useMotionPreferences();
   const { t } = useTranslation('preview');
 
   return (
-    <Modal visible={visible} transparent animationType={reduced ? 'fade' : 'slide'} onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType={reducedMotion ? 'fade' : 'slide'} onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose} accessibilityLabel={t('sheet.dismiss')}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
@@ -29,14 +30,15 @@ export const Sheet = ({ visible, title, onClose, children }: SheetProps) => {
         <View style={styles.handle} />
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
-          <TouchableOpacity
+          <PressableScale
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel={t('sheet.close')}
             style={styles.closeBtn}
+            haptic={false}
           >
             <Ionicons name="close" size={22} color={colors.textSecondary} />
-          </TouchableOpacity>
+          </PressableScale>
         </View>
         <ScrollView
           contentContainerStyle={styles.body}
@@ -54,8 +56,9 @@ const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: colors.scrim },
   sheet: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
     bottom: 0,
     maxHeight: '82%',
     backgroundColor: colors.surface,

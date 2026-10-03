@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useIsFocused } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import TemplateList from '../components/TemplateList';
 import { useTemplates } from '@/src/hooks/useTemplates';
@@ -11,6 +11,7 @@ import { TemplateListSkeleton } from '../../../components/ui/SkeletonLoader';
 import Button from '../../../components/ui/Button';
 import { Clappy } from '@/src/components/clappy/Clappy';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
+import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
 
 interface BrowseTemplatesScreenProps {
   onRecordPress?: () => void;
@@ -18,6 +19,8 @@ interface BrowseTemplatesScreenProps {
 
 const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplatesScreenProps) => {
   const router = useRouter();
+  const focused = useIsFocused();
+  const compiling = useCompileProgressStore((s) => s.visible);
   const { t } = useTranslation('templates');
   const { data: templates = [], isPending: isLoading, error, refetch } = useTemplates();
   // The catalog is bundled and renders on-device, so being offline never degrades the experience.
@@ -48,7 +51,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   if (error) {
     return (
       <View style={styles.centerContainer}>
-        <Clappy state="error" size={128} />
+        <Clappy state="error" size={128} active={focused && !compiling} />
         <Text style={styles.errorText}>{t('loadError')}</Text>
         <Text style={styles.errorSubtext}>{t('loadErrorHint')}</Text>
         <View style={{ marginTop: spacing.m, alignItems: 'center' }}>
@@ -79,6 +82,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
         }}
         screenTitle={t('screenTitle')}
         subtitle={t('subtitle')}
+        motionActive={focused && !compiling}
       />
 
       <PressableScale

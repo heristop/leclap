@@ -1,12 +1,20 @@
 import { useEffect } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, {
+  cancelAnimation,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
 import { Clappy } from '@/src/components/clappy/Clappy';
 import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
+import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
+import { motion } from '@/src/styles/motion';
 
 /** Real engine progress; Clappy stays still while rendering so feedback remains calm. */
 export function CompileProgressOverlay() {
@@ -16,19 +24,27 @@ export function CompileProgressOverlay() {
   const stage = useCompileProgressStore((s) => s.stage);
   const cancelling = useCompileProgressStore((s) => s.cancelling);
   const requestCancel = useCompileProgressStore((s) => s.requestCancel);
-  const reduced = useReducedMotion();
+  const { reducedMotion, appActive } = useMotionPreferences();
   const progress = useSharedValue(ratio);
   useEffect(() => {
-    progress.value = reduced ? ratio : withTiming(ratio, { duration: 180 });
-  }, [ratio, reduced, progress]);
-  const barStyle = useAnimatedStyle(() => ({ width: `${progress.value * 100}%` }));
+    progress.set(
+      reducedMotion || !appActive || !visible || cancelling
+        ? ratio
+        : withTiming(ratio, { duration: motion.duration.instant, reduceMotion: ReduceMotion.Never })
+    );
+
+    return () => {
+      cancelAnimation(progress);
+    };
+  }, [ratio, reducedMotion, appActive, visible, cancelling, progress]);
+  const barStyle = useAnimatedStyle(() => ({ transform: [{ scaleX: progress.get() }] }));
   const percent = Math.round(ratio * 100);
 
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={() => {}}>
       <SafeAreaView style={styles.fill}>
         <ScrollView contentContainerStyle={styles.center}>
-          <Clappy size={180} state="working" />
+          <Clappy size={180} state="working" active={false} />
           <Text accessibilityRole="header" style={styles.heading}>
             {t('compile.title')}
           </Text>
@@ -76,7 +92,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: withAlpha(colors.monitorText, 0.15),
   },
-  bar: { height: '100%', borderRadius: 3, backgroundColor: colors.primary },
+  bar: {
+    width: '100%',
+    height: '100%',
+    transformOrigin: 'left center',
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+  },
   stage: { ...typography.body, color: colors.monitorSecondary, lineHeight: 24, textAlign: 'center', minHeight: 48 },
   privacy: { flexDirection: 'row', alignItems: 'center', gap: spacing.s, marginTop: spacing.m, maxWidth: 320 },
   privacyText: { ...typography.caption, color: colors.monitorSecondary, lineHeight: 20, flexShrink: 1 },

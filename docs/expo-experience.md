@@ -10,25 +10,29 @@ The template gallery displays bundled stills from the real showcase renders. Por
 
 Search matches displayed names and localized section text, including resolved template variables. It ignores accents and surrounding whitespace and accepts regional locales such as `fr-FR`. English and the first available translation provide fallbacks. The search input retains focus while results change. No-result states offer a clear-search action.
 
-Phone layouts use two columns, tablets three. Narrow phones and large system text switch to one column. Gallery bottom spacing reserves room for the Create action. Headings and sheet content can grow and scroll with text size.
+Phone layouts use two columns, tablets three. Narrow phones and large system text switch to one column. Gallery bottom spacing reserves room for the Create action. Cards stretch to the tallest content within each row; format metadata stays at the bottom. Headings and sheet content can grow and scroll with text size. Sheets are centered and capped at 640 points on tablets.
 
 ## Clappy
 
 Clappy’s fixed paths, frame and palette live in `@leclap/creative-kit/clappy`, shared with the web renderer. The native component uses `react-native-svg`, with no remote artwork, image fetch or extra native dependency.
 
-| State     | Placement                      | Behaviour                                           |
-| --------- | ------------------------------ | --------------------------------------------------- |
-| `welcome` | Scenarios header, empty Videos | Raised hand; brief greeting tilt                    |
-| `search`  | Empty search results           | Sideways gaze; short settling motion                |
-| `error`   | Catalog load failure           | Calm expression beside recovery instructions        |
-| `working` | Render overlay                 | Focused expression; stationary throughout rendering |
-| `success` | Export sheet                   | Raised arms and happy eyes; brief celebratory tilt  |
+| State     | Placement                      | Behaviour                                                     |
+| --------- | ------------------------------ | ------------------------------------------------------------- |
+| `welcome` | Scenarios header, empty Videos | Raised hand; brief greeting lean and lift                     |
+| `search`  | Focused search, empty results  | Sideways gaze; brief curious lean                             |
+| `error`   | Catalog load failure           | Concerned expression; small reassuring nod                    |
+| `working` | Render overlay                 | Focused expression; stationary throughout rendering           |
+| `success` | Export sheet                   | Raised arms and happy eyes; brief celebratory lift and settle |
 
-Clappy is decorative and hidden from assistive technology; adjacent text communicates the state. Motion runs on the UI thread and respects system Reduce Motion. There are no infinite mascot loops. Shared press controls use opacity feedback instead of scaling under Reduce Motion; sheets replace slides with fades.
+Clappy is decorative and hidden from assistive technology; adjacent text communicates the state. Each reaction lasts 510 ms and animates only the wrapper’s transform on the native UI thread; SVG paths and the React tree are not updated per frame. The mascot stays still in hidden tabs/sheets, while the app is backgrounded, and throughout compilation. Motion respects live system Reduce Motion changes, including re-enabling animations after launch. There are no infinite mascot loops. Shared press controls use opacity feedback instead of scaling under Reduce Motion; sheets replace slides with fades. One shared pair of native subscriptions supplies accessibility and foreground changes to all controls. It ignores stale asynchronous setting reads and releases listeners when the last consumer unmounts. There is no polling.
+
+Press feedback begins on touch-down, remains interruptible, and clears on cancellation, disabling or backgrounding. Actions and navigation run immediately on activation without waiting for animation. Tab selection uses a 120 ms opacity transition and one selection haptic only when navigation is accepted; tapping the current tab or a prevented tab press adds no haptic. Buttons use a native busy indicator instead of a static reload icon. Loading skeleton loops stop in the background and under Reduce Motion.
+
+Reuse `useMotionPreferences` and `styles/motion.ts` for new interactions. Guard Reanimated calls with the live preference, then explicitly use `ReduceMotion.Never` inside that guarded branch: Reanimated’s default system flag reflects startup, so it cannot alone handle a later change back to enabled motion. For Tamagui buttons use the configured `0ms` transition under Reduce Motion, because an undefined transition can still select a default spring.
 
 ## Rendering and export
 
-The render overlay reads the real engine progress store. A progress bar exposes the percentage to screen readers, stage text can wrap, and Cancel remains available while rendering. The privacy message describes the existing on-device compilation path.
+The render overlay reads the real engine progress store. A full-width bar scales from its left edge without animating layout width, and snaps to real progress on cancellation or in the background. It exposes the percentage to screen readers, stage text can wrap, and Cancel remains available while rendering. The privacy message describes the existing on-device compilation path.
 
 The finished-video preview opens Export from its toolbar; recorded-section previews retain Trim, Crop and Retake instead. Each output URI owns a separate export session, so previous save/upload completions cannot disable a new render. Sharing uses `expo-sharing` to attach the MP4 on both Android and iOS, with retry feedback on failure. Adding that native module requires rebuilding existing development clients.
 

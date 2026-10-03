@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect, useIsFocused } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
@@ -13,13 +13,16 @@ import SwipeableProjectItem from '@/src/components/ui/SwipeableProjectItem';
 import ConfirmDialog from '@/src/components/ui/dialog/ConfirmDialog';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useProjectService } from '@/src/presentation/hooks/useProjectService';
+import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
 
 function EmptyState() {
   const { t } = useTranslation('projects');
+  const focused = useIsFocused();
+  const compiling = useCompileProgressStore((s) => s.visible);
 
   return (
     <View style={styles.emptyContainer}>
-      <Clappy size={144} state="welcome" />
+      <Clappy size={144} state="welcome" active={focused && !compiling} />
       <Text style={styles.emptyTitle}>{t('empty.title')}</Text>
       <Text style={styles.emptyText}>{t('empty.subtitle')}</Text>
     </View>

@@ -164,7 +164,7 @@ const ExportSession = ({ visible, videoUri, onClose }: ExportSheetProps) => {
     <Sheet visible={visible} title={t('export.title')} onClose={onClose}>
       <View style={styles.content}>
         <View style={styles.ready}>
-          <Clappy size={80} state="success" />
+          <Clappy size={80} state="success" active={visible} />
           <View style={styles.readyCopy}>
             <Text style={styles.readyTitle}>{t('export.readyTitle')}</Text>
             <Text style={styles.actionSublabel}>{t('export.readyBody')}</Text>

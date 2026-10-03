@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, Pressable, Image, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, Image, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/src/styles/theme';
 import logoImage from '@/assets/images/logo.png';
+import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 
 interface HeaderProps {
   title?: string;
@@ -54,14 +55,15 @@ export default function Header({
       <View style={styles.container}>
         <View style={styles.left}>
           {showBackButton ? (
-            <Pressable
+            <PressableScale
               accessibilityRole="button"
               accessibilityLabel={t('back')}
               onPress={handleBack}
-              style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+              style={styles.action}
+              haptic={false}
             >
               <Ionicons name="chevron-back" size={24} color={textColor} />
-            </Pressable>
+            </PressableScale>
           ) : null}
           {showLogo ? <Image source={logoImage} style={styles.logo} resizeMode="contain" accessible={false} /> : null}
           <HeaderIdentity
@@ -72,15 +74,16 @@ export default function Header({
           />
         </View>
         {actions.map((action, index) => (
-          <Pressable
+          <PressableScale
             key={`${action.icon}-${index}`}
             onPress={action.onPress}
             accessibilityRole="button"
             accessibilityLabel={action.label}
-            style={({ pressed }) => [styles.action, pressed && styles.pressed]}
+            style={styles.action}
+            haptic={false}
           >
             <Ionicons name={action.icon} size={24} color={action.color ?? textColor} />
-          </Pressable>
+          </PressableScale>
         ))}
         {rightContent}
       </View>
@@ -128,5 +131,4 @@ const styles = StyleSheet.create({
   subtitle: { ...typography.caption, lineHeight: 20 },
   logo: { width: 32, height: 32 },
   action: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 12 },
-  pressed: { opacity: 0.65 },
 });

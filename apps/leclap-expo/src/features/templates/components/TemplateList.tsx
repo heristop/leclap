@@ -25,6 +25,7 @@ interface TemplateListProps {
   onRefresh?: () => Promise<void> | void;
   screenTitle?: string;
   subtitle?: string;
+  motionActive?: boolean;
 }
 
 export default function TemplateList({
@@ -33,6 +34,7 @@ export default function TemplateList({
   onRefresh,
   screenTitle,
   subtitle,
+  motionActive = true,
 }: TemplateListProps) {
   const { t, i18n } = useTranslation('templates');
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,7 +66,7 @@ export default function TemplateList({
           ) : null}
           {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
         </View>
-        {fontScale < 1.3 ? <Clappy size={76} /> : null}
+        {fontScale < 1.3 ? <Clappy size={76} state={focused ? 'search' : 'welcome'} active={motionActive} /> : null}
       </View>
       <View style={[styles.search, focused && styles.searchFocused]}>
         <Ionicons name="search-outline" size={20} color={colors.textSecondary} accessible={false} />
@@ -117,7 +119,7 @@ export default function TemplateList({
       ListHeaderComponent={header}
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Clappy state="search" size={116} />
+          <Clappy state="search" size={116} active={motionActive} />
           <Text accessibilityRole="header" style={styles.emptyTitle}>
             {t('search.emptyTitle')}
           </Text>

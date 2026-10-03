@@ -1,6 +1,7 @@
 import { type ColorTokens, type FontSizeTokens, Button as TamaguiButton, Text, XStack } from 'tamagui';
 import { Ionicons } from '@expo/vector-icons';
-import { useReducedMotion } from 'react-native-reanimated';
+import { ActivityIndicator } from 'react-native';
+import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
 import { colors } from '@/src/styles/theme';
 import { triggerHaptic } from '@/src/hooks/use-haptic-press';
 
@@ -162,7 +163,7 @@ function ButtonContent({
 }: ButtonContentProps) {
   const leftIcon = loading ? (
     <XStack>
-      <Ionicons name="reload" size={iconSize} color={iconColor} />
+      <ActivityIndicator size="small" color={iconColor} />
     </XStack>
   ) : (
     icon && iconPosition === 'left' && <Ionicons name={icon} size={iconSize} color={iconColor} />
@@ -188,6 +189,12 @@ function ButtonContent({
 const runAsync = (fn: () => Promise<void>) => {
   fn().catch(() => {});
 };
+
+function getButtonMotion(unavailable: boolean, preferences: ReturnType<typeof useMotionPreferences>) {
+  const reduced = preferences.reducedMotion || !preferences.appActive;
+
+  return { scales: getScales(unavailable, reduced), transition: reduced ? '0ms' : 'quicker' } as const;
+}
 
 export default function Button({
   children,
@@ -219,8 +226,8 @@ export default function Button({
   const iconSize = getIconSize(size);
   const iconColor = resolveIconColor(textColor);
   const isGhost = variant === 'ghost';
-  const reduced = useReducedMotion();
-  const scales = getScales(unavailable, reduced);
+  const preferences = useMotionPreferences();
+  const { scales, transition } = getButtonMotion(unavailable, preferences);
 
   return (
     <TamaguiButton
@@ -237,7 +244,7 @@ export default function Button({
       shadowOffset={{ width: 0, height: 6 }}
       shadowOpacity={isGhost ? 0 : 0.14}
       shadowRadius={14}
-      transition="bouncy"
+      transition={transition}
       scale={scales.default}
       hoverStyle={{
         ...variantProps.hoverStyle,

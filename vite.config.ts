@@ -329,13 +329,20 @@ export default defineConfig({
         },
       },
       {
-        // The installed native renderer exercises output replacement and async state isolation.
+        // The installed native renderer exercises component lifecycle and async state isolation.
         // Keep this compatibility allowance limited to these component regressions.
         files: [
           'apps/leclap-expo/src/features/editor/components/ExportSheet.test.ts',
           'apps/leclap-expo/src/features/editor/preview/PreviewPage.test.ts',
+          'apps/leclap-expo/src/components/clappy/clappy-motion.test.ts',
+          'apps/leclap-expo/src/hooks/use-motion-preferences.test.ts',
         ],
         rules: { 'typescript/no-deprecated': 'off' },
+      },
+      {
+        // This .test.ts component suite supplies children without JSX.
+        files: ['apps/leclap-expo/src/components/clappy/clappy-motion.test.ts'],
+        rules: { 'react/no-children-prop': 'off' },
       },
       {
         // Build/codegen scripts and Cucumber step definitions are tooling, not shipped package

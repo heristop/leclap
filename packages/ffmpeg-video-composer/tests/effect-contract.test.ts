@@ -127,17 +127,53 @@ describe('resolveTemplateEffects', () => {
     await expect(resolveTemplateEffects({ sections: [effect()] }, () => output)).rejects.toThrow(/intro/);
   });
 
-  it('rejects nested partials before preflight or rendering instead of silently skipping their effects', async () => {
-    const render = vi.fn(rendered);
-    const preflight = vi.fn();
+  it('resolves nested partial effects after every expanded effect passes preflight', async () => {
+    const events: string[] = [];
+    const render = vi.fn((section) => {
+      events.push(`render:${section.name}`);
+
+      return { ...rendered(), path: `/render/${section.name}.mp4` };
+    });
+    const preflight = vi.fn((section) => {
+      events.push(`preflight:${section.name}`);
+    });
     const template = {
       sections: [
         effect(),
         { type: 'partial', sections: [{ type: 'partial', sections: [{ ...effect(), name: 'nested' }] }] },
       ],
     };
-    await expect(resolveTemplateEffects(template, render, { preflight })).rejects.toThrow('effect_partial_unresolved');
-    expect(preflight).not.toHaveBeenCalled();
+    const before = structuredClone(template);
+    const result = await resolveTemplateEffects(template, render, { preflight });
+    expect(events).toEqual(['preflight:intro', 'preflight:nested', 'render:intro', 'render:nested']);
+    expect(result.descriptor.sections).toEqual([
+      { type: 'project_video', name: 'intro', options: { duration: 2 } },
+      { type: 'project_video', name: 'nested', options: { duration: 2 } },
+    ]);
+    expect(result.userVideoPaths).toEqual({ intro: '/render/intro.mp4', nested: '/render/nested.mp4' });
+    expect(result.provenance.nested.effect).toEqual(effect().effect);
+    expect(template).toEqual(before);
+  });
+
+  it('rejects an unknown nested effect during preflight before rendering any clip', async () => {
+    const render = vi.fn(rendered);
+    const preflight = vi.fn((section) => {
+      if (section.name === 'nested') throw new Error('unknown_effect');
+    });
+    await expect(
+      resolveTemplateEffects(
+        {
+          sections: [effect(), { type: 'partial', ref: 'outer' }],
+          partials: [
+            { id: 'outer', sections: [{ type: 'partial', ref: 'inner' }] },
+            { id: 'inner', sections: [{ ...effect(), name: 'nested' }] },
+          ],
+        },
+        render,
+        { preflight }
+      )
+    ).rejects.toThrow('unknown_effect');
+    expect(preflight.mock.calls.map(([section]) => section.name)).toEqual(['intro', 'nested']);
     expect(render).not.toHaveBeenCalled();
   });
 

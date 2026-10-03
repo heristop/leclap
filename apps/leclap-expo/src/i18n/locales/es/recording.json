@@ -15,7 +15,9 @@
   "permissions": {
     "checking": "Comprobando permisos de cámara...",
     "title": "Se requiere permiso de cámara",
-    "message": "Concede permisos de cámara y micrófono para grabar vídeo."
+    "message": "Concede permisos de cámara y micrófono para grabar vídeo.",
+    "allow": "Permitir cámara y micrófono",
+    "settings": "Abrir ajustes"
   },
   "noDevice": "No hay ninguna cámara disponible",
   "alerts": {

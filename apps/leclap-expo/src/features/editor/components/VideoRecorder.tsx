@@ -10,6 +10,8 @@ import {
   StatusBar,
   Animated,
   Easing,
+  Linking,
+  AppState,
 } from 'react-native';
 import { Camera, useCameraDevice, type VideoFile, type CameraDevice } from 'react-native-vision-camera';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -400,29 +402,42 @@ function DescriptionOverlay({ isPortrait, description, onDismiss }: DescriptionO
 function useCameraPermissions() {
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [isCheckingPermissions, setIsCheckingPermissions] = useState(true);
+  const [blocked, setBlocked] = useState(false);
+
+  const checkPermissions = async () => {
+    setIsCheckingPermissions(true);
+    try {
+      const camera = await Camera.requestCameraPermission();
+      const microphone = await Camera.requestMicrophonePermission();
+      setHasPermission(camera === 'granted' && microphone === 'granted');
+      setBlocked(camera === 'denied' || microphone === 'denied');
+    } catch (error) {
+      console.error('Error checking permissions:', error);
+      setHasPermission(false);
+    } finally {
+      setIsCheckingPermissions(false);
+    }
+  };
 
   useEffect(() => {
-    const checkPermissions = async () => {
-      setIsCheckingPermissions(true);
-
-      try {
-        const cameraPermission = await Camera.requestCameraPermission();
-        const micPermission = await Camera.requestMicrophonePermission();
-        setHasPermission(cameraPermission === 'granted' && micPermission === 'granted');
-      } catch (error) {
-        console.error('Error checking permissions:', error);
-        setHasPermission(false);
-      } finally {
-        setIsCheckingPermissions(false);
-      }
-    };
-
-    checkPermissions().catch((error: unknown) => {
-      console.error('checkPermissions failed:', error);
+    checkPermissions().catch(console.error);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') return;
+      const camera = Camera.getCameraPermissionStatus();
+      const microphone = Camera.getMicrophonePermissionStatus();
+      setHasPermission(camera === 'granted' && microphone === 'granted');
+      setBlocked(camera === 'denied' || microphone === 'denied');
     });
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
-  return { hasPermission, isCheckingPermissions };
+  const requestAccess = () => {
+    if (blocked) return Linking.openSettings();
+    return checkPermissions();
+  };
+  return { hasPermission, isCheckingPermissions, blocked, requestAccess };
 }
 
 function useRecordingTimer(isRecording: boolean): number {
@@ -869,6 +884,8 @@ const RecorderFooter = ({
 interface PermissionGateProps {
   isCheckingPermissions: boolean;
   hasPermission: boolean | null;
+  blocked: boolean;
+  requestAccess: () => Promise<void>;
   device: ReturnType<typeof useCameraDevice>;
   dimensions: { width: number; height: number };
   t: TFunction<'recording'>;
@@ -880,6 +897,8 @@ interface PermissionGateProps {
 const permissionGate = ({
   isCheckingPermissions,
   hasPermission,
+  blocked,
+  requestAccess,
   device,
   dimensions,
   t,
@@ -899,6 +918,17 @@ const permissionGate = ({
         <Ionicons name="camera-outline" size={48} color={colors.error} />
         <Text style={styles.permissionTitle}>{t('permissions.title')}</Text>
         <Text style={styles.permissionText}>{t('permissions.message')}</Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() => {
+            requestAccess().catch(console.error);
+          }}
+          style={{ minHeight: 48, padding: 16 }}
+        >
+          <Text style={{ ...typography.button, color: colors.primaryDark }}>
+            {t(blocked ? 'permissions.settings' : 'permissions.allow')}
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -934,7 +964,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   );
   const cameraRef = useRef<Camera | null>(null);
   const device = useCameraDevice(cameraType);
-  const { hasPermission, isCheckingPermissions } = useCameraPermissions();
+  const { hasPermission, isCheckingPermissions, blocked, requestAccess } = useCameraPermissions();
   const recordingDuration = useRecordingTimer(isRecording);
   const pulseAnim = usePulseAnimation(isRecording);
   // Square records with the phone upright, so it shares the portrait chrome layout (timer/flip/controls).
@@ -978,6 +1008,8 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   const gate = permissionGate({
     isCheckingPermissions,
     hasPermission,
+    blocked,
+    requestAccess,
     device,
     dimensions: getPreviewDimensions(orientation, fullscreen),
     t,

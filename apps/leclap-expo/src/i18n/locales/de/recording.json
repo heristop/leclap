@@ -15,7 +15,9 @@
   "permissions": {
     "checking": "Kameraberechtigungen werden geprüft...",
     "title": "Kameraberechtigung erforderlich",
-    "message": "Bitte erteile die Kamera- und Mikrofonberechtigung, um Videos aufzunehmen."
+    "message": "Bitte erteile die Kamera- und Mikrofonberechtigung, um Videos aufzunehmen.",
+    "allow": "Kamera und Mikrofon erlauben",
+    "settings": "Einstellungen öffnen"
   },
   "noDevice": "Kein Kameragerät verfügbar",
   "alerts": {

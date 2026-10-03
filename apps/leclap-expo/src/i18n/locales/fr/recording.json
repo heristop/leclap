@@ -15,7 +15,9 @@
   "permissions": {
     "checking": "Vérification des autorisations caméra...",
     "title": "Autorisation caméra requise",
-    "message": "Autorise l’accès à la caméra et au micro pour enregistrer une vidéo."
+    "message": "Autorise l’accès à la caméra et au micro pour enregistrer une vidéo.",
+    "allow": "Autoriser la caméra et le microphone",
+    "settings": "Ouvrir les réglages"
   },
   "noDevice": "Aucune caméra disponible",
   "alerts": {

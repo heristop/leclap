@@ -15,7 +15,9 @@
   "permissions": {
     "checking": "Verifica dei permessi della fotocamera...",
     "title": "Permesso fotocamera richiesto",
-    "message": "Concedi i permessi per fotocamera e microfono per registrare il video."
+    "message": "Concedi i permessi per fotocamera e microfono per registrare il video.",
+    "allow": "Consenti fotocamera e microfono",
+    "settings": "Apri impostazioni"
   },
   "noDevice": "Nessuna fotocamera disponibile",
   "alerts": {

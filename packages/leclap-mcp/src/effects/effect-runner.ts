@@ -23,6 +23,28 @@ export interface TitleWorkerResult {
   provenance: TitleJob['provenance'];
 }
 
+// Job directories hold preview PNG/MP4 files that callers link to after the call returns, so they
+// cannot be removed on success. Each new job instead sweeps job directories older than this window,
+// which bounds disk use without breaking links returned by recent calls.
+const JOB_RETENTION_MS = 60 * 60 * 1000;
+
+async function sweepStaleJobs(base: string, now = Date.now()) {
+  const entries = await fs.readdir(base, { withFileTypes: true });
+
+  await Promise.all(
+    entries
+      .filter((entry) => entry.isDirectory() && entry.name.startsWith('job-'))
+      .map(async (entry) => {
+        const target = path.join(base, entry.name);
+        const { mtimeMs } = await fs.lstat(target);
+
+        if (now - mtimeMs > JOB_RETENTION_MS) {
+          await fs.rm(target, { recursive: true, force: true });
+        }
+      })
+  );
+}
+
 /** Queue wait and worker setup/render each have a separate renderTimeoutMs deadline. */
 export async function runTitleEffect(
   title: PreparedTitle,
@@ -36,9 +58,13 @@ export async function runTitleEffect(
 
   try {
     signal?.throwIfAborted();
-    const base = path.join(config.mediaDir, '.leclap-effects');
+    // Canonicalize once here: the cache compares realpaths, so a symlinked media dir (macOS /tmp)
+    // must not leave job directories under an unresolved prefix.
+    const media = await fs.realpath(config.mediaDir);
+    const base = path.join(media, '.leclap-effects');
     await fs.mkdir(base, { recursive: true });
-    await assertWithinMediaDir(base, config.mediaDir);
+    await assertWithinMediaDir(base, media);
+    await sweepStaleJobs(base);
     directory = await fs.mkdtemp(path.join(base, 'job-'));
 
     try {

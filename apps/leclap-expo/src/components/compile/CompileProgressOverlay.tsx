@@ -16,7 +16,7 @@ import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
 import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
 import { motion } from '@/src/styles/motion';
 
-/** Real engine progress; Clappy stays still while rendering so feedback remains calm. */
+/** Real engine progress; Clappy holds still while rendering. */
 export function CompileProgressOverlay() {
   const { t } = useTranslation('preview');
   const visible = useCompileProgressStore((s) => s.visible);

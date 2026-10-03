@@ -136,3 +136,50 @@ it('resolves the operator catalog with CLI precedence', () => {
     if (saved !== undefined) process.env.LECLAP_MCP_EFFECT_CATALOG = saved;
   }
 });
+
+describe('loadConfig empty and oversized values', () => {
+  let saved: Record<string, string | undefined>;
+
+  beforeEach(() => {
+    saved = {};
+    for (const key of ENV_KEYS) {
+      saved[key] = process.env[key];
+      delete process.env[key];
+    }
+  });
+
+  afterEach(() => {
+    for (const key of ENV_KEYS) {
+      if (saved[key] === undefined) delete process.env[key];
+      if (saved[key] !== undefined) process.env[key] = saved[key];
+    }
+  });
+
+  it('treats an empty --media-dir as unset instead of the working directory', () => {
+    const config = loadConfig(['node', 'server', '--media-dir', '']);
+
+    expect(config.mediaDir).toBe(path.join(os.homedir(), '.leclap', 'media'));
+  });
+
+  it('treats an empty LECLAP_MCP_MEDIA_DIR as unset', () => {
+    process.env.LECLAP_MCP_MEDIA_DIR = '';
+
+    const config = loadConfig(['node', 'server']);
+
+    expect(config.mediaDir).toBe(path.join(os.homedir(), '.leclap', 'media'));
+  });
+
+  it('does not let an empty flag override a valid environment value', () => {
+    process.env.LECLAP_MCP_OUTPUT_DIR = '/srv/renders';
+
+    const config = loadConfig(['node', 'server', '--output-dir', '']);
+
+    expect(config.outputDir).toBe('/srv/renders');
+  });
+
+  it('falls back to the default timeout when the value exceeds the Node timer range', () => {
+    const config = loadConfig(['node', 'server', '--render-timeout-ms', '3000000000']);
+
+    expect(config.renderTimeoutMs).toBe(600_000);
+  });
+});

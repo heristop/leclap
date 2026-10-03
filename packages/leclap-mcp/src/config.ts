@@ -74,14 +74,17 @@ function readFlag(argv: readonly string[], flag: string): string | undefined {
   return next;
 }
 
+const MAX_TIMER_MS = 2_147_483_647;
+
 function resolveTimeout(raw: string | undefined): number {
   if (raw === undefined) {
     return DEFAULT_RENDER_TIMEOUT_MS;
   }
 
-  const parsed = Number.parseInt(raw, 10);
+  // Node clamps timers above 2^31-1 ms to 1 ms, so larger values would fail every render immediately.
+  const parsed = /^\d+$/.test(raw) ? Number(raw) : NaN;
 
-  if (Number.isNaN(parsed) || parsed <= 0) {
+  if (!Number.isSafeInteger(parsed) || parsed <= 0 || parsed > MAX_TIMER_MS) {
     return DEFAULT_RENDER_TIMEOUT_MS;
   }
 
@@ -100,16 +103,24 @@ function catalogPathConfig(argv: readonly string[]): Pick<McpConfig, 'effectCata
   return file ? { effectCatalogPath: path.resolve(file) } : {};
 }
 
+function nonEmpty(value: string | undefined): string | undefined {
+  return value !== undefined && value.trim() !== '' ? value : undefined;
+}
+
 export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
+  // An empty value counts as unset: path.resolve('') is the working directory, which would widen the
+  // media sandbox to wherever the server was started.
   const outputDir =
-    readFlag(argv, '--output-dir') ??
-    process.env.LECLAP_MCP_OUTPUT_DIR ??
+    nonEmpty(readFlag(argv, '--output-dir')) ??
+    nonEmpty(process.env.LECLAP_MCP_OUTPUT_DIR) ??
     path.join(os.homedir(), '.leclap', 'renders');
 
   // Narrow default: confining reads to the whole home directory would let probe_media/compose_video
   // read any file under $HOME. Operators who keep media elsewhere set --media-dir / LECLAP_MCP_MEDIA_DIR.
   const mediaDir =
-    readFlag(argv, '--media-dir') ?? process.env.LECLAP_MCP_MEDIA_DIR ?? path.join(os.homedir(), '.leclap', 'media');
+    nonEmpty(readFlag(argv, '--media-dir')) ??
+    nonEmpty(process.env.LECLAP_MCP_MEDIA_DIR) ??
+    path.join(os.homedir(), '.leclap', 'media');
 
   const renderTimeoutMs = resolveTimeout(
     readFlag(argv, '--render-timeout-ms') ?? process.env.LECLAP_MCP_RENDER_TIMEOUT_MS

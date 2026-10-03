@@ -1,5 +1,6 @@
+import { useAdaptiveLayout } from '@/src/hooks/use-adaptive-layout';
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { Platform, View, StyleSheet, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useIsFocused } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -12,12 +13,14 @@ import Button from '../../../components/ui/Button';
 import { Clappy } from '@/src/components/clappy/Clappy';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface BrowseTemplatesScreenProps {
   onRecordPress?: () => void;
 }
 
 const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplatesScreenProps) => {
+  const { navigationRail } = useAdaptiveLayout();
   const router = useRouter();
   const focused = useIsFocused();
   const compiling = useCompileProgressStore((s) => s.visible);
@@ -72,30 +75,35 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
   }
 
   return (
-    <View style={styles.container}>
-      <TemplateList
-        templates={templates}
-        onSelectTemplate={handleSelectTemplate}
-        isOffline={offlineForUi}
-        onRefresh={() => {
-          return refetch().then(() => {});
-        }}
-        screenTitle={t('screenTitle')}
-        subtitle={t('subtitle')}
-        motionActive={focused && !compiling}
-      />
+    <SafeAreaView
+      edges={Platform.OS === 'android' && navigationRail ? ['left', 'right', 'bottom'] : ['left', 'right']}
+      style={styles.container}
+    >
+      <View style={styles.container}>
+        <TemplateList
+          templates={templates}
+          onSelectTemplate={handleSelectTemplate}
+          isOffline={offlineForUi}
+          onRefresh={() => {
+            return refetch().then(() => {});
+          }}
+          screenTitle={t('screenTitle')}
+          subtitle={t('subtitle')}
+          motionActive={focused && !compiling}
+        />
 
-      <PressableScale
-        testID="create-template-fab"
-        onPress={goCreateTemplate}
-        style={styles.fab}
-        haptic="medium"
-        accessibilityLabel={t('createTemplate')}
-      >
-        <Ionicons name="add" size={22} color={colors.onPrimary} />
-        <Text style={styles.fabText}>{t('createTemplate')}</Text>
-      </PressableScale>
-    </View>
+        <PressableScale
+          testID="create-template-fab"
+          onPress={goCreateTemplate}
+          style={styles.fab}
+          haptic="medium"
+          accessibilityLabel={t('createTemplate')}
+        >
+          <Ionicons name="add" size={22} color={colors.onPrimary} />
+          <Text style={styles.fabText}>{t('createTemplate')}</Text>
+        </PressableScale>
+      </View>
+    </SafeAreaView>
   );
 };
 

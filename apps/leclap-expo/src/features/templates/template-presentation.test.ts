@@ -50,6 +50,8 @@ describe('template discovery', () => {
   it('supports tablet grids and one-column layouts for large text', () => {
     expect(templateColumns(375, 1)).toBe(2);
     expect(templateColumns(768, 1)).toBe(3);
+    expect(templateColumns(1120, 1)).toBe(4);
+    expect(templateColumns(720, 1)).toBe(3);
     expect(templateColumns(375, 1.5)).toBe(1);
     expect(templateColumns(320, 1)).toBe(1);
   });

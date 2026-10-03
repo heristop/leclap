@@ -50,5 +50,8 @@ export function filterTemplates(templates: Template[], query: string, locale: st
 export function templateColumns(width: number, fontScale: number): number {
   if (fontScale >= 1.3 || width < 360) return 1;
 
-  return width >= 700 ? 3 : 2;
+  if (width >= 1000) return 4;
+  if (width >= 700) return 3;
+
+  return 2;
 }

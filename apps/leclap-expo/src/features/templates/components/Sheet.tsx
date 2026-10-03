@@ -3,7 +3,7 @@
 import React, { type ReactNode } from 'react';
 import { Modal, View, Text, TouchableWithoutFeedback, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useTranslation } from 'react-i18next';
@@ -17,7 +17,6 @@ interface SheetProps {
 }
 
 export const Sheet = ({ visible, title, onClose, children }: SheetProps) => {
-  const insets = useSafeAreaInsets();
   const { reducedMotion } = useMotionPreferences();
   const { t } = useTranslation('preview');
 
@@ -26,40 +25,43 @@ export const Sheet = ({ visible, title, onClose, children }: SheetProps) => {
       <TouchableWithoutFeedback onPress={onClose} accessibilityLabel={t('sheet.dismiss')}>
         <View style={styles.backdrop} />
       </TouchableWithoutFeedback>
-      <View accessibilityViewIsModal style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.m) }]}>
-        <View style={styles.handle} />
-        <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          <PressableScale
-            onPress={onClose}
-            accessibilityRole="button"
-            accessibilityLabel={t('sheet.close')}
-            style={styles.closeBtn}
-            haptic={false}
-          >
-            <Ionicons name="close" size={22} color={colors.textSecondary} />
-          </PressableScale>
-        </View>
-        <ScrollView
-          contentContainerStyle={styles.body}
-          keyboardShouldPersistTaps="handled"
-          automaticallyAdjustKeyboardInsets
-        >
-          {children}
-        </ScrollView>
-      </View>
+      <SafeAreaProvider pointerEvents="box-none">
+        <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeFrame} pointerEvents="box-none">
+          <SafeAreaView edges={['bottom']} accessibilityViewIsModal style={styles.sheet}>
+            <View style={styles.handle} />
+            <View style={styles.header}>
+              <Text style={styles.title}>{title}</Text>
+              <PressableScale
+                onPress={onClose}
+                accessibilityRole="button"
+                accessibilityLabel={t('sheet.close')}
+                style={styles.closeBtn}
+                haptic={false}
+              >
+                <Ionicons name="close" size={22} color={colors.textSecondary} />
+              </PressableScale>
+            </View>
+            <ScrollView
+              contentContainerStyle={styles.body}
+              keyboardShouldPersistTaps="handled"
+              automaticallyAdjustKeyboardInsets
+            >
+              {children}
+            </ScrollView>
+          </SafeAreaView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   backdrop: { ...StyleSheet.absoluteFill, backgroundColor: colors.scrim },
+  safeFrame: { flex: 1, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: {
-    position: 'absolute',
     width: '100%',
     maxWidth: 640,
     alignSelf: 'center',
-    bottom: 0,
     maxHeight: '82%',
     backgroundColor: colors.surface,
     borderTopLeftRadius: 24,

@@ -17,6 +17,7 @@ import { Clappy } from '@/src/components/clappy/Clappy';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { filterTemplates, templateColumns } from '../template-presentation';
+import { CONTENT_MAX_WIDTH } from '@/src/styles/adaptive-layout';
 
 interface TemplateListProps {
   templates: Template[];
@@ -41,7 +42,8 @@ export default function TemplateList({
   const [refreshing, setRefreshing] = useState(false);
   const [focused, setFocused] = useState(false);
   const { width, fontScale } = useWindowDimensions();
-  const columns = templateColumns(width, fontScale);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const columns = templateColumns(Math.min(containerWidth || width, CONTENT_MAX_WIDTH), fontScale);
   const filtered = filterTemplates(templates, searchQuery, i18n.resolvedLanguage ?? i18n.language);
   const handleRefresh = async () => {
     if (!onRefresh || refreshing) return;
@@ -106,6 +108,10 @@ export default function TemplateList({
 
   return (
     <FlatList
+      style={styles.container}
+      onLayout={(event) => {
+        setContainerWidth(event.nativeEvent.layout.width);
+      }}
       key={columns}
       data={filtered}
       renderItem={({ item }) => (
@@ -157,6 +163,7 @@ export default function TemplateList({
 }
 
 const styles = StyleSheet.create({
+  container: { flex: 1, width: '100%', maxWidth: CONTENT_MAX_WIDTH, alignSelf: 'center' },
   list: { paddingHorizontal: spacing.m - 6, paddingBottom: 112 },
   header: { paddingHorizontal: 6, paddingTop: spacing.l, paddingBottom: spacing.s },
   welcome: { flexDirection: 'row', alignItems: 'center', gap: spacing.m },

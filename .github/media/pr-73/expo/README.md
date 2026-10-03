@@ -64,3 +64,19 @@ After a supported reset, the iOS 26.5 simulator also passed the both-granted cas
 `android-icon-masks.png` is a generated artwork preview of circular, rounded-square, and monochrome variants. The monochrome preview illustrates the alpha silhouette; the actual themed tint depends on the launcher and wallpaper. Native themed-mode switching was not exercised.
 
 Validation: `:app:assembleDebug -PreactNativeArchitectures=arm64-v8a` succeeded; APK installed and its launcher icon visually checked on the emulator. Opening the Debug app hit a JavaScript bundle-loading error despite Metro responding on port 8081; app startup is not a passing check for this icon change. Expo configuration resolves all three adaptive layers. Both icon generators completed, and formatting, lint, and diff checks passed. Prebuilt native resources remain untracked and can be refreshed with `pnpm gen:icons:native`.
+
+## Adaptive windows and safe-area evidence (2026-10-03)
+
+- `ios-safe-area-detail.png`: native iPhone 17 Pro / iOS 26.5 portrait detail actions above the home indicator.
+- `ios-landscape-detail.png`: native iPhone landscape detail with safe cutout margins and side actions.
+- `ios-safe-area-editor.png`, `ios-landscape-editor.png`: native fullscreen editor controls in both orientations.
+- `ios-ipad-grid.png`: native iPad mini / iPadOS 26.5 gallery; three columns.
+- `android-cover-grid.png`: Android API 34 emulator at a representative 320 × 780 dp narrow window.
+- `android-passport-grid.png`: the same emulator at 720 × 780 dp; three columns.
+- `android-expanded-grid.png`: 960 × 840 dp; navigation rail and Create action above the system taskbar.
+
+These are simulator/emulator window formats, not captures of physical iPhone Duo or Fold 8 hardware. Hinge sensors, occluding hinges and live physical fold transitions are not validated. Android size/density overrides were restored after capture. iOS captures include Device Hub chrome.
+
+Both native Debug builds succeeded. Expo: 36 suites / 251 tests passed; native config plugins: four tests passed; TypeScript and changed-source lint passed (existing React compiler advisory warnings remain). Expo native config introspection confirms default orientation, iPad multitasking and a resizable Android activity.
+
+The earlier Android icon evidence only validated the launcher because its Debug APK failed to load JavaScript. During this adaptive check, explicitly selecting the app's Debug build flag and serving its configured Metro port restored native app loading; the new Android gallery captures show the running application.

@@ -10,7 +10,7 @@ The template gallery displays bundled stills from the real showcase renders. Por
 
 Search matches displayed names and localized section text, including resolved template variables. It ignores accents and surrounding whitespace and accepts regional locales such as `fr-FR`. English and the first available translation provide fallbacks. The search input retains focus while results change. No-result states offer a clear-search action.
 
-Phone layouts use two columns, tablets three. Narrow phones and large system text switch to one column. Gallery bottom spacing reserves room for the Create action. Cards stretch to the tallest content within each row; format metadata stays at the bottom. Headings and sheet content can grow and scroll with text size. Sheets are centered and capped at 640 points on tablets.
+Gallery columns follow the measured content width: one below 360 points, two below 700, three below 1000, and four above that. Large system text uses one column. Narrow phones and large system text switch to one column. Gallery bottom spacing reserves room for the Create action. Cards stretch to the tallest content within each row; format metadata stays at the bottom. Headings and sheet content can grow and scroll with text size. Sheets are centered and capped at 640 points on tablets.
 
 ## Clappy
 
@@ -57,3 +57,17 @@ Open `leclap://ffmpeg-spike` in the development app to run two consecutive offli
 Enter a scenario’s recording section to request camera and microphone access in sequence. Either denial must keep recording blocked and expose Open Settings; the status heading covers both permissions. If Settings opens its root page, navigate to Apps → LeClap. After changing permissions, return to the app and reopen the recording section if iOS relaunched it. With both permissions granted, a simulator may report “No camera device available”; that is separate from permission denial. Test real capture on a physical iPhone.
 
 For repeatable simulator checks, use a fresh test device or the supported `xcrun simctl privacy <device> reset all com.heristop.leclap` command. If reset fails and tccd logs report `Database failed to open during _doEval`, restart the simulator without erasing its data and retry. Do not edit TCC databases or force-grant permissions: those actions would bypass the flow being tested. Use normal simulator code signing for native builds. Evidence and tested OS versions are in `.github/media/pr-73/expo/README.md`.
+
+## Adaptive windows and safe areas
+
+The app follows the current window rather than a device model or orientation sensor. `useWindowDimensions` updates layout when a phone rotates, a foldable unfolds, or a multitasking window changes size. The same policy covers narrow cover displays and near-square “passport” windows on Android, and phone, iPad and multitasking windows on iOS. It does not detect a physical hinge or position content around an occluding hinge.
+
+Headers own top insets and bottom tabs own bottom insets. Screen content protects horizontal cutouts. On Android expanded windows the 104-point navigation rail replaces bottom tabs; content then owns the bottom inset to stay above the system taskbar. Fullscreen recording, preview and template creation own all safe edges. Their absolute controls sit inside the inset content container. Native modals have local safe-area providers instead of reusing initial window metrics after rotation.
+
+Content is capped at 1120 points; forms at 720 and sheets at 640. Detail actions move into a 300-point side panel at usable width 840, or width 680 in windows shorter than 480. Android navigation uses a rail at usable width 840 and height 480. Both adaptations fall back to a vertical layout when font scale reaches 1.3. Preview and recording frames fit both available dimensions while preserving the template aspect ratio; window rotation never changes the encoded video format.
+
+`app.json` uses `orientation: "default"` and `ios.requireFullScreen: false`. The `withAdaptiveWindow` config plugin sets Android `resizeableActivity` during prebuild. Small recording windows may request the template capture orientation; large windows remain freely oriented. The Android development-host plugin explicitly uses the application's `BuildConfig.DEBUG`, avoiding a library build flag that could make a debug installation request a missing packaged bundle. A native rebuild is required for these configuration changes; Metro-only reloads are insufficient.
+
+Guidance: [Expo safe areas](https://docs.expo.dev/develop/user-interface/safe-areas/), [Expo app configuration](https://docs.expo.dev/versions/v57.0.0/config/app/), [React Native window dimensions](https://reactnative.dev/docs/usewindowdimensions), and [Android adaptive orientation and resizability](https://developer.android.com/develop/adaptive-apps/guides/app-orientation-aspect-ratio-resizability).
+
+Validation includes iPhone portrait/landscape detail screens, an iPad native gallery, and Android emulator windows at 720 × 780 and 960 × 840 density-independent points. Geometry tests also cover narrow windows, large text, resize updates without sensor events, and square previews in short windows. Physical dual-screen/foldable hardware and hinge avoidance have not been verified.

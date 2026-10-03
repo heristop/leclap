@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/src/styles/theme';
 import logoImage from '@/assets/images/logo.png';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
+import { CONTENT_MAX_WIDTH } from '@/src/styles/adaptive-layout';
 
 interface HeaderProps {
   title?: string;
@@ -118,6 +119,9 @@ function HeaderIdentity({
 
 const styles = StyleSheet.create({
   container: {
+    width: '100%',
+    maxWidth: CONTENT_MAX_WIDTH,
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 56,

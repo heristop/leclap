@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   cancelAnimation,
   ReduceMotion,
@@ -42,40 +42,42 @@ export function CompileProgressOverlay() {
 
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={() => {}}>
-      <SafeAreaView style={styles.fill}>
-        <ScrollView contentContainerStyle={styles.center}>
-          <Clappy size={180} state="working" active={false} />
-          <Text accessibilityRole="header" style={styles.heading}>
-            {t('compile.title')}
-          </Text>
-          <Text style={styles.percent}>{percent}%</Text>
-          <View
-            accessibilityRole="progressbar"
-            accessibilityLabel={t('compile.progress')}
-            accessibilityValue={{ min: 0, max: 100, now: percent }}
-            style={styles.track}
-          >
-            <Animated.View style={[styles.bar, barStyle]} />
-          </View>
-          <Text accessibilityLiveRegion="polite" style={styles.stage}>
-            {cancelling ? t('compile.cancelling') : stage || t('compile.preparing')}
-          </Text>
-          <View style={styles.privacy}>
-            <Ionicons name="lock-closed-outline" size={18} color={colors.monitorSecondary} accessible={false} />
-            <Text style={styles.privacyText}>{t('compile.private')}</Text>
-          </View>
-          <Pressable
-            onPress={requestCancel}
-            disabled={cancelling}
-            accessibilityRole="button"
-            accessibilityLabel={t('compile.cancel')}
-            accessibilityState={{ disabled: cancelling, busy: cancelling }}
-            style={({ pressed }) => [styles.cancel, cancelling && styles.disabled, pressed && styles.pressed]}
-          >
-            <Text style={styles.cancelText}>{cancelling ? t('compile.cancelling') : t('compile.cancel')}</Text>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.fill}>
+          <ScrollView contentContainerStyle={styles.center}>
+            <Clappy size={180} state="working" active={false} />
+            <Text accessibilityRole="header" style={styles.heading}>
+              {t('compile.title')}
+            </Text>
+            <Text style={styles.percent}>{percent}%</Text>
+            <View
+              accessibilityRole="progressbar"
+              accessibilityLabel={t('compile.progress')}
+              accessibilityValue={{ min: 0, max: 100, now: percent }}
+              style={styles.track}
+            >
+              <Animated.View style={[styles.bar, barStyle]} />
+            </View>
+            <Text accessibilityLiveRegion="polite" style={styles.stage}>
+              {cancelling ? t('compile.cancelling') : stage || t('compile.preparing')}
+            </Text>
+            <View style={styles.privacy}>
+              <Ionicons name="lock-closed-outline" size={18} color={colors.monitorSecondary} accessible={false} />
+              <Text style={styles.privacyText}>{t('compile.private')}</Text>
+            </View>
+            <Pressable
+              onPress={requestCancel}
+              disabled={cancelling}
+              accessibilityRole="button"
+              accessibilityLabel={t('compile.cancel')}
+              accessibilityState={{ disabled: cancelling, busy: cancelling }}
+              style={({ pressed }) => [styles.cancel, cancelling && styles.disabled, pressed && styles.pressed]}
+            >
+              <Text style={styles.cancelText}>{cancelling ? t('compile.cancelling') : t('compile.cancel')}</Text>
+            </Pressable>
+          </ScrollView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }

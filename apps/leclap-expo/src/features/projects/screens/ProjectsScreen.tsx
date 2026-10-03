@@ -1,5 +1,6 @@
+import { useAdaptiveLayout } from '@/src/hooks/use-adaptive-layout';
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
+import { Platform, View, Text, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect, useIsFocused } from 'expo-router';
@@ -14,6 +15,7 @@ import ConfirmDialog from '@/src/components/ui/dialog/ConfirmDialog';
 import { useProjectStore } from '@/src/stores/useProjectStore';
 import { useProjectService } from '@/src/presentation/hooks/useProjectService';
 import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
+import { FORM_MAX_WIDTH } from '@/src/styles/adaptive-layout';
 
 function EmptyState() {
   const { t } = useTranslation('projects');
@@ -114,6 +116,7 @@ function useProjectsScreenState() {
 }
 
 export default function ProjectsScreen() {
+  const { navigationRail } = useAdaptiveLayout();
   const router = useRouter();
   const { t } = useTranslation('projects');
   const {
@@ -128,8 +131,11 @@ export default function ProjectsScreen() {
   } = useProjectsScreenState();
 
   return (
-    <SafeAreaView edges={['left', 'right']} style={styles.container}>
-      <View style={styles.innerContainer}>
+    <SafeAreaView
+      edges={Platform.OS === 'android' && navigationRail ? ['left', 'right', 'bottom'] : ['left', 'right']}
+      style={styles.container}
+    >
+      <View style={[styles.innerContainer, { width: '100%', maxWidth: FORM_MAX_WIDTH, alignSelf: 'center' }]}>
         <FlatList
           ListHeaderComponent={
             <View style={styles.header}>

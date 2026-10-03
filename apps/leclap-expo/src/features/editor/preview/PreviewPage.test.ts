@@ -15,7 +15,8 @@ import TestRenderer from 'react-test-renderer';
 import PreviewPage from '../../../../app/(fullscreen)/preview';
 import { PreviewToolbar } from './PreviewToolbar';
 
-let params: { videoUri?: string; sectionName?: string; projectId?: string };
+let params: { videoUri?: string; sectionName?: string; projectId?: string; orientation?: 'square' };
+let previewSize = { width: 390, height: 700 };
 const player = { pause: jest.fn() };
 jest.mock('react-native', () => ({
   View: 'View',
@@ -27,6 +28,7 @@ jest.mock('react-native', () => ({
 }));
 jest.mock('expo-router', () => ({ useLocalSearchParams: () => params, useRouter: () => ({ back: jest.fn() }) }));
 jest.mock('expo-video', () => ({ VideoView: 'VideoView' }));
+jest.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView' }));
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Icon' }));
 jest.mock('@/src/components/kinetic/pressable-scale', () => ({ PressableScale: 'PressableScale' }));
 jest.mock('@/src/hooks/useProjects', () => ({ useProject: () => ({ data: undefined }), useSaveProject: () => ({}) }));
@@ -42,9 +44,8 @@ jest.mock('@/src/features/editor/preview/usePreviewActions', () => ({
   usePreviewActions: () => ({ canEdit: Boolean(params.sectionName), saving: false }),
 }));
 jest.mock('@/src/features/editor/preview/useVideoRect', () => ({
-  useVideoRect: () => ({ videoRect: {}, containerWidth: 390 }),
+  useVideoRect: () => ({ videoRect: {}, containerWidth: previewSize.width, containerHeight: previewSize.height }),
 }));
-jest.mock('@/src/features/editor/preview/useLockedOrientation', () => ({ useLockedOrientation: () => 'landscape' }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('@/src/features/editor/preview/EditPanels', () => ({
   TrimEditPanel: 'TrimEditPanel',
@@ -59,9 +60,23 @@ jest.mock('@/src/features/editor/preview/PreviewStates', () => ({
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 let tree: TestRenderer.ReactTestRenderer;
 afterEach(() => {
+  previewSize = { width: 390, height: 700 };
   act(() => {
     tree.unmount();
   });
+});
+it('keeps a square preview fully visible when the window becomes wider than it is tall', () => {
+  params = { videoUri: 'file:///render.mp4', orientation: 'square' };
+  act(() => {
+    tree = TestRenderer.create(React.createElement(PreviewPage));
+  });
+  const squareFrame = () => tree.root.findByType('VideoView' as never).parent;
+  expect(squareFrame()?.props.style[1]).toEqual({ width: 390, height: 390 });
+  previewSize = { width: 780, height: 360 };
+  act(() => {
+    tree.update(React.createElement(PreviewPage));
+  });
+  expect(squareFrame()?.props.style[1]).toEqual({ width: 360, height: 360 });
 });
 it('opens export from the routed finished-video preview and pauses playback', () => {
   params = { videoUri: 'file:///render.mp4' };

@@ -145,3 +145,5 @@ const ThemeExports = {
   name: 'Theme',
 };
 export default ThemeExports;
+
+export { FORM_MAX_WIDTH } from './adaptive-layout';

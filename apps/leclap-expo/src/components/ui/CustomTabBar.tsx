@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import Animated, {
   cancelAnimation,
   ReduceMotion,
@@ -15,13 +15,21 @@ import { motion } from '@/src/styles/motion';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
 import * as Haptics from 'expo-haptics';
+import { useAdaptiveLayout } from '@/src/hooks/use-adaptive-layout';
+import { NAVIGATION_RAIL_WIDTH } from '@/src/styles/adaptive-layout';
 
 type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { navigationRail } = useAdaptiveLayout();
+  const rail = Platform.OS === 'android' && navigationRail;
+
   return (
-    <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.container}>
-      <View style={styles.tabBar}>
+    <SafeAreaView
+      edges={rail ? ['bottom', 'left'] : ['bottom', 'left', 'right']}
+      style={[styles.container, rail && styles.rail]}
+    >
+      <View style={[styles.tabBar, rail && styles.railTabs]}>
         {state.routes.map((route, index) => {
           const label = descriptors[route.key].options.title ?? route.name;
           const selected = state.index === index;
@@ -37,6 +45,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
               label={label}
               icon={icon}
               selected={selected}
+              rail={rail}
               onPress={() => {
                 const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
 
@@ -58,12 +67,14 @@ function TabItem({
   label,
   icon,
   selected,
+  rail,
   onPress,
   onLongPress,
 }: {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   selected: boolean;
+  rail: boolean;
   onPress: () => void;
   onLongPress: () => void;
 }) {
@@ -91,7 +102,7 @@ function TabItem({
       onLongPress={onLongPress}
       haptic={false}
       scaleTo={0.98}
-      style={styles.tabItem}
+      style={[styles.tabItem, rail && styles.railItem]}
     >
       <View style={styles.iconWrap}>
         <Animated.View pointerEvents="none" style={[styles.selected, badgeStyle]} />
@@ -113,6 +124,14 @@ const styles = StyleSheet.create({
     borderTopColor: colors.divider,
   },
   tabBar: { flexDirection: 'row', paddingVertical: spacing.s, minHeight: 68 },
+  rail: {
+    width: NAVIGATION_RAIL_WIDTH,
+    borderTopWidth: 0,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: colors.divider,
+  },
+  railTabs: { flexDirection: 'column', gap: spacing.l, paddingTop: spacing.l },
+  railItem: { flex: 0, minHeight: 72 },
   tabItem: {
     flex: 1,
     alignItems: 'center',

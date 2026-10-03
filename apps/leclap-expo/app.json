@@ -3,12 +3,13 @@
     "name": "LeClap",
     "slug": "leclap",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "leclap",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
+      "requireFullScreen": false,
       "infoPlist": {
         "NSCameraUsageDescription": "LeClap needs access to your camera to record videos for your projects",
         "NSMicrophoneUsageDescription": "LeClap needs access to your microphone to record audio for your videos",
@@ -59,6 +60,8 @@
       ],
       "./plugins/withNdkVersion.js",
       "./plugins/withIosDeploymentTarget.js",
+      "./plugins/withAdaptiveWindow.js",
+      "./plugins/withAndroidDevelopmentHost.js",
       "expo-asset",
       [
         "expo-build-properties",

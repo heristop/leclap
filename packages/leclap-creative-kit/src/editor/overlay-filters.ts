@@ -5,6 +5,7 @@ import type { VideoFilterStage } from './video-filter-types';
 import { findFont } from '../fonts';
 import { resolveAccentBar, type AccentBar } from './accent-bar';
 import type { TextEffect, TextOverlay } from './model';
+import type { RawPosition } from './raw-position';
 
 type StoredFilter = NonNullable<Section['filters']>[number];
 type StoredValues = NonNullable<StoredFilter['values']>;
@@ -61,9 +62,16 @@ function fontcolorFrom(overlay: TextOverlay): string {
   return `${overlay.fontcolor}@${overlay.textOpacity}`;
 }
 
+// The stored expression wins only while the fraction it was parsed into is still the overlay's fraction.
+function positionExpr(raw: RawPosition['rawX'], fraction: number, anchor: string): string | number {
+  if (raw?.fraction === fraction) return raw.expr;
+
+  return `${anchor}*${roundFraction(fraction)}`;
+}
+
 // A drawtext filter for one overlay. Box keys are only added when the overlay
 // opts into a background box; boxcolor carries the author-set opacity suffix.
-function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
+function drawtextFilterFrom(overlay: TextOverlay & RawPosition): StoredFilter {
   return {
     type: 'drawtext',
     values: {
@@ -71,8 +79,8 @@ function drawtextFilterFrom(overlay: TextOverlay): StoredFilter {
       fontsize: overlay.fontsize,
       fontcolor: fontcolorFrom(overlay),
       fontfile: findFont(overlay.font)?.file ?? 'Rubik.ttf',
-      x: `(w-text_w)*${roundFraction(overlay.x)}`,
-      y: `(h-text_h)*${roundFraction(overlay.y)}`,
+      x: positionExpr(overlay.rawX, overlay.x, '(w-text_w)'),
+      y: positionExpr(overlay.rawY, overlay.y, '(h-text_h)'),
       ...(overlay.box
         ? {
             box: 1,

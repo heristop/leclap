@@ -3,6 +3,7 @@
 import type { Section } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import type { VideoFilterStage } from './video-filter-types';
 import { ACCENT_BAR_DEFAULTS, type AccentBar } from './accent-bar';
+import type { RawPosition } from './raw-position';
 import { fontIdFromFile, type TextEffect, type TextOverlay, type EditorSection } from './model';
 import { DEFAULT_BOX_PADDING } from './overlay-filters';
 
@@ -23,6 +24,25 @@ export function parseFraction(value?: string | number): number {
   if (!Number.isFinite(fraction)) return 0.5;
 
   return Math.min(1, Math.max(0, fraction));
+}
+
+// Keep the stored expression when the fraction form cannot reproduce it, so a builder save leaves
+// absolute and offset positions untouched. Canonical `(w-text_w)*<frac>` values need no raw copy.
+function rawPositionFrom(value?: string | number): RawPosition['rawX'] {
+  if (typeof value === 'string' && /^\((w-text_w|h-text_h)\)\s*\*\s*(\d*\.?\d+)$/.test(value.trim())) return undefined;
+
+  if (value === undefined) return undefined;
+
+  return { expr: value, fraction: parseFraction(value) };
+}
+
+function positionFrom(v: DrawtextValues): Pick<TextOverlay, 'x' | 'y'> & RawPosition {
+  return {
+    x: parseFraction(v.x),
+    y: parseFraction(v.y),
+    ...(rawPositionFrom(v.x) ? { rawX: rawPositionFrom(v.x) } : {}),
+    ...(rawPositionFrom(v.y) ? { rawY: rawPositionFrom(v.y) } : {}),
+  };
 }
 
 // Recover a [0,1] opacity from a `<hex>@<opacity>` color token; undefined when the token carries
@@ -133,8 +153,7 @@ export function overlayFrom(dt: {
 
   return {
     text: v.text?.en ?? '',
-    x: parseFraction(v.x),
-    y: parseFraction(v.y),
+    ...positionFrom(v),
     fontsize: Number(v.fontsize ?? 48),
     fontcolor: (v.fontcolor ?? '#ffffff').split('@')[0],
     font: fontIdFromFile(v.fontfile),

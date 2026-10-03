@@ -8,6 +8,7 @@ import {
   Text,
   Pressable,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import type { Template } from '@/src/types';
 import TemplateCard from './TemplateCard';
@@ -174,6 +175,8 @@ const styles = StyleSheet.create({
   searchFocused: { borderColor: colors.primaryDark },
   searchInput: {
     ...typography.body,
+    // The enclosing search control supplies the focus border.
+    ...Platform.select({ web: { outlineStyle: 'solid', outlineWidth: 0 } }),
     color: colors.text,
     flex: 1,
     minHeight: 52,

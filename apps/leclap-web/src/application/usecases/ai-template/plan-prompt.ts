@@ -4,7 +4,7 @@
 import { artDirection, LAZY_DEFAULTS, STORY_SPINE } from './art-direction';
 import type { EngineCatalog } from './engine-catalog';
 import { PLAN_CONCEPTS, PLAN_MAX_BEATS, type PlanVocabulary } from './plan';
-import type { GenerationHints } from './system-prompt';
+import { referenceBlock, type GenerationHints } from './system-prompt';
 
 const PLAN_CONTRACT = [
   'You are the creative director planning a LeClap video template. Do not write the template yet.',
@@ -54,13 +54,15 @@ function vocabularyBlock(catalog: EngineCatalog, genre: string | undefined): str
   ].join('\n');
 }
 
-export function buildPlanPrompt(catalog: EngineCatalog, hints: GenerationHints): string {
+export function buildPlanPrompt(catalog: EngineCatalog, hints: GenerationHints, referenceStyle?: string): string {
   return [
     PLAN_CONTRACT,
     artDirection(hints),
     STORY_SPINE,
     LAZY_DEFAULTS,
     `Vocabulary:\n${vocabularyBlock(catalog, hints.genre)}`,
+    // An attached reference fixes the theme: the plan's "theme" stays "none" and its pacing follows it.
+    ...referenceBlock(referenceStyle),
   ].join('\n\n');
 }
 

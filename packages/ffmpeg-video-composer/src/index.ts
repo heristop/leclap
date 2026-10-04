@@ -363,6 +363,18 @@ export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
 export * from './core/platforms';
 export * from './core/theme';
+// Reference-style analysis (pure) and its Node frame decoder: palette, texture and pacing as a theme.
+export * from './core/style';
+export {
+  analyzeStyleFile,
+  extractStyleFrames,
+  resolveStyleFfmpeg,
+  STYLE_FRAME_WIDTH,
+  STYLE_MAX_FRAMES,
+  STYLE_SAMPLE_INTERVAL,
+  type StyleFrames,
+  type StyleFramesOptions,
+} from './services/style-frames-node';
 export {
   motionTimeline,
   type MotionBox,

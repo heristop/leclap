@@ -1052,5 +1052,55 @@
     "notes": "Scene notes",
     "notesHint": "Private notes for collaborators — never shown in the video.",
     "notesPlaceholder": "e.g. Swap this clip after the launch…"
+  },
+  "styleReference": {
+    "label": "Match a reference",
+    "hint": "Upload an image, and optionally a short clip. Its palette, texture and pacing become a theme; subjects, logos and text are never copied.",
+    "image": "Reference image",
+    "clip": "Reference clip (optional)",
+    "remove": "Remove {{name}}",
+    "analyse": "Analyse reference",
+    "analysing": "Reading palette, texture and pacing…",
+    "error": "This reference could not be analysed: {{message}}",
+    "roles": {
+      "bg": "Background",
+      "fg": "Text",
+      "muted": "Muted",
+      "surface": "Surface",
+      "brand": "Brand",
+      "accent": "Accent",
+      "accent2": "Accent 2"
+    },
+    "source": {
+      "extracted": "from reference",
+      "adjusted": "adjusted for contrast",
+      "derived": "derived"
+    },
+    "contrast": {
+      "aa": "AA {{ratio}}:1",
+      "aaLarge": "AA large {{ratio}}:1",
+      "fail": "Low {{ratio}}:1"
+    },
+    "level": {
+      "aa": "passes WCAG AA",
+      "aaLarge": "passes AA for large text only",
+      "fail": "below WCAG AA"
+    },
+    "contrastLabel": "Contrast on background {{ratio}} to 1, {{level}}",
+    "swatches": "Derived theme colours",
+    "pacing": "Shots of {{avgShot}} s · {{cpm}} cuts/min · energy {{energy}}",
+    "texture": {
+      "grain": "film grain ≈ {{grain}}",
+      "none": "clean, no grain"
+    },
+    "genre": "suggested genre: {{genre}}",
+    "confidence": "confidence {{value}}%",
+    "apply": "Apply as theme",
+    "applied": "Theme applied to global.theme. Undo reverts it.",
+    "current": {
+      "named": "Current theme: {{name}}",
+      "custom": "Current theme: custom",
+      "none": "Current theme: LeClap (default)"
+    }
   }
 }

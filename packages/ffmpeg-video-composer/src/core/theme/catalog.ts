@@ -30,6 +30,9 @@ const USAGE = [
     '$color.fg, $color.muted and $color.brand for the rest.',
   `Stay on the palette: with a theme set, literal hex colours outside it and more than ${MAX_FONT_FAMILIES} font ` +
     'families are flagged (palette_drift); use $color.* / $font.* tokens instead.',
+  'To match a reference image or clip, derive a theme object from its palette, texture and pacing (MCP ' +
+    'extract_style, CLI `leclap style`) and set it as global.theme. Only palette and pacing carry over: never ' +
+    'copy the reference’s subjects, logos or text.',
 ];
 
 export function themeCatalog(): ThemeCatalog {

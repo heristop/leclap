@@ -177,5 +177,12 @@
     "facts": "Dettagli del piano",
     "transitions": "Transizioni: {{primary}}",
     "transitionsWithAccents": "Transizioni: {{primary}} + {{accents}}"
+  },
+  "reference": {
+    "label": "Ispirati a un riferimento",
+    "hint": "Facoltativo: allega uno stile di riferimento. La generazione seguirà palette e ritmo come regole vincolanti.",
+    "use": "Usa come guida di stile",
+    "attached": "Guida di stile allegata: il template generato segue questa palette e questo ritmo.",
+    "detach": "Rimuovi guida di stile"
   }
 }

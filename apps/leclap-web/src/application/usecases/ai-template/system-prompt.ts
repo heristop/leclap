@@ -35,6 +35,8 @@ export interface PromptInput {
   hints: GenerationHints;
   // Total character budget for the system prompt.
   budget?: number;
+  // Keep / avoid rules from a reference image or clip ("Match a reference"); binding when present.
+  referenceStyle?: string;
 }
 
 export interface BuiltPrompt {
@@ -57,6 +59,17 @@ function sampleBlock(samples: SampleDetail[]): string {
   return `Reference templates (match their quality and structure, not their copy):\n\n${examples.join('\n\n')}`;
 }
 
+export const REFERENCE_STYLE_HEADING =
+  'Reference style guide (BINDING visual rules: they override the art direction and any theme hint where they ' +
+  'conflict. They carry the reference\u2019s palette and pacing only: never reproduce its subjects, logos or text):';
+
+/** The binding reference-style block (empty without rules), shared by the plan and template prompts. */
+export function referenceBlock(rules: string | undefined): string[] {
+  const trimmed = rules?.trim();
+
+  return trimmed ? [`${REFERENCE_STYLE_HEADING}\n${trimmed}`] : [];
+}
+
 function fixedBlocks(input: PromptInput): string[] {
   return [
     OUTPUT_CONTRACT,
@@ -65,6 +78,7 @@ function fixedBlocks(input: PromptInput): string[] {
     STORY_SPINE,
     LAZY_DEFAULTS,
     `Engine catalog:\n${formatCatalog(input.catalog, input.hints.genre)}`,
+    ...referenceBlock(input.referenceStyle),
   ];
 }
 

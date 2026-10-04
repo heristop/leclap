@@ -32,8 +32,14 @@ export function generationContext(): GenerationContext {
   return cached;
 }
 
-// The system prompt for one brief: the two most relevant samples (router picks first) as examples.
-export function promptFor(prompt: string, hints: GenerationHints, preferSampleIds: string[] = []): BuiltPrompt {
+// The system prompt for one brief: the two most relevant samples (router picks first) as examples,
+// plus the binding rules of an attached reference style guide.
+export function promptFor(
+  prompt: string,
+  hints: GenerationHints,
+  preferSampleIds: string[] = [],
+  referenceStyle?: string
+): BuiltPrompt {
   const context = generationContext();
   const samples = pickSamples(prompt, context.samples, {
     max: 2,
@@ -41,5 +47,5 @@ export function promptFor(prompt: string, hints: GenerationHints, preferSampleId
     orientation: hints.orientation,
   });
 
-  return buildSystemPrompt({ schema: context.schema, catalog: context.catalog, samples, hints });
+  return buildSystemPrompt({ schema: context.schema, catalog: context.catalog, samples, hints, referenceStyle });
 }

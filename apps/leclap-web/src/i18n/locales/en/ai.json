@@ -177,5 +177,12 @@
     "facts": "Plan details",
     "transitions": "Transitions: {{primary}}",
     "transitionsWithAccents": "Transitions: {{primary}} + {{accents}}"
+  },
+  "reference": {
+    "label": "Match a reference",
+    "hint": "Optional: attach a reference look. Generation then follows its palette and pacing as binding rules.",
+    "use": "Use as style guide",
+    "attached": "Style guide attached: the generated template follows this palette and pacing.",
+    "detach": "Detach style guide"
   }
 }

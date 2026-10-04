@@ -177,5 +177,12 @@
     "facts": "Plandetails",
     "transitions": "Übergänge: {{primary}}",
     "transitionsWithAccents": "Übergänge: {{primary}} + {{accents}}"
+  },
+  "reference": {
+    "label": "Referenz übernehmen",
+    "hint": "Optional: einen Referenz-Look anhängen. Die Generierung folgt dann verbindlich seiner Palette und seinem Tempo.",
+    "use": "Als Styleguide verwenden",
+    "attached": "Styleguide angehängt: die generierte Vorlage folgt dieser Palette und diesem Tempo.",
+    "detach": "Styleguide entfernen"
   }
 }

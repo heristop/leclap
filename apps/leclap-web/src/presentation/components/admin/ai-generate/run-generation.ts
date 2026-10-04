@@ -20,6 +20,8 @@ export interface GenerateArgs {
   // Plan first (one extra, small call), and stop to review the plan before writing.
   planFirst?: boolean;
   reviewPlan?: boolean;
+  // Binding keep / avoid rules from an analysed reference ("Match a reference").
+  referenceStyle?: string;
 }
 
 type Dispatch = (action: RunAction) => void;
@@ -40,7 +42,7 @@ export function requestPlan(args: GenerateArgs, signal: AbortSignal, dispatch: D
     provider: args.provider,
     model: args.model,
     apiKey: args.apiKey,
-    system: buildPlanPrompt(catalog, args.hints),
+    system: buildPlanPrompt(catalog, args.hints, args.referenceStyle),
     prompt: args.brief,
     hints: args.hints,
     vocabulary: planVocabulary(catalog),
@@ -51,13 +53,18 @@ export function requestPlan(args: GenerateArgs, signal: AbortSignal, dispatch: D
   });
 }
 
-// The plan's theme and platform become hints, so the system prompt's art direction matches them.
-export function hintsWithPlan(hints: GenerationHints, plan: TemplatePlan | null): GenerationHints {
+// The plan's theme and platform become hints, so the system prompt's art direction matches them. An
+// attached reference style owns the theme, so the plan's built-in theme pick is ignored then.
+export function hintsWithPlan(
+  hints: GenerationHints,
+  plan: TemplatePlan | null,
+  referenceStyle?: string
+): GenerationHints {
   if (!plan) return hints;
 
   return {
     ...hints,
-    ...(plan.theme ? { theme: plan.theme } : {}),
+    ...(plan.theme && !referenceStyle ? { theme: plan.theme } : {}),
     ...(plan.platform ? { platform: plan.platform } : {}),
   };
 }
@@ -69,8 +76,8 @@ export async function writeTemplate(
   dispatch: Dispatch
 ): Promise<void> {
   const send = live(signal, dispatch);
-  const hints = hintsWithPlan(args.hints, plan);
-  const prompt = promptFor(args.brief, hints, args.preferSampleIds);
+  const hints = hintsWithPlan(args.hints, plan, args.referenceStyle);
+  const prompt = promptFor(args.brief, hints, args.preferSampleIds, args.referenceStyle);
   const result = await generateTemplate({
     provider: args.provider,
     model: args.model,

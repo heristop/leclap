@@ -177,5 +177,12 @@
     "facts": "Detalles del plan",
     "transitions": "Transiciones: {{primary}}",
     "transitionsWithAccents": "Transiciones: {{primary}} + {{accents}}"
+  },
+  "reference": {
+    "label": "Inspirarse en una referencia",
+    "hint": "Opcional: adjunta un estilo de referencia. La generación seguirá su paleta y ritmo como reglas obligatorias.",
+    "use": "Usar como guía de estilo",
+    "attached": "Guía de estilo adjunta: la plantilla generada sigue esta paleta y este ritmo.",
+    "detach": "Quitar guía de estilo"
   }
 }

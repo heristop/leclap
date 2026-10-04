@@ -177,5 +177,12 @@
     "facts": "Détails du plan",
     "transitions": "Transitions : {{primary}}",
     "transitionsWithAccents": "Transitions : {{primary}} + {{accents}}"
+  },
+  "reference": {
+    "label": "S’inspirer d’une référence",
+    "hint": "Facultatif : joignez une référence visuelle. La génération suit alors sa palette et son rythme comme règles impératives.",
+    "use": "Utiliser comme guide de style",
+    "attached": "Guide de style joint : le modèle généré suit cette palette et ce rythme.",
+    "detach": "Retirer le guide de style"
   }
 }

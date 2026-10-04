@@ -30,6 +30,7 @@ export const compare = defineCommand({
     locale: snapshotArgs.locale,
     assets: snapshotArgs.assets,
     cache: snapshotArgs.cache,
+    format: snapshotArgs.format,
     json: snapshotArgs.json,
   },
   async run({ args, rawArgs }) {

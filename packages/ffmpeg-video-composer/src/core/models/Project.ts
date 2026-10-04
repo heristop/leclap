@@ -3,6 +3,7 @@ import type { ProjectBuildInfos, ProjectConfig } from '../types';
 import DefaultConfig from '../default.config';
 import type { LoudnessReport, QcExpectations } from '../qc/types';
 import type { CommandInterceptor } from '../determinism/command-tap';
+import type { FootageAnalyzer } from '../footage/analyzer';
 
 @singleton()
 class Project {
@@ -15,6 +16,7 @@ class Project {
     currentIncrement: 0,
     durations: {},
     sourceHasAudio: {},
+    sourceDurations: {},
     videoInputs: [],
     musicInputs: [],
     musicFilters: [],
@@ -37,7 +39,12 @@ class Project {
   // Set by the Node compile() after config(): the detected FFmpeg version (colour-tag flags, see
   // core/encoding.ts) and the section-cache hook the command tap routes through (null elsewhere).
   public ffmpegVersion: string | null = null;
+  // The text libraries the probed binary links (`-buildconf`), driving the drawtext `text_shaping`
+  // capability (editor/utils/filter-compat.ts). Null where nothing was probed (browser, device).
+  public engineFeatures: { fribidi: boolean; harfbuzz: boolean } | null = null;
   public commandInterceptor: CommandInterceptor | null = null;
+  // Set by the Node compile() too: silencedetect + filter-list analysis for footage edits (null elsewhere).
+  public footageAnalyzer: FootageAnalyzer | null = null;
 
   constructor() {
     this.init();
@@ -52,6 +59,7 @@ class Project {
       currentIncrement: 0,
       durations: {},
       sourceHasAudio: {},
+      sourceDurations: {},
       videoInputs: [],
       musicInputs: [],
       musicFilters: [],
@@ -77,12 +85,15 @@ class Project {
     bi.videoInputs.length = bi.musicInputs.length = bi.musicFilters.length = bi.transitions.length = 0;
     bi.durations = {};
     bi.sourceHasAudio = {};
+    bi.footage = {};
+    bi.sourceDurations = {};
     // loadMusic leaves musicPath untouched when no track resolves, and it may still hold the last build's loop copy.
     bi.musicPath = '';
     this.errors.length = 0;
     this.ffmpegCommands.length = 0;
     this.finalVideo = '';
-    this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = null;
+    this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = this.footageAnalyzer = null;
+    this.engineFeatures = null;
     this.output = { staging: '', final: '' };
   };
 

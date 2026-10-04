@@ -21,6 +21,7 @@ import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { validateTemplate } from '../compose/validation.js';
 import { runRender, type RenderResult } from '../compose/renderRunner.js';
 import { applyOutputName, pruneRenderDir, removeDir } from '../compose/renderDir.js';
+import { formatArg, prepareComposeTemplate } from '../compose/format.js';
 
 // Standard Schema objects, not the raw `{ field: z.type() }` shapes: the SDK's raw-shape overload is
 // deprecated since v2 and the object form is what `tools/list` converts to JSON Schema.
@@ -30,6 +31,7 @@ const inputSchema = z.object({
   fields: z.record(z.string(), z.string()).optional(),
   userVideoPaths: z.record(z.string(), z.string()).optional(),
   locale: z.string().optional(),
+  format: formatArg,
   outputBaseName: z
     .string()
     .regex(/^[\w-]+$/)
@@ -71,6 +73,7 @@ export type ComposeArgs = {
   fields?: Record<string, string>;
   userVideoPaths?: Record<string, string>;
   locale?: string;
+  format?: 'landscape' | 'portrait' | 'square';
   outputBaseName?: string;
 };
 
@@ -269,26 +272,23 @@ function checkEffectBindings(descriptor: TemplateDescriptor, provided: Record<st
 // Validate the descriptor, contain its raw filter chain, check section coverage, and realpath-guard
 // every supplied clip — returning either the render-ready inputs or the first tool error.
 export async function prepareCompose(
-  args: ComposeArgs,
+  authored: ComposeArgs,
   config: McpConfig,
   signal?: AbortSignal
 ): Promise<PreparedCompose | ToolError> {
-  if (args.expectedRevision && templateRevision(args.template) !== args.expectedRevision) {
-    return errorResult('revision_conflict: template changed; validate the current JSON first.');
-  }
+  // Revision check, then the requested format's composition before anything checks or renders it.
+  const args = prepareComposeTemplate(authored, templateRevision);
+
+  if ('isError' in args) return args;
   const descriptor = resolveDescriptor(args);
 
-  if ('isError' in descriptor) {
-    return descriptor;
-  }
+  if ('isError' in descriptor) return descriptor;
 
   // Contain the descriptor's raw filter chain (source filters, file/URL-bearing values, fontfile
   // paths) before it reaches ffmpeg — the schema alone does not stop it escaping the media-dir sandbox.
   const safety = await assertDescriptorSafe(descriptor.descriptor, config.mediaDir);
 
-  if (!safety.ok) {
-    return errorResult(safety.message);
-  }
+  if (!safety.ok) return errorResult(safety.message);
 
   const provided = args.userVideoPaths ?? {};
   const bindingError = checkEffectBindings(descriptor.descriptor, provided);
@@ -296,9 +296,7 @@ export async function prepareCompose(
   if (bindingError) return bindingError;
   const resolved = await resolveVideoPaths(provided, config.mediaDir);
 
-  if ('isError' in resolved) {
-    return resolved;
-  }
+  if ('isError' in resolved) return resolved;
 
   if (descriptor.descriptor.sections?.some((section) => section.type === 'effect')) {
     try {
@@ -384,7 +382,8 @@ export function registerCompose(server: McpServer, config: McpConfig): void {
       description:
         'Render a video from an inline template descriptor (`template`). Supply user clips via ' +
         'userVideoPaths (absolute paths under the configured media dir) for each project_video ' +
-        'section, optional form `fields`, and an optional `locale`. Renders in a forked worker and ' +
+        'section, optional form `fields`, an optional `locale` and an optional `format` (the template ' +
+        'composition for landscape | portrait | square). Renders in a forked worker and ' +
         'returns the output mp4 path plus duration/codec metadata.',
       inputSchema,
       outputSchema,

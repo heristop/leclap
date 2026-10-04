@@ -49,4 +49,18 @@ describe('searchMotionCatalog', () => {
 
     expect(searchMotionCatalog('product launch', { kind: 'doctrine' }).matches[0]?.name).toBe('product-launch');
   });
+
+  it('searches captions, sound effects, footage, roles, compositing, lower thirds and formats', () => {
+    for (const [query, kind] of [
+      ['subtitles', 'caption'],
+      ['sound effect', 'sfx'],
+      ['speed ramp', 'footage'],
+      ['motion role', 'role'],
+      ['split', 'compositing'],
+      ['lower third', 'lower-third'],
+      ['portrait', 'format'],
+    ] as const) {
+      expect(searchMotionCatalog(query, { kind }).matches.length, `${kind}: ${query}`).toBeGreaterThan(0);
+    }
+  });
 });

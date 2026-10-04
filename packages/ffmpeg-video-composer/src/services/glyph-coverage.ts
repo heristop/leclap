@@ -2,13 +2,17 @@
 // its characters. FFmpeg's drawtext exits 0 and draws an empty box (or nothing) for each of them, so the
 // render "succeeds" with broken copy. Only bundled fonts are checked: their coverage ships with the
 // engine (font-coverage.generated.ts); a font named by family or a system/raw .ttf can't be known here.
+// Emoji are composited as bundled colour images by default (editor/emoji), so they only fail
+// validation when the template opts into `global.emoji: "error"`.
 import { findFontByFile } from '@/core/fonts';
 import { fontCovers, fontsCovering, isCoverageKnown, isEmoji, isInvisible } from '@/core/font-coverage';
 import { typographicText } from '@/core/drawtext-text';
 import { DEFAULT_CHARSET } from '@/core/kinetic/extras';
+import { emojiMode } from '@/core/emoji-assets';
 import { kineticFontFile } from '@/core/kinetic/resolve';
 import type { TemplateDescriptor } from '../schemas/template.schemas';
 import { canvasFor, isRenderableSection, lowerTemplate, type LoweredSection } from './geometry/text-boxes';
+import { subtitleSources } from './glyph-coverage-subtitles';
 
 /** Structurally a ValidationError, plus an optional remedy. */
 export interface GlyphFinding {
@@ -173,15 +177,24 @@ function glyphHint(chars: string[], path: string): string {
     return `${NO_BUNDLED_FONT} Kinetic blocks need a bundled font; draw this copy as a caption or title card with a font named by family instead.`;
   }
 
+  if (path.includes('.subtitles.')) {
+    return `${NO_BUNDLED_FONT} Subtitles are laid out with a bundled font; draw this copy as a caption with a font named by family instead.`;
+  }
+
   return `${NO_BUNDLED_FONT} Name a font by family that does, e.g. { "family": "Noto Sans JP" } (resolved on Node and on device; the browser refuses family fonts).`;
 }
 
 const EMOJI_HINT =
-  'drawtext draws monochrome glyph outlines from the font, so colour emoji never render. Remove them, or add the emoji as an image overlay.';
+  'global.emoji is "error": remove the emoji, or drop that setting so they render as bundled colour images (or set it to "strip").';
 
-function findingsFor(source: TextSource, file: string, entry: { path: string; text: string }): GlyphFinding[] {
+function findingsFor(
+  source: TextSource,
+  file: string,
+  entry: { path: string; text: string },
+  emojiFails: boolean
+): GlyphFinding[] {
   const missing = missingChars(file, entry.text);
-  const emoji = missing.filter(isEmoji);
+  const emoji = emojiFails ? missing.filter(isEmoji) : [];
   const glyphs = missing.filter((char) => !isEmoji(char));
   const findings: GlyphFinding[] = [];
   const fontName = findFontByFile(file)?.label ?? file;
@@ -207,31 +220,51 @@ function findingsFor(source: TextSource, file: string, entry: { path: string; te
   return findings;
 }
 
-function sourceFindings(source: TextSource, variables: Variables): GlyphFinding[] {
-  const file = typeof source.font === 'string' && isCoverageKnown(source.font) ? source.font : null;
+/** One drawn string, per locale, as drawtext receives it (variables resolved, section case applied). */
+export interface DrawnText {
+  path: string;
+  label: string;
+  font: unknown;
+  text: string;
+}
 
-  if (!file) return [];
+function onceEach<T>(items: T[], key: (item: T) => string): T[] {
+  const seen = new Set<string>();
 
-  return localeTexts(source.text, source.path).flatMap((entry) =>
-    findingsFor(source, file, { path: entry.path, text: resolvedText(entry.text, variables, source.options) })
+  return items.filter((item) => {
+    const id = key(item);
+    const fresh = !seen.has(id);
+
+    seen.add(id);
+
+    return fresh;
+  });
+}
+
+/** Every string the template draws, per locale. A global overlay is lowered once per section; kept once. */
+export function drawnTexts(template: TemplateDescriptor): DrawnText[] {
+  const variables = template.global?.variables as Variables;
+  const sources = [...drawLayerSources(template), ...kineticSources(template), ...subtitleSources(template.sections)];
+  const texts = sources.flatMap((source) =>
+    localeTexts(source.text, source.path).map((entry) => ({
+      path: entry.path,
+      label: source.label,
+      font: source.font,
+      text: resolvedText(entry.text, variables, source.options),
+    }))
   );
+
+  return onceEach(texts, (drawn) => `${drawn.path}|${drawn.text}`);
 }
 
 /** Characters a bundled font can't draw, per drawn text and locale. */
 export function validateGlyphCoverage(template: TemplateDescriptor): GlyphFinding[] {
-  const variables = template.global?.variables as Variables;
-  const findings = [...drawLayerSources(template), ...kineticSources(template)].flatMap((source) =>
-    sourceFindings(source, variables)
-  );
-  const seen = new Set<string>();
+  const emojiFails = emojiMode(template.global) === 'error';
+  const findings = drawnTexts(template).flatMap((drawn) => {
+    const file = typeof drawn.font === 'string' && isCoverageKnown(drawn.font) ? drawn.font : null;
 
-  // A global overlay is lowered once per section it covers; report it once.
-  return findings.filter((finding) => {
-    const key = `${finding.code}|${finding.path}|${finding.message}`;
-    const fresh = !seen.has(key);
-
-    seen.add(key);
-
-    return fresh;
+    return file ? findingsFor(drawn, file, drawn, emojiFails) : [];
   });
+
+  return onceEach(findings, (finding) => `${finding.code}|${finding.path}|${finding.message}`);
 }

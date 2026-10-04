@@ -2,6 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import { videoTimeline } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
+import { applyComposeFormat, formatArg } from '../compose/format.js';
 import { invalidTemplateText, validateTemplate } from '../compose/validation.js';
 
 // get_timeline: where everything sits on the whole video, without rendering — each section's absolute
@@ -9,10 +10,14 @@ import { invalidTemplateText, validateTemplate } from '../compose/validation.js'
 // the beat grid and the named cues. What an agent needs to pick render_frames moments or to line a hit
 // up with a beat.
 
-const inputSchema = z.object({ template: z.record(z.string(), z.unknown()) });
+const inputSchema = z.object({ template: z.record(z.string(), z.unknown()), format: formatArg });
 
-export function timelineResult(template: Record<string, unknown>) {
-  const validation = validateTemplate(template);
+export function timelineResult(template: Record<string, unknown>, format?: string) {
+  const formatted = applyComposeFormat({ template, format });
+
+  if ('isError' in formatted) return formatted;
+
+  const validation = validateTemplate(formatted.template);
 
   if (!validation.ok) {
     return { isError: true as const, content: [{ type: 'text' as const, text: invalidTemplateText(validation) }] };
@@ -38,6 +43,6 @@ export function registerGetTimeline(server: McpServer): void {
         'a clip length is assumed. Use it to choose render_frames moments and to align hits with beats.',
       inputSchema,
     },
-    (args: z.infer<typeof inputSchema>) => timelineResult(args.template)
+    (args: z.infer<typeof inputSchema>) => timelineResult(args.template, args.format)
   );
 }

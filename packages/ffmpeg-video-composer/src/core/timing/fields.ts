@@ -76,9 +76,20 @@ function filterSlots(filter: Bag, path: string): TimeSlot[] {
   ];
 }
 
+// Footage edits (options.speedRamp keys, freeze frames, focus keyframes): section-time fields. A preset
+// ramp or an anchor focus is a string that is not a list, so it holds no slot.
+function footageSlots(options: Bag | undefined): TimeSlot[] {
+  return [
+    ...list(options?.speedRamp).flatMap((key, k) => slot(key, 'at', `options.speedRamp[${k}]`)),
+    ...list(options?.freeze).flatMap((freeze, k) => slot(freeze, 'at', `options.freeze[${k}]`)),
+    ...list(options?.focus).flatMap((key, k) => slot(key, 't', `options.focus[${k}]`)),
+  ];
+}
+
 /** Every time field of the section that holds a string. */
 export function timeSlots(section: Bag): TimeSlot[] {
   return [
+    ...footageSlots(bag(section.options)),
     ...list(section.kinetic).flatMap((block, i) => [
       ...slot(block, 'delay', `kinetic[${i}]`, idOf(block)),
       ...slot(bag(block.exit), 'at', `kinetic[${i}].exit`),
@@ -88,7 +99,16 @@ export function timeSlots(section: Bag): TimeSlot[] {
       ...slot(g, 'until', `graphics[${i}]`),
     ]),
     ...cameraSlots(bag(section.camera)),
+    ...list(bag(section.subtitles)?.cues).flatMap((cue, i) => [
+      ...slot(cue, 'at', `subtitles.cues[${i}]`),
+      ...slot(cue, 'end', `subtitles.cues[${i}]`),
+    ]),
+    ...list(section.cutaways).flatMap((cutaway, i) => slot(cutaway, 'at', `cutaways[${i}]`)),
     ...list(section.filters).flatMap((filter, i) => filterSlots(filter, `filters[${i}]`)),
+    ...list(section.sfx).flatMap((cue, i) => slot(cue, 'at', `sfx[${i}]`)),
+    ...list(bag(section.options)?.audioAutomation).flatMap((key, i) =>
+      slot(key, 'at', `options.audioAutomation[${i}]`)
+    ),
   ];
 }
 

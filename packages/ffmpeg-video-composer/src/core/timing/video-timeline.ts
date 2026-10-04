@@ -4,7 +4,8 @@
 // snapshot planner can turn "intro.end" or "beat:8" into a time to grab a frame at.
 
 import { motionTimeline, type MotionEvent, type SectionTimeline } from '../motion/timeline';
-import { beatTime, sectionStarts, type Beats, type TimelineSection } from './timeline';
+import { resolveSectionDurations } from './durations';
+import { beatTime, knownDuration, sectionStarts, type Beats, type TimelineSection } from './timeline';
 
 export interface VideoTimelineSection {
   /** Index in the descriptor's `sections`. */
@@ -57,7 +58,7 @@ export interface VideoTimeline {
 
 interface LooseDescriptor {
   global?: { beats?: Beats };
-  sections?: Array<{ cues?: Record<string, number> }>;
+  sections?: Array<TimelineSection & { cues?: Record<string, number> }>;
 }
 
 /** No grid lists more beats than this (a 10-minute video at 200 BPM). */
@@ -115,13 +116,25 @@ function sectionCues(descriptor: LooseDescriptor, section: VideoTimelineSection)
     .map(([name, time]) => ({ section: section.name, name, time: round(section.start + time) }));
 }
 
+// A clip's kept windows or trimmed range fix its length before any probe (core/timing/timeline.ts).
+function withKnownLengths<T extends { sections: SectionTimeline[] }>(motion: T, descriptor: LooseDescriptor): T {
+  const sections = motion.sections.map((section) => {
+    const raw = descriptor.sections?.[section.index];
+    const known = raw ? knownDuration(raw) : undefined;
+
+    return known === undefined ? section : { ...section, duration: known, durationKnown: true };
+  });
+
+  return { ...motion, sections };
+}
+
 /**
  * The template on video seconds: sections with absolute start/end, every motion event, beats and cues.
  * Pass the partial-expanded descriptor (what validation returns), so indices match the rendered video.
  */
 export function videoTimeline(descriptor: unknown): VideoTimeline {
-  const motion = motionTimeline(descriptor);
-  const loose = (descriptor ?? {}) as LooseDescriptor;
+  const loose = resolveSectionDurations((descriptor ?? {}) as LooseDescriptor).descriptor;
+  const motion = withKnownLengths(motionTimeline(loose), loose);
   const starts = absoluteStarts(motion.sections);
   const sections: VideoTimelineSection[] = motion.sections.map((section, i) => ({
     index: section.index,

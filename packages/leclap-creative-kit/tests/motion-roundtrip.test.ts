@@ -1,6 +1,6 @@
 // Motion fields with no editor controls yet must be carried through untouched:
 // opening a template in the builder and saving it may never strip its kinetic type, camera, graphics,
-// designed transition easing, seed, motion tokens or theme.
+// subtitles, caption wrapping, designed transition easing, seed, motion tokens or theme.
 import { describe, it, expect } from 'vitest';
 import { buildDescriptor, toEditorState, type TemplateDescriptor } from '../src/editor/templateEditorModel';
 import { TemplateDescriptorSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
@@ -23,6 +23,18 @@ const descriptor = {
       kinetic: [{ text: { en: 'Make it land.' }, preset: 'cascade', accent: { words: 'last' } }],
       camera: { preset: 'push-in', hits: [0.6] },
       graphics: [{ type: 'flash', at: 0.6 }],
+      subtitles: {
+        style: 'loud',
+        karaoke: 'pop',
+        crown: 'auto',
+        group: { maxWords: 3 },
+        words: [
+          { text: 'Make', start: 0.2, end: 0.5 },
+          { text: 'it', start: 0.55, end: 0.7 },
+          { text: 'land.', start: 0.75, end: 1.2 },
+        ],
+      },
+      caption: { text: { en: 'A long caption that wraps' }, wrap: 'balanced', fit: { minSize: 30 } },
       transition: { type: 'zoom-through', duration: 0.7, ease: '$brand' },
     },
     { name: 'end', type: 'color_background', options: { backgroundColor: '#000000', duration: 2 } },
@@ -42,6 +54,8 @@ describe('motion round-trip through the editor', () => {
     expect(back.sections[0].kinetic).toEqual((descriptor.sections as any)[0].kinetic);
     expect(back.sections[0].camera).toEqual({ preset: 'push-in', hits: [0.6] });
     expect(back.sections[0].graphics).toEqual([{ type: 'flash', at: 0.6 }]);
+    expect(back.sections[0].subtitles).toEqual((descriptor.sections as any)[0].subtitles);
+    expect(back.sections[0].caption).toMatchObject({ wrap: 'balanced', fit: { minSize: 30 } });
     expect(back.sections[0].transition).toEqual({ type: 'zoom-through', duration: 0.7, ease: '$brand' });
     expect(TemplateDescriptorSchema.safeParse(back).success).toBe(true);
   });

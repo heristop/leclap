@@ -10,6 +10,7 @@ import type { McpConfig } from '../config.js';
 import { runSnapshot } from '../compose/snapshotRunner.js';
 import { pruneRenderDir, removeDir } from '../compose/renderDir.js';
 import type { SnapshotJob, SnapshotOutcome } from '../worker/snapshot-job.js';
+import { formatArg } from '../compose/format.js';
 import { errorResult, prepareCompose, type ComposeArgs, type ToolError } from './composeVideo.js';
 
 // render_frames: the agent's eyes. Renders a native template (through the per-section cache under the
@@ -61,6 +62,7 @@ export const renderFramesInput = z.object({
   fields: z.record(z.string(), z.string()).optional(),
   userVideoPaths: z.record(z.string(), z.string()).optional(),
   locale: z.string().optional(),
+  format: formatArg,
 });
 
 type FramesArgs = z.infer<typeof renderFramesInput>;
@@ -78,7 +80,14 @@ const MAX_IMAGES = 8;
 const MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
 function composeArgs(template: Record<string, unknown>, args: FramesArgs): ComposeArgs {
-  return { template, fields: args.fields, userVideoPaths: args.userVideoPaths, locale: args.locale };
+  // The format resolves inside prepareCompose, before validation and the sandbox guard.
+  return {
+    template,
+    fields: args.fields,
+    userVideoPaths: args.userVideoPaths,
+    locale: args.locale,
+    format: args.format,
+  };
 }
 
 function labelOf(template: Record<string, unknown>, fallback: string): string {

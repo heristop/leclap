@@ -24,6 +24,7 @@ leclap samples list       # discover showcase samples (also --category, --backen
 leclap samples show <id>  # inspect direction and requirements (also --json)
 leclap samples export <id> # raw descriptor JSON to stdout (or --output <new-file>)
 leclap verify <manifest>  # check a video against its render manifest (--rerender to re-render and compare)
+leclap style <reference>  # derive a theme + style guide from an image or clip (--json, --out style-guide.md)
 leclap snapshot <template> # render and save still frames (PNG) of chosen moments, contact sheets
 leclap compare <a> <b>    # the same moment of several templates in one labelled grid
 leclap timeline <template> # sections, motion events, beats and cues on video seconds (--json)
@@ -166,6 +167,7 @@ leclap snapshot template.json --at 4 --zoom 0.5,0,0.5,0.5   # crop x,y,w,h (frac
 leclap snapshot template.json --at 2 --looks          # the section at 2 s, once per LOOK preset, in one grid
 leclap compare a.json b.json --at 3                   # the same moment of each template, labelled
 leclap timeline template.json --json                  # where everything sits, without rendering
+leclap snapshot template.json --format portrait       # one format of a template with `formats` (default: its own)
 ```
 
 `--sheet COLSxROWS` tiles the frames into labelled contact sheets (time and section on each tile);
@@ -173,6 +175,20 @@ leclap timeline template.json --json                  # where everything sits, w
 caption block or the action buttons is obvious. `--cache <dir>` names the section cache (default: a
 shared temp directory); `--json` prints every frame's path, time, section and size. Frames land in
 `./frames` unless `--out` says otherwise.
+
+## `style` — match a reference look
+
+```bash
+leclap style reference.mp4                       # roles, contrast, pacing and the global.theme snippet
+leclap style poster.png --out style-guide.md     # also writes style-guide.md + style-guide.theme.json
+leclap style reference.mp4 --json                # the full analysis: { theme, styleGuide, confidence }
+```
+
+FFmpeg decodes the reference into small frames (every 0.25 s for clips, at most 240). The palette is
+clustered in OKLab and assigned to theme roles, with `fg` and `muted` moved to WCAG AA (4.5:1) on `bg`
+when they fall short; clips add the average shot length, cuts per minute, motion energy and a
+suggested genre. Only the palette, texture and pacing carry over — subjects, logos and text in the
+reference are never copied. The same reference (and `--seed`) always gives the same theme.
 
 ## `init` — scaffold a project
 

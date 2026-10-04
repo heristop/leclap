@@ -10,6 +10,7 @@ import { container } from 'tsyringe';
 import type { CompileReporter, ProjectConfig, TemplateDescriptor } from '@/core/types';
 import { DEFAULT_FONT_ID, findFont } from '../core/fonts';
 import { expandPartialsSafe } from '../core/partials';
+import { resolveFormat } from '../core/formats/resolve';
 import { resolvePlatform } from '../core/platforms';
 import { snapshotMoments, type SnapshotMoment, type SnapshotPlan } from '../core/timing/snapshot-times';
 import { videoTimeline, type VideoTimeline } from '../core/timing/video-timeline';
@@ -44,6 +45,8 @@ export interface SnapshotRenderOptions {
   fields?: Record<string, string>;
   currentLocale?: string;
   userVideoPaths?: Record<string, string>;
+  /** Format to look at (`formats[format]` + `$format` values); default: the template's own orientation. */
+  format?: 'landscape' | 'portrait' | 'square';
 }
 
 export interface SnapshotOptions extends SnapshotPlan, SnapshotRenderOptions {
@@ -109,6 +112,22 @@ export async function scratchDir(options: SnapshotRenderOptions, prefix: string)
 
 function ffmpeg(): AbstractFFmpeg {
   return container.resolve<AbstractFFmpeg>('ffmpegAdapter');
+}
+
+/**
+ * The template as it renders: partials expanded, then resolved to `format` (or its base format when it
+ * declares `formats` / `$format` values). Throws on an unknown format or a bad format patch.
+ */
+export function asRendered(descriptor: TemplateDescriptor, format?: string): TemplateDescriptor {
+  const expansion = expandPartialsSafe(descriptor);
+
+  if (!expansion.ok) throw new Error(expansion.error.message);
+
+  const resolved = resolveFormat(expansion.data as TemplateDescriptor, format);
+
+  if (resolved.issues.length > 0) throw new Error(resolved.issues.map((issue) => issue.message).join('; '));
+
+  return resolved.descriptor;
 }
 
 /** The template on video seconds, from its partial-expanded form. */
@@ -228,10 +247,10 @@ async function sheetsOf(frames: SnapshotFrame[], moments: SnapshotMoment[], opti
   });
 }
 
-async function snapshot(engine: SnapshotEngine, descriptor: TemplateDescriptor, options: SnapshotOptions) {
+async function snapshot(engine: SnapshotEngine, authored: TemplateDescriptor, options: SnapshotOptions) {
+  const descriptor = asRendered(authored, options.format);
   const timeline = timelineOf(descriptor);
-  const expanded = expandPartialsSafe(descriptor);
-  const moments = snapshotMoments(expanded.ok ? expanded.data : descriptor, options, timeline);
+  const moments = snapshotMoments(descriptor, options, timeline);
   const filters = frameFilters(options);
   const root = await scratchDir(options, 'leclap-snapshot-');
 

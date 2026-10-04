@@ -29,7 +29,12 @@ export interface SnapshotEngine {
   looks: (template: TemplateDescriptor, options: CompareOptions) => Promise<CompareResult>;
 }
 
-const ENGINE: SnapshotEngine = { frames: renderSnapshots, compare: compareSnapshots, looks: lookSnapshots };
+// Read at call time, not import time: a module that loads this one need not provide the snapshot API.
+const ENGINE: SnapshotEngine = {
+  frames: (template, options) => renderSnapshots(template, options),
+  compare: (variants, options) => compareSnapshots(variants, options),
+  looks: (template, options) => lookSnapshots(template, options),
+};
 
 export function isSnapshotJob(job: unknown): job is SnapshotJob {
   return typeof job === 'object' && job !== null && (job as { kind?: unknown }).kind === 'snapshot';

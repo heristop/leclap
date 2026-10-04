@@ -67,6 +67,18 @@ describe('get_timeline', () => {
     expect(Array.isArray(result.structuredContent.events)).toBe(true);
   });
 
+  it('times the requested format', () => {
+    const template = {
+      global: { orientation: 'landscape' },
+      sections: [{ name: 'a', type: 'color_background', options: { duration: 2 } }],
+    };
+    const result = timelineResult(template, 'portrait') as unknown as {
+      structuredContent: { width: number; height: number };
+    };
+
+    expect(result.structuredContent).toMatchObject({ width: 720, height: 1280 });
+  });
+
   it('reports an invalid template as a tool error', () => {
     expect(timelineResult({ sections: [{ type: 'nope' }] })).toMatchObject({ isError: true });
   });

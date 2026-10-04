@@ -68,7 +68,7 @@ export const DocMcp = () => (
     <DocSection id="tools" title="Tools" kicker={`${mcpDoc.tools.length} tools`}>
       <Prose>
         <p>
-          Twelve tools are always registered. Remotion opt-in adds <Code>get_effect_schema</Code>,{' '}
+          Fourteen tools are always registered. Remotion opt-in adds <Code>get_effect_schema</Code>,{' '}
           <Code>render_preview</Code> and <Code>render_remotion_clip</Code>. Every argument below is the literal key the
           agent passes. Patch availability does not bypass effect-backend validation.
         </p>
@@ -168,10 +168,10 @@ export const DocMcp = () => (
         </p>
       </Prose>
       <Callout label="Containment">
-        Local input paths — <Code>userVideoPaths</Code> and <Code>probe_media</Code> — must resolve inside the media
-        dir. The check is symlink-safe, so a link pointing outside is rejected rather than followed. Remote template
-        URLs are SSRF-guarded (http(s) only, private and metadata IPs and redirects blocked), and FFmpeg is invoked
-        through <Code>execFile</Code>, never a shell.
+        Local input paths — <Code>userVideoPaths</Code>, <Code>probe_media</Code> and <Code>extract_style</Code> — must
+        resolve inside the media dir. The check is symlink-safe, so a link pointing outside is rejected rather than
+        followed. Remote template URLs are SSRF-guarded (http(s) only, private and metadata IPs and redirects blocked),
+        and FFmpeg is invoked through <Code>execFile</Code>, never a shell.
       </Callout>
     </DocSection>
 

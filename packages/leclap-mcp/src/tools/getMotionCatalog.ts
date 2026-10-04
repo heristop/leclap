@@ -43,6 +43,7 @@ export function registerGetMotionCatalog(server: McpServer): void {
         'Return the motion catalog: kinetic typography presets with their defaults, exit presets, ' +
         'stagger orders, the easing grammar (springs, cubic-bezier, named curves), built-in motion tokens, ' +
         'built-in themes (palette, fonts and motion feel for global.theme, referenced as $color.* / $font.*), ' +
+        'caption DNA identities and karaoke modes for word-timed subtitles, ' +
         'art-direction rules, a doctrine per genre (product-launch, explainer, social-hook, cinematic-trailer, ' +
         'calm-tutorial), validated scene blueprints with [slot] copy and a signature move, a verb / useWhen / ' +
         'avoidWhen / pairsWith for every preset, transition and graphic, and a complete starter template. ' +

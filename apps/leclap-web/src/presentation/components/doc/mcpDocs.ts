@@ -97,7 +97,7 @@ export const mcpDoc: McpDoc = {
     },
     {
       name: 'get_timeline',
-      args: 'template',
+      args: 'template, format?',
       purpose:
         'Returns the timeline on whole-video seconds, render-free: sections with absolute start/end, every motion event, the beat grid and cues.',
       when: 'Use to pick render_frames moments and to align hits with beats.',
@@ -139,7 +139,7 @@ export const mcpDoc: McpDoc = {
     },
     {
       name: 'render_frames',
-      args: 'template, at?, atTransitions?, perSection?, sheet?, safe?, zoom?, variants?, looks?, fields?, userVideoPaths?, locale?',
+      args: 'template, at?, atTransitions?, perSection?, sheet?, safe?, zoom?, variants?, looks?, fields?, userVideoPaths?, locale?, format?',
       purpose:
         'Renders a native template (through the section cache) and returns still frames as PNG image content plus their paths: chosen moments, both sides of every cut, each settled section; contact sheets, platform safe-zone shading, crops, variant and LOOK comparison grids.',
       when: 'Use after validate_template to look at the result and check safe zones before the final compose_video.',
@@ -149,6 +149,20 @@ export const mcpDoc: McpDoc = {
       args: 'path',
       purpose: 'Inspects a local media file and reports codecs, duration, sample rate, and size.',
       when: 'Use to check a user-supplied clip before composing. The path must resolve inside the media dir.',
+    },
+    {
+      name: 'extract_style',
+      args: 'path, seed?',
+      purpose:
+        'Derives a global.theme object and a style guide from a reference image or clip: palette roles with area shares and WCAG contrast, grain texture, and for clips the average shot length, cuts per minute, motion energy and a suggested genre.',
+      when: 'Use to match a reference look. Palette and pacing only: subjects, logos and text are never copied. The path must resolve inside the media dir.',
+    },
+    {
+      name: 'analyze_music',
+      args: 'path, beatsPerBar?, includeTimes?',
+      purpose:
+        'Measures a music file: BPM, beat 1 offset, beats per bar, confidence, usable, and build/drop/end cues, plus globalBeats to paste into global.beats.',
+      when: 'Use before timing cuts and hits to the music ("beat:n", "bar:n", "cue:drop"). When usable is false (calm or ambient music), pace by phrases instead.',
     },
     {
       name: 'render_remotion_clip',

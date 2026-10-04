@@ -21,6 +21,7 @@ import { fail, hint } from '../ui.js';
 import { compileFailure, errorMessage, printErrorHints } from '../render-errors.js';
 import { printHeader } from '../render-header.js';
 import { failedChecks, reportQc } from '../render-qc.js';
+import { FORMAT_ARGS, multiFormatRun, runFormats } from '../render-formats.js';
 
 // Everything a render pass needs, assembled once from the CLI flags.
 interface RenderOptions {
@@ -50,13 +51,9 @@ function repeatedFlag(rawArgs: readonly string[] | undefined, parsed: unknown, n
 // Fail with a machine-readable `{ok:false,error}` on stdout in --json mode (so a consumer parsing
 // stdout still gets the documented shape), or a coloured human error on stderr otherwise. Exits 1.
 function emitError(message: string, json: boolean): never {
-  if (json) {
-    process.stdout.write(`${JSON.stringify({ ok: false, error: message })}\n`);
+  if (json) process.stdout.write(`${JSON.stringify({ ok: false, error: message })}\n`);
 
-    return process.exit(1);
-  }
-
-  console.error(fail(message));
+  if (!json) console.error(fail(message));
 
   return process.exit(1);
 }
@@ -101,6 +98,7 @@ export const render = defineCommand({
     video: { type: 'string', description: 'Map a project_video section to a file: --video section=path (repeatable)' },
     locale: { type: 'string', description: 'Locale for translated text (e.g. en, fr)' },
     orientation: { type: 'string', description: 'Override orientation: landscape | portrait | square' },
+    ...FORMAT_ARGS,
     assets: { type: 'string', description: 'Assets directory (default ./assets)' },
     build: { type: 'string', description: 'Build/output directory (default ./build)' },
     watch: { type: 'boolean', description: 'Re-render when the template or its assets change', default: false },
@@ -137,6 +135,7 @@ export const render = defineCommand({
       video: repeatedFlag(rawArgs, args.video, 'video'),
       locale: args.locale,
       orientation: args.orientation,
+      format: args.format,
       assets: args.assets,
       build: args.build,
       deterministic: args.deterministic,
@@ -148,6 +147,9 @@ export const render = defineCommand({
     const opts = buildOptions(args.template, flags, mode);
 
     await fs.mkdir(opts.projectConfig.buildDir, { recursive: true });
+
+    // --formats: one render per format, each to <output>-<format>.mp4 (render-formats.ts).
+    if (args.formats) return runFormats(args.formats, multiFormatRun(opts, compileOnce));
 
     await dispatch(opts);
   },
@@ -203,13 +205,7 @@ async function dispatch(opts: RenderOptions): Promise<void> {
     return;
   }
 
-  if (opts.verbose) {
-    await renderVerbose(opts);
-
-    return;
-  }
-
-  await renderWithReporter(opts);
+  await (opts.verbose ? renderVerbose(opts) : renderWithReporter(opts));
 }
 
 // JSON mode: one machine-readable object, no colour/progress. Exit 1 on failure.

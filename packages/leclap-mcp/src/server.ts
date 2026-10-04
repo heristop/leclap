@@ -7,6 +7,8 @@ import { registerGetTemplateSchema } from './tools/getTemplateSchema.js';
 import { registerGetMotionCatalog } from './tools/getMotionCatalog.js';
 import { registerCompose } from './tools/composeVideo.js';
 import { registerProbe } from './tools/probeMedia.js';
+import { registerExtractStyle } from './tools/extractStyle.js';
+import { registerAnalyzeMusic } from './tools/analyzeMusic.js';
 import { registerValidateTemplate } from './tools/validateTemplate.js';
 import { registerRenderRemotionClip } from './tools/renderRemotionClip.js';
 import { registerGetEffectSchema } from './tools/getEffectSchema.js';
@@ -15,9 +17,7 @@ import { registerPatchTemplate } from './tools/patchTemplate.js';
 import { validateEffects } from './effects/title-registry.js';
 import { registerSamples } from './tools/samples.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
-import { registerGetTimeline } from './tools/getTimeline.js';
-import { registerRenderFrames } from './tools/renderFrames.js';
-import { registerReportCatalogGap } from './tools/reportCatalogGap.js';
+import { registerInspectTools } from './tools/inspectTools.js';
 
 // Each tool group is registered by a small `registerXxx(server, config)` function, called from
 // `createServer`. The surface is authoring-only: schema, validate, compose, probe, the Remotion
@@ -77,11 +77,9 @@ export function createServer(input: McpConfig): McpServer {
   registerSamples(server);
   registerGetTemplateSchema(server);
   registerGetMotionCatalog(server);
-  registerReportCatalogGap(server, config);
-  registerGetTimeline(server);
   registerValidateTemplate(server, config);
   registerCompose(server, config);
-  registerRenderFrames(server, config);
+  registerInspectTools(server, config);
 
   if (config.allowRemotion) {
     registerGetEffectSchema(server, config);
@@ -91,6 +89,8 @@ export function createServer(input: McpConfig): McpServer {
     await validateEffects(template, config, signal);
   });
   registerProbe(server, config);
+  registerExtractStyle(server, config);
+  registerAnalyzeMusic(server, config);
 
   // render_remotion_clip bundles + executes a caller-supplied entry (arbitrary local JS) — an RCE
   // surface. Register it only when the operator explicitly opted in for trusted local design-time use.

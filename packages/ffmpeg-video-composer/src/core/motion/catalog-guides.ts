@@ -110,6 +110,18 @@ export const TRANSITION_GUIDES: Record<string, MotionGuide> = {
     'impact',
   ]),
   iris: guide('OPENS', 'a reveal or the final lockup', 'mid-sequence boundaries', ['split', 'pull-out']),
+  'whip-left': guide(
+    'WHIPS',
+    'a fast jump to the next idea, hype edits, on a beat',
+    'calm or premium tone, or every boundary',
+    ['impact', 'camera hits']
+  ),
+  'whip-right': guide('WHIPS BACK', 'a fast jump back, before/after reveals', 'calm or premium tone', [
+    'impact',
+    'glitch',
+  ]),
+  'whip-up': guide('WHIPS UP', 'energetic list or feed-style stacking', 'cinematic tone', ['rise', 'pop']),
+  'whip-down': guide('WHIPS DOWN', 'a drop into the next beat', 'the opening hook', ['drop', 'flash']),
 };
 
 export const GRAPHIC_GUIDES: Record<string, MotionGuide> = {
@@ -132,4 +144,60 @@ export const GRAPHIC_GUIDES: Record<string, MotionGuide> = {
     'swipe',
   ]),
   panel: guide('GROWS', 'a backing plate for type over images', 'centred hero words', ['rise', 'slide']),
+  glitch: guide(
+    'GLITCHES',
+    'a hook, a tech or data reveal, a hard cut on the beat',
+    'calm, premium or photosensitive content; more than once per beat',
+    ['impact', 'whip transition']
+  ),
+  focus: guide(
+    'RACKS FOCUS',
+    'opening a cinematic beat, pulling attention from the scene to the copy',
+    'fast cuts (the blur needs time to read)',
+    ['tracking-in', 'bars']
+  ),
+  progress: guide('FILLS', 'steps, countdowns, a story or tutorial progress', 'short hooks', [
+    'counter',
+    'lower third',
+  ]),
+  ticker: guide(
+    'SCROLLS',
+    'news, live or announcement feel, a secondary stream of info',
+    'beats with dense kinetic copy',
+    ['lower third', 'corners']
+  ),
+  'bars-chart': guide(
+    'GROWS DATA',
+    'comparing a few numbers, growth over time',
+    'more than 6 bars on a phone, or numbers that need reading time under 2 s',
+    ['counter', 'frame']
+  ),
+};
+
+export const LOWER_THIRD_GUIDES: Record<string, MotionGuide> = {
+  band: guide('NAMES', 'the default: a full-width band, names and prices over any footage', 'clean, minimal looks', [
+    'fade',
+    'drift camera',
+  ]),
+  'clean-bar': guide(
+    'LABELS',
+    'interviews and talking heads: tight boxes that do not cover the frame',
+    'very long titles',
+    ['rise', 'push-in']
+  ),
+  'side-rule': guide(
+    'ANNOTATES',
+    'editorial or documentary names over busy footage (pair with a shadow effect)',
+    'flat bright backgrounds',
+    ['focus', 'drift camera']
+  ),
+  kicker: guide('INTRODUCES', 'a topic or role label above a name, explainers', 'a subtitle longer than a few words', [
+    'underline',
+    'cascade',
+  ]),
+  'stack-bars': guide('STACKS', 'energetic social or sports-style names and handles', 'calm tutorials', [
+    'slide',
+    'whip transition',
+  ]),
+  pill: guide('BADGES', 'friendly app, product or creator labels', 'serious news tone', ['pop', 'corners']),
 };

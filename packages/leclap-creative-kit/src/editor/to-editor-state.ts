@@ -14,7 +14,6 @@ import {
   type MotionEffect,
   type BackgroundLayer,
   type FramingGuide,
-  type SectionAudioFade,
   type EditorCaption,
   type AnimationOverlay,
   type TitleCard,
@@ -23,10 +22,12 @@ import {
   type ChromaKey,
   type CaptureMode,
   type SectionFit,
-  type AudioEffect,
+  type VisualAudio,
+  type FootageEdits,
 } from './model';
 import { audioFrom, colorsListFrom, defaultTransitionFrom, globalVariablesFrom } from './to-editor-global';
 import { editorMotionFrom, motionBlocksOf, type MotionBlocks } from './motion-passthrough';
+import { editorFormatsFrom } from './formats-passthrough';
 import { overlaysFromFilters, videoFilterStateFrom } from './overlay-parsing';
 import { pruneEmpty } from './prune';
 import { editorIdentityFrom } from './template-meta';
@@ -81,6 +82,8 @@ function captionFrom(s: Section): EditorCaption | undefined {
     boxOpacity: caption.boxOpacity,
     reveal: caption.reveal,
     effect: caption.effect,
+    wrap: caption.wrap,
+    fit: caption.fit,
   }) as EditorCaption;
 }
 
@@ -101,7 +104,8 @@ function visualExtrasFrom(s: Section): VisualExtras {
   return {
     ...(s.transition ? { transitionAfter: s.transition } : {}),
     ...(caption ? { caption } : {}),
-    ...(s.look ? { look: s.look } : {}),
+    // The editor picks looks by name; a { preset, strength } look opens as its preset.
+    ...(s.look ? { look: typeof s.look === 'string' ? s.look : s.look.preset } : {}),
     ...(s.grade ? { grade: s.grade } : {}),
     ...(s.letterbox ? { letterbox: s.letterbox } : {}),
     ...(s.motion && s.motion.length > 0 ? { motion: s.motion } : {}),
@@ -110,20 +114,19 @@ function visualExtrasFrom(s: Section): VisualExtras {
   };
 }
 
-// Recover per-section audio extras (musicVolume / audioFade / audioEffect) from stored options.
-function sectionAudioExtrasFrom(s: Section): {
-  musicVolume?: number;
-  audioFade?: SectionAudioFade;
-  audioEffect?: AudioEffect;
-} {
+// Recover per-section audio extras (musicVolume / audioFade / audioEffect / voice / audioAutomation).
+function sectionAudioExtrasFrom(s: Section): VisualAudio {
   const mv = s.options?.musicVolume;
   const af = s.options?.audioFade;
   const ae = s.options?.audioEffect;
+  const { voice, audioAutomation } = s.options ?? {};
 
   return {
     ...(mv === undefined ? {} : { musicVolume: mv }),
     ...(af ? { audioFade: af } : {}),
     ...(ae ? { audioEffect: ae } : {}),
+    ...(voice ? { voice } : {}),
+    ...(audioAutomation ? { audioAutomation } : {}),
   };
 }
 
@@ -134,15 +137,37 @@ function sectionPlaybackFrom(s: Section): { speed?: number } {
   return speed === undefined || speed === 1 ? {} : { speed };
 }
 
-// Recover the source-footage fit from the stored aspect flags. Letterbox wins when both are set,
-// matching the engine (forceOriginalAspectRatio still triggers the scale/pad path). Default cover
-// stays absent so untouched sections import clean.
-function sectionFitFrom(s: Section): { fit?: SectionFit } {
-  if (s.options?.forceOriginalAspectRatio) return { fit: 'letterbox' };
+// Recover the source-footage fit: options.fit when set (the engine lets it override the flags), else
+// the stored aspect flags — letterbox wins when both are set, matching the engine. Default cover stays
+// absent so untouched sections import clean. The footage edits without controls (fill/focus/clip/
+// speedRamp/rampAudio/freeze) ride along verbatim.
+function footageFrom(options: Section['options']): { footage?: FootageEdits } {
+  if (!options) return {};
 
-  if (s.options?.forceAspectRatio === false) return { fit: 'off' };
+  const footage: FootageEdits = pruneEmpty({
+    fill: options.fill,
+    focus: options.focus,
+    clip: options.clip,
+    speedRamp: options.speedRamp,
+    rampAudio: options.rampAudio,
+    freeze: options.freeze,
+  });
 
-  return {};
+  return Object.keys(footage).length > 0 ? { footage } : {};
+}
+
+function sectionFitFrom(s: Section): { fit?: SectionFit; footage?: FootageEdits } {
+  const options = s.options;
+  const carried = footageFrom(options);
+  const fit = options?.fit;
+
+  if (fit) return fit === 'cover' ? carried : { fit, ...carried };
+
+  if (options?.forceOriginalAspectRatio) return { fit: 'letterbox', ...carried };
+
+  if (options?.forceAspectRatio === false) return { fit: 'off', ...carried };
+
+  return carried;
 }
 
 function colorSectionFrom(s: Section): EditorSection {
@@ -320,6 +345,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     id: template.id,
     ...editorIdentityFrom(template),
     ...(editorMotionFrom(template.descriptor.global) ? { motion: editorMotionFrom(template.descriptor.global) } : {}),
+    ...(editorFormatsFrom(template.descriptor) ? { formats: editorFormatsFrom(template.descriptor) } : {}),
     orientation: template.orientation,
     sections: editorSectionsFrom(template.descriptor),
     globalVariables: globalVariablesFrom(global),
@@ -328,7 +354,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     globalAnimations: globalAnimationsFrom(global),
     globalOverlays: globalOverlaysFrom(global),
     ...(watermark ? { watermark } : {}),
-    ...(global?.look ? { globalLook: global.look } : {}),
+    ...(global?.look ? { globalLook: typeof global.look === 'string' ? global.look : global.look.preset } : {}),
     ...(global?.grade ? { globalGrade: global.grade } : {}),
     ...(colorsList.length > 0 ? { colorsList } : {}),
   };

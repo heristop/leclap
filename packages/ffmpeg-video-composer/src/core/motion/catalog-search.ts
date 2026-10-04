@@ -4,6 +4,7 @@
 // always returns the same ranking. Pure.
 
 import { motionCatalog, type MotionCatalog } from './catalog';
+import { EXTRA_CATALOG_KINDS, extraEntries, type SearchEntry } from './catalog-search-extras';
 
 export const CATALOG_KINDS = [
   'kinetic',
@@ -15,6 +16,7 @@ export const CATALOG_KINDS = [
   'theme',
   'platform',
   'easing',
+  ...EXTRA_CATALOG_KINDS,
 ] as const;
 
 export type CatalogKind = (typeof CATALOG_KINDS)[number];
@@ -35,15 +37,7 @@ export interface CatalogSearch {
   matches: CatalogMatch[];
 }
 
-interface Indexed {
-  kind: CatalogKind;
-  name: string;
-  /** Text that argues for the entry, by weight. */
-  fields: Array<[text: string, weight: number]>;
-  /** Text that argues against it (avoidWhen). */
-  against: string;
-  entry: unknown;
-}
+type Indexed = SearchEntry<CatalogKind>;
 
 const STOPWORDS = new Set(
   'a an and are as at be by for from i in into is it of on or so that the this to with want need some my me'.split(' ')
@@ -172,7 +166,7 @@ export function searchMotionCatalog(
 ): CatalogSearch {
   const tokens = searchTokens(query);
   const raw = query.trim().toLowerCase();
-  const pool = [...motionEntries(catalog), ...styleEntries(catalog)].filter(
+  const pool = [...motionEntries(catalog), ...styleEntries(catalog), ...extraEntries(catalog)].filter(
     (entry) => options.kind === undefined || entry.kind === options.kind
   );
   const matches = pool

@@ -25,6 +25,8 @@ video models, which sample rather than render.
 | `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4    |
 | `render_frames`        | Render a native template and return still frames as PNG images + paths: `at`, `atTransitions`, `perSection`, `sheet`, `safe`, `zoom`, `variants`, `looks`       |
 | `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                                                                |
+| `extract_style`        | Reference image/clip under the media dir → `{ theme, styleGuide, confidence }`: palette roles + WCAG contrast, grain, pacing (palette and pacing only)          |
+| `analyze_music`        | Measure a local music file → `{ bpm, offset, beatsPerBar, confidence, usable, cues, globalBeats }` for `global.beats` and `cue:drop`                            |
 | `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                           |
 | `ping`                 | Liveness check                                                                                                                                                  |
 
@@ -182,14 +184,14 @@ Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy; its `temp
 orientation and fps. Codec, quality-tier and FFmpeg segment-concurrency fields are library host
 settings, not arbitrary MCP tool arguments.
 
-Twelve tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
+Fourteen tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
 `get_motion_catalog`, `report_catalog_gap`, `get_timeline`, `validate_template`, `compose_video`,
-`render_frames`, `patch_template` and `probe_media`. Opt-in adds
+`render_frames`, `patch_template`, `probe_media`, `extract_style` and `analyze_music`. Opt-in adds
 `get_effect_schema`, `render_preview` and `render_remotion_clip`. Patch availability does not bypass
 effect-backend validation.
 
 Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoPaths`,
-`probe_media`) must resolve **inside** the media-dir (symlink-safe containment check). The
+`probe_media`, `extract_style`, `analyze_music`) must resolve **inside** the media-dir (symlink-safe containment check). The
 media-dir default is deliberately narrow — pointing it at `~` would let any tool call read the
 whole home directory. `render_remotion_clip` executes your project's own JS, so it is registered
 only when the opt-in is set (`--allow-remotion` or `LECLAP_MCP_ALLOW_REMOTION=1`); `leclap init

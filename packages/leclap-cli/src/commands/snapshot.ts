@@ -37,6 +37,7 @@ export const snapshotArgs = {
   locale: { type: 'string', description: 'Locale for translated text (e.g. en, fr)' },
   assets: { type: 'string', description: 'Assets directory (default ./assets)' },
   cache: { type: 'string', description: 'Per-section render cache (default: a shared temp directory)' },
+  format: { type: 'string', description: 'Look at one format of the template: landscape | portrait | square' },
   json: { type: 'boolean', description: 'Emit a machine-readable JSON result', default: false },
 } as const;
 
@@ -49,6 +50,7 @@ interface SnapshotFlags {
   locale?: string;
   assets?: string;
   cache?: string;
+  format?: string;
 }
 
 /** Engine options shared by `snapshot` and `compare`, from the flags. */
@@ -64,7 +66,19 @@ export function renderOptions(args: SnapshotFlags, rawArgs: readonly string[] | 
     userVideoPaths: Object.fromEntries(Object.entries(videos).map(([name, file]) => [name, path.resolve(file)])),
     safe: args.safe,
     zoom: parseZoom(args.zoom),
+    ...(args.format !== undefined && { format: formatName(args.format) }),
   };
+}
+
+const FORMATS = ['landscape', 'portrait', 'square'] as const;
+
+/** `--format` checked against the engine's format names. */
+export function formatName(text: string): (typeof FORMATS)[number] {
+  const found = FORMATS.find((name) => name === text);
+
+  if (!found) throw new Error(`--format expects ${FORMATS.join(' | ')}, got "${text}"`);
+
+  return found;
 }
 
 function sheetLayout(text: string): SheetLayout {

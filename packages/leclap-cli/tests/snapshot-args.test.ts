@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { VideoTimeline } from 'ffmpeg-video-composer';
 import { atValues, formatTimeline, parseAtList, parseZoom } from '../src/snapshot-args';
 import { variantLabels } from '../src/commands/compare';
+import { formatName } from '../src/commands/snapshot';
 import { KNOWN_COMMANDS, rewriteArgv } from '../src/args';
 
 describe('parseAtList', () => {
@@ -25,6 +26,13 @@ describe('parseZoom', () => {
     expect(parseZoom('0.25,0.25,0.5,0.5')).toEqual({ x: 0.25, y: 0.25, w: 0.5, h: 0.5 });
     expect(parseZoom(undefined)).toBeUndefined();
     expect(() => parseZoom('1,2,3')).toThrow(/x,y,w,h/);
+  });
+});
+
+describe('formatName', () => {
+  it('accepts the three formats and rejects anything else', () => {
+    expect(formatName('portrait')).toBe('portrait');
+    expect(() => formatName('vertical')).toThrow(/landscape \| portrait \| square/);
   });
 });
 

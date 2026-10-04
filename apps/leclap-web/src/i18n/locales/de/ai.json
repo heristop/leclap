@@ -100,13 +100,17 @@
     "replace": "Entwurf ersetzen",
     "keep": "Weiter bearbeiten",
     "regenerate": "Noch eine erstellen",
-    "details": "Technische Details"
+    "details": "Technische Details",
+    "writeTemplate": "Vorlage schreiben",
+    "startOver": "Neu beginnen"
   },
   "steps": {
     "thinking": "Nachdenken",
     "validating": "Prüfen",
     "repairing": "Reparieren",
-    "ready": "Fertig"
+    "ready": "Fertig",
+    "planning": "Planung",
+    "polishing": "Feinschliff"
   },
   "status": {
     "thinking": "Denkt nach…",
@@ -114,7 +118,10 @@
     "validating": "Wird geprüft…",
     "repairing": "Reparatur (Runde {{round}}): behebt {{count}} Problem(e)…",
     "ready": "Fertig",
-    "cancelled": "Abgebrochen. Nichts wurde geändert."
+    "cancelled": "Abgebrochen. Nichts wurde geändert.",
+    "planning": "Konzepte und Beats werden geplant…",
+    "planReady": "Plan fertig. Passe ihn bei Bedarf an und schreibe dann die Vorlage.",
+    "polishing": "Feinschliff: {{count}} Art-Direction-Hinweis(e)…"
   },
   "result": {
     "scenes_one": "{{count}} Szene",
@@ -125,7 +132,10 @@
     "durationEstimate": "~{{seconds}} s + Clips",
     "effects": "Effekte",
     "noEffects": "Keine Effekte — harte Schnitte.",
-    "replaceWarning": "Das ersetzt den aktuellen Entwurf. Deine gespeicherten Vorlagen bleiben unberührt, und Rückgängig holt den Entwurf zurück."
+    "replaceWarning": "Das ersetzt den aktuellen Entwurf. Deine gespeicherten Vorlagen bleiben unberührt, und Rückgängig holt den Entwurf zurück.",
+    "advisories_one": "{{count}} Art-Direction-Hinweis",
+    "advisories_other": "{{count}} Art-Direction-Hinweise",
+    "noAdvisories": "Keine Art-Direction-Hinweise von der Engine."
   },
   "errors": {
     "auth": "{{provider}} hat den Schlüssel abgelehnt. Prüfe, ob er vollständig kopiert wurde und noch aktiv ist.",
@@ -140,5 +150,39 @@
     "http": "{{provider}} hat einen Fehler gemeldet. Versuch es erneut.",
     "invalid": "Das Modell hat nach {{rounds}} Versuchen keine gültige Vorlage erzeugt. Versuch ein einfacheres oder genaueres Briefing.",
     "unknown": "Etwas ist schiefgelaufen. Versuch es erneut."
+  },
+  "plan": {
+    "planFirst": "Zuerst planen",
+    "planFirstHint": "Schlägt drei Konzepte und einen Ablauf vor, bevor geschrieben wird. Ein zusätzlicher, kurzer Aufruf.",
+    "review": "Plan prüfen",
+    "reviewHint": "Hält beim Plan an, damit du ihn bearbeiten kannst. Aus: geht direkt weiter.",
+    "title": "Plan",
+    "intro": "Bearbeite Texte, Verben oder Timing oder wähle ein anderes Konzept. Die Vorlage folgt diesem Plan.",
+    "strategy": "Strategie",
+    "concepts": "Konzept",
+    "typicality": {
+      "expected": "Erwartbar",
+      "fresh": "Frisch",
+      "unusual": "Ungewöhnlich"
+    },
+    "beats": "Beats",
+    "role": "Rolle",
+    "verb": "Verb",
+    "onScreen": "Im Bild",
+    "seconds": "Länge",
+    "verbLabel": "Verb von Beat {{row}}",
+    "onScreenLabel": "Text im Bild von Beat {{row}}",
+    "secondsLabel": "Länge von Beat {{row}} in Sekunden",
+    "footage": "Filmmaterial, kein Text",
+    "facts": "Plandetails",
+    "transitions": "Übergänge: {{primary}}",
+    "transitionsWithAccents": "Übergänge: {{primary}} + {{accents}}"
+  },
+  "reference": {
+    "label": "Referenz übernehmen",
+    "hint": "Optional: einen Referenz-Look anhängen. Die Generierung folgt dann verbindlich seiner Palette und seinem Tempo.",
+    "use": "Als Styleguide verwenden",
+    "attached": "Styleguide angehängt: die generierte Vorlage folgt dieser Palette und diesem Tempo.",
+    "detach": "Styleguide entfernen"
   }
 }

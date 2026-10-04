@@ -13,6 +13,7 @@ import { runWithConcurrency } from '../utils/concurrency';
 import { LOOK_PRESETS } from '../schemas/effects-visual.schemas';
 import { safeZoneFilters, zoomFilter, type SnapshotZoom } from './snapshot-commands';
 import {
+  asRendered,
   buildSheet,
   grabFrame,
   renderVideo,
@@ -66,10 +67,10 @@ async function variantFrame(
   root: string,
   options: CompareOptions
 ): Promise<SnapshotFrame> {
-  const timeline = timelineOf(variant.descriptor);
-  const expanded = expandPartialsSafe(variant.descriptor);
-  const time = snapTime(resolveSnapshotTime(options.at, expanded.ok ? expanded.data : {}, timeline), timeline);
-  const video = await renderVideo(engine, variant.descriptor, path.join(root, `variant-${index}`), options);
+  const descriptor = asRendered(variant.descriptor, options.format);
+  const timeline = timelineOf(descriptor);
+  const time = snapTime(resolveSnapshotTime(options.at, descriptor, timeline), timeline);
+  const video = await renderVideo(engine, descriptor, path.join(root, `variant-${index}`), options);
   const out = path.join(options.outDir, `${options.prefix ?? 'compare'}-${index + 1}-${slug(variant.label)}.png`);
   const image = await grabFrame(video, time, out, filtersOf(options));
 
@@ -145,14 +146,14 @@ export function runLooks(
   options: CompareOptions,
   engine: SnapshotEngine
 ): Promise<CompareResult> {
-  const timeline = timelineOf(descriptor);
-  const expanded = expandPartialsSafe(descriptor);
-  const time = snapTime(resolveSnapshotTime(options.at, expanded.ok ? expanded.data : {}, timeline), timeline);
+  const rendered = asRendered(descriptor, options.format);
+  const timeline = timelineOf(rendered);
+  const time = snapTime(resolveSnapshotTime(options.at, rendered, timeline), timeline);
   const section = sectionAt(timeline, time);
 
   if (!section) return Promise.reject(new Error('the template renders no section'));
 
-  const alone = isolateSection(descriptor, section.index);
+  const alone = isolateSection(rendered, section.index);
   const variants = [
     { label: 'authored', descriptor: alone },
     ...LOOK_PRESETS.map((look) => ({ label: look, descriptor: withLook(alone, look) })),

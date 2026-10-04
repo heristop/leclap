@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EasingSpecSchema, KeyframeSchema } from './motion.schemas';
+import { EasingSpecSchema, KeyframeSchema, MotionRoleSchema } from './motion.schemas';
 import { TimeRefSchema, timeValue } from './time.schemas';
 
 // ── virtual camera (docs/plans/motion-system-v2.md §4.2) ─────────────────────────
@@ -52,6 +52,7 @@ export const CameraSchema = z
       .describe('When the preset move starts: seconds (default 0) or a time reference.'),
     duration: z.number().positive().optional().describe('Seconds the preset move takes (default: to the section end).'),
     ease: EasingSpecSchema.optional().describe('Curve of the preset move (default ease-in-out-sine).'),
+    role: MotionRoleSchema.optional(),
     zoom: CameraTrackSchema.optional().describe(
       'Zoom keyframes (1 = framed, 1.2 = 20% closer); overrides the preset zoom.'
     ),

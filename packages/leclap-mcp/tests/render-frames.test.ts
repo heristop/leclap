@@ -138,6 +138,16 @@ describe('render_frames handler', () => {
     expect((await fs.readdir(outputDir)).filter((entry) => entry.startsWith('frames-'))).toEqual([]);
   });
 
+  it('resolves the requested format before rendering', async () => {
+    runSnapshotMock.mockResolvedValue({ ok: false, error: 'stop' });
+    const { handler } = capture();
+
+    await handler({ template, format: 'portrait' });
+    const job = runSnapshotMock.mock.calls[0][0] as Extract<SnapshotJob, { mode: 'frames' }>;
+
+    expect(job.template.global?.orientation).toBe('portrait');
+  });
+
   it('refuses an invalid template or an escaping clip before rendering', async () => {
     const { handler } = capture();
     const invalid = await handler({ template: { sections: [{ type: 'nope' }] } });

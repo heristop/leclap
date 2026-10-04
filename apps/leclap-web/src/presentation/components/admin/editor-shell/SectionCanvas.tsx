@@ -60,11 +60,13 @@ type MediaPatch = { position: string } | { scale: string } | { rotation: number 
 
 // CSS approximation of the section's source-footage fit (SegmentBuilder.prependScaleFilters):
 // cover = scale+crop (object-cover), letterbox = scale+pad with black bars (object-contain on a
-// black element box — ffmpeg's pad default is black), off = no conform scaling at all, so the frame
+// black element box — ffmpeg's pad default is black; blur previews the same way), off = no conform scaling at all, so the frame
 // simply follows the source; filling the preview frame is the closest static approximation.
 const backdropFitClass: Record<SectionFit, string> = {
   cover: 'object-cover',
   letterbox: 'bg-black object-contain',
+  // The blurred fill is approximated by a contained frame on the dark backdrop.
+  blur: 'bg-black object-contain',
   off: 'object-fill',
 };
 

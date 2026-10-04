@@ -111,7 +111,7 @@ function assertValidDescriptor(projectConfig: ProjectConfig, templateDescriptor:
   }
 
   const validator = new TemplateValidator();
-  const validation = validator.validateTemplate(templateDescriptor);
+  const validation = validator.validateTemplate(templateDescriptor, { format: projectConfig.format });
 
   if (!validation.success) {
     throw new Error(validator.getValidationSummary(validation));
@@ -262,8 +262,7 @@ export function renderedGeometryWarnings(
 // engine's compile(), handed over through the container so the snapshot modules never import this entry.
 container.registerInstance('snapshotEngine', { compile });
 
-export { TemplateDirector };
-export { VideoEditor };
+export { TemplateDirector, VideoEditor };
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
 export {
   default as FFmpegWasmAdapter,
@@ -299,7 +298,7 @@ export {
   partialsById,
   type PartialExpansion,
 } from './core/partials';
-export type { ProjectConfig, TemplateDescriptor, CompileReporter } from './core/types';
+export type { ProjectConfig, TemplateDescriptor, CompileReporter, MediaTraits } from './core/types';
 export {
   TemplateValidator,
   type ValidationResult,
@@ -367,6 +366,18 @@ export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
 export * from './core/platforms';
 export * from './core/theme';
+// Reference-style analysis (pure) and its Node frame decoder: palette, texture and pacing as a theme.
+export * from './core/style';
+export {
+  analyzeStyleFile,
+  extractStyleFrames,
+  resolveStyleFfmpeg,
+  STYLE_FRAME_WIDTH,
+  STYLE_MAX_FRAMES,
+  STYLE_SAMPLE_INTERVAL,
+  type StyleFrames,
+  type StyleFramesOptions,
+} from './services/style-frames-node';
 export {
   motionTimeline,
   type MotionBox,
@@ -376,5 +387,5 @@ export {
   type SectionTimeline,
 } from './core/motion/timeline';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
+export * from './node-extras';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';
-export * from './services/snapshot-api-node';

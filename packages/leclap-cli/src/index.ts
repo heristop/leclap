@@ -13,6 +13,9 @@ import { diagnose } from './commands/diagnose.js';
 import { validate } from './commands/validate.js';
 import { samples } from './commands/samples.js';
 import { verify } from './commands/verify.js';
+import { style } from './commands/style.js';
+import { studio } from './commands/studio.js';
+import { beats } from './commands/beats.js';
 import { snapshot } from './commands/snapshot.js';
 import { compare } from './commands/compare.js';
 import { timeline } from './commands/timeline.js';
@@ -23,7 +26,7 @@ const { version } = JSON.parse(readFileSync(new URL('../package.json', import.me
 
 const main = defineCommand({
   meta: { name: 'leclap', version, description: 'create videos from JSON templates' },
-  subCommands: { render, init, diagnose, validate, samples, verify, snapshot, compare, timeline },
+  subCommands: { render, init, diagnose, validate, samples, verify, style, studio, beats, snapshot, compare, timeline },
 });
 
 const rawArgs = rewriteArgv(process.argv.slice(2), KNOWN_COMMANDS);

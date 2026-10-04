@@ -13,7 +13,7 @@ import { resolveMusicFade } from './utils/music-fade';
 import { finalizeLeg, type PendingLeg } from './utils/music-leg';
 import { formatMusicName, removeExtension } from './utils/music-name';
 import { musicAssetUrl } from '@/core/asset-source';
-import { musicMixGraph, normalizeSuffix } from './utils/music-mix';
+import { loudnessTarget, musicMixGraph, normalizeSuffix } from './utils/music-mix';
 import { normalizeWithTruePeakGuard } from './utils/true-peak-guard';
 
 type AppendMusicOptions = {
@@ -298,7 +298,9 @@ class MusicComposer {
       return;
     }
 
-    this.project.loudness = await normalizeWithTruePeakGuard({ run, measure: this.truePeakProbe(finalVideo) });
+    const target = loudnessTarget(this.template.descriptor.global).truePeak;
+
+    this.project.loudness = await normalizeWithTruePeakGuard({ run, measure: this.truePeakProbe(finalVideo), target });
     const { ceiling, measured, retries } = this.project.loudness;
     this.logger.info(
       `[Music][Normalize] loudnorm TP=${ceiling} (measured ${measured ?? '?'} dBTP, ${retries} retries)`

@@ -2,6 +2,7 @@ import type { ProjectBuildInfos, Section, TemplateDescriptorGlobal } from '@/cor
 import type { QcExpectations } from '@/core/qc/types';
 import { effectiveDurations } from '../editor/utils/transition-graph';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
+import { loudnessTarget } from '../editor/utils/music-mix';
 
 // What the output QC (core/qc) expects of this render, read from the plan once the section lengths are
 // known and before the build state resets at the end of the compile. Pure.
@@ -50,5 +51,6 @@ export function qcExpectations(
     fps,
     audioExpected: music || rendering.some((section) => hasClipSound(section, buildInfos.sourceHasAudio)),
     normalize: global?.audio?.normalize ?? null,
+    loudnessTarget: loudnessTarget(global),
   };
 }

@@ -42,7 +42,14 @@ export const mcpDoc: McpDoc = {
   title: 'MCP for agents',
   intro:
     'The LeClap MCP server exposes this same descriptor engine to local AI agents. The agent authors a JSON descriptor from the schema, the server validates it, and compose_video renders a deterministic MP4 through the FFmpeg pipeline. The packaged catalog includes 35 samples with creative direction and input requirements. Registered JSON effects use a configured trusted Node/Remotion backend; render_remotion_clip also accepts your own Remotion composition.',
-  flow: ['list_samples', 'get_sample', 'get_template_schema', 'validate_template', 'compose_video'],
+  flow: [
+    'list_samples',
+    'get_sample',
+    'get_template_schema',
+    'get_motion_catalog',
+    'validate_template',
+    'compose_video',
+  ],
   agenticReview: {
     intro:
       'For a pull or merge request, the development agent can turn a real walkthrough into a short evidence video before handing the change to a reviewer.',
@@ -74,6 +81,13 @@ export const mcpDoc: McpDoc = {
       args: 'no arguments',
       purpose: 'Returns the authoritative JSON Schema for the template descriptor plus a short authoring guide.',
       when: 'Use before authoring or modifying descriptor JSON.',
+    },
+    {
+      name: 'get_motion_catalog',
+      args: 'no arguments',
+      purpose:
+        'Returns the motion catalog: kinetic presets, camera moves, graphics, designed transitions, the easing and time-reference grammar, motion tokens, themes, delivery platforms, genre doctrine and validated scene blueprints.',
+      when: 'Use before authoring animated copy, camera moves, graphics or designed transitions.',
     },
     {
       name: 'validate_template',

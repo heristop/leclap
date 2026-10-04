@@ -1197,6 +1197,29 @@ body {
   }
 }
 
+/* Indeterminate progress for an AI generation: a short bar gliding across its track while the model
+   works (duration unknown, so no percentage is promised). Reduced motion: a still, half-filled bar. */
+@keyframes ai-progress {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(330%);
+  }
+}
+
+.ai-progress-bar {
+  animation: ai-progress 1.6s var(--ease-smooth) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-progress-bar {
+    animation: none;
+    width: 50%;
+    opacity: 0.6;
+  }
+}
+
 /* A shell surface arriving from its own side. Translate + opacity only, and short enough that it
    never delays the tap: the tab indicator has already moved, and this just tells you which way. The
    pair restarts every time its element goes from `display:none` to shown — which is exactly how the

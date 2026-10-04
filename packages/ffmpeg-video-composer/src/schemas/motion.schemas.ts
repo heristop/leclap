@@ -30,7 +30,8 @@ const EasingStringSchema = z
   .superRefine((spec, ctx) => {
     const issue = easingGrammarIssue(spec);
 
-    if (issue) ctx.addIssue({ code: 'custom', message: issue });
+    // `params.easing` lets the validator attach the nearest named easing as a suggestion.
+    if (issue) ctx.addIssue({ code: 'custom', message: issue, params: { easing: true } });
   });
 
 export const EasingSpecSchema = z
@@ -97,11 +98,12 @@ export const MotionTokensSchema = z
 export const KeyframeSchema = z
   .object({
     t: z
-      .union([z.number().min(0), z.string().trim().min(1).max(40)])
+      .union([z.number().min(0), z.string().trim().min(1).max(80)])
       .optional()
       .describe(
         'When this key is reached: seconds from the section start (1.2), relative to the previous key ' +
-          '("+0.3"), or a duration token ("$base", "+$short"). Omitted: the previous key plus this ease\'s ' +
+          '("+0.3"), a duration token ("$base", "+$short"), or a time reference ("title.end + 0.2", ' +
+          '"beat:8 - 0.1", "50%", "end - 0.5", "cue:drop"). Omitted: the previous key plus this ease\'s ' +
           'natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.'
       ),
     v: z

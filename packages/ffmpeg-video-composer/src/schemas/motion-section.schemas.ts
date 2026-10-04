@@ -1,11 +1,16 @@
 import { KineticBlocksSchema } from './kinetic.schemas';
 import { CameraSchema } from './camera.schemas';
 import { GraphicsSchema } from './graphics.schemas';
+import { AssertionsSchema } from './assert.schemas';
+import { CuesSchema } from './time.schemas';
 
-// The motion fields every visual section accepts: animated copy, a
-// virtual camera and animated graphics. Spread into the section base so each section type gets them.
+// The motion fields every visual section accepts: animated copy, a virtual camera, animated graphics,
+// named cue points for time references and the assertions that pin their timing. Spread into the
+// section base so each section type gets them.
 export const MOTION_SECTION_FIELDS = {
   kinetic: KineticBlocksSchema.optional(),
   camera: CameraSchema.optional(),
   graphics: GraphicsSchema.optional(),
+  assert: AssertionsSchema.optional(),
+  cues: CuesSchema.optional(),
 };

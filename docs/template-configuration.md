@@ -77,6 +77,11 @@ Project-wide defaults and the options a builder/editor exposes to end users. `gl
 | `allowUploadMusic`      | `boolean`                               | Allow the user to upload a custom music file (default `false`).                                                                                |
 | `allowedBackgrounds`    | `string[]`                              | Allowlist of background identifiers the user may choose.                                                                                       |
 | `allowUploadBackground` | `boolean`                               | Allow the user to upload a custom background (default `false`).                                                                                |
+| `seed`                  | `number` (uint32)                       | Root seed of every procedural effect (grain, shake, scramble, random order); default `0` (see [Determinism](#determinism)).                    |
+| `motion`                | `MotionTokens`                          | Motion tokens and the energy dial (see [Motion tokens](#motion-tokens)).                                                                       |
+| `theme`                 | theme name or `Theme`                   | Palette, fonts and motion feel referenced as `$color.*` / `$font.*` (see [Themes](#themes)).                                                   |
+| `platform`              | platform id                             | Delivery destination: orientation default, UI safe zones, loudness (see [Delivery platforms](#delivery-platforms)).                            |
+| `beats`                 | `Beats`                                 | Beat grid for `"beat:n"` / `"bar:n"` time references (see [Time references](#time-references)).                                                |
 
 ## Sections
 
@@ -115,23 +120,28 @@ Expansion happens **before** schema validation and compile, so everything downst
 
 ### Base fields (native sections)
 
-| Field         | Type             | Description                                                                                                      |
-| ------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `name`        | `string`         | Unique id within the template; used in section references.                                                       |
-| `type`        | section literal  | One of the types above (discriminates the union).                                                                |
-| `title`       | `Translation`    | Localised title shown to the user (e.g. `{ "en": "…" }`).                                                        |
-| `description` | `Translation`    | Localised instruction text shown to the user.                                                                    |
-| `options`     | type-specific    | See [Options](#options).                                                                                         |
-| `inputs`      | `Input[]`        | Animation/image overlays composited over the section (see [Overlay inputs](#overlay-inputs-animations--images)). |
-| `maps`        | `Map[]`          | Custom filtergraph maps (see [Maps](#maps)).                                                                     |
-| `filters`     | `Filter[]`       | Raw FFmpeg filter chain on the section output (see [Filters](#filters)).                                         |
-| `transition`  | `Transition`     | Boundary transition applied **after** this section; overrides `global.transition`.                               |
-| `look`        | look preset      | Named colour-grade (see [Looks & grade](#looks--grade)).                                                         |
-| `grade`       | `Grade`          | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                                                  |
-| `letterbox`   | `Letterbox`      | Cinemascope-style horizontal bars simulating a wider aspect ratio (see [Letterbox](#letterbox)).                 |
-| `motion`      | `MotionEffect[]` | Ordered motion / geometric effects (see [Motion](#motion)).                                                      |
-| `caption`     | `Caption`        | Styled lower-third / overlay caption, rendered as a `drawtext` filter (see [Captions](#captions)).               |
-| `lowerThird`  | `LowerThird`     | Structured title/subtitle band over the clip (see [Lower thirds](#lower-thirds)). On visual sections.            |
+| Field         | Type                     | Description                                                                                                      |
+| ------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `name`        | `string`                 | Unique id within the template; used in section references.                                                       |
+| `type`        | section literal          | One of the types above (discriminates the union).                                                                |
+| `title`       | `Translation`            | Localised title shown to the user (e.g. `{ "en": "…" }`).                                                        |
+| `description` | `Translation`            | Localised instruction text shown to the user.                                                                    |
+| `options`     | type-specific            | See [Options](#options).                                                                                         |
+| `inputs`      | `Input[]`                | Animation/image overlays composited over the section (see [Overlay inputs](#overlay-inputs-animations--images)). |
+| `maps`        | `Map[]`                  | Custom filtergraph maps (see [Maps](#maps)).                                                                     |
+| `filters`     | `Filter[]`               | Raw FFmpeg filter chain on the section output (see [Filters](#filters)).                                         |
+| `transition`  | `Transition`             | Boundary transition applied **after** this section; overrides `global.transition`.                               |
+| `look`        | look preset              | Named colour-grade (see [Looks & grade](#looks--grade)).                                                         |
+| `grade`       | `Grade`                  | Fine-grained colour-grade (see [Looks & grade](#looks--grade)).                                                  |
+| `letterbox`   | `Letterbox`              | Cinemascope-style horizontal bars simulating a wider aspect ratio (see [Letterbox](#letterbox)).                 |
+| `motion`      | `MotionEffect[]`         | Ordered motion / geometric effects (see [Motion](#motion)).                                                      |
+| `caption`     | `Caption`                | Styled lower-third / overlay caption, rendered as a `drawtext` filter (see [Captions](#captions)).               |
+| `lowerThird`  | `LowerThird`             | Structured title/subtitle band over the clip (see [Lower thirds](#lower-thirds)). On visual sections.            |
+| `kinetic`     | `KineticBlock[]`         | Animated copy, per word or glyph (see [Kinetic typography](#kinetic-typography)).                                |
+| `camera`      | `Camera`                 | Virtual camera over the finished frame (see [Camera](#camera)).                                                  |
+| `graphics`    | `Graphic[]`              | Animated editorial shapes and light hits (see [Graphics](#graphics)).                                            |
+| `cues`        | `Record<string, number>` | Named moments (s) for [time references](#time-references), e.g. `"cue:drop"`.                                    |
+| `assert`      | `Assertion[]`            | Timing checks proven at validation (see [Assertions](#assertions)).                                              |
 
 `color_background` sections also accept a section-level `titleCard` (see [Title cards](#title-cards)).
 
@@ -404,6 +414,19 @@ Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes
 | --------- | ---------------------------- | ----------------------------------- |
 | `shadow`  | `true` → `#000000@0.6` @ 2,2 | `{ color?, dx?, dy? }` (px offsets) |
 | `outline` | `true` → `#000000` width 2   | `{ color?, width? }` (px)           |
+
+### Text escaping
+
+Display text is passed to FFmpeg's `drawtext` inline and escaped for you: `:`, `%` and `\` render literally, and `[ ] , ; =`, newlines, emoji and CJK pass through unchanged. Two substitutions are deliberate: a straight apostrophe `'` is drawn as `’` and a straight double quote `"` as `”` (a straight quote would end the quoted value). Control characters other than tab and newline are dropped, and leading/trailing whitespace is trimmed by FFmpeg. `%{…}` sequences are never expanded in authored text.
+
+### Glyph coverage (`font_missing_glyphs`, `emoji_unsupported`)
+
+FFmpeg draws an empty box (and still reports success) for any character the font has no glyph for. For text drawn with a **bundled** font (captions, title cards, lower thirds, `drawtext` filters, global overlays, kinetic blocks), validation checks every locale against the font's character coverage and fails with:
+
+- `font_missing_glyphs`: lists up to 10 missing characters, with a `hint` naming the bundled fonts that do cover them. When none does (e.g. CJK, Arabic, Devanagari, Thai), the hint suggests a font named by family, such as `"font": { "family": "Noto Sans JP" }` (not available in the browser; kinetic blocks need a bundled font, so move that copy to a caption or title card).
+- `emoji_unsupported`: `drawtext` cannot draw colour emoji in any font; remove them or add them as an image overlay.
+
+Whitespace, zero-width joiners and variation selectors are ignored. `{{ variables }}` defined in `global.variables` are checked with their value; runtime variables are skipped. Fonts named by family and non-bundled `.ttf` files are not checked.
 
 ## Reveal
 
@@ -846,6 +869,56 @@ A complete, valid descriptor exercising the structured-sugar layer: a layered ti
 
 Run a descriptor through `TemplateValidator` (zod + the cross-field rules above). On failure, zod reports the exact path/field — fix the JSON to match the schema. Cross-field rules also flag: a whole-video animation with no url (`global_animation_missing_url`) and a `caption`/`global.overlays` `font` string that is neither a bundled id nor a `.ttf` filename (`unknown_font` — a typo would otherwise silently fall back to the default font; the `{ family }` object form is checked at render time instead, see [Fonts](#fonts)). After editing any `.json`, run `pnpm fmt`. To regenerate the machine-readable schema after a zod change: `pnpm --filter ffmpeg-video-composer generate:schema`.
 
+### Validation findings
+
+`TemplateValidator.validateTemplate()` (and `leclap validate`, and the MCP `validate_template` tool) returns **every** finding in one pass: schema errors, unknown keys and the descriptor rules (once the schema parses). Each finding has a `path`, `message` and `code`, and, when the validator knows how to fix it:
+
+| Field        | Meaning                                                                                                                                                                                                            |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `hint`       | One actionable sentence, e.g. `Rename "colour" to "color".`                                                                                                                                                        |
+| `suggestion` | A concrete replacement value for the field at `path` (for `unknown_key`, the key name to use instead).                                                                                                             |
+| `kind`       | `format`: a mechanical fix (renamed key, typo'd value) that is safe to apply as-is. `judgement`: the fix changes creative content (timing, a removed effect, a value to choose), so confirm with the author first. |
+
+Notable codes:
+
+- `unknown_key`: a key the schema does not declare, including on objects that would otherwise drop it silently. The suggestion is the closest allowed key at that path (typos, `font-size` → `fontsize`, and common synonyms such as `colour` → `color`, `ease` → `easing`, `start` → `delay`/`at`, `zoom` → `intensity`, only when the target exists there). Keys starting with `$` or `_` are treated as comments and ignored; free-form maps (translations, `global.variables`, effect `props`/`assets`, motion tokens, raw filter `values`) are never checked. At the descriptor's top level, host-specific fields are tolerated unless they look like a typo of a real key (`section` → `sections`).
+- `invalid_value`: a value outside an enum (including an unknown section or graphic `type`); the hint lists the allowed values and the suggestion is the nearest one.
+- Rule findings such as `transition_too_long` (suggests a transition with a fitting `duration`), `dangling_transition` (suggests `{ "type": "cut" }`), `unknown_font`, `undefined_section_reference`, `undefined_variable`, `unknown_motion_token` and `invalid_easing` (nearest name) carry hints too.
+
+`leclap validate` prints each hint as a `→` line under its error, and `--json` includes the fields unchanged. `validate_template` lists every finding with its hint in the text result and returns them as `structuredContent.errors` (with `valid: false`).
+
+### Motion feedback
+
+`validate_template` (MCP), `leclap validate` and `TemplateValidator.getMotionWarnings(template)` read the template's motion timeline and report pacing findings without rendering. They are advisory: they never enter `errors` and never change `success` or the exit code. Each finding has `{ path, code, message, severity, hint }`. `motionTimeline(descriptor)` returns the timeline itself: for every rendering section, each animated element (`kinetic`, `graphic`, `camera`, `reveal`, `exit`, `animate`, `transition`) with its section-local `start`/`end`, curve, visibility window and, when it can be measured, its resting box.
+
+| Code                     | When                                                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| `ease_monotony`          | More than two elements in a section share one curve.                                                      |
+| `front_loaded`           | In a section of 3 s or more, at least 80% of the entrances land within its first quarter.                 |
+| `stagger_too_long`       | A kinetic headline (6 words or fewer) whose units start over more than 0.6 s.                             |
+| `starts_at_zero`         | The first text entrance of a later section starts on the cut. Offset it 0.1–0.3 s.                        |
+| `transition_monotony`    | Four or more boundaries all use the same non-cut transition. Use one primary transition plus 1–2 accents. |
+| `exit_before_transition` | An exit ends in the last 0.3 s before a non-cut boundary. The transition is the exit.                     |
+| `dead_air`               | Nothing moves for 2.5 s or more on a `color_background` or `image_background` section.                    |
+| `tempo_flat`             | Across four or more sections, the slowest is less than 1.5× the fastest.                                  |
+
+`get_motion_catalog` (or `motionCatalog()`) also returns a `doctrine` per genre (`product-launch`, `explainer`, `social-hook`, `cinematic-trailer`, `calm-tutorial`), 10 scene `blueprints` (validated sections with `[slot]` copy, `roles`, `bestSpan`, `signatureMove`, `useWhen`/`avoidWhen`), and a `verb`, `useWhen`, `avoidWhen` and `pairsWith` on every kinetic preset, camera preset, transition and graphic.
+
+### Assertions
+
+A visual section takes an optional `assert` array: checks proven against the motion timeline at validation, without rendering. Name an element by its `id`, or by its path in the section: `"kinetic[0]"`, `"graphics[1]"`, `"filters[2]"`, `"titleCard"`, `"lowerThird"`, `"caption"`. An element without an entrance counts as visible from 0.
+
+```jsonc
+"assert": [
+  { "visibleBy": { "target": "kinetic[0]", "at": 1.2 } }, // fully entered by 1.2 s
+  { "before": ["kinetic[0]", "kinetic[1]"] },             // a lands before b starts
+  { "inFrame": "kinetic[0]" },                            // its resting box is inside the frame
+  { "keepsMoving": { "maxStill": 2 } }                    // never still for more than 2 s
+]
+```
+
+A failing assertion is a validation error, `assertion_failed`, whose message names the target and the measured value, e.g. `visibleBy: "kinetic[0]" finishes entering at 1.42s, after the asserted 1.2s`. A target that matches nothing also fails. An assertion that cannot be measured without rendering is skipped and reported as the advisory `assertion_skipped` (severity `info`): `inFrame` on a counter, an unbundled font or caption sugar, and `keepsMoving` on a section with no declared duration.
+
 ## Kinetic typography
 
 Any visual section takes `kinetic`: up to 8 blocks of animated copy. A block is laid out with the bundled fonts' real metrics: it wraps to `maxWidth`, aligns, and sits every piece on a shared baseline. Each word, glyph or line is then drawn and animated on its own as a native `drawtext`, so there is no worker or browser and it renders the same on Node, WASM and on-device. Only `text` and `preset` are required; everything else has a preset default.
@@ -919,6 +992,115 @@ A section takes a `camera`: a virtual camera that moves over the finished frame.
 | `corners`   | `inset`, `length`, `thickness`           | Viewfinder brackets that extend from the corners.                   |
 | `wipe`      | `direction`                              | A colour panel sweeping across the frame: it covers, then uncovers. |
 | `panel`     | `x`, `y`, `width`, `height`, `from`      | A block that grows from one edge (a backing plate for text).        |
+
+## Time references
+
+Every "when" field inside a section accepts seconds **or** a reference that names the moment. The compiler resolves it to seconds before rendering, so nothing is computed by hand and the output is identical to the equivalent numbers.
+
+| Reference              | Meaning                                                                                                                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `"<id>.start"`         | When the element with that `id` in this section starts (a kinetic block's `delay`, a graphic's `at`, a drawtext's reveal delay).                                                                                                     |
+| `"<id>.end"`           | When its entrance has landed. Kinetic block: its last unit has arrived (stagger and spring settle times included, laid out with the real font metrics and text). Graphic: `at + duration`. Drawtext: reveal delay + reveal duration. |
+| `"50%"`                | A fraction of the section duration.                                                                                                                                                                                                  |
+| `"end"`                | The section end.                                                                                                                                                                                                                     |
+| `"beat:12"`, `"bar:3"` | The 12th beat, or the downbeat of bar 3, of `global.beats`, counted from 1 on the whole video and converted to section time.                                                                                                         |
+| `"cue:drop"`           | A named moment from the section's `cues`.                                                                                                                                                                                            |
+
+Each form takes an offset, with or without spaces: `"title.end + 0.2"`, `"title.start-0.1"`, `"end - 0.5"`, `"beat:8 - 0.1"`, `"cue:drop - 0.1"`.
+
+Fields: kinetic `delay` and `exit.at`; graphics `at` and `until`; camera `delay`, `hits[]` (a reference or `{ at }`) and keyframe `t`; drawtext filter `reveal.delay`, `exit.after` and `animate` keyframe `t`. Relative keyframe times (`"+0.3"`, `"+$short"`) keep working. Kinetic blocks, graphics and drawtext filters take an optional `id`, unique within the section. Names use letters, digits, `_` and `-`, and a `-` must be followed by a letter.
+
+```jsonc
+"global": { "beats": { "bpm": 120, "offset": 0.1 } },   // or { "times": [0.48, 0.97, 1.51] } from an analysis
+"sections": [{
+  "name": "hook", "type": "color_background", "options": { "duration": 4 },
+  "cues": { "drop": 2.2 },
+  "kinetic": [
+    { "id": "title", "text": { "en": "Name the moment" }, "preset": "cascade", "delay": "beat:2 - 0.1" },
+    { "text": { "en": "not the math" }, "preset": "fade", "y": "bottom", "delay": "title.end + 0.15" }
+  ],
+  "graphics": [{ "type": "flash", "at": "cue:drop", "duration": 0.2 }],
+  "camera": { "preset": "push-in", "hits": ["cue:drop"] }
+}]
+```
+
+- **Beats.** `global.beats` is a tempo grid `{ bpm, offset = 0, beatsPerBar = 4 }` or explicit `{ times, beatsPerBar }`, in seconds of the whole video. A section's start is the sum of the earlier section durations minus each transition overlap, so beat references need every earlier section to declare `options.duration` (a recorded `project_video` is only measured at render time).
+- **Lead.** Hard hits (camera hits, flash graphics) land exactly on the beat: `"beat:12"`. Entrances read as on the beat when they lead it by 0.04–0.19 s, so write the lead explicitly: `"beat:12 - 0.1"`.
+
+Validation codes: `unknown_time_ref` (no such id or cue, with the nearest one as a hint), `circular_time_ref` (the chain is shown, e.g. `a → b → a`), `unresolvable_time_ref` (no `global.beats`, a beat past the end of `times`, or a section length or start that depends on a probed clip), `negative_time` (the reference lands before the section starts) and `duplicate_time_id`. Agents get the grammar, fields, examples and rules from `motionCatalog().timing` (MCP `get_motion_catalog`).
+
+## Themes
+
+`global.theme` names a template's look once: a palette, a type stack and a motion feel. Use a built-in name, or an object that overrides single tokens of one:
+
+| Theme              | Look                                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| `leclap` (default) | Brand lavender `#7C83FD` and pink `#FF8AAE` on ink `#141416`; Bebas Neue / Oswald; juicy springs. |
+| `midnight`         | Calm navy for interviews: lavender accent, slow and controlled (energy 0.8, `$smooth`).           |
+| `editorial`        | Warm black and sand with Playfair Display: launches, quotes (energy 0.7, `$expo`).                |
+| `bold`             | Ink and signal red: hooks, challenges (energy 1.3, `$snappy`).                                    |
+| `neon`             | Deep green and electric lime: promos, reels (energy 1.2, `$bouncy`).                              |
+| `paper`            | Light sage canvas, deep green ink: tutorials (energy 0.9, `$gentle`).                             |
+
+```json
+"global": { "theme": { "extends": "midnight", "colors": { "accent": "#FF8AAE" }, "fonts": { "display": "anton" } } }
+```
+
+Tokens: colors `bg`, `fg`, `muted`, `surface`, `brand`, `accent`, `accent2` (`#RRGGBB`); fonts `display`, `body`, `mono` (bundled font id or `.ttf` file name); `radius` (px, for builders); `motion.energy`, `motion.ease`, `motion.beat`.
+
+Reference them as the **whole value** of any string field in `global` or `sections`:
+
+- `"$color.accent"`, `"$color.bg@0.55"` (alpha 0..1, written out as FFmpeg's `#hex@alpha`);
+- `"$font.display"`: the `.ttf` file in a `fontfile` field, the bundled id in a `font` field.
+
+Tokens inside larger strings (`"x+$color.bg"`) are not resolved and fail validation. Without `global.theme`, tokens resolve against `leclap`.
+
+`theme.motion` fills `global.motion` where the template leaves it unset: `energy`, the `$theme` easing token (from `ease`, e.g. `"$snappy"`) and the `$beat` duration token. Explicit `global.motion` values always win.
+
+Validation: `unknown_theme` and `unknown_theme_token` name the nearest match. `TemplateValidator.getThemeWarnings()` returns the advisory `accent_overuse` when one section uses the accent on more than 2 elements: one accent per idea; use `$color.fg`, `$color.muted` or `$color.brand` for the rest. Built-in themes and the grammar are listed in `motionCatalog().themes` (MCP `get_motion_catalog`) and in `themeCatalog()`.
+
+## Delivery platforms
+
+Set `global.platform` when a video has a destination. It tunes the defaults and the validation for that app; the rendered frames stay the engine's own presets.
+
+| `platform`                               | Orientation | Max duration | Safe zone (top / bottom / left / right) | What covers the frame                             |
+| ---------------------------------------- | ----------- | ------------ | --------------------------------------- | ------------------------------------------------- |
+| `tiktok`                                 | portrait    | 600 s        | 10% / 22% / 5% / 14%                    | tab bar, caption block, action buttons            |
+| `reels` (`ig`, `instagram`)              | portrait    | 90 s         | 8% / 20% / 5% / 12%                     | header, caption and audio row, action buttons     |
+| `shorts` (`yt-shorts`, `youtube-shorts`) | portrait    | 180 s        | 6% / 18% / 5% / 12%                     | search bar, title and channel row, action buttons |
+| `youtube`                                | landscape   | 12 h         | 5% each edge                            | title-safe margin, player controls                |
+| `x` (`twitter`)                          | landscape   | 140 s        | 5% each edge                            | title-safe margin, player controls                |
+| `linkedin`                               | landscape   | 600 s        | 5% each edge                            | title-safe margin, player controls                |
+| `facebook`                               | landscape   | 240 s        | 5% each edge                            | title-safe margin, player controls                |
+| `square-feed`                            | square      | 240 s        | 5% each edge                            | title-safe margin, player controls                |
+
+Every platform targets -14 LUFS integrated loudness with a -1 dBTP true-peak ceiling, at 30 fps.
+
+What `global.platform` changes:
+
+- **Orientation**: when `global.orientation` is omitted, the platform's orientation is used (portrait for TikTok, Reels and Shorts). An explicit `orientation` always wins; validation flags it with `platform_orientation_mismatch` when it contradicts the platform.
+- **Captions**: a `caption` without an explicit `position` is lifted above the platform's bottom UI (on TikTok portrait, 306 px from the bottom instead of 110 px). A caption with an authored `position` stays where it is.
+- **Loudness**: `global.audio.normalize: "loudnorm"` targets the platform loudness (`I=-14:TP=-1`) instead of the default `I=-16:TP=-1.5`.
+- **Validation** (advisory warnings, never errors):
+  - `platform_ui_overlap`: text reaches into an edge the app's UI covers, e.g. "the bottom 22% is covered by TikTok's caption block". It replaces the 5% title-safe `text_overflow` check and judges every edge, including preset-pinned lower thirds.
+  - `platform_duration_exceeded`: the timeline is longer than the platform accepts; the message gives the excess.
+  - `platform_fps_mismatch`: `global.fps` is outside 24..60.
+
+`platformCatalog()` (exported from the package, and `platforms[]` in `get_motion_catalog`) lists every platform with its aliases, safe zones, maximum duration and loudness target.
+
+```json
+{
+  "global": { "platform": "tiktok", "audio": { "normalize": "loudnorm" } },
+  "sections": [
+    {
+      "name": "hook",
+      "type": "color_background",
+      "options": { "duration": 3 },
+      "caption": { "text": { "en": "Wait for it" } }
+    }
+  ]
+}
+```
 
 ## Determinism
 

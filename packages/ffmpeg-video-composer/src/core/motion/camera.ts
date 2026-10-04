@@ -7,6 +7,7 @@ import type { Camera } from '../../schemas/camera.schemas';
 import { seededRandom } from '../determinism/hash';
 import { fmt } from './hermite';
 import { trackExpr, type TrackKey } from './tracks';
+import { seconds } from '../timing/seconds';
 
 export interface CameraFrame {
   width: number;
@@ -37,7 +38,7 @@ function move(from: number, to: number, window: { start: number; end: number; ea
 
 function presetTracks(camera: Camera, frame: CameraFrame): CameraTracks {
   const amount = camera.amount ?? DEFAULT_AMOUNT;
-  const start = camera.delay ?? 0;
+  const start = seconds(camera.delay) ?? 0;
   const window = { start, end: start + (camera.duration ?? Math.max(0.1, frame.duration - start)), ease: camera.ease };
   const reach = (0.8 * (frame.width * amount)) / 2;
   const hold = [{ t: 0, v: 1 + amount }];
@@ -64,11 +65,12 @@ function numeric(keys: TrackKey[] | undefined): number[] {
 
 function hitsTerm(camera: Camera, time: string): string {
   return (camera.hits ?? [])
-    .map((hit) => (typeof hit === 'number' ? { at: hit } : hit))
-    .map(
-      ({ at, strength = 0.08, decay = 10 }) =>
-        `+${fmt(strength)}*gte(${time},${fmt(at)})*exp(-(${time}-${fmt(at)})*${fmt(decay)})`
-    )
+    .map((hit) => (typeof hit === 'object' ? hit : { at: hit }))
+    .map(({ at, strength = 0.08, decay = 10 }) => {
+      const land = fmt(seconds(at) ?? 0);
+
+      return `+${fmt(strength)}*gte(${time},${land})*exp(-(${time}-${land})*${fmt(decay)})`;
+    })
     .join('');
 }
 

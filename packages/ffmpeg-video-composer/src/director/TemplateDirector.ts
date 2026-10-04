@@ -21,6 +21,7 @@ import {
   recordBuildCommands,
   resolveBuildVideoConfig,
   resolveOutputPaths,
+  timingOptions,
 } from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
@@ -109,8 +110,8 @@ class TemplateDirector {
       this.logger.warn(`[Director] partial expansion failed: ${expansion.error.message}`);
     }
 
-    // Resolve $tokens and scale travel by energy once, before any lowering (prepare-build.ts).
-    this.template.descriptor = prepareMotion(assertEffectsResolved(expansion.ok ? expansion.data : clonedDescriptor));
+    const expanded = assertEffectsResolved(expansion.ok ? expansion.data : clonedDescriptor);
+    this.template.descriptor = expanded;
     this.project.config = projectConfig;
 
     // Reset ALL build-accumulated state at the start of every compile() (config() runs first), so
@@ -127,6 +128,9 @@ class TemplateDirector {
       this.project.config.videoConfig,
       this.template.descriptor
     );
+    // Resolve $tokens, energy and time references once, before any lowering, against the resolved
+    // frame, locale and fields (prepare-build.ts).
+    this.template.descriptor = prepareMotion(expanded, timingOptions(this.project.config));
 
     const paths = this.project.config.userVideoPaths;
     this.logger.info(

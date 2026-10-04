@@ -18,6 +18,7 @@ import shell from './shell.json';
 import projects from './projects.json';
 import legal from './legal.json';
 import privacy from './privacy.json';
+import ai from './ai.json';
 
 export const en = {
   common,
@@ -28,6 +29,7 @@ export const en = {
   seo,
   legal,
   privacy,
+  ai,
   onboarding,
   media,
   builder,

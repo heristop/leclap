@@ -10,15 +10,22 @@ export type {
   LowerThird,
   ChromaKey,
   Caption,
+  TimeValue,
+  TimedReveal,
+  TimedExit,
 } from './descriptor-text';
 import type { Reveal, RevealEasing, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 import type { FontInput } from './fonts';
+import type { PlatformName } from './platforms';
 import type { RenderManifest } from './determinism/manifest';
 import type { QcOption, QcReport } from './qc/types';
 import type { MotionTokens } from '../schemas/motion.schemas';
+import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
+import type { Beats } from './timing/timeline';
+export type { Beats } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -126,10 +133,16 @@ interface TemplateMeta {
 export interface TemplateDescriptorGlobal {
   variables?: Variables;
   orientation?: string;
+  /** Delivery platform id or alias (core/platforms.ts): orientation default, safe zones, loudness. */
+  platform?: PlatformName;
   /** Root seed (uint32) for procedural effects; each element derives hash(seed, path). Default 0. */
   seed?: number;
   /** Motion tokens + energy, see schemas/motion.schemas.ts. */
   motion?: MotionTokens;
+  /** Theme: a built-in name or { extends, colors, fonts, radius, motion }, see schemas/theme.schemas.ts. */
+  theme?: Theme;
+  /** Beat grid of the whole video for "beat:n" / "bar:n" time references (core/timing/timeline.ts). */
+  beats?: Beats;
   fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;
@@ -247,6 +260,8 @@ export interface Section {
   kinetic?: KineticBlock[];
   camera?: Camera;
   graphics?: Graphic[];
+  /** Named moments in seconds from the section start, referenced as "cue:<name>" in time fields. */
+  cues?: Record<string, number>;
   look?: string;
   grade?: GradeConfig;
   letterbox?: Letterbox;

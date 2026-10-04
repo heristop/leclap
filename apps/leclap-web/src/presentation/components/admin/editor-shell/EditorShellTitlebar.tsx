@@ -25,6 +25,8 @@ interface EditorShellTitlebarProps {
   nameRef?: Ref<HTMLInputElement>;
   // Optional control rendered just before Save — the template editor passes its "Preview render" button.
   preview?: ReactNode;
+  // Optional assist control rendered before the preview — the template editor's "Generate with AI".
+  assist?: ReactNode;
   t: TFunction<'admin'>;
 }
 
@@ -122,6 +124,7 @@ export const EditorShellTitlebar = ({
   nameInvalid = false,
   nameRef,
   preview,
+  assist,
   t,
 }: EditorShellTitlebarProps) => {
   const messageId = useId();
@@ -171,6 +174,7 @@ export const EditorShellTitlebar = ({
           <IconButton label={t('editor.toolbar.redo')} disabled={!canRedo} onClick={onRedo}>
             <Redo2 className="size-4" />
           </IconButton>
+          {assist}
           {preview}
           <SaveActions onSave={onSave} onSaveAndCompile={onSaveAndCompile} t={t} />
         </div>

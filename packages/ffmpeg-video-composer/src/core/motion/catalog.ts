@@ -9,6 +9,16 @@ import { kineticCatalog } from '../kinetic/presets';
 import { KINETIC_EXIT_PRESETS, KINETIC_ORDERS } from '../../schemas/kinetic.schemas';
 import { CAMERA_PRESETS } from '../../schemas/camera.schemas';
 import { DESIGNED_TRANSITION_DESCRIPTIONS } from './transitions';
+import { platformCatalog, type PlatformCatalogEntry } from '../platforms';
+import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
+import { CAMERA_GUIDES, GRAPHIC_GUIDES, KINETIC_GUIDES, TRANSITION_GUIDES, type MotionGuide } from './catalog-guides';
+import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
+import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+
+export type { MotionGuide } from './catalog-guides';
+export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
+export type { BlueprintRole, MotionBlueprint } from './catalog-blueprints';
+import { TIME_REF_SYNTAX } from '../timing/grammar';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -31,8 +41,17 @@ const ART_DIRECTION = [
     'wipe as an in-scene page turn, flash for impact (at most 3 per second).',
   'Transitions: push for sequence, swipe for layering, zoom-through for energy, iris for reveals; keep 0.5–0.8 s and ' +
     'prefer cut between beats of the same idea. Designed transitions ease like any other motion (ease: $snappy…).',
+  'Set global.platform (tiktok, reels, shorts, youtube, x, linkedin, facebook, square-feed) when the video ' +
+    'has a destination: keep kinetic copy and graphics out of its safe zones (see platforms[].safe, fractions ' +
+    'of the frame per edge) and the timeline under platforms[].maxDuration.',
   'Every result is deterministic: the same JSON and global.seed render the same frames. Change the seed to ' +
     'reshuffle random order, scramble glyphs and grain.',
+  'Pick a genre doctrine first, then a blueprint per narrative role; keep each blueprint signatureMove. Every ' +
+    'element needs a verb (see each entry); two elements with the same verb in one beat compete.',
+  'Pacing: one primary transition plus 1–2 accents; the transition is the exit (no element exit right before it); ' +
+    'start text 0.1–0.3 s after the cut; vary eases by role; the slowest beat runs ≥ 3× the fastest.',
+  'Prove the choreography with section `assert` (visibleBy, before, inFrame, keepsMoving) and read the advisory ' +
+    'motionWarnings from validate_template before rendering.',
 ];
 
 const STARTER = {
@@ -46,24 +65,34 @@ const STARTER = {
       camera: { preset: 'push-in', amount: 0.08, hits: [0.6] },
       graphics: [{ type: 'flash', at: 0.6, duration: 0.25 }],
       kinetic: [
-        { text: { en: 'Make every word land.' }, preset: 'cascade', accent: { words: 'last' }, exit: 'cascade' },
+        {
+          id: 'headline',
+          text: { en: 'Make every word land.' },
+          preset: 'cascade',
+          accent: { words: 'last' },
+          exit: 'cascade',
+        },
         {
           text: { en: 'Physics, not keyframes' },
           preset: 'highlight',
           font: 'oswald',
           size: 46,
           y: 'bottom',
-          delay: 0.7,
+          delay: 'headline.end + 0.1',
         },
       ],
     },
   ],
 };
 
+type Guided<T> = T & MotionGuide;
+
 export interface MotionCatalog {
   rules: string[];
+  doctrine: Record<MotionGenre, GenreDoctrine>;
+  blueprints: MotionBlueprint[];
   kinetic: {
-    presets: ReturnType<typeof kineticCatalog>;
+    presets: Array<Guided<ReturnType<typeof kineticCatalog>[number]>>;
     exits: readonly string[];
     orders: readonly string[];
     units: readonly string[];
@@ -74,12 +103,68 @@ export interface MotionCatalog {
     functions: string[];
     springRules: string;
   };
-  camera: { presets: readonly string[]; fields: string[] };
-  transitions: Record<string, string>;
-  graphics: Record<string, string>;
+  camera: { presets: Array<Guided<{ preset: string }>>; fields: string[] };
+  transitions: Record<string, Guided<{ description: string }>>;
+  graphics: Record<string, Guided<{ description: string }>>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
+  /** Delivery platforms for `global.platform`: orientation, safe zones, max duration, loudness. */
+  platforms: PlatformCatalogEntry[];
+  /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
+  themes: ThemeCatalog;
+  timing: typeof TIMING;
   starter: typeof STARTER;
 }
+
+// Time references: name the moment instead of computing it. Resolved to seconds at compile time.
+const TIMING = {
+  fields: [
+    'kinetic[].delay',
+    'kinetic[].exit.at',
+    'graphics[].at',
+    'graphics[].until',
+    'camera.delay',
+    'camera.hits[] / hits[].at',
+    'camera.zoom|x|y|rotate[].t',
+    'filters[].reveal.delay (drawtext)',
+    'filters[].exit.after (drawtext)',
+    'filters[].animate.*[].t',
+  ],
+  grammar: TIME_REF_SYNTAX,
+  bases: {
+    '<id>.start': 'When the element with that id (kinetic block, graphic, drawtext filter) in this section starts.',
+    '<id>.end':
+      'When its entrance has landed: kinetic = last unit arrived; graphic = at + duration; drawtext = reveal delay + duration.',
+    '<n>%': 'A fraction of the section duration (needs a known duration).',
+    end: 'The section end.',
+    'beat:<n>': 'The n-th beat of global.beats (1-based, counted on the whole video), as section time.',
+    'bar:<n>': 'The downbeat of bar n of global.beats.',
+    'cue:<name>': 'A named point in this section, from sections[].cues.',
+  },
+  examples: [
+    '"title.end + 0.2"',
+    '"title.start - 0.1"',
+    '"50%"',
+    '"end - 0.5"',
+    '"beat:12"',
+    '"bar:3 - 0.1"',
+    '"cue:drop - 0.1"',
+  ],
+  rules: [
+    'Give an element an id only when something references it; ids are unique within a section.',
+    'Hits (camera hits, flash graphics) land exactly on the beat: "beat:12".',
+    'Entrances read as on the beat when they lead it by 0.04–0.19 s: "beat:12 - 0.1".',
+    'Chain beats with references ("headline.end + 0.15") rather than adding seconds by hand.',
+    'beat/bar need global.beats ({ bpm, offset?, beatsPerBar? } or { times }) and every earlier section to declare options.duration.',
+  ],
+  errors: ['unknown_time_ref', 'circular_time_ref', 'unresolvable_time_ref', 'negative_time', 'duplicate_time_id'],
+};
+
+const BASIC_TRANSITIONS: Record<string, string> = {
+  cut: 'A hard cut: free to render, lands on the beat.',
+  fade: 'A crossfade between the two scenes.',
+  fadeblack: 'Dips through black: a chapter break.',
+  dissolve: 'A grainy, organic dissolve.',
+};
 
 const GRAPHICS: Record<string, string> = {
   flash: 'Full-frame light hit that decays (at, duration, color, intensity).',
@@ -91,11 +176,19 @@ const GRAPHICS: Record<string, string> = {
   panel: 'A solid block growing from one edge: a backing plate for text (x, y, width, height, from).',
 };
 
+function guided(descriptions: Record<string, string>, guides: Record<string, MotionGuide>) {
+  return Object.fromEntries(
+    Object.entries(descriptions).map(([name, description]) => [name, { description, ...guides[name] }])
+  );
+}
+
 export function motionCatalog(): MotionCatalog {
   return {
     rules: ART_DIRECTION,
+    doctrine: GENRE_DOCTRINE,
+    blueprints: MOTION_BLUEPRINTS,
     kinetic: {
-      presets: kineticCatalog(),
+      presets: kineticCatalog().map((entry) => ({ ...entry, ...KINETIC_GUIDES[entry.preset] })),
       exits: KINETIC_EXIT_PRESETS,
       orders: KINETIC_ORDERS,
       units: ['line', 'word', 'glyph'],
@@ -113,7 +206,7 @@ export function motionCatalog(): MotionCatalog {
       springRules: `stiffness 1..2000, damping 1..200, mass 0.1..20, velocity -50..50, damping ratio ≥ ${MIN_DAMPING_RATIO}; with no duration a spring takes its own settle time.`,
     },
     camera: {
-      presets: CAMERA_PRESETS,
+      presets: CAMERA_PRESETS.map((preset) => ({ preset, ...CAMERA_GUIDES[preset] })),
       fields: [
         'preset',
         'amount',
@@ -129,9 +222,12 @@ export function motionCatalog(): MotionCatalog {
         'includeText',
       ],
     },
-    transitions: DESIGNED_TRANSITION_DESCRIPTIONS,
-    graphics: GRAPHICS,
+    transitions: guided({ ...BASIC_TRANSITIONS, ...DESIGNED_TRANSITION_DESCRIPTIONS }, TRANSITION_GUIDES),
+    graphics: guided(GRAPHICS, GRAPHIC_GUIDES),
     tokens: BUILTIN_MOTION_TOKENS,
+    platforms: platformCatalog(),
+    themes: themeCatalog(),
+    timing: TIMING,
     starter: STARTER,
   };
 }

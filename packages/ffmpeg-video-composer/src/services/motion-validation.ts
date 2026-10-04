@@ -11,14 +11,12 @@ import { keyTimesError, type TrackKey } from '@/core/motion/tracks';
 import { FONT_ADVANCES } from '@/core/font-advances.generated';
 import { findFont } from '@/core/fonts';
 import { KINETIC_PRESET_DEFAULTS } from '@/core/kinetic/presets';
+import { parseTimeRef } from '@/core/timing/grammar';
+import { resolveTimeRefs } from '@/core/timing/resolve';
 
-// Structurally the validator's ValidationError (declared here so the rules module can import this one
-// without a cycle).
-interface ValidationError {
-  path: string;
-  message: string;
-  code: string;
-}
+import { withEasingHint } from './validation/easing-hint';
+import { nearest } from './validation/suggest';
+import type { ValidationError } from './validation/types';
 
 interface Use {
   path: string;
@@ -88,17 +86,36 @@ function curveTokenErrors(motion: MotionTokensInput): ValidationError[] {
   });
 }
 
+// The finding with a suggestion attached when one exists: a typo fix is safe to apply, a miss is not.
+function suggested(finding: ValidationError, suggestion: string | undefined): ValidationError {
+  return suggestion === undefined ? { ...finding, kind: 'judgement' } : { ...finding, suggestion, kind: 'format' };
+}
+
+function unknownTokenError(path: string, token: string, tokens: ResolvedTokens): ValidationError {
+  const names = Object.keys(tokens.easings);
+  const near = nearest(token.slice(1), names);
+  const finding: ValidationError = {
+    path,
+    message: `unknown motion token "${token}"`,
+    code: 'unknown_motion_token',
+    hint:
+      near === undefined
+        ? `Define "${token.slice(1)}" in global.motion.springs/curves, or use one of: ${names.map((name) => `$${name}`).join(', ')}.`
+        : `Use "$${near}".`,
+  };
+
+  return suggested(finding, near === undefined ? undefined : `$${near}`);
+}
+
 function easingUseError(use: Use, tokens: ResolvedTokens): ValidationError | null {
   const spec = use.value as EasingSpec;
   const resolved = resolveEasingRef(spec, tokens);
 
-  if (typeof resolved === 'string' && resolved.startsWith('$')) {
-    return { path: use.path, message: `unknown motion token "${resolved}"`, code: 'unknown_motion_token' };
-  }
+  if (typeof resolved === 'string' && resolved.startsWith('$')) return unknownTokenError(use.path, resolved, tokens);
 
   const message = easingError(resolved);
 
-  return message ? { path: use.path, message, code: 'invalid_easing' } : null;
+  return message ? withEasingHint({ path: use.path, message, code: 'invalid_easing' }, resolved) : null;
 }
 
 function trackError(
@@ -108,9 +125,13 @@ function trackError(
   tokens: ResolvedTokens
 ): string | null {
   const resolved = keys.map((key) => ({ ...key, t: resolveTimeRef(key.t, tokens) }));
+
+  // A time reference left unresolved is reported by the time-reference rules.
+  if (resolved.some((key) => typeof key.t === 'string' && parseTimeRef(key.t))) return null;
+
   const badTime = resolved.find((key) => typeof key.t === 'string' && !/^\+?\d+(?:\.\d+)?$/.test(key.t));
 
-  if (badTime) return `time "${String(badTime.t)}" is not seconds, "+seconds" or a duration token`;
+  if (badTime) return `time "${String(badTime.t)}" is not seconds, "+seconds", a duration token or a time reference`;
 
   if ((axis === 'opacity' || axis === 'scale') && keys.some((key) => typeof key.v === 'string')) {
     return `${axis} keys take plain numbers, not relative offsets`;
@@ -150,6 +171,9 @@ function kineticBlockErrors(block: KineticInput, path: string): ValidationError[
       path: `${path}.font`,
       message: `"${block.font}" is not a bundled font, so ${unit}s can't be laid out; use a bundled font id or unit "line"`,
       code: 'kinetic_font_unmeasurable',
+      hint: 'Use a bundled font id (e.g. "bebas", "oswald"), or set unit to "line".',
+      suggestion: 'line',
+      kind: 'judgement',
     });
   }
 
@@ -158,6 +182,8 @@ function kineticBlockErrors(block: KineticInput, path: string): ValidationError[
       path: `${path}.counter`,
       message: 'the counter preset needs counter.from and counter.to',
       code: 'invalid_kinetic',
+      hint: 'Add counter: { "from": <number>, "to": <number> } to this block.',
+      kind: 'judgement',
     });
   }
 
@@ -173,7 +199,8 @@ function kineticErrors(template: TemplateDescriptor): ValidationError[] {
 }
 
 export function validateMotionSystem(template: TemplateDescriptor): ValidationError[] {
-  const uses = motionUses(template);
+  // Keyframe times may be time references: check the tracks as they will lower, in seconds.
+  const uses = motionUses(resolveTimeRefs(template).descriptor);
 
   const tokens = resolveTokens(template.global?.motion);
   const easingErrors = uses.filter((use) => use.kind === 'easing').map((use) => easingUseError(use, tokens));

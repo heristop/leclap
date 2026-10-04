@@ -1,11 +1,21 @@
 // Pure filtergraph builders for the music mix and the loudness normalisation (MusicComposer). No IO.
 
 import type { TemplateDescriptorGlobal } from '@/core/types';
-import { LOUDNORM_INTEGRATED, LOUDNORM_TRUE_PEAK } from '@/core/qc/targets';
+import { LOUDNORM_INTEGRATED, LOUDNORM_TRUE_PEAK, type LoudnessTarget } from '@/core/qc/targets';
+import { resolvePlatform } from '@/core/platforms';
+
+/** The loudnorm target: the delivery platform's when `global.platform` names one, else the default. */
+export function loudnessTarget(global: TemplateDescriptorGlobal | undefined): LoudnessTarget {
+  const platform = resolvePlatform(global?.platform);
+
+  return platform
+    ? { integrated: platform.loudness.lufs, truePeak: platform.loudness.truePeak }
+    : { integrated: LOUDNORM_INTEGRATED, truePeak: LOUDNORM_TRUE_PEAK };
+}
 
 /** The single-pass loudnorm filter at a given true-peak ceiling (dBTP). */
-export function loudnormFilter(ceiling: number = LOUDNORM_TRUE_PEAK): string {
-  return `loudnorm=I=${LOUDNORM_INTEGRATED}:TP=${ceiling}:LRA=11`;
+export function loudnormFilter(ceiling: number = LOUDNORM_TRUE_PEAK, integrated = LOUDNORM_INTEGRATED): string {
+  return `loudnorm=I=${integrated}:TP=${ceiling}:LRA=11`;
 }
 
 /**
@@ -15,7 +25,11 @@ export function loudnormFilter(ceiling: number = LOUDNORM_TRUE_PEAK): string {
 export function normalizeSuffix(global: TemplateDescriptorGlobal | undefined, ceiling?: number): string {
   const normalize = global?.audio?.normalize;
 
-  if (normalize === 'loudnorm') return `,${loudnormFilter(ceiling)}`;
+  if (normalize === 'loudnorm') {
+    const target = loudnessTarget(global);
+
+    return `,${loudnormFilter(ceiling ?? target.truePeak, target.integrated)}`;
+  }
 
   return normalize === 'dynaudnorm' ? ',dynaudnorm=f=150:g=15' : '';
 }

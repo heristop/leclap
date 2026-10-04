@@ -6,3 +6,9 @@
 export const LOUDNORM_INTEGRATED = -16;
 /** True-peak ceiling, dBTP. */
 export const LOUDNORM_TRUE_PEAK = -1.5;
+
+/** A loudnorm target: integrated loudness (LUFS) and true-peak ceiling (dBTP). */
+export interface LoudnessTarget {
+  integrated: number;
+  truePeak: number;
+}

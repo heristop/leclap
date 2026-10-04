@@ -101,6 +101,10 @@
             "description": "Return the authoritative template descriptor JSON Schema plus the authoring guide."
           },
           {
+            "name": "get_motion_catalog",
+            "description": "Return the motion catalog: kinetic presets, camera moves, graphics, designed transitions, easing grammar, motion tokens, themes, delivery platforms and art-direction rules."
+          },
+          {
             "name": "validate_template",
             "description": "Validate a template without rendering and report the clips and fields compose_video will require."
           },

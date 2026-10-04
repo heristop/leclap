@@ -6,16 +6,17 @@ import type { Filter, Section } from '@/core/types';
 import type { Graphic } from '../../schemas/graphics.schemas';
 import { parseEasing, type EasingSpec } from '@/core/motion/easing';
 import { fmt } from '@/core/motion/hermite';
+import { resolvedTimes } from '@/core/timing/seconds';
 import type { SugarContext } from './sugar-context';
 
-interface Rect {
+export interface Rect {
   x: number;
   y: number;
   w: number;
   h: number;
 }
 
-interface Frame {
+export interface Frame {
   width: number;
   height: number;
   fps: number;
@@ -211,6 +212,25 @@ function spec(g: Graphic, frame: Frame): Spec {
   return build(g, frame, { ease: g.ease ?? EXPO, above: g.above ?? false, holds: true });
 }
 
+/** Timing and resting footprint of one graphic, for the motion timeline (no filters are built). */
+export function graphicTiming(
+  g: Graphic,
+  frame: Frame
+): { duration: number; ease: EasingSpec; holds: boolean; bbox: Rect | null } {
+  const s = spec(g, frame);
+  const rects = s.holds ? s.rects(1) : [{ x: 0, y: 0, w: frame.width, h: frame.height }];
+  const shown = rects.filter((r) => r.w >= 1 && r.h >= 1);
+
+  if (shown.length === 0) return { duration: s.duration, ease: s.ease, holds: s.holds, bbox: null };
+
+  const x = Math.min(...shown.map((r) => r.x));
+  const y = Math.min(...shown.map((r) => r.y));
+  const w = Math.max(...shown.map((r) => r.x + r.w)) - x;
+  const h = Math.max(...shown.map((r) => r.y + r.h)) - y;
+
+  return { duration: s.duration, ease: s.ease, holds: s.holds, bbox: { x, y, w, h } };
+}
+
 function boxes(rects: Rect[], color: string, enable: string): Filter[] {
   // drawbox treats w/h of 0 as "full size", so empty rectangles are skipped, never emitted.
   return rects
@@ -225,9 +245,15 @@ function window(from: number, to: number | undefined): string {
   return to === undefined ? `'gte(t,${fmt(from)})'` : `'gte(t,${fmt(from)})*lt(t,${fmt(to)})'`;
 }
 
+/** Seconds the graphic's animation takes (its authored duration or the type's default). */
+export function graphicDuration(g: Graphic, frame: Frame): number {
+  return spec(g, frame).duration;
+}
+
 /** One graphic as drawbox filters, frame by frame, then its held final state. */
-export function graphicToFilters(g: Graphic, frame: Frame): Filter[] {
-  const s = spec(g, frame);
+export function graphicToFilters(graphic: Graphic, frame: Frame): Filter[] {
+  const g = resolvedTimes(graphic);
+  const s = spec(graphic, frame);
   const at = g.at ?? 0;
   const curve = parseEasing(s.ease).fn;
   const frames = Math.min(MAX_FRAMES, Math.max(1, Math.ceil(s.duration * frame.fps)));

@@ -300,6 +300,7 @@ export { default as Project } from './core/models/Project';
 export { default as Segment } from './core/models/Segment';
 export type { ProjectConfig, TemplateDescriptor, Variables, Section, Filter } from './core/types';
 export { isFontRef, type FontRef, type FontInput } from './core/fonts';
+export { themeCatalog, resolveTheme, type ThemeCatalog, type ThemeSpec } from './core/theme';
 export { container } from 'tsyringe';
 export { compileBrowser as compile };
 
@@ -308,6 +309,16 @@ export type { EffectReference, JsonValue } from './schemas/effect-reference.sche
 export { EffectSectionSchema } from './schemas/section.schemas';
 export type { EffectSection } from './schemas/section.schemas';
 export { resolveTemplateEffects } from './core/resolve-template-effects';
+export {
+  platformCatalog,
+  resolvePlatform,
+  type DeliveryPlatform,
+  type PlatformCatalogEntry,
+  type PlatformId,
+  type PlatformName,
+  type ResolvedPlatform,
+  type SafeZone,
+} from './core/platforms';
 export type {
   EffectRenderResult,
   EffectRenderer,

@@ -16,6 +16,20 @@ export type Exit =
   | RevealType
   | { type: RevealType; after?: number; duration?: number; distance?: number; easing?: RevealEasing };
 
+/**
+ * Seconds, or a section-local time reference resolved at compile time: "title.end + 0.2", "50%",
+ * "end - 0.5", "beat:12", "bar:3", "cue:drop - 0.1" (see schemas/time.schemas.ts).
+ */
+export type TimeValue = number | string;
+/** A drawtext filter's reveal: `delay` may be a time reference. */
+export type TimedReveal =
+  | RevealType
+  | { type: RevealType; delay?: TimeValue; duration?: number; distance?: number; easing?: RevealEasing };
+/** A drawtext filter's exit: `after` may be a time reference. */
+export type TimedExit =
+  | RevealType
+  | { type: RevealType; after?: TimeValue; duration?: number; distance?: number; easing?: RevealEasing };
+
 export type TextEffect = {
   shadow?: boolean | { color?: string; dx?: number; dy?: number };
   outline?: boolean | { color?: string; width?: number };

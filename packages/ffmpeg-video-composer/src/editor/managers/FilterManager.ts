@@ -7,6 +7,7 @@ import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import { applyFilterCompat, engineCapabilities } from '../utils/filter-compat';
 import { applyAnimation } from '../presets/text';
 import { applyTracks } from '@/core/motion/tracks';
+import { resolvedTimes } from '@/core/timing/seconds';
 import type FormatterManager from './FormatterManager';
 
 // A drawtext base coordinate may be authored as a number or an expression string; anything else
@@ -84,7 +85,7 @@ class FilterManager {
     // The schema allows numeric x/y as well as expression strings; both are valid base positions.
     // Coercing a number to '0' would anchor the animation to the frame origin.
     const base = { x: baseCoordinate(values.x), y: baseCoordinate(values.y) };
-    applyAnimation(values, filter.reveal, filter.exit, base, duration);
+    applyAnimation(values, resolvedTimes(filter.reveal), resolvedTimes(filter.exit), base, duration);
 
     if (filter.animate) applyTracks(values, filter.animate, base);
 

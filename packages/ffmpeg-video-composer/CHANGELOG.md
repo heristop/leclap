@@ -32,6 +32,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   timeline.
 - Exports: `core/determinism` (hashing, seeds, manifest), `core/motion` (curves, easing, tokens, tracks),
   `ENGINE_VERSION`, `digestRenderedFile`.
+- Agent-grade validation: findings carry optional `hint`, `suggestion` and `kind` (`format` = safe to
+  auto-apply, `judgement` = ask the author first). Unknown keys are reported as `unknown_key` with a
+  "did you mean" suggestion, including on objects that used to drop them silently; enum and unknown-type
+  errors suggest the nearest value; schema and rule findings come back together, deduplicated.
+- Time references: time fields accept `"<id>.start"`, `"<id>.end"`, `"50%"`, `"end - 0.5"`, `"beat:12"`,
+  `"bar:3"` and `"cue:drop"`, resolved to seconds at compile time. Optional `id` on kinetic blocks,
+  graphics and drawtext filters; `sections[].cues`; `global.beats` (`{ bpm, offset?, beatsPerBar? }` or
+  `{ times }`). Codes `unknown_time_ref`, `circular_time_ref`, `unresolvable_time_ref`, `negative_time`,
+  `duplicate_time_id`.
+- Motion feedback: `motionTimeline()` and `TemplateValidator.getMotionWarnings()` (advisory
+  `ease_monotony`, `front_loaded`, `stagger_too_long`, `starts_at_zero`, `transition_monotony`,
+  `exit_before_transition`, `dead_air`, `tempo_flat`, each with a hint). Section `assert` (`visibleBy`,
+  `before`, `inFrame`, `keepsMoving`) fails validation with `assertion_failed`. `motionCatalog()` adds a
+  doctrine per genre, 10 validated scene blueprints, and a verb / `useWhen` / `avoidWhen` / `pairsWith`
+  on every preset, transition and graphic.
+- `global.theme`: six built-in themes (leclap, midnight, editorial, bold, neon, paper) or
+  `{ extends, colors, fonts, radius, motion }`; `$color.<name>[@alpha]` / `$font.<name>` resolve before
+  lowering, so a themed template renders exactly like its literal version. `unknown_theme`,
+  `unknown_theme_token`, advisory `accent_overuse`; `themeCatalog()`.
+- `global.platform` (tiktok, reels, shorts, youtube, x, linkedin, facebook, square-feed, plus aliases):
+  default orientation, captions lifted above the app's bottom UI, `loudnorm` aimed at -14 LUFS / -1 dBTP,
+  and advisory `platform_ui_overlap`, `platform_duration_exceeded`, `platform_fps_mismatch`,
+  `platform_orientation_mismatch`. `platformCatalog()`.
+- Glyph coverage: text drawn with a bundled font that lacks glyphs fails validation with
+  `font_missing_glyphs` (listing the characters and a bundled font that covers them); emoji in drawn text
+  fail with `emoji_unsupported`. `pnpm generate:font-advances` also writes a per-font coverage table.
+
+### Fixed
+
+- Backslashes in drawtext text (captions, title cards, overlays, kinetic counter prefix/suffix) render
+  literally instead of being swallowed; escaping is shared and verified against a real FFmpeg.
 
 ## [2.5.0] - 2026-10-03
 

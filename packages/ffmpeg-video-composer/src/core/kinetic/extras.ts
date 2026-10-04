@@ -7,12 +7,13 @@ import type { Filter } from '../types';
 import { parseEasing, type EasingSpec } from '../motion/easing';
 import { easedProgressExpr, fmt } from '../motion/hermite';
 import { seededRandom } from '../determinism/hash';
+import { escapeDrawtextText } from '../drawtext-text';
 import { codePoints, measureBundled, type LayoutPiece } from './layout';
 import type { ResolvedKinetic } from './resolve';
 
 const SWEEP_SECONDS = 0.35;
 const SWEEP_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
-const DEFAULT_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*';
+export const DEFAULT_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#%&*';
 const DECOYS = 3;
 
 function windowExpr(from: number, to: number | null): string {
@@ -127,16 +128,6 @@ export function markerSweep(settings: ResolvedKinetic, sweep: MarkerSweep): Filt
   return [...steps, box({ ...geometry, w: full, enable: windowExpr(start + frames / fps, end) })];
 }
 
-// drawtext text escaping for literal parts (prefix/suffix), matching FormatterManager's TEXT_ESCAPES: the
-// option separator `\:` and a literal percent `\\\%` (a bare `\%` makes drawtext drop the whole text).
-function literal(text: string): string {
-  return text
-    .replace(/\\/g, '')
-    .replace(/:/g, String.raw`\:`)
-    .replace(/%/g, String.raw`\\\%`)
-    .replace(/'/g, '’');
-}
-
 /** counter: the value rolling from `from` to `to`, as a drawtext text expansion. */
 export function counterText(
   counter: { from: number; to: number; decimals?: number; prefix?: string; suffix?: string },
@@ -151,5 +142,5 @@ export function counterText(
     decimals > 0 ? String.raw`.%{eif\:mod(floor(${value}*${10 ** decimals}),${10 ** decimals})\:d\:${decimals}}` : '';
   const number = `${whole}${fraction}`;
 
-  return `${literal(counter.prefix ?? '')}${number}${literal(counter.suffix ?? '')}`;
+  return `${escapeDrawtextText(counter.prefix ?? '')}${number}${escapeDrawtextText(counter.suffix ?? '')}`;
 }

@@ -36,6 +36,8 @@ export interface QcExpectations {
   /** Music is mixed in, or a clip brings its own sound. */
   audioExpected: boolean;
   normalize: 'loudnorm' | 'dynaudnorm' | null;
+  /** The loudnorm target (the delivery platform's when set); absent means the engine default. */
+  loudnessTarget?: { integrated: number; truePeak: number };
 }
 
 export interface QcVideoProbe {

@@ -217,7 +217,8 @@ function checkLoudness(content: QcContentMeasure, expected: QcExpectations): QcF
     return finding('loudness', 'judgement', { status: 'pass', value: null, expected: null, reason: 'no audio' });
   }
 
-  const target = expected.normalize === 'loudnorm' ? LOUDNORM_INTEGRATED : null;
+  const target =
+    expected.normalize === 'loudnorm' ? (expected.loudnessTarget?.integrated ?? LOUDNORM_INTEGRATED) : null;
   const off = target === null ? 0 : Math.abs(integrated - target);
 
   return finding('loudness', 'judgement', {
@@ -231,7 +232,7 @@ function checkLoudness(content: QcContentMeasure, expected: QcExpectations): QcF
 function checkTruePeak(truePeak: number | null, expected: QcExpectations, loudness?: LoudnessReport | null): QcFinding {
   const normalized = expected.normalize === 'loudnorm';
   const kind: QcKind = normalized ? 'format' : 'judgement';
-  const ceiling = normalized ? (loudness?.target ?? LOUDNORM_TRUE_PEAK) : 0;
+  const ceiling = normalized ? (loudness?.target ?? expected.loudnessTarget?.truePeak ?? LOUDNORM_TRUE_PEAK) : 0;
 
   if (truePeak === null) {
     return finding('true_peak', kind, { status: 'pass', value: null, expected: null, reason: 'no audio' });

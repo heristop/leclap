@@ -19,6 +19,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `leclap validate` prints a `→ hint` line under each error that has a known fix, plus advisory motion
   pacing findings that never change the exit code; `--json` includes `hint`, `suggestion`, `kind` and
   `motionWarnings`.
+- `leclap render --format <name>` renders one composition of a template with `formats`; `--formats all|a,b`
+  renders each to `<output>-<format>.mp4`.
+- `leclap style <image|clip> [--json] [--out style-guide.md]` derives a theme and style guide from a reference.
+- `leclap beats <audio> [--json]` measures tempo, the beat grid, confidence and drop/build/end cues.
+- `leclap init --studio <dir>` scaffolds a production folder; `leclap studio status|pass` tracks its gates.
+- `leclap diagnose` reports which features the FFmpeg build can run, with fixes; `--json` prints the
+  capability report.
+- `leclap snapshot`, `leclap compare` and `leclap timeline [--json]` look at a template's frames, compare
+  variants and list where everything sits; all take `--format`.
 
 ## [0.3.0] - 2026-10-03
 

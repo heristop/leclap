@@ -56,8 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and advisory `platform_ui_overlap`, `platform_duration_exceeded`, `platform_fps_mismatch`,
   `platform_orientation_mismatch`. `platformCatalog()`.
 - Glyph coverage: text drawn with a bundled font that lacks glyphs fails validation with
-  `font_missing_glyphs` (listing the characters and a bundled font that covers them); emoji in drawn text
-  fail with `emoji_unsupported`. `pnpm generate:font-advances` also writes a per-font coverage table.
+  `font_missing_glyphs` (listing the characters and a bundled font that covers them). `pnpm generate:font-advances` also writes a per-font coverage table.
 
 - Output QC (`ProjectConfig.qc`, `CompileReporter.onQc`, manifest `qc`): format checks (duration, frame
   count, A/V drift, pixel format, colour tags, audio present) and an optional content pass (black, frozen,
@@ -69,6 +68,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Final output on the Node/static adapters is published atomically; a render whose output is one of its
   inputs is refused.
 
+- Per-format compositions: top-level `formats` overrides (deep-merge patches, `byId`, `remove`) and
+  `{ "$format": { … } }` responsive values, resolved right after partial expansion. `ProjectConfig.format`
+  picks one; validation runs per declared format, with advisories `format_crop_only` and
+  `format_story_diverges`. Exports `resolveFormat`, `declaredFormats`, `usesFormats`, `FORMAT_NAMES`.
+- Footage editing on `video` / `project_video`: `fit` (`cover`, `letterbox`, `blur`, `off`) with `fill` and
+  cover `focus` (anchors, points, keyframed pans), `clip` in/out points, `speedRamp` presets or keys with
+  `rampAudio`, `freeze` frames with an optional flash, `trimSilence` (Node `silencedetect`) and explicit
+  `keep` windows, and `cutaways[]` B-roll with `a`/`b`/`mix` audio. Edited lengths drive the timeline,
+  transitions, music and QC. New validation codes (including `take_edit_combination`) and advisories;
+  `motionCatalog().footage`.
+- `look: { preset, strength }` dials a LUT look toward the untouched footage, and `grade.lut: { url, strength? }`
+  applies a user `.cube` (single `lut3d`, parsing errors name the line).
+- Media probes report HDR (`pq`, `hlg`, `dolby-vision`), colour primaries and transfer, bit depth, VFR and
+  rotation; HDR clips are tone-mapped to SDR on Node when the build has `zscale` and `tonemap`, otherwise
+  the render logs `hdr_source_sdr_pipeline`.
+- Word-timed `sections[].subtitles` from words, cues or SRT/WebVTT: phrase grouping, fit-then-balanced
+  wrapping, splitting, platform safe zones, six caption styles (`clean`, `loud`, `keynote`, `documentary`,
+  `boxed`, `neon`), karaoke `word` / `fill` / `pop` and a crown line, lowered to `drawtext` / `drawbox`.
+  Errors `invalid_srt`, `invalid_word_timings`, `invalid_subtitle_cue`, `subtitle_font_unmeasurable`;
+  advisories `caption_split`, `caption_shrunk`, `subtitle_past_end`, `caption_crown_repeated`;
+  `motionCatalog().captions`. Opt-in `caption.wrap` / `caption.fit` and `kinetic[].wrap: "balanced"`.
+- Audio polish: `options.voice` presets (`clean`, `broadcast`, `warm`, `rumble-cut`, `room-gate`),
+  `options.audioAutomation` and `global.audio.automation` (music bed, before ducking), section and global
+  `sfx` from ten bundled sounds, `global.audio.sfx: "auto"` (whooshes, hits and risers from the motion),
+  whole-video time references for global fields, and `motionCatalog().audio`.
+- Beat analysis: `analyzeBeats`, `analyzeMusicFile` and `applyMusicAnalysis` measure tempo, the downbeat, a
+  confidence and drop/build/end cues. `global.beats: { analyze: "music" }` is measured during the Node
+  compile (`beats_analysis_unavailable` elsewhere); section `options.duration` accepts `{ beats }` /
+  `{ bars }` (`beat_duration_needs_bpm`); advisory `beat_grid_low_confidence`.
+- Motion roles: `global.motion.roles` (`micro`, `panel`, `camera`, `headline`, `accent`, `mascot`) with
+  built-in defaults, `$role.<name>` tokens and `role` on kinetic blocks, graphics, drawtext filters, title
+  cards, lower thirds and the camera; advisories `overshoot_overuse` and `headline_hold_short`;
+  `motionCatalog().roles`.
+- Section `purpose` / `role` metadata, and `meta.brief` / `meta.requirePurpose` opting into the advisory
+  `section_without_purpose`.
+- Motion FX: kinetic `trail` echoes, `whip-left|right|up|down` designed transitions, `glitch`, `focus`,
+  `progress`, `ticker` and `bars-chart` graphics, and `lowerThird.style` (`clean-bar`, `side-rule`,
+  `kicker`, `stack-bars`, `pill`); `motionCatalog().lowerThirds` and `kinetic.trail`.
+- Compositing: `kinetic[].fill` (gradient, texture or shimmer inside the letters, through `alphamerge`) and
+  `sections[].layout` split screens and before/after wipes; errors `unknown_layout_source`,
+  `layout_unsupported_section`, `layout_wipe_out_of_range`; advisory `mask_unavailable`;
+  `motionCatalog().compositing`.
+- Right-to-left and complex scripts: `text_shaping` follows the real build (libfribidi), such kinetic text
+  animates per line (`kinetic_unit_coarsened`, `rtl_unshaped`), and the bundled `noto-arabic` /
+  `noto-hebrew` fonts.
+- Colour emoji in drawn text render as bundled image overlays that share the text's timing, motion and fade;
+  `global.emoji` (`image`, `strip`, or `error` to fail with `emoji_unsupported`) and advisories `emoji_missing_asset`, `emoji_overlay_cap`,
+  `emoji_stripped`; `resolveBundledEmoji` filesystem hook.
+- Reference style: `analyzeStyle` / `analyzeStyleFile` derive a theme and style guide (palette roles with
+  WCAG AA contrast, grain, pacing, motion energy, genre) from an image or clip, deterministically.
+- Advisory `palette_drift` (off-palette hex colours, more than two font families) with `global.theme` set;
+  `findPaletteDrift`.
+- Capability doctor: `probeCapabilities()` probes the Node FFmpeg (listings plus one-frame renders, cached
+  per binary and version); renders drop unusable filters with a warning and fall back to cuts without
+  xfade; `TemplateValidator.getCapabilityWarnings()` returns `feature_unavailable`. `FVC_CAPABILITY_PROBE=0`
+  skips the probe.
+- Elastic partials: `envelope`, `syncPoints`, `jobs` / `useWhen` / `avoidWhen` on definitions, and ref
+  `duration` and `align`; sync points become cues; advisory `partial_compressed`;
+  `motionCatalog().partials` and `partialCatalog()`.
+- Inspection (Node): `renderSnapshots`, `compareSnapshots` and `lookSnapshots` save PNG frames at
+  whole-video time references, at transitions or once each section settles, with contact sheets,
+  platform safe-zone shading, crops, variant and look grids, and per-format rendering. `videoTimeline()`
+  places sections, motion events, beats and cues on video seconds; `searchMotionCatalog()` ranks catalog
+  entries, including captions, sound effects, voice, footage, roles, compositing, lower thirds and formats.
+- On-device engine: `acompressor`, `adelay`, `agate`, `alimiter`, `equalizer` and `alphamerge` join the
+  filter allowlist and the build links libfribidi (rebuild the engine).
+
 ### Fixed
 
 - Backslashes in drawtext text (captions, title cards, overlays, kinetic counter prefix/suffix) render
@@ -76,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - FFmpeg 7.1+: Rec.709 tags are set through libx264 parameters, avoiding an unintended colour conversion.
 - `project_video` sections whose audio is shorter than the video no longer lose video frames to
   `-shortest` (the clip's audio is padded).
+- Normalisation now runs when music is enabled but no track resolves.
 
 ## [2.5.0] - 2026-10-03
 

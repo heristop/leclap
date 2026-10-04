@@ -20,6 +20,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `get_motion_catalog` also returns genre doctrine, scene blueprints, per-preset verbs and guidance,
   built-in themes, delivery platforms and the time-reference grammar; the registry manifest lists it.
 - `get_template_schema` describes `global.platform`; the `compose-video` prompt adds motion pacing rules.
+- New always-registered tools: `extract_style` (theme and style guide from a reference under the media
+  dir), `analyze_music` (beat grid and cues), `get_capabilities` (local FFmpeg capability report),
+  `render_frames` (PNG frames, contact sheets, safe zones, variant and look grids), `get_timeline` and
+  `report_catalog_gap`. Fifteen tools are now always registered.
+- `get_motion_catalog` accepts `{ query, kind? }` and returns ranked matches, with a pointer to
+  `report_catalog_gap` when nothing matches; `--catalog-gap-log` / `LECLAP_MCP_CATALOG_GAP_LOG` sets the log.
+- `compose_video`, `render_frames` and `get_timeline` accept `format`; the template is resolved to that
+  format before validation, the sandbox guard and the render.
+- `validate_template` adds `featureWarnings` from the local capability probe and reports
+  `partial_compressed`; `get_sample` adds a `partialCatalog` summary.
+- `probe_media` reports `hdr`, `colorPrimaries`, `colorTransfer`, `bitDepth`, `vfr` and `rotation`.
+- The `get_template_schema` guide covers formats, footage editing, subtitles, voice/automation/sfx, music
+  timing, motion roles and section purpose, trails, the new graphics, whips, lower-third styles, fills,
+  layouts, right-to-left text and emoji.
 
 ## [0.4.0] - 2026-10-03
 

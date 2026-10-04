@@ -14,6 +14,8 @@ Descriptors control scene timing, orientation, fps and creative direction. The h
 | `@leclap/creative-kit/partials`                  | `expandPartials` / `expandPartialsSafe` + the generated partial registry.                |
 | `@leclap/creative-kit/fonts`                     | `FONTS` — the bundled font set (BebasNeue, Oswald, …) used for text overlays.            |
 | `@leclap/creative-kit/media`                     | Curated music/background metadata.                                                       |
+| `@leclap/creative-kit/sfx`                       | `SFX_ITEMS` — the bundled sound effects (path and license) for section and global `sfx`. |
+| `@leclap/creative-kit/music-beats`               | `findMusicBeats` — precomputed beat grids and drop cues of the library tracks.           |
 | `@leclap/creative-kit/editor`                    | The visual-builder editor model (`toEditorState` / `buildDescriptor`, `MediaChoice`, …). |
 | `@leclap/creative-kit/templates/*`, `/library/*` | Raw template JSON and the media/font files themselves.                                   |
 
@@ -33,7 +35,11 @@ src/
 ```bash
 pnpm --filter @leclap/creative-kit gen:templates   # rebuild templates.generated.ts after adding a JSON
 pnpm --filter @leclap/creative-kit gen:partials    # rebuild partials.generated.ts after adding a partial
+pnpm --filter @leclap/creative-kit gen:sfx         # regenerate the bundled sound effects
+pnpm --filter @leclap/creative-kit gen:music-beats # re-measure the library tracks' beat grids
 ```
+
+`library/sfx/` holds ten original sound effects (whoosh, swoosh-short, hit, boom, riser, click, tick, pop, shutter, ding), synthesized by `pnpm --filter @leclap/creative-kit gen:sfx`; regenerating writes identical bytes. `gen:music-beats` measures every library track into `src/music-beats.generated.json` (needs `git lfs pull` and a built engine first). `library/fonts/` includes Noto Sans Arabic and Hebrew (`noto-arabic`, `noto-hebrew`, OFL) for right-to-left copy.
 
 `library/emoji/` holds the colour emoji the engine composites over drawn text (72x72 PNGs named by code-point sequence, e.g. `1f44d-1f3fd.png`). They are rendered from [Twemoji](https://github.com/jdecked/twemoji) — © Twitter, Inc, jdecked and other contributors, licensed [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Regenerate the set (and the engine's `src/core/emoji-manifest.generated.ts`) with `pnpm gen:emoji`; edit the list in `scripts/gen-emoji.ts`.
 

@@ -60,6 +60,19 @@ It is asset-free (bundled fonts), deterministic, and renders on every backend. S
 
 Each phrase is fitted to at most two balanced lines, held for at least a second, and drawn with plain `drawtext` / `drawbox` filters gated by `enable` windows. It needs no footage, and the same JSON renders the same bytes on every run.
 
+## FX pack
+
+[`fx-pack.json`](./fx-pack.json) gathers the newer native effects in one asset-free piece: kinetic echo trails, `whip-*` transitions, the `glitch`, `focus`, `progress`, `ticker` and `bars-chart` graphics, and the lower-third styles. It renders twice to the same bytes. See [graphics](../../docs/template-configuration.md#graphics) and [designed transitions](../../docs/template-configuration.md#designed-transitions).
+
+## Formats
+
+[`formats.json`](./formats.json) tells one launch story three times: a 16:9 film, a 9:16 vertical cut (larger type, the aside dropped, a vertical camera path, Shorts safe zones) and a 1:1 feed post (the proof beat removed, shorter holds). See [formats](../../docs/template-configuration.md#formats-one-story-several-compositions).
+
+```bash
+leclap render examples/motion-design/formats.json --formats all \
+  --assets packages/leclap-creative-kit/src/library -o formats.mp4
+```
+
 ## Native controls
 
 [`native-timing.json`](./native-timing.json) is a landscape, asset-free demonstration with bundled fonts. It includes a broadcast-inspired frame, a title card with configurable line stagger, and coordinated exits on positioned text.

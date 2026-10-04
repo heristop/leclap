@@ -33,6 +33,7 @@ export type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '.
 import type { Beats, BeatsSpec } from './timing/timeline';
 import type { SectionRole } from '../schemas/section-intent.schemas';
 export type { Beats, BeatsSpec } from './timing/timeline';
+import type { TemplateFormats } from '../schemas/formats.schemas';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -89,6 +90,8 @@ export type ProjectConfig = {
   // Node only. Directory of the per-section render cache: a section whose FFmpeg command, input files,
   // FFmpeg build and engine version all match a previous render is copied instead of re-encoded.
   cacheDir?: string;
+  // Format to render (core/formats: `formats[format]` + `$format` values); default: the own orientation.
+  format?: 'landscape' | 'portrait' | 'square';
 };
 
 export type MusicConfig = {
@@ -130,6 +133,8 @@ export interface TemplateDescriptor {
   meta?: TemplateMeta;
   global?: TemplateDescriptorGlobal;
   sections?: DescriptorSection[];
+  /** Per-format compositions of the same story: patches applied when that orientation renders (core/formats). */
+  formats?: TemplateFormats;
 }
 
 interface TemplateMeta {

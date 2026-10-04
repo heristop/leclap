@@ -15,6 +15,7 @@ import type { VoicePreset } from 'ffmpeg-video-composer/src/core/audio/voice-pre
 import type { SectionRole } from 'ffmpeg-video-composer/src/schemas/section-intent.schemas.ts';
 
 export type MotionEase = EasingSpecInput;
+export type { EditorFormats } from './formats-passthrough';
 
 /** Template meta the editor carries verbatim (creative direction, brief, purpose requirement). */
 export type EditorMeta = Pick<

@@ -23,6 +23,7 @@ import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
 import { motionRolesCatalog, type MotionRolesCatalog } from './catalog-roles';
 import { footageCatalog, type FootageCatalog } from '../footage/presets';
+import { FORMATS_ART_DIRECTION, FORMATS_GUIDE } from '../formats/guide';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
@@ -59,6 +60,7 @@ const ART_DIRECTION = [
   'Set global.platform (tiktok, reels, shorts, youtube, x, linkedin, facebook, square-feed) when the video ' +
     'has a destination: keep kinetic copy and graphics out of its safe zones (see platforms[].safe, fractions ' +
     'of the frame per edge) and the timeline under platforms[].maxDuration.',
+  FORMATS_ART_DIRECTION,
   'Every result is deterministic: the same JSON and global.seed render the same frames. Change the seed to ' +
     'reshuffle random order, scramble glyphs and grain.',
   'Pick a genre doctrine first, then a blueprint per narrative role; keep each blueprint signatureMove. Every ' +
@@ -139,6 +141,8 @@ export interface MotionCatalog {
   /** Footage editing: fits, focus, speed-ramp presets, clip range and freeze frames. */
   footage: FootageCatalog;
   starter: typeof STARTER;
+  /** One story, several formats: `formats` overrides, `$format` values, merge rules (core/formats). */
+  formats: typeof FORMATS_GUIDE;
 }
 
 // Time references: name the moment instead of computing it. Resolved to seconds at compile time.
@@ -317,5 +321,6 @@ export function motionCatalog(): MotionCatalog {
     audio: audioCatalog(),
     footage: footageCatalog(),
     starter: STARTER,
+    formats: FORMATS_GUIDE,
   };
 }

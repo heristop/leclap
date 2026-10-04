@@ -20,8 +20,15 @@ import { expandPartialsSafe } from '@/core/partials';
 import { resolveThemeDescriptor } from '@/core/theme/resolve';
 import { resolveSectionDurations } from '@/core/timing/durations';
 import { validateBeatsAnalysis } from './time-ref-validation';
+import { usesFormats } from '@/core/formats/resolve';
+import { validateEachFormat } from './validation/format-validation';
 
 export type { ValidationError } from './template-validation-rules';
+
+/** `format`: validate the descriptor as it renders in that one format (default: every declared format). */
+export interface ValidateOptions {
+  format?: string;
+}
 
 export interface ValidationResult {
   success: boolean;
@@ -110,7 +117,7 @@ export class BaseTemplateValidator {
     return errors;
   }
 
-  validateTemplate(templateData: unknown): ValidationResult {
+  validateTemplate(templateData: unknown, options: ValidateOptions = {}): ValidationResult {
     // Expand `{ type: "partial", ref }` sections to real sections first, so the schema + reference
     // checks (and the engine downstream) only ever see real sections.
     const expansion = expandPartialsSafe(templateData);
@@ -119,7 +126,21 @@ export class BaseTemplateValidator {
       return { success: false, errors: [expansion.error] };
     }
 
+    if (usesFormats(expansion.data) || options.format !== undefined) {
+      return this.validateFormats(expansion.data, options.format);
+    }
+
     return this.validateParsed(expansion.data);
+  }
+
+  // One story, several formats: each format is validated as the descriptor it renders
+  // (validation/format-validation.ts); `data` stays the authored descriptor, formats included.
+  private validateFormats(templateData: unknown, format: string | undefined): ValidationResult {
+    const { success, errors } = validateEachFormat(templateData, format, (resolved) => this.validateParsed(resolved));
+
+    const data = templateData as TemplateDescriptor;
+
+    return success ? { success, data } : { success, data, errors };
   }
 
   private validateParsed(templateData: unknown): ValidationResult {

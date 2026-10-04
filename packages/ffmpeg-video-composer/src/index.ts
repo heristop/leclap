@@ -111,7 +111,7 @@ function assertValidDescriptor(projectConfig: ProjectConfig, templateDescriptor:
   }
 
   const validator = new TemplateValidator();
-  const validation = validator.validateTemplate(templateDescriptor);
+  const validation = validator.validateTemplate(templateDescriptor, { format: projectConfig.format });
 
   if (!validation.success) {
     throw new Error(validator.getValidationSummary(validation));
@@ -384,6 +384,5 @@ export {
   type SectionTimeline,
 } from './core/motion/timeline';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
-// Music analysis: the platform-neutral analyzer, and (Node only) decoding a file with FFmpeg first.
-export * from './music-analysis-node';
+export * from './node-extras';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';

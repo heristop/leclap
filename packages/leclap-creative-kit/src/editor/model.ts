@@ -29,7 +29,14 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { AudioMixPassthrough, EditorMeta, EditorMotion, FootageEdits, MotionBlocks } from './motion-passthrough';
+import type {
+  AudioMixPassthrough,
+  EditorFormats,
+  EditorMeta,
+  EditorMotion,
+  FootageEdits,
+  MotionBlocks,
+} from './motion-passthrough';
 import type { DefaultTransition, SectionTransition } from './transition-types';
 export { DEFAULT_TRANSITION, type DefaultTransition, type SectionTransition } from './transition-types';
 export type { EditorMotion, FootageEdits, MotionBlocks } from './motion-passthrough';
@@ -385,6 +392,8 @@ export interface EditorState extends EditorMeta {
   id: string;
   // Motion settings (global.seed, global.motion); absent when the template sets none.
   motion?: EditorMotion;
+  // Per-format compositions (descriptor.formats), carried verbatim; absent when the template declares none.
+  formats?: EditorFormats;
   name: string;
   description: string;
   orientation: Orientation;

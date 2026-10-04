@@ -14,6 +14,7 @@ import { expandAutoSfx } from '@/core/audio/auto-sfx';
 import { assertEffectsResolved, expandPartialsSafe } from '@/core/partials';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import { analyzeTemplateMusic } from './beats-analysis';
+import { resolveBuildFormat } from '@/core/formats/resolve';
 
 export { discardOutput, publishOutput, resolveOutputPaths } from './output-staging';
 export { qcExpectations } from './qc-expectations';
@@ -58,10 +59,13 @@ export function recordBuildCommands(adapter: AbstractFFmpeg, project: Project): 
  * descriptor (Node `compile` never validates; the browser path validates into the template but the
  * director overwrites it), so without this every partial — logo bumper, flash-card — is dropped
  * downstream by the rendering-type filter. Idempotent: re-expanding an expanded descriptor is a no-op.
+ * Then the requested format's composition (core/formats: `formats[format]` and `$format` values), the
+ * FIRST pass before orientation, theme, tokens and time references; then the registered-effects check.
  */
 export function expandForBuild(
   descriptor: TemplateDescriptor,
-  logger: AbstractLogger
+  logger: AbstractLogger,
+  format?: string
 ): ReturnType<typeof assertEffectsResolved> {
   const cloned = structuredClone(descriptor);
   const expansion = expandPartialsSafe(cloned);
@@ -71,7 +75,7 @@ export function expandForBuild(
     logger.warn(`[Director] partial expansion failed: ${expansion.error.message}`);
   }
 
-  return assertEffectsResolved(expansion.ok ? expansion.data : cloned);
+  return assertEffectsResolved(resolveBuildFormat(expansion.ok ? expansion.data : cloned, format));
 }
 
 /** What the time-reference pass needs from the build: output frame, fps, locale and form fields. */

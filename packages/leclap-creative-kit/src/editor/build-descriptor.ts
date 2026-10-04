@@ -5,6 +5,7 @@ import type { EditorSection, EditorState, FormField, AudioMix, MediaChoice } fro
 import { pruneEmpty } from './prune';
 import { metaFrom } from './template-meta';
 import { motionGlobalFrom } from './motion-passthrough';
+import { formatsField } from './formats-passthrough';
 import { overlayFiltersFrom, videoFiltersFrom } from './overlay-filters';
 import {
   DEFAULT_LOCALE,
@@ -309,7 +310,9 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     global.variables = { ...global.variables, ...variables };
   }
 
-  return { ...metaFrom(state), global, sections: mapEditorSections(state.sections) };
+  const sections = mapEditorSections(state.sections);
+
+  return { ...metaFrom(state), global, sections, ...formatsField(state.formats, sections) };
 }
 
 // De-duplicated union of every variable name available to the editor: form

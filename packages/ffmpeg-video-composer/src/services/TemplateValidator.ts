@@ -9,6 +9,8 @@ import { emojiAdvisories } from './emoji-advisories';
 import { subtitleAdvisories } from './subtitles-advisories';
 import { footageAdvisories } from './footage-advisories';
 import { beatGridAdvisories } from './beats-advisory';
+import { adviseEachFormat, adviseEachFormatSync, expandedForFormats } from './validation/format-validation';
+import { formatAdvisories } from '@/core/formats/advisories';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -89,25 +91,30 @@ export class TemplateValidator extends BaseTemplateValidator {
   async getGeometryWarnings(template: TemplateDescriptor, loadFont?: FontLoader): Promise<GeometryWarning[]> {
     const { collectGeometryWarnings } = await import('./geometry');
 
-    return collectGeometryWarnings(template, loadFont);
+    // Per format when the template declares several (each its own frame, platform and safe zones).
+    return adviseEachFormat(template, (resolved) => collectGeometryWarnings(resolved as TemplateDescriptor, loadFont));
   }
 
   // Advisory, like getGeometryWarnings: pacing findings read off the motion timeline (ease monotony,
   // front-loaded sections, dead air, flat tempo…) plus assertions that can't be measured render-free.
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
   // The theme advisories (one accent per idea, palette drift), the emoji advisories (missing bundled image,
-  // per-section cap, strip mode), the subtitle advisories (split, shrunk, past the end) and the footage
+  // per-section cap, strip mode), the subtitle advisories (split, shrunk, past the end), the footage
   // advisories (extreme ramp speeds, ignored focus, blur fit under overlays, a clip range shorter than the
-  // section) and the low-confidence beat grid advisory (beats-advisory.ts) ride along, so every surface that shows pacing feedback shows them.
+  // section) and the low-confidence beat grid advisory (beats-advisory.ts) ride along, so every surface
+  // that shows pacing feedback shows them. Per format when the template declares several, plus the
+  // whole-template format advisories (format_crop_only, format_story_diverges: core/formats/advisories.ts).
   getMotionWarnings(template: unknown): MotionWarning[] {
-    return [
-      ...collectMotionWarnings(template),
-      ...accentAdvisories(template),
-      ...paletteAdvisories(template),
-      ...emojiAdvisories(template),
-      ...subtitleAdvisories(template),
-      ...footageAdvisories(template),
-      ...beatGridAdvisories(template),
-    ];
+    const perFormat = adviseEachFormatSync(template, (resolved) => [
+      ...collectMotionWarnings(resolved),
+      ...accentAdvisories(resolved),
+      ...paletteAdvisories(resolved),
+      ...emojiAdvisories(resolved),
+      ...subtitleAdvisories(resolved),
+      ...footageAdvisories(resolved),
+      ...beatGridAdvisories(resolved),
+    ]);
+
+    return [...perFormat, ...formatAdvisories(expandedForFormats(template))];
   }
 }

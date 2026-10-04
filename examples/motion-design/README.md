@@ -39,6 +39,18 @@ leclap verify spring-kinetics.mp4.manifest.json --rerender --assets packages/lec
 
 Set `global.motion.energy` to `0` for the reduced-motion cut (fades only) or `1.5` for more travel. See [motion system v2](../../docs/template-configuration.md#motion-system-v2).
 
+## Kinetic type (motion system v2)
+
+[`kinetic-type.json`](./kinetic-type.json) runs every kinetic preset across five beats:
+
+- A cascade headline with an accent word, over a highlight marker sweep.
+- A tracking-in brand title over a typewriter line.
+- A counter rolling to 98.6% under a fade label.
+- impact, pop, scramble and wave.
+- A split statement and a drop with an accented first word.
+
+It is asset-free (bundled fonts), deterministic, and renders on every backend. See [kinetic typography](../../docs/template-configuration.md#kinetic-typography).
+
 ## Native controls
 
 [`native-timing.json`](./native-timing.json) is a landscape, asset-free demonstration with bundled fonts. It includes a broadcast-inspired frame, a title card with configurable line stagger, and coordinated exits on positioned text.

@@ -1,6 +1,6 @@
 # Motion System v2: deterministic, expressive, native
 
-> Status: P0 and P1 delivered (branch `feat/motion-p0-p1`); P2–P6 proposed · Owner: motion/engine · Scope: `ffmpeg-video-composer`, `leclap-creative-kit`, `leclap-mcp`,
+> Status: P0, P1 (branch `feat/motion-p0-p1`) and P2 kinetic typography (`feat/motion-p2-kinetic`) delivered; P3+ proposed · Owner: motion/engine · Scope: `ffmpeg-video-composer`, `leclap-creative-kit`, `leclap-mcp`,
 > `leclap-web`, `leclap-expo`, with `leclap-brand-motion` as the quality reference.
 
 ## 0. The brief

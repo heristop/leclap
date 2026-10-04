@@ -33,3 +33,4 @@ export {
   type ResolvedTokens,
 } from './tokens';
 export { applyTracks, keyTimesError, resolveKeyTimes, trackExpr, type AnimateTracks, type TrackKey } from './tracks';
+export { motionCatalog, type MotionCatalog } from './catalog';

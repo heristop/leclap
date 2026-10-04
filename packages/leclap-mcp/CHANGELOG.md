@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- `get_motion_catalog` returns the engine's motion system v2 catalog: kinetic typography presets with
+  defaults, exits, stagger orders, the easing grammar, built-in tokens, art-direction rules and a starter.
+  `get_template_schema` and the `compose-video` prompt point agents at it.
+- `compose_video` renders with the deterministic encoder profile.
+
 ## [0.4.0] - 2026-10-03
 
 ### Added

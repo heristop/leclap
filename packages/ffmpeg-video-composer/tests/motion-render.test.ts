@@ -69,3 +69,33 @@ describe('motion system v2 example', () => {
     }
   }, 240000);
 });
+
+// P2: every kinetic preset through real FFmpeg (examples/motion-design/kinetic-type.json).
+describe('kinetic typography example', () => {
+  const kinetic = JSON.parse(
+    fs.readFileSync(path.resolve(repoRoot, 'examples/motion-design/kinetic-type.json'), 'utf8')
+  ) as TemplateDescriptor;
+
+  async function renderKinetic(): Promise<{ bytes: Buffer; manifest: RenderManifest }> {
+    let manifest: RenderManifest | undefined;
+    const output = await compile(config, kinetic, { onManifest: (m) => (manifest = m) });
+
+    expect(output).not.toBeNull();
+
+    return { bytes: fs.readFileSync(output as string), manifest: manifest as RenderManifest };
+  }
+
+  it('validates cleanly', () => {
+    expect(new TemplateValidator().validateTemplate(kinetic).errors ?? []).toEqual([]);
+  });
+
+  it('renders twice to identical bytes, with a stable graph', async () => {
+    const first = await renderKinetic();
+    const second = await renderKinetic();
+
+    expect(second.bytes.equals(first.bytes)).toBe(true);
+    await expect(`${first.manifest.graph.commands.join('\n')}\n`).toMatchFileSnapshot(
+      '__goldens__/motion/kinetic-type.txt'
+    );
+  }, 240000);
+});

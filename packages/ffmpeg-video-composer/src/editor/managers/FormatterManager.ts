@@ -235,6 +235,12 @@ class FormatterManager {
         this.pushIfPresent(parts, this.formatTextValue(key, filterValues));
         break;
 
+      // Engine-generated drawtext text that carries `%{…}` expansions (kinetic counters): emitted as
+      // authored by the lowering, which escapes its literal parts itself. Never reachable from JSON.
+      case 'textExpr':
+        parts.push(`text='${stripFilterUnsafe(String(filterValues.textExpr))}'`);
+        break;
+
       case 'duration':
       case 'd':
         this.pushIfPresent(parts, this.formatDurationValue(key, filterValues, duration));

@@ -21,6 +21,12 @@ const GUIDE = [
     '(sourceVolume, musicVolume, normalize, ducking) and options.audioFade; color_background `layers`; ' +
     'and project_video `framingGuide` (a recording-UI overlay, never rendered). They compile to ' +
     'ordinary on-device-safe FFmpeg filters. `filters[]` remains the raw escape hatch (FFmpeg-native keys).',
+  'Motion system v2 (set meta.motionVersion: 2): section `kinetic` blocks animate copy natively per word or ' +
+    'glyph (cascade, rise, drop, slide, pop, impact, tracking-in, typewriter, scramble, wave, highlight, counter, ' +
+    'split, fade) with accents and exits; easings add springs (spring(k,c)), cubic-bezier, named curves and ' +
+    '$tokens ($snappy, $bouncy, $expo…); `animate` keyframe tracks drive x/y/opacity/scale on drawtext filters; ' +
+    'global.motion holds tokens and the energy dial; global.seed makes every random-looking choice repeatable. ' +
+    'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
   'Text reveal easing accepts linear, ease-out, ease-in-out and ease-out-back. Back easing overshoots travel by ' +
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +

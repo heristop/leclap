@@ -2391,6 +2391,14 @@
                 },
                 "additionalProperties": false
               },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -4513,6 +4521,14 @@
                   }
                 },
                 "additionalProperties": false
+              },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -6680,6 +6696,14 @@
                 },
                 "additionalProperties": false
               },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -8830,6 +8854,14 @@
                 },
                 "additionalProperties": false
               },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -10952,6 +10984,14 @@
                   }
                 },
                 "additionalProperties": false
+              },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -13542,6 +13582,14 @@
                 },
                 "additionalProperties": false
               },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -15664,6 +15712,14 @@
                   }
                 },
                 "additionalProperties": false
+              },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -17788,6 +17844,14 @@
                 },
                 "additionalProperties": false
               },
+              "kinetic": {
+                "maxItems": 8,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/KineticBlock"
+                },
+                "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
                 "type": "string",
@@ -18535,6 +18599,332 @@
         "required": ["v"],
         "additionalProperties": false
       }
+    },
+    "KineticBlock": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The copy, per locale. {{ variables }} and form fields resolve before layout. A newline forces a line break."
+        },
+        "preset": {
+          "type": "string",
+          "enum": [
+            "cascade",
+            "rise",
+            "drop",
+            "slide",
+            "pop",
+            "impact",
+            "tracking-in",
+            "typewriter",
+            "scramble",
+            "wave",
+            "highlight",
+            "counter",
+            "split",
+            "fade"
+          ],
+          "description": "Entrance choreography. cascade: words rise in sequence on a spring. rise / drop: travel up / down into place. slide: travel in from `direction`. pop: each unit springs up from small. impact: each unit slams down from oversized. tracking-in: wide letter-spacing collapses to tight (keynote title). typewriter: glyphs appear one by one behind a caret. scramble: glyphs decode from seeded random characters. wave: glyphs bob on a travelling sine after entering. highlight: words cascade in, then a marker sweeps behind the accent words. counter: a number rolls from `counter.from` to `counter.to`. split: each line enters from both sides and locks in the middle. fade: plain staggered fade."
+        },
+        "unit": {
+          "description": "What animates independently (default per preset: word for cascade/pop/impact/highlight, glyph for tracking-in/typewriter/scramble/wave).",
+          "type": "string",
+          "enum": ["line", "word", "glyph"]
+        },
+        "order": {
+          "description": "Stagger order (default forward). random is seeded by global.seed.",
+          "type": "string",
+          "enum": ["forward", "reverse", "center", "edges", "random"]
+        },
+        "delay": {
+          "description": "Seconds before the first unit moves (default 0.2).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 30
+        },
+        "stagger": {
+          "description": "Seconds between units (default per preset, e.g. 0.07 per word, 0.035 per glyph).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "duration": {
+          "description": "Seconds each unit takes to arrive. Omit with a spring ease to let physics decide.",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10
+        },
+        "ease": {
+          "description": "Arrival curve (default per preset, e.g. $snappy, $bouncy, $expo).",
+          "$ref": "#/$defs/EasingSpec"
+        },
+        "distance": {
+          "description": "Travel in px (default per preset, scaled by global.motion.energy).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "direction": {
+          "description": "Travel direction for slide (default left: enters moving left).",
+          "type": "string",
+          "enum": ["up", "down", "left", "right"]
+        },
+        "font": {
+          "description": "Bundled font id or .ttf file (default bebas). Word/glyph units need a bundled font.",
+          "type": "string"
+        },
+        "size": {
+          "description": "Font size in px (default 11% of the frame height).",
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 600
+        },
+        "color": {
+          "description": "Text colour (default #F5F3F7).",
+          "type": "string"
+        },
+        "accent": {
+          "description": "Emphasis for chosen words: a colour, and for the highlight preset a sweeping marker.",
+          "type": "object",
+          "properties": {
+            "words": {
+              "anyOf": [
+                {
+                  "maxItems": 64,
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  }
+                },
+                {
+                  "type": "string",
+                  "const": "last"
+                },
+                {
+                  "type": "string",
+                  "const": "first"
+                }
+              ],
+              "description": "Zero-based word indices to accent, or \"first\" / \"last\"."
+            },
+            "color": {
+              "description": "Accent text colour (default #FFF685).",
+              "type": "string"
+            },
+            "marker": {
+              "description": "Highlight marker colour behind accent words (highlight preset; default #7C83FD@0.85).",
+              "type": "string"
+            }
+          },
+          "required": ["words"],
+          "additionalProperties": false
+        },
+        "align": {
+          "description": "Line alignment (default center).",
+          "type": "string",
+          "enum": ["left", "center", "right"]
+        },
+        "x": {
+          "description": "Anchor x in px: left edge, centre or right edge per align (default frame centre / 8% margin).",
+          "type": "number"
+        },
+        "y": {
+          "description": "Top of the block in px, or top / center / bottom inside the title-safe area (default center).",
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "enum": ["top", "center", "bottom"]
+            }
+          ]
+        },
+        "maxWidth": {
+          "description": "Wrap width in px (default 84% of the frame width).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "lineHeight": {
+          "description": "Line spacing as a multiple of size (default 1.05).",
+          "type": "number",
+          "minimum": 0.6,
+          "maximum": 3
+        },
+        "effect": {
+          "description": "Drop shadow / outline for legibility over footage.",
+          "type": "object",
+          "properties": {
+            "shadow": {
+              "description": "Drop shadow: true for the default soft black shadow, or an object to customise colour/offset.",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "color": {
+                      "description": "Shadow colour token, e.g. \"#000000@0.6\" (default #000000@0.6).",
+                      "type": "string"
+                    },
+                    "dx": {
+                      "description": "Horizontal shadow offset in pixels (default 2).",
+                      "type": "number"
+                    },
+                    "dy": {
+                      "description": "Vertical shadow offset in pixels (default 2).",
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "outline": {
+              "description": "Outline/border: true for a 2px black outline, or an object to customise colour/width.",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "color": {
+                      "description": "Outline colour token (default #000000).",
+                      "type": "string"
+                    },
+                    "width": {
+                      "description": "Outline width in pixels (default 2).",
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "caret": {
+          "description": "typewriter: draw a blinking caret (default true).",
+          "type": "boolean"
+        },
+        "amplitude": {
+          "description": "wave: bob height in px (default 6% of size).",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "frequency": {
+          "description": "wave: bobs per second (default 1.2).",
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 8
+        },
+        "charset": {
+          "description": "scramble: characters to decode from (default A-Z0-9 and #%&*).",
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "counter": {
+          "description": "counter preset: the rolling number (text is ignored).",
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Start value (non-negative; use prefix \"-\" for negatives)."
+            },
+            "to": {
+              "type": "number",
+              "minimum": 0,
+              "description": "End value (non-negative)."
+            },
+            "decimals": {
+              "description": "Digits after the point (default 0).",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4
+            },
+            "prefix": {
+              "description": "Text before the number, e.g. \"$\".",
+              "type": "string",
+              "maxLength": 12
+            },
+            "suffix": {
+              "description": "Text after the number, e.g. \"%\" or \"K\".",
+              "type": "string",
+              "maxLength": 12
+            }
+          },
+          "required": ["from", "to"],
+          "additionalProperties": false
+        },
+        "exit": {
+          "description": "How the block leaves: a preset name or an object (default none: holds to the cut).",
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": ["none", "fade", "rise", "drop", "slide", "shrink", "cascade"]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "preset": {
+                  "type": "string",
+                  "enum": ["none", "fade", "rise", "drop", "slide", "shrink", "cascade"],
+                  "description": "How the block leaves (default fade). cascade = staggered rise-out."
+                },
+                "at": {
+                  "description": "Seconds from the section start when the exit begins (default: ends with the section).",
+                  "type": "number",
+                  "minimum": 0
+                },
+                "duration": {
+                  "description": "Seconds each unit takes to leave (default 0.35).",
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 5
+                },
+                "stagger": {
+                  "description": "Seconds between units leaving (default: entrance stagger / 2).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "ease": {
+                  "description": "Exit curve (default ease-in-cubic).",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "distance": {
+                  "description": "Travel in px for rise/drop/slide/cascade exits.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 2000
+                }
+              },
+              "required": ["preset"],
+              "additionalProperties": false,
+              "description": "Exit choreography for a kinetic block."
+            }
+          ]
+        }
+      },
+      "required": ["text", "preset"],
+      "additionalProperties": false,
+      "description": "Kinetic typography block (meta.motionVersion 2): per-word / per-glyph choreography, laid out and wrapped automatically."
     },
     "__schema0": {
       "anyOf": [

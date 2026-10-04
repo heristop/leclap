@@ -4,6 +4,7 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { loadCustomEffectCatalog } from './effects/custom-effect-catalog.js';
 import type { McpConfig } from './config.js';
 import { registerGetTemplateSchema } from './tools/getTemplateSchema.js';
+import { registerGetMotionCatalog } from './tools/getMotionCatalog.js';
 import { registerCompose } from './tools/composeVideo.js';
 import { registerProbe } from './tools/probeMedia.js';
 import { registerValidateTemplate } from './tools/validateTemplate.js';
@@ -72,6 +73,7 @@ export function createServer(input: McpConfig): McpServer {
   registerPing(server, config);
   registerSamples(server);
   registerGetTemplateSchema(server);
+  registerGetMotionCatalog(server);
   registerValidateTemplate(server, config);
   registerCompose(server, config);
 

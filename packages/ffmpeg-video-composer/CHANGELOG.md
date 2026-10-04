@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tokens (springs, curves, durations, energy) and built-ins mirror the app's motion curves. `animate`
   keyframe tracks (`x`, `y`, `opacity`, `scale`) on positioned `drawtext`. The energy dial scales every
   travel distance. Under v2 each section chain is conformed to CFR and `noise` filters are seeded.
+- Kinetic typography (`sections[].kinetic`, motionVersion 2): 14 presets (cascade, rise, drop, slide, pop,
+  impact, tracking-in, typewriter, scramble, wave, highlight, counter, split, fade) laid out with real
+  metrics of the bundled fonts (generated advance table) and animated per word, glyph or line as native
+  `drawtext`. Accents, highlight markers, carets, seeded scramble/random order, exits, energy scaling, a
+  shared baseline, and automatic wrapping and alignment. `motionCatalog()` exposes presets, defaults and
+  art-direction rules for agents.
 - Exports: `core/determinism` (hashing, seeds, manifest), `core/motion` (curves, easing, tokens, tracks),
   `ENGINE_VERSION`, `digestRenderedFile`.
 

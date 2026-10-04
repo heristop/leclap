@@ -30,7 +30,7 @@ import {
   buildColorMetadataArgs,
   buildColorMetadataFilter,
 } from '@/core/encoding';
-import { conformMotionV2Chain } from './presets/motion-v2-chain';
+import { conformMotionV2Chain, motionSugarContext } from './presets/motion-v2-chain';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -491,7 +491,21 @@ class SegmentBuilder {
     const probedDuration = isVideo ? this.project.buildInfos.durations[this.section.name] : undefined;
     const duration = probedDuration ?? this.section.options?.duration ?? 0;
 
-    return { duration, scale, fps: this.project.config.videoConfig?.fps ?? DefaultConfig.FPS, isVideo };
+    const fps = this.project.config.videoConfig?.fps ?? DefaultConfig.FPS;
+    const motion = motionSugarContext(this.template.descriptor, this.section.name);
+
+    return { duration, scale, fps, isVideo, motion: motion && { ...motion, resolveText: this.resolveSugarText } };
+  };
+
+  // Final text for sugar that lays copy out itself (kinetic): locale, variables, fields, section case.
+  private readonly resolveSugarText = (text: Record<string, string | undefined>): string => {
+    const raw = text[this.project.config.currentLocale ?? ''] ?? Object.values(text)[0] ?? '';
+    const resolved = this.variableManager.mapFields(this.variableManager.mapVariables(raw));
+    const options = this.section.options;
+
+    if (options?.upperCase) return resolved.toUpperCase();
+
+    return options?.lowerCase ? resolved.toLowerCase() : resolved;
   };
 
   /**
@@ -516,15 +530,18 @@ class SegmentBuilder {
 
     const background = [...sectionSugar.background, ...globalSugar.background];
     this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
-    this.backgroundSugarCount = background.length;
+    const authored = this.section.filters;
 
     // motionVersion 2: CFR conform + seeded noise (presets/motion-v2-chain.ts); v1 chains pass through.
     this.section.filters = conformMotionV2Chain(
-      [...background, ...this.section.filters],
+      [...background, ...authored],
       this.template.descriptor,
       this.fps(),
       this.section.name
     );
+    // Everything ahead of the authored chain (background sugar, plus the v2 conform) — the splice point
+    // for overlay text, which must draw after the conform so it animates on the frame grid.
+    this.backgroundSugarCount = this.section.filters.length - authored.length;
   };
 
   /**

@@ -85,6 +85,20 @@ Keep an optional `meta.creativeDirection` brief (trimmed, 1–4000 characters) w
 - **Text sugar** — prefer these over hand-positioned `drawtext`: `caption` (styled overlay), section `titleCard` on `color_background` (kicker/headline/subtitle/accent/fade — collapses ~80-line intros), section `lowerThird` on any visual section (title/subtitle/badge band, composites above animations). On any of them: `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`, bare string or `{type,delay,duration,distance,easing}`) for an entrance, and `effect: { shadow?, outline? }` (`TextEffect`) for drop-shadow/outline legibility. A title card takes optional `stagger` (seconds 0..1, default .15) between non-empty lines; zero starts them together and its accent follows its associated line. A positioned `drawtext` filter also takes `exit` (same vocabulary + an `after` start time, defaulting to end-at-section-end). Entrance and exit `easing` is `linear` (default), `ease-out`, `ease-in-out`, or `ease-out-back`; it curves text alpha and travel. Back easing overshoots travel by about 10% while clamping text alpha to 0..1. Overlay fade motion uses the linear fade filter. No `exit` field exists on caption/titleCard/lowerThird blocks. Sized from the output scale, so they render in any orientation.
 - **Global decorations** — authored once in `global`, applied to every section (sibling of `global.animations`): `global.overlays[]` (whole-video text/brand watermark, with `position` anchor + optional `sections` subset), `global.look` / `global.grade` (whole-video colour). Removes per-section `{{ brand }}` repetition.
 
+## Motion system v2: kinetic typography (for "wow" templates)
+
+Set `meta.motionVersion: 2` and use section `kinetic` blocks for animated copy. Each block lays its copy out with real font metrics and animates each word or glyph natively, on every backend:
+
+```json
+{ "text": { "en": "Make every word land." }, "preset": "cascade", "accent": { "words": "last" }, "exit": "cascade" }
+```
+
+- **Presets:** cascade, rise, drop, slide, pop, impact, tracking-in, typewriter, scramble, wave, highlight, counter, split, fade. Every other field has a preset default: unit, order, stagger, delay, ease, distance, size, align, x, y (`top`/`center`/`bottom`), maxWidth, accent, effect, exit.
+- **Easing:** prefer springs (`$snappy`, `$bouncy`, `$gentle`, or `spring(k, c)`) and omit `duration` so physics decides; use `$expo`/`$smooth` for controlled moves.
+- **Intensity:** `global.motion.energy` scales every travel (0 reduced motion, 1.5 hype). `global.seed` fixes random order and scramble glyphs.
+- **Fonts:** word/glyph units need a bundled font (`kinetic_font_unmeasurable` otherwise). One dominant block per beat, one accent word per line, and vary presets between beats.
+- **Discovery:** `get_motion_catalog` (MCP) or `motionCatalog()` lists presets with defaults, art-direction rules and a starter. See [`examples/motion-design/kinetic-type.json`](../../../examples/motion-design/kinetic-type.json).
+
 ## Variables, filters, maps
 
 - **Variables** — define in `global.variables` (string or string[]); reference anywhere with `{{ name }}`. `{{ colorN }}` is 1-indexed into `colorsList`; `{{ form_field }}` is a form field's value.

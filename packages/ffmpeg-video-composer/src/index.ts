@@ -358,3 +358,5 @@ export { ENGINE_VERSION } from './core/version';
 // Node entry only: digest a rendered file for `leclap verify`.
 export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
+export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
+export { layoutKinetic, measureBundled } from './core/kinetic/layout';

@@ -43,3 +43,21 @@ export function conformMotionV2Chain(
 
   return [{ type: 'fps', value: fps }, ...seedNoiseFilters(filters, resolveSeed(descriptor), sectionName)];
 }
+
+/**
+ * The v2 motion inputs a section's sugar needs (kinetic typography): the energy dial and per-element
+ * seeds derived from `global.seed` and the section name. Undefined for v1 descriptors.
+ */
+export function motionSugarContext(
+  descriptor: ChainSource & { global?: { motion?: { energy?: number } } | null },
+  sectionName: string
+): { energy: number; seedFor: (path: string) => number } | undefined {
+  if (resolveMotionVersion(descriptor) < 2) return undefined;
+
+  const seed = resolveSeed(descriptor);
+
+  return {
+    energy: descriptor.global?.motion?.energy ?? 1,
+    seedFor: (path) => deriveSeed(seed, `sections.${sectionName}.${path}`),
+  };
+}

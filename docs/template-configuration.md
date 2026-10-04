@@ -842,6 +842,48 @@ A complete, valid descriptor exercising the structured-sugar layer: a layered ti
 
 Run a descriptor through `TemplateValidator` (zod + the cross-field rules above). On failure, zod reports the exact path/field — fix the JSON to match the schema. Cross-field rules also flag: a whole-video animation with no url (`global_animation_missing_url`) and a `caption`/`global.overlays` `font` string that is neither a bundled id nor a `.ttf` filename (`unknown_font` — a typo would otherwise silently fall back to the default font; the `{ family }` object form is checked at render time instead, see [Fonts](#fonts)). After editing any `.json`, run `pnpm fmt`. To regenerate the machine-readable schema after a zod change: `pnpm --filter ffmpeg-video-composer generate:schema`.
 
+## Kinetic typography
+
+With `meta.motionVersion: 2`, any visual section takes `kinetic`: up to 8 blocks of animated copy. A block is laid out with the bundled fonts' real metrics: it wraps to `maxWidth`, aligns, and sits every piece on a shared baseline. Each word, glyph or line is then drawn and animated on its own as a native `drawtext`, so there is no worker or browser and it renders the same on Node, WASM and on-device. Only `text` and `preset` are required; everything else has a preset default.
+
+```jsonc
+"kinetic": [
+  { "text": { "en": "Make every word land." }, "preset": "cascade", "accent": { "words": "last" }, "exit": "cascade" },
+  { "text": { "en": "Physics, not keyframes" }, "preset": "highlight", "font": "oswald", "size": 46, "y": "bottom", "delay": 0.7 }
+]
+```
+
+| Preset          | Default unit | What it does                                                                         |
+| --------------- | ------------ | ------------------------------------------------------------------------------------ |
+| `cascade`       | word         | Words rise into place one after another on a snappy spring.                          |
+| `rise` / `drop` | word         | Travel up / fall down into place (drop lands on a bouncy spring).                    |
+| `slide`         | word         | Slide in from `direction` (`left` = enters moving left).                             |
+| `pop`           | word         | Each unit springs up from 30% size around its own centre.                            |
+| `impact`        | word         | Each unit slams down from 180% size.                                                 |
+| `tracking-in`   | glyph        | Wide letter-spacing collapses to tight (keynote title).                              |
+| `typewriter`    | glyph        | Glyphs appear one by one behind a blinking caret (`caret: false` to hide it).        |
+| `scramble`      | glyph        | Glyphs decode from seeded random characters (`charset`).                             |
+| `wave`          | glyph        | Glyphs rise in, then bob on a travelling sine (`amplitude`, `frequency`).            |
+| `highlight`     | word         | Words cascade in, then a marker sweeps behind the accent words (`accent.marker`).    |
+| `counter`       | —            | A number rolls from `counter.from` to `counter.to` (`decimals`, `prefix`, `suffix`). |
+| `split`         | word         | Each line arrives as two halves from opposite sides.                                 |
+| `fade`          | word         | A plain staggered fade.                                                              |
+
+| Field                                           | Default                                         | Notes                                                                                                         |
+| ----------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `unit`                                          | per preset                                      | `line`, `word` or `glyph`. A block keeps at most 64 units; longer copy steps up to words, then lines.         |
+| `order`                                         | `forward`                                       | `reverse`, `center`, `edges`, or `random` (seeded by `global.seed`).                                          |
+| `delay` / `stagger` / `duration`                | 0.2 s / per preset / per preset                 | With a spring `ease` and no `duration`, the spring's settle time is used.                                     |
+| `ease`                                          | per preset                                      | Any [easing](#easing) or `$token`.                                                                            |
+| `distance`                                      | per preset × size                               | Travel in px, scaled by `global.motion.energy`.                                                               |
+| `font` / `size` / `color`                       | `bebas` / 11% of height / `#F5F3F7`             | Word/glyph units need a bundled font.                                                                         |
+| `align` / `x` / `y` / `maxWidth` / `lineHeight` | `center` / centre / `center` / 84% width / 1.05 | `y` is px or `top`/`center`/`bottom` inside the title-safe area.                                              |
+| `accent`                                        | —                                               | `{ words: [i…] \| "first" \| "last", color?, marker? }`.                                                      |
+| `effect`                                        | —                                               | Shadow / outline, as for captions.                                                                            |
+| `exit`                                          | `none`                                          | `fade`, `rise`, `drop`, `slide`, `shrink`, `cascade`, or `{ preset, at, duration, stagger, ease, distance }`. |
+
+Moving boxes (the highlight marker, the typewriter caret) are emitted as one box per frame, each gated by an `enable` window, because FFmpeg evaluates `drawbox` geometry only once. They are frame-exact and deterministic. Validation codes: `motion_v2_required`, `kinetic_font_unmeasurable`, and `invalid_kinetic` (a counter without numbers). Agents get every preset, its defaults, art-direction rules and a starter from MCP `get_motion_catalog` (or `motionCatalog()` in the library). See [`examples/motion-design/kinetic-type.json`](../examples/motion-design/kinetic-type.json).
+
 ## Determinism
 
 The same template, assets, seed and platform profile always render the same bytes:

@@ -2,17 +2,10 @@ import type { Filter, Section, TemplateDescriptorGlobal } from '@/core/types';
 import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letterboxToFilters } from './looks';
 import { captionToFilters } from './captions';
 import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
+import { kineticBlocksToFilters } from './kinetic';
 
-// Context a sugar compiler needs to lower time/space-dependent effects (motion calibrates its
-// Ken Burns curve over the clip length and scale). Built once per section by SegmentBuilder.
-export type SugarContext = {
-  duration: number;
-  /** Output scale as 'W:H', e.g. '1280:720'. */
-  scale: string;
-  fps: number;
-  /** True for real footage (project_video/video) so motion advances one output frame per input frame. */
-  isVideo: boolean;
-};
+export type { SugarContext, KineticSugarContext } from './sugar-context';
+import type { SugarContext } from './sugar-context';
 
 // Where a sugar's filters sit relative to an animation/gradient overlay graph:
 // - 'background' bakes into the video before overlays (colour grade, motion, layers).
@@ -80,6 +73,12 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     order: 58,
     layer: 'overlay',
     compile: (section, ctx) => lowerThirdToFilters(section.lowerThird, { scale: ctx.scale }),
+  },
+  {
+    key: 'kinetic',
+    order: 60,
+    layer: 'overlay',
+    compile: (section, ctx) => kineticBlocksToFilters(section.kinetic, ctx),
   },
 ];
 

@@ -15,6 +15,7 @@ import { TranslationSchema, GlobalConfigSchema } from './global.schemas';
 import { FilterSchema, MapSchema } from './filter.schemas';
 import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas';
 import { InputSchema, FieldSchema } from './section-media.schemas';
+import { KineticBlocksSchema } from './kinetic.schemas';
 
 export {
   CAPTION_STYLES,
@@ -133,6 +134,7 @@ export const BaseSectionSchema = z
     ),
     caption: CaptionSchema.optional().describe('Styled on-screen caption rendered as a drawtext filter.'),
     lowerThird: LowerThirdSchema.optional().describe('Title/subtitle band composited over the section clip.'),
+    kinetic: KineticBlocksSchema.optional(),
     look: z
       .enum(LOOK_PRESETS)
       .optional()

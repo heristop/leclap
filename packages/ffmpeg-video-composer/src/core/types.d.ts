@@ -15,6 +15,7 @@ import type { Reveal, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } fr
 import type { FontInput } from './fonts';
 import type { RenderManifest } from './determinism/manifest';
 import type { MotionTokens } from '../schemas/motion.schemas';
+import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -230,6 +231,7 @@ export interface Section {
   caption?: Caption;
   titleCard?: TitleCard;
   lowerThird?: LowerThird;
+  kinetic?: KineticBlock[];
   look?: string;
   grade?: GradeConfig;
   letterbox?: Letterbox;

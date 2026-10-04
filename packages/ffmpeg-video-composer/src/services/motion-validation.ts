@@ -11,6 +11,9 @@ import { resolveMotionVersion } from '@/core/determinism/contract';
 import { EasingError, easingError, isLegacyEasing, validSpring, type EasingSpec } from '@/core/motion/easing';
 import { resolveEasingRef, resolveTimeRef, resolveTokens, type ResolvedTokens } from '@/core/motion/tokens';
 import { keyTimesError, type TrackKey } from '@/core/motion/tracks';
+import { FONT_ADVANCES } from '@/core/font-advances.generated';
+import { findFont } from '@/core/fonts';
+import { KINETIC_PRESET_DEFAULTS } from '@/core/kinetic/presets';
 
 // Structurally the validator's ValidationError (declared here so the rules module can import this one
 // without a cycle).
@@ -59,6 +62,10 @@ function motionUses(template: TemplateDescriptor): Use[] {
 
 function v2Required(template: TemplateDescriptor, uses: Use[]): ValidationError[] {
   const offending = uses.filter((use) => use.kind === 'animate' || !isLegacyEasing(use.value)).map((use) => use.path);
+
+  for (const [index, section] of (template.sections ?? []).entries()) {
+    if ('kinetic' in section && section.kinetic) offending.push(`sections[${index}].kinetic`);
+  }
 
   if (template.global?.motion) offending.unshift('global.motion');
 
@@ -148,6 +155,43 @@ function animateUseErrors(use: Use, tokens: ResolvedTokens): ValidationError[] {
   });
 }
 
+type KineticInput = NonNullable<
+  Extract<NonNullable<TemplateDescriptor['sections']>[number], { kinetic?: unknown }>['kinetic']
+>[number];
+
+// Word/glyph layout needs the advance table of a bundled font; counter needs its numbers.
+function kineticBlockErrors(block: KineticInput, path: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const unit = block.unit ?? KINETIC_PRESET_DEFAULTS[block.preset].unit;
+  const file = block.font ? (findFont(block.font)?.file ?? block.font) : 'BebasNeue.ttf';
+
+  if (block.preset !== 'counter' && unit !== 'line' && !Object.hasOwn(FONT_ADVANCES, file)) {
+    errors.push({
+      path: `${path}.font`,
+      message: `"${block.font}" is not a bundled font, so ${unit}s can't be laid out; use a bundled font id or unit "line"`,
+      code: 'kinetic_font_unmeasurable',
+    });
+  }
+
+  if (block.preset === 'counter' && !block.counter) {
+    errors.push({
+      path: `${path}.counter`,
+      message: 'the counter preset needs counter.from and counter.to',
+      code: 'invalid_kinetic',
+    });
+  }
+
+  return errors;
+}
+
+function kineticErrors(template: TemplateDescriptor): ValidationError[] {
+  return (template.sections ?? []).flatMap((section, index) =>
+    'kinetic' in section && section.kinetic
+      ? section.kinetic.flatMap((block, k) => kineticBlockErrors(block, `sections[${index}].kinetic[${k}]`))
+      : []
+  );
+}
+
 export function validateMotionSystem(template: TemplateDescriptor): ValidationError[] {
   const uses = motionUses(template);
 
@@ -163,5 +207,6 @@ export function validateMotionSystem(template: TemplateDescriptor): ValidationEr
     ...curveTokenErrors(template.global?.motion),
     ...easingErrors.filter((error): error is ValidationError => error !== null),
     ...tracks.flatMap((use) => animateUseErrors(use, tokens)),
+    ...kineticErrors(template),
   ];
 }

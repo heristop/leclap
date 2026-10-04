@@ -5,6 +5,7 @@ import { findNondeterministicExpressions } from '@/core/determinism/hygiene';
 import { validateMotionSystem } from './motion-validation';
 import { validateTheme } from '@/core/theme/validate';
 import { validateAssertions } from './motion-assertions';
+import { validateGlyphCoverage } from './glyph-coverage';
 
 export interface ValidationError {
   path: string;
@@ -242,5 +243,6 @@ export function validateDescriptorRules(template: TemplateDescriptor): Validatio
     ...validateMotionSystem(template),
     ...validateTheme(template),
     ...validateAssertions(template),
+    ...validateGlyphCoverage(template),
   ];
 }

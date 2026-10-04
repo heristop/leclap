@@ -8,19 +8,13 @@ import DefaultConfig from '../../core/default.config';
 import type { Filter, FilterValues } from '@/core/types';
 import type VariableManager from './VariableManager';
 import { isFontRef, fontRefSlug, type FontInput } from '@/core/fonts';
-
-// Reserved FFmpeg drawtext characters and their escaped replacements.
-const TEXT_ESCAPES: Record<string, string> = {
-  ':': '\\\u003A',
-  "'": '\u2019',
-  '%': '\\\\\\\u0025',
-};
+import { escapeDrawtextText } from '@/core/drawtext-text';
 
 // The whole filtergraph is emitted as one double-quoted `-vf "…"` argv token, and parseCommand
 // toggles its quote state on any inner `"`. So a literal `"` (or a NUL) in a filter type/value would
 // close the token and let extra ffmpeg arguments be injected. Neither is ever valid filter syntax,
 // so strip them from every value interpolated into a filter. (Display text neutralises `"` to a
-// curly quote in formatText instead, so authored captions can still contain quote marks.)
+// curly quote in escapeDrawtextText instead, so authored captions can still contain quote marks.)
 function stripFilterUnsafe(value: string): string {
   return value.replaceAll('"', '').replaceAll(String.fromCodePoint(0), '');
 }
@@ -274,14 +268,6 @@ class FormatterManager {
     // Replace form fields
     result = this.variableManager.mapFields(result);
 
-    // Manage reserved keywords or special characters
-    // (', %, :)
-    result = result.replace(/[:'%]/g, (char: string) => TEXT_ESCAPES[char] ?? char);
-
-    // Neutralise the double quote so authored text can't close the enclosing `-vf "…"` argv token
-    // and inject extra ffmpeg arguments (see TEXT_ESCAPES / stripFilterUnsafe).
-    result = result.replace(/"/g, '”');
-
     // Upper case
     if (this.segment.currentSection?.options?.upperCase) {
       result = result.toUpperCase();
@@ -292,7 +278,10 @@ class FormatterManager {
       result = result.toLowerCase();
     }
 
-    return result;
+    // Escape for the quoted `text='…'` value: `:` `%` `\` survive FFmpeg's parsers, and quotes become
+    // typographic so authored text can't close the value or the `-vf "…"` argv token (see
+    // core/drawtext-text.ts).
+    return escapeDrawtextText(result);
   }
 
   /**

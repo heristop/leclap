@@ -24,6 +24,7 @@ video models, which sample rather than render.
 | `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                                                             |
 | `extract_style`        | Reference image/clip under the media dir → `{ theme, styleGuide, confidence }`: palette roles + WCAG contrast, grain, pacing (palette and pacing only)       |
 | `analyze_music`        | Measure a local music file → `{ bpm, offset, beatsPerBar, confidence, usable, cues, globalBeats }` for `global.beats` and `cue:drop`                         |
+| `get_capabilities`     | Local FFmpeg capability report (listings + one-frame probes) → each feature yes/no/unknown with a fix                                                        |
 | `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                        |
 | `ping`                 | Liveness check                                                                                                                                               |
 
@@ -172,9 +173,9 @@ Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy; its `temp
 orientation and fps. Codec, quality-tier and FFmpeg segment-concurrency fields are library host
 settings, not arbitrary MCP tool arguments.
 
-Eleven tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
-`get_motion_catalog`, `validate_template`, `compose_video`, `patch_template`, `probe_media`, `extract_style` and
-`analyze_music`. Opt-in adds
+Twelve tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
+`get_motion_catalog`, `validate_template`, `compose_video`, `patch_template`, `probe_media`, `extract_style`,
+`analyze_music` and `get_capabilities`. Opt-in adds
 `get_effect_schema`, `render_preview` and `render_remotion_clip`. Patch availability does not bypass
 effect-backend validation.
 

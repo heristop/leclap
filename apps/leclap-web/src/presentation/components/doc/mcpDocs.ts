@@ -145,6 +145,13 @@ export const mcpDoc: McpDoc = {
       when: 'Use before timing cuts and hits to the music ("beat:n", "bar:n", "cue:drop"). When usable is false (calm or ambient music), pace by phrases instead.',
     },
     {
+      name: 'get_capabilities',
+      args: 'no arguments',
+      purpose:
+        'Reports what the local FFmpeg really renders — drawtext with a bundled font, text shaping, libass, zscale/tonemap, lut3d, xfade, gblur, alphamerge, loudnorm, ebur128, libx264 — each usable yes/no/unknown with a fix, plus fonts and encoders. Same JSON as leclap diagnose --json.',
+      when: 'Use when a render fails on a filter or before relying on text, LUT looks or designed transitions on an unknown machine; validate_template flags the same gaps as featureWarnings.',
+    },
+    {
       name: 'render_remotion_clip',
       args: 'compositionId, entry?, serveUrl?, inputProps?, outputName?',
       purpose:

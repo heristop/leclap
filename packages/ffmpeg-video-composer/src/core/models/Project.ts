@@ -4,6 +4,7 @@ import DefaultConfig from '../default.config';
 import type { LoudnessReport, QcExpectations } from '../qc/types';
 import type { CommandInterceptor } from '../determinism/command-tap';
 import type { FootageAnalyzer } from '../footage/analyzer';
+import type { EngineFeatures } from '../capabilities';
 
 @singleton()
 class Project {
@@ -39,9 +40,10 @@ class Project {
   // Set by the Node compile() after config(): the detected FFmpeg version (colour-tag flags, see
   // core/encoding.ts) and the section-cache hook the command tap routes through (null elsewhere).
   public ffmpegVersion: string | null = null;
-  // The text libraries the probed binary links (`-buildconf`), driving the drawtext `text_shaping`
-  // capability (editor/utils/filter-compat.ts). Null where nothing was probed (browser, device).
-  public engineFeatures: { fribidi: boolean; harfbuzz: boolean } | null = null;
+  // What the probed binary can run (editor/utils/filter-compat.ts): its text libraries (`-buildconf`,
+  // driving drawtext `text_shaping`) and, from the Node capability probe, the filters it lacks (dropped
+  // with a warning, designed transitions cut). Null where nothing was probed (browser, device).
+  public engineFeatures: EngineFeatures | null = null;
   public commandInterceptor: CommandInterceptor | null = null;
   // Set by the Node compile() too: silencedetect + filter-list analysis for footage edits (null elsewhere).
   public footageAnalyzer: FootageAnalyzer | null = null;

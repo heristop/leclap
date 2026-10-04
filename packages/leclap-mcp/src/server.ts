@@ -9,6 +9,7 @@ import { registerCompose } from './tools/composeVideo.js';
 import { registerProbe } from './tools/probeMedia.js';
 import { registerExtractStyle } from './tools/extractStyle.js';
 import { registerAnalyzeMusic } from './tools/analyzeMusic.js';
+import { registerGetCapabilities } from './tools/getCapabilities.js';
 import { registerValidateTemplate } from './tools/validateTemplate.js';
 import { registerRenderRemotionClip } from './tools/renderRemotionClip.js';
 import { registerGetEffectSchema } from './tools/getEffectSchema.js';
@@ -89,6 +90,7 @@ export function createServer(input: McpConfig): McpServer {
   registerProbe(server, config);
   registerExtractStyle(server, config);
   registerAnalyzeMusic(server, config);
+  registerGetCapabilities(server);
 
   // render_remotion_clip bundles + executes a caller-supplied entry (arbitrary local JS) — an RCE
   // surface. Register it only when the operator explicitly opted in for trusted local design-time use.

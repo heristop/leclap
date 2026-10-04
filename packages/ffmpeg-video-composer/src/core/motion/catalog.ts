@@ -22,12 +22,14 @@ import {
 } from './catalog-guides';
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+import { PARTIAL_GUIDE } from './catalog-partials';
 import { motionRolesCatalog, type MotionRolesCatalog } from './catalog-roles';
 import { FORMATS_ART_DIRECTION, FORMATS_GUIDE } from '../formats/guide';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
 export type { BlueprintRole, MotionBlueprint } from './catalog-blueprints';
+export { partialCatalog, type PartialSummary } from './catalog-partials';
 import { COMPOSITING, COMPOSITING_RULES, type CompositingCatalog } from './catalog-compositing';
 import { captionCatalog, type CaptionCatalog } from '../captions/catalog';
 import { audioCatalog, type AudioCatalog } from '../audio/catalog';
@@ -140,6 +142,8 @@ export interface MotionCatalog {
   /** Word-timed captions (`sections[].subtitles`): caption DNA identities, karaoke modes, grouping. */
   captions: CaptionCatalog;
   timing: typeof TIMING;
+  /** Partials: rhetorical jobs, the elastic envelope, sync points and align. */
+  partials: typeof PARTIAL_GUIDE;
   /** Sound effects (with when to use each), voice presets, volume automation and how they mix. */
   audio: AudioCatalog;
   /** Footage editing: fits, focus, speed-ramp presets, clip range and freeze frames, plus take editing
@@ -250,6 +254,7 @@ export function motionCatalog(): MotionCatalog {
     themes: themeCatalog(),
     captions: captionCatalog(),
     timing: TIMING,
+    partials: PARTIAL_GUIDE,
     audio: audioCatalog(),
     footage: fullFootageCatalog(),
     starter: STARTER,

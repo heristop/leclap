@@ -25,7 +25,7 @@ leclap samples show <id>  # inspect direction and requirements (also --json)
 leclap samples export <id> # raw descriptor JSON to stdout (or --output <new-file>)
 leclap verify <manifest>  # check a video against its render manifest (--rerender to re-render and compare)
 leclap style <reference>  # derive a theme + style guide from an image or clip (--json, --out style-guide.md)
-leclap diagnose           # check your FFmpeg setup
+leclap diagnose           # check your FFmpeg setup and what it can render (--json for the report)
 leclap --help             # usage (per-command help with `leclap <command> --help`)
 leclap --version
 ```

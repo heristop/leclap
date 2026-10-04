@@ -7,19 +7,26 @@ import {
 } from '@/application/usecases/ai-template/generate-template';
 import { isAbortError, ProviderError } from '@/application/usecases/ai-template/model-provider';
 import type { DescriptorSummary } from '@/application/usecases/ai-template/descriptor-summary';
+import type { TemplatePlan } from '@/application/usecases/ai-template/plan';
 
 export type RunStatus =
   | { kind: 'idle' }
   | { kind: 'cancelled' }
+  | { kind: 'planning'; receivedChars: number }
+  // The plan waits for review: editable, then "Write template" continues the run.
+  | { kind: 'plan-ready'; plan: TemplatePlan }
   | { kind: 'thinking'; receivedChars: number }
   | { kind: 'validating'; round: number }
   | { kind: 'repairing'; round: number; issueCount: number; receivedChars: number }
+  | { kind: 'polishing'; advisoryCount: number; receivedChars: number }
   | { kind: 'ready'; result: GenerationResult; summary: DescriptorSummary }
   | { kind: 'error'; error: FailureCopy };
 
 export type RunAction =
-  | { type: 'start' }
+  | { type: 'start'; planning?: boolean }
   | { type: 'phase'; phase: GenerationPhase }
+  | { type: 'plan-ready'; plan: TemplatePlan }
+  | { type: 'edit-plan'; plan: TemplatePlan }
   | { type: 'done'; result: GenerationResult; summary: DescriptorSummary }
   | { type: 'fail'; error: unknown }
   | { type: 'reset' };
@@ -79,17 +86,29 @@ export function describeFailure(error: unknown, source: 'model' | 'jev' = 'model
 
 export const IDLE: RunStatus = { kind: 'idle' };
 
+const RUNNING = new Set<RunStatus['kind']>(['planning', 'thinking', 'validating', 'repairing', 'polishing']);
+
 export function isRunning(status: RunStatus): boolean {
-  return status.kind === 'thinking' || status.kind === 'validating' || status.kind === 'repairing';
+  return RUNNING.has(status.kind);
+}
+
+// The plan step: a plan only lands on a live run, and is only edited while under review.
+function planReducer(status: RunStatus, action: Extract<RunAction, { type: 'plan-ready' | 'edit-plan' }>): RunStatus {
+  const live = action.type === 'plan-ready' ? isRunning(status) : status.kind === 'plan-ready';
+
+  return live ? { kind: 'plan-ready', plan: action.plan } : status;
 }
 
 export function runReducer(status: RunStatus, action: RunAction): RunStatus {
   switch (action.type) {
     case 'start':
-      return { kind: 'thinking', receivedChars: 0 };
+      return { kind: action.planning ? 'planning' : 'thinking', receivedChars: 0 };
     case 'phase':
       // A late progress event after cancel/finish must not resurrect a run.
       return isRunning(status) ? action.phase : status;
+    case 'plan-ready':
+    case 'edit-plan':
+      return planReducer(status, action);
     case 'done':
       return { kind: 'ready', result: action.result, summary: action.summary };
     case 'fail':
@@ -105,6 +124,12 @@ export function runReducer(status: RunStatus, action: RunAction): RunStatus {
 
 // The short live-region line for a running status (an `ai:status.*` key + its values).
 export function statusLine(status: RunStatus): { key: string; values?: Record<string, number> } | null {
+  if (status.kind === 'planning') return { key: 'status.planning' };
+
+  if (status.kind === 'plan-ready') return { key: 'status.planReady' };
+
+  if (status.kind === 'polishing') return { key: 'status.polishing', values: { count: status.advisoryCount } };
+
   if (status.kind === 'thinking') {
     return status.receivedChars > 0
       ? { key: 'status.writing', values: { count: status.receivedChars } }

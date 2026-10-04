@@ -75,6 +75,19 @@ export function validateGenerated(value: Record<string, unknown>): GeneratedVali
   return { ok: true, descriptor: result.data as TemplateDescriptor };
 }
 
+// An advisory from the engine's pacing / theme lint (getMotionWarnings): never blocks a template.
+export interface Advisory extends ValidationIssue {
+  severity: 'warn' | 'info';
+}
+
+// The engine's render-free advisories for a valid descriptor (ease monotony, front-loading, flat
+// tempo, accent overuse, palette drift…), with their hints.
+export function motionAdvisories(descriptor: TemplateDescriptor): Advisory[] {
+  return validator
+    .getMotionWarnings(descriptor)
+    .map((warning) => ({ ...toIssue(warning), severity: warning.severity }));
+}
+
 export function formatIssues(issues: ValidationIssue[], limit = 25): string {
   const lines = issues.slice(0, limit).map((issue) => {
     const guidance = [issue.hint, issue.suggestion].filter(Boolean).join(' ');

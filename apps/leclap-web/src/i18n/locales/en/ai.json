@@ -100,13 +100,17 @@
     "replace": "Replace draft",
     "keep": "Keep editing",
     "regenerate": "Generate another",
-    "details": "Technical details"
+    "details": "Technical details",
+    "writeTemplate": "Write template",
+    "startOver": "Start over"
   },
   "steps": {
     "thinking": "Thinking",
     "validating": "Validating",
     "repairing": "Repairing",
-    "ready": "Ready"
+    "ready": "Ready",
+    "planning": "Planning",
+    "polishing": "Polishing"
   },
   "status": {
     "thinking": "Thinking…",
@@ -114,7 +118,10 @@
     "validating": "Validating…",
     "repairing": "Repairing (round {{round}}): fixing {{count}} issue(s)…",
     "ready": "Ready",
-    "cancelled": "Cancelled. Nothing was changed."
+    "cancelled": "Cancelled. Nothing was changed.",
+    "planning": "Planning concepts and beats…",
+    "planReady": "Plan ready. Adjust it if you like, then write the template.",
+    "polishing": "Polishing {{count}} art-direction note(s)…"
   },
   "result": {
     "scenes_one": "{{count}} scene",
@@ -125,7 +132,10 @@
     "durationEstimate": "~{{seconds}} s + clips",
     "effects": "Effects",
     "noEffects": "No effects — straight cuts.",
-    "replaceWarning": "This replaces the current draft. Your saved templates are untouched, and Undo brings the draft back."
+    "replaceWarning": "This replaces the current draft. Your saved templates are untouched, and Undo brings the draft back.",
+    "advisories_one": "{{count}} art-direction note",
+    "advisories_other": "{{count}} art-direction notes",
+    "noAdvisories": "No art-direction notes from the engine."
   },
   "errors": {
     "auth": "{{provider}} rejected the key. Check it was copied in full and is still active.",
@@ -140,5 +150,32 @@
     "http": "{{provider}} returned an error. Try again.",
     "invalid": "The model couldn't produce a valid template after {{rounds}} attempts. Try a simpler or more specific brief.",
     "unknown": "Something went wrong. Try again."
+  },
+  "plan": {
+    "planFirst": "Plan first",
+    "planFirstHint": "Pitch three concepts and a beat sheet before writing. One extra, quick call.",
+    "review": "Review the plan",
+    "reviewHint": "Pause on the plan so you can edit it. Off: carry straight on.",
+    "title": "Plan",
+    "intro": "Edit the copy, verbs or timing, or pick another concept. The template follows this plan.",
+    "strategy": "Strategy",
+    "concepts": "Concept",
+    "typicality": {
+      "expected": "Expected",
+      "fresh": "Fresh",
+      "unusual": "Unusual"
+    },
+    "beats": "Beats",
+    "role": "Role",
+    "verb": "Verb",
+    "onScreen": "On screen",
+    "seconds": "Length",
+    "verbLabel": "Beat {{row}} verb",
+    "onScreenLabel": "Beat {{row}} on-screen copy",
+    "secondsLabel": "Beat {{row}} length in seconds",
+    "footage": "Footage, no copy",
+    "facts": "Plan details",
+    "transitions": "Transitions: {{primary}}",
+    "transitionsWithAccents": "Transitions: {{primary}} + {{accents}}"
   }
 }

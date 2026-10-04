@@ -3,6 +3,36 @@ import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/
 import { compactSchema, fitSchema } from './schema-digest';
 import { generationContext, promptFor } from './generation-context';
 import { buildSystemPrompt, buildUserBrief, DEFAULT_PROMPT_BUDGET } from './system-prompt';
+import { artDirection, GENRE_FONTS } from './art-direction';
+
+describe('art direction', () => {
+  it('ships the story spine and the lazy-defaults block, without pinned centring or a fixed font trio', () => {
+    const built = promptFor('30s product launch for a note-taking app', { genre: 'product-launch' });
+    const direction = artDirection({ genre: 'product-launch' });
+
+    expect(built.system).toContain('Story spine:');
+    expect(built.system).toContain('Lazy defaults to avoid');
+    expect(built.system).toContain('Everything centred.');
+    expect(built.system).toContain('Purple-to-blue neon gradients.');
+    expect(built.system).toContain('Every element entering at t=0');
+    expect(built.system).toContain('"Welcome to…"');
+    expect(built.system).toContain('slowest beat lasts at least 3× the fastest');
+    expect(built.system).toContain('value claim by beat 2');
+    expect(built.system).toContain('edge-anchored');
+    expect(built.system).not.toContain('Centre with x');
+    expect(built.system).not.toContain('BebasNeue, Anton, Oswald');
+    expect(direction).not.toContain('(w-text_w)/2');
+    expect(direction).toContain(GENRE_FONTS['product-launch']);
+  });
+
+  it('points at the theme tokens when a theme is set, and varies fonts by genre otherwise', () => {
+    expect(artDirection({ theme: 'editorial' })).toContain('"$font.display"');
+    expect(artDirection({ theme: 'editorial' })).toContain('"$color.accent"');
+    expect(artDirection({ genre: 'cinematic-trailer' })).toContain('PlayfairDisplay.ttf');
+    expect(artDirection({ genre: 'explainer' })).not.toContain('PlayfairDisplay.ttf');
+    expect(artDirection({})).toContain('pick by tone');
+  });
+});
 
 describe('schema digest', () => {
   it('shrinks the engine schema by an order of magnitude and stays valid JSON', () => {

@@ -850,8 +850,9 @@
     "label": "Bildanpassung",
     "cover": "Füllen",
     "letterbox": "Letterbox",
+    "blur": "Unschärfe",
     "off": "Aus",
-    "hint": "Füllen beschneidet das Material, um den Rahmen zu füllen; Letterbox zeigt alles mit Balken; Aus verwendet die Datei unverändert, ohne Anpassung an den Rahmen."
+    "hint": "Füllen beschneidet das Material, um den Rahmen zu füllen; Letterbox zeigt alles mit Balken; Unschärfe zeigt alles über einer unscharfen Kopie statt Balken; Aus verwendet die Datei unverändert, ohne Anpassung an den Rahmen."
   },
   "musicSection": {
     "pickTracks": "Wähle die Tracks, aus denen Zuschauer wählen können.",

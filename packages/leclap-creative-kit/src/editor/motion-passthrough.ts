@@ -3,7 +3,7 @@
 // tokens and the global.theme). The editor carries them
 // through in descriptor shape, so opening a template in the builder and saving it never strips them.
 
-import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { SectionOptions, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import type { KineticBlock } from 'ffmpeg-video-composer/src/schemas/kinetic.schemas.ts';
 import type { Camera } from 'ffmpeg-video-composer/src/schemas/camera.schemas.ts';
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
@@ -21,6 +21,11 @@ export type EditorMeta = Pick<
   NonNullable<TemplateDescriptor['meta']>,
   'creativeDirection' | 'brief' | 'requirePurpose'
 >;
+
+// Footage edits the builder has no controls for yet (blur fill tuning, crop focus, clip range, speed
+// ramp, freeze frames): carried through in descriptor shape (options.*) so opening a template in the
+// builder and saving it never strips them. Image sections only ever hold fill/focus.
+export type FootageEdits = Pick<SectionOptions, 'fill' | 'focus' | 'clip' | 'speedRamp' | 'rampAudio' | 'freeze'>;
 
 /** Per-section motion blocks, plus the section intent (purpose, narrative role): never rendered, carried through. */
 export interface MotionBlocks {

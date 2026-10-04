@@ -14,6 +14,7 @@ import type {
   MediaChoice,
   SectionFit,
   VisualAudio,
+  FootageEdits,
   WatermarkChoice,
 } from './model';
 import { motionBlocksOf, type MotionBlocks } from './motion-passthrough';
@@ -234,13 +235,19 @@ export function sectionPlaybackOptions(section: { speed?: number }): Partial<{ s
 }
 
 // The section's source-footage fit → the descriptor aspect flags SegmentBuilder lowers to
-// scale/crop (cover) or scale/pad (letterbox). The default cover fit emits nothing.
+// scale/crop (cover) or scale/pad (letterbox), or `fit: 'blur'` (no legacy flag spells it). The
+// default cover fit emits nothing; the footage pass-through (fill/focus/clip/ramp/freeze) rides along.
 export function sectionFitOptions(section: {
   fit?: SectionFit;
-}): Partial<{ forceAspectRatio: boolean; forceOriginalAspectRatio: boolean }> {
-  if (section.fit === 'letterbox') return { forceOriginalAspectRatio: true };
+  footage?: FootageEdits;
+}): Partial<{ forceAspectRatio: boolean; forceOriginalAspectRatio: boolean; fit: 'blur' }> & FootageEdits {
+  const footage: FootageEdits = pruneEmpty({ ...section.footage });
 
-  if (section.fit === 'off') return { forceAspectRatio: false };
+  if (section.fit === 'letterbox') return { forceOriginalAspectRatio: true, ...footage };
 
-  return {};
+  if (section.fit === 'off') return { forceAspectRatio: false, ...footage };
+
+  if (section.fit === 'blur') return { fit: 'blur', ...footage };
+
+  return footage;
 }

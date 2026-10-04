@@ -850,8 +850,9 @@
     "label": "Encuadre",
     "cover": "Rellenar",
     "letterbox": "Letterbox",
+    "blur": "Desenfoque",
     "off": "Desactivado",
-    "hint": "Rellenar recorta el material para llenar el cuadro; Letterbox lo muestra entero con bandas; Desactivado usa el archivo tal cual, sin ajustarlo al cuadro."
+    "hint": "Rellenar recorta el material para llenar el cuadro; Letterbox lo muestra entero con bandas; Desenfoque lo muestra entero sobre una copia desenfocada en lugar de bandas; Desactivado usa el archivo tal cual, sin ajustarlo al cuadro."
   },
   "musicSection": {
     "pickTracks": "Elige las pistas entre las que pueden elegir los espectadores.",

@@ -57,6 +57,24 @@ function automationPart(opts: SectionOptions | undefined): string[] {
   return filter === null ? [] : [filter];
 }
 
+// The voice clean-up, the creative effect, the volume automation, then the fades (the fade-out timed
+// against the section length).
+function processingParts(
+  opts: SectionOptions | undefined,
+  config: ProjectConfig | undefined,
+  duration: number | undefined
+): string[] {
+  const effect = opts?.audioEffect;
+
+  return [
+    ...voicePart(opts, config),
+    ...(effect ? [AUDIO_EFFECT_FILTERS[effect]] : []),
+    ...automationPart(opts),
+    ...buildFadeInPart(opts?.audioFade),
+    ...buildFadeOutPart(opts?.audioFade, duration ?? 0),
+  ];
+}
+
 /**
  * Builds the `-af` argument string for a section's voice preset + audio effect + automation + fades,
  * or returns '' when none is configured or the section is muted (processing a silent track is
@@ -68,19 +86,24 @@ function automationPart(opts: SectionOptions | undefined): string[] {
  * `pad` appends `apad` for a clip's own (finite) audio encoded with `-shortest`: a phone clip whose
  * audio ends a few frames before its video would otherwise end the segment early, dropping those video
  * frames. Padded with silence, the audio never ends first, so `-shortest` (and `-t`) cut at the video.
+ *
+ * `footage` carries the clip-range / ramp / freeze audio prefix and the edited section length the
+ * fade-out is timed against (utils/footage-section.ts); its default leaves the chain unchanged.
  */
-export function buildAudioFadeArg(opts: SectionOptions | undefined, pad = false, config?: ProjectConfig): string {
+export function buildAudioFadeArg(
+  opts: SectionOptions | undefined,
+  pad = false,
+  config?: ProjectConfig,
+  footage: { head: string[]; duration?: number } = { head: [] }
+): string {
   if (opts?.muteSection === true) {
     return '';
   }
 
-  const effect = opts?.audioEffect;
   const parts: string[] = [
-    ...voicePart(opts, config),
-    ...(effect ? [AUDIO_EFFECT_FILTERS[effect]] : []),
-    ...automationPart(opts),
-    ...buildFadeInPart(opts?.audioFade),
-    ...buildFadeOutPart(opts?.audioFade, opts?.duration ?? 0),
+    // Footage edits (utils/footage-lowering.ts) retime the clip sound before any processing or fade.
+    ...footage.head,
+    ...processingParts(opts, config, footage.duration ?? opts?.duration),
     ...(pad ? ['apad'] : []),
   ];
 

@@ -7,6 +7,7 @@ import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
 import { emojiAdvisories } from './emoji-advisories';
 import { subtitleAdvisories } from './subtitles-advisories';
+import { footageAdvisories } from './footage-advisories';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -94,8 +95,9 @@ export class TemplateValidator extends BaseTemplateValidator {
   // front-loaded sections, dead air, flat tempo…) plus assertions that can't be measured render-free.
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
   // The theme advisories (one accent per idea, palette drift), the emoji advisories (missing bundled image,
-  // per-section cap, strip mode) and the subtitle advisories (split, shrunk, past the end) ride along, so
-  // every surface that shows pacing feedback shows them.
+  // per-section cap, strip mode), the subtitle advisories (split, shrunk, past the end) and the footage
+  // advisories (extreme ramp speeds, ignored focus, blur fit under overlays, a clip range shorter than the
+  // section) ride along, so every surface that shows pacing feedback shows them.
   getMotionWarnings(template: unknown): MotionWarning[] {
     return [
       ...collectMotionWarnings(template),
@@ -103,6 +105,7 @@ export class TemplateValidator extends BaseTemplateValidator {
       ...paletteAdvisories(template),
       ...emojiAdvisories(template),
       ...subtitleAdvisories(template),
+      ...footageAdvisories(template),
     ];
   }
 }

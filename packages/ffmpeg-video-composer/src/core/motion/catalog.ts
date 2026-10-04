@@ -22,6 +22,7 @@ import {
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
 import { motionRolesCatalog, type MotionRolesCatalog } from './catalog-roles';
+import { footageCatalog, type FootageCatalog } from '../footage/presets';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
@@ -135,6 +136,8 @@ export interface MotionCatalog {
   timing: typeof TIMING;
   /** Sound effects (with when to use each), voice presets, volume automation and how they mix. */
   audio: AudioCatalog;
+  /** Footage editing: fits, focus, speed-ramp presets, clip range and freeze frames. */
+  footage: FootageCatalog;
   starter: typeof STARTER;
 }
 
@@ -155,6 +158,9 @@ const TIMING = {
     'sfx[].at',
     'options.audioAutomation[].at',
     'global.sfx[].at and global.audio.automation[].at (whole-video scope: "<section>.start|end", "cue:<name>", "beat:n", "50%", "end")',
+    'options.speedRamp[].at',
+    'options.freeze[].at',
+    'options.focus[].t',
   ],
   grammar: TIME_REF_SYNTAX,
   bases: {
@@ -286,6 +292,7 @@ export function motionCatalog(): MotionCatalog {
     captions: captionCatalog(),
     timing: TIMING,
     audio: audioCatalog(),
+    footage: footageCatalog(),
     starter: STARTER,
   };
 }

@@ -9,6 +9,8 @@ import {
   resolveSoftwareTier,
 } from '@/core/encoding';
 import type { ProjectConfig } from '@/core/types';
+import { buildAudioFadeArg } from '../utils/audio-fade';
+import { footageAudio } from '../utils/footage-section';
 
 // Encoder args for a re-encoded video segment (bumper / videoUrl / useVideoSection). Routes through
 // the shared codec resolution so the on-device LGPL engine uses libopenh264 — NOT libx264 (GPL),
@@ -58,13 +60,21 @@ class Video extends SegmentBuilder {
 
     const encodingParams = videoSegmentEncoding(this.project.config, this.project.ffmpegVersion);
 
-    const audioFadeArg = this.buildAudioFadeArg();
+    // Footage edits (clip range / ramp / freeze) retime the clip's own sound when it is mapped (unmuted),
+    // and cap `-t` at the edited length; unedited sections keep their declared duration and fades.
+    const footage = footageAudio(this.section, {
+      config: this.project.config,
+      buildInfos: this.project.buildInfos,
+      clipSound: this.section.options?.muteSection === false,
+    });
+    const audioFadeArg = buildAudioFadeArg(this.section.options, false, this.project.config, footage);
+    const duration = footage.duration;
 
     if (this.section.options?.videoUrl) {
       // Use a video as second input
       this.command +=
         ` ${this.hwaccelArg} ${this.sources.join(' ')} ` +
-        ` -r ${this.fps()} -t ${this.section.options.duration} ` +
+        ` -r ${this.fps()} -t ${duration} ` +
         ` ${encodingParams} ` +
         ` ${this.filters} ${audioFadeArg}${this.destination} `;
 
@@ -79,7 +89,7 @@ class Video extends SegmentBuilder {
 
       this.command +=
         ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ` +
-        ` -r ${this.fps()} -t ${this.section.options.duration} ` +
+        ` -r ${this.fps()} -t ${duration} ` +
         ` ${encodingParams} ` +
         ` ${this.filters} ${audioFadeArg}${this.destination} `;
 
@@ -92,7 +102,7 @@ class Video extends SegmentBuilder {
     // rejects with "At least one output file must be specified".
     this.command +=
       ` ${this.hwaccelArg} -i ${assertSafeArgToken(this.source, 'source')} ${this.sources.join(' ')} ` +
-      ` -r ${this.fps()} -t ${this.section.options?.duration} ` +
+      ` -r ${this.fps()} -t ${duration} ` +
       ` ${encodingParams} ` +
       ` ${this.filters} ${audioFadeArg}${this.destination} `;
   };

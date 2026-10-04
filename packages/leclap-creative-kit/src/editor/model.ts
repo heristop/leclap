@@ -29,10 +29,10 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { AudioMixPassthrough, EditorMeta, EditorMotion, MotionBlocks } from './motion-passthrough';
+import type { AudioMixPassthrough, EditorMeta, EditorMotion, FootageEdits, MotionBlocks } from './motion-passthrough';
 import type { DefaultTransition, SectionTransition } from './transition-types';
 export { DEFAULT_TRANSITION, type DefaultTransition, type SectionTransition } from './transition-types';
-export type { EditorMotion, MotionBlocks } from './motion-passthrough';
+export type { EditorMotion, FootageEdits, MotionBlocks } from './motion-passthrough';
 import type { VisualAudio } from './visual-audio';
 export type { AudioEffect, AudioFadeSide, SectionAudioFade, VisualAudio } from './visual-audio';
 import type {
@@ -90,14 +90,15 @@ export type CaptureMode = z.infer<typeof CaptureModeSchema>;
 export const ALL_CAPTURE_MODES: readonly CaptureMode[] = CaptureModeSchema.options;
 
 // How a section's SOURCE footage maps into the output frame (descriptor options.forceAspectRatio /
-// forceOriginalAspectRatio, lowered by SegmentBuilder.prependScaleFilters — scale/crop/pad only,
-// LGPL-safe). 'cover' (default, omitted) fills the frame and centre-crops the overflow; 'letterbox'
-// keeps the whole frame visible with pad bars (forceOriginalAspectRatio: true); 'off' skips the
-// conform scaling entirely (forceAspectRatio: false) for sources that already match the output.
-export type SectionFit = 'cover' | 'letterbox' | 'off';
+// forceOriginalAspectRatio / fit, lowered by the engine's reframe step — scale/crop/pad, LGPL-safe).
+// 'cover' (default, omitted) fills the frame and crops the overflow; 'letterbox' keeps the whole frame
+// visible with pad bars (forceOriginalAspectRatio: true); 'blur' keeps the whole frame over a blurred,
+// dimmed copy of itself (options.fit: 'blur'); 'off' skips the conform scaling entirely
+// (forceAspectRatio: false) for sources that already match the output.
+export type SectionFit = 'cover' | 'letterbox' | 'blur' | 'off';
 
 // Every fit mode, in display order — shared by the builder UIs' segmented control.
-export const SECTION_FIT_MODES: readonly SectionFit[] = ['cover', 'letterbox', 'off'];
+export const SECTION_FIT_MODES: readonly SectionFit[] = ['cover', 'letterbox', 'blur', 'off'];
 
 // --- Editor-friendly section model (flattened; compiled to a descriptor on save) ---
 export type FormField = { name: string; label: string; maxLength: number };
@@ -305,6 +306,8 @@ export type EditorSection =
       images?: ImageOverlay[];
       // How the recorded clip / fixed video maps into the output frame; omitted = 'cover'.
       fit?: SectionFit;
+      // Footage edits without builder controls (pass-through, see FootageEdits).
+      footage?: FootageEdits;
     } & VisualAudio &
       VisualPlayback &
       VisualCaption &
@@ -351,6 +354,8 @@ export type EditorSection =
       images?: ImageOverlay[];
       // How the picked/uploaded background image maps into the output frame; omitted = 'cover'.
       fit?: SectionFit;
+      // Blur-fill tuning / crop focus without builder controls (pass-through, see FootageEdits).
+      footage?: FootageEdits;
     } & VisualAudio &
       VisualPlayback &
       VisualCaption &

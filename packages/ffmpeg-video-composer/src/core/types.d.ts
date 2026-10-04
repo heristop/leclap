@@ -28,6 +28,8 @@ import type { Subtitles } from '../schemas/subtitles.schemas';
 import type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
 export type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
 import type { VoicePreset } from './audio/voice-presets';
+import type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '../schemas/footage.schemas';
+export type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '../schemas/footage.schemas';
 import type { Beats } from './timing/timeline';
 import type { SectionRole } from '../schemas/section-intent.schemas';
 export type { Beats } from './timing/timeline';
@@ -113,6 +115,9 @@ export type ProjectBuildInfos = {
   // Per project_video section: whether its source clip has an audio stream. Probed once by the
   // director; false lets the segment add a silent track so transition acrossfade always has audio.
   sourceHasAudio: Record<string, boolean>;
+  // Per probed clip: its full source length, before footage edits (clip range / ramp / freeze), which
+  // `durations` already account for. Optional so hand-built build infos (tests) stay valid.
+  sourceDurations?: Record<string, number>;
   videoInputs: string[];
   musicInputs: string[];
   musicFilters: string[];
@@ -343,6 +348,15 @@ export interface SectionOptions {
   backgroundColor?: string;
   forceAspectRatio?: boolean;
   forceOriginalAspectRatio?: boolean;
+  // Reframing (schemas/footage.schemas.ts): fit overrides the two aspect flags above.
+  fit?: FootageFit;
+  fill?: FitFill;
+  focus?: Focus;
+  // video / project_video footage edits: source in/out points, speed ramp, freeze frames.
+  clip?: ClipRange;
+  speedRamp?: SpeedRamp;
+  rampAudio?: 'stretch' | 'mute';
+  freeze?: Freeze[];
   // color_background extension
   layers?: BackgroundLayer[];
   // project_video extension

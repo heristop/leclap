@@ -17,7 +17,10 @@ import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas
 import { InputSchema, FieldSchema } from './section-media.schemas';
 import { MOTION_SECTION_FIELDS } from './motion-section.schemas';
 import { CLIP_AUDIO_OPTION_FIELDS } from './audio.schemas';
-import { META_INTENT_FIELDS, SECTION_INTENT_FIELDS } from './section-intent.schemas';
+import { SECTION_INTENT_FIELDS } from './section-intent.schemas';
+import { TemplateMetaSchema } from './template-meta.schemas';
+export { TemplateMetaSchema } from './template-meta.schemas';
+import { FIT_OPTION_FIELDS, FOOTAGE_OPTION_FIELDS } from './footage.schemas';
 
 export {
   CAPTION_STYLES,
@@ -109,6 +112,7 @@ export const BaseSectionOptionsSchema = z
       .boolean()
       .optional()
       .describe('Preserve original aspect ratio via letterboxing (no crop); overrides cover-crop (default false).'),
+    ...FIT_OPTION_FIELDS,
   })
   .strict()
   .describe('Common options shared by all section types; variant-specific options are added via extend.');
@@ -166,9 +170,10 @@ export const BaseSectionSchema = z
 export const VideoSectionSchema = BaseSectionSchema.extend({
   type: z.literal('video').describe('Section type: renders a pre-recorded or asset-backed video clip.'),
   options: BaseSectionOptionsSchema.extend(CLIP_AUDIO_OPTION_FIELDS)
+    .extend(FOOTAGE_OPTION_FIELDS)
     .strict()
     .optional()
-    .describe('Playback and compositing options for the video section.'),
+    .describe('Playback, footage editing and compositing options for the video section.'),
 }).describe('A section that plays a pre-recorded video clip or a user-uploaded video asset.');
 
 export const EffectSectionSchema = BaseSectionSchema.extend({
@@ -198,6 +203,7 @@ export const ProjectVideoSectionSchema = BaseSectionSchema.extend({
       .array(CaptureModeSchema)
       .optional()
       .describe('Modes available to the user; omit for all four. A single element locks to one mode.'),
+    ...FOOTAGE_OPTION_FIELDS,
   })
     .strict()
     .optional()
@@ -277,33 +283,6 @@ export const SectionSchema = z.discriminatedUnion('type', [
   MusicSectionSchema,
   PartialSectionSchema,
 ]);
-
-export const TemplateMetaSchema = z
-  .object({
-    name: z.string().optional().describe('Human-readable template name for catalogs and editors.'),
-    description: z.string().optional().describe('Short human-readable template summary for catalogs and agents.'),
-    creativeDirection: z
-      .string()
-      .trim()
-      .min(1)
-      .max(4000)
-      .optional()
-      .describe(
-        'Authoring brief (1..4000 characters): audience, visual hierarchy, typography, palette, motion, pacing, ' +
-          'avoidances and review criteria. Guides humans/agents; never interpreted or executed by the renderer. ' +
-          'Implement the direction explicitly in sections, filters and effect props.'
-      ),
-    ...META_INTENT_FIELDS,
-    allowNondeterministic: z
-      .boolean()
-      .optional()
-      .describe(
-        'Opt out of the nondeterministic_expression check (wall-clock `%{localtime}`/`time(0)` or unseeded ' +
-          '`random()` in raw filters). Default false: such templates fail validation.'
-      ),
-  })
-  .strict()
-  .describe('Optional human-facing metadata embedded in the descriptor; behavioral catalog fields are derived.');
 
 export const TemplateDescriptorSchema = z
   .object({

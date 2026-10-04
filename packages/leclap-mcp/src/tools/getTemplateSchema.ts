@@ -43,6 +43,12 @@ const GUIDE = [
     'works as an ease or keyframe-duration token. Give each section a one-sentence `purpose` and a narrative ' +
     '`role` (hook, problem, product-intro, reveal, proof, cta, outro, bridge): metadata, never rendered; ' +
     'meta.brief or meta.requirePurpose makes validate_template warn section_without_purpose.',
+  'Footage editing (video / project_video): options.fit cover|letterbox|blur|off (blur keeps the whole picture ' +
+    'over a blurred, dimmed copy; options.fill tunes it), options.focus anchors a cover crop (left/right/top/' +
+    'bottom, {x,y}, or keyframes that pan), options.clip {from,to} picks the in/out points in SOURCE seconds, ' +
+    'options.speedRamp takes a preset (hero, montage, bullet, flash-in, flash-out) or [{at,speed,ease}] keys, ' +
+    'options.freeze [{at,hold,flash}] holds frames. Ramps and freezes change the section length. ' +
+    'get_motion_catalog lists footage presets and rules.',
   'Delivery platforms: set global.platform (tiktok, reels/ig, shorts/yt-shorts, youtube, x/twitter, linkedin, ' +
     'facebook, square-feed) when the video has a destination. It defaults the orientation (portrait for ' +
     'tiktok/reels/shorts), lifts the default caption above the app UI, aims loudnorm at the platform loudness, ' +

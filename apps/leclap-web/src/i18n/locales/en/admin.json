@@ -850,8 +850,9 @@
     "label": "Frame fit",
     "cover": "Fill",
     "letterbox": "Letterbox",
+    "blur": "Blur",
     "off": "Off",
-    "hint": "Fill crops the footage to fill the frame; Letterbox keeps it all visible with bars; Off uses the file as-is, without fitting it to the frame."
+    "hint": "Fill crops the footage to fill the frame; Letterbox keeps it all visible with bars; Blur keeps it all visible over a blurred copy instead of bars; Off uses the file as-is, without fitting it to the frame."
   },
   "musicSection": {
     "pickTracks": "Pick the tracks viewers can choose from.",

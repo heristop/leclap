@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EffectReferenceSchema } from './effect-reference.schema';
-import { TemplatePartialSchema } from './partial.schemas';
+import { PARTIAL_REF_TIMING_FIELDS, TemplatePartialSchema } from './partial.schemas';
 import {
   AudioFadeSchema,
   BackgroundLayerSchema,
@@ -258,6 +258,7 @@ export const PartialSectionSchema = BaseSectionSchema.extend({
     .record(z.string(), z.string())
     .optional()
     .describe('Values substituted into the partial’s `{{ key }}` placeholders, so one partial serves many slots.'),
+  ...PARTIAL_REF_TIMING_FIELDS,
 }).describe('A reference to a reusable partial (by `ref`) or an inline one (`sections`), expanded before compilation.');
 
 export const SectionSchema = z.discriminatedUnion('type', [

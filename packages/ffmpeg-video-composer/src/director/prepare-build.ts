@@ -88,12 +88,14 @@ type DeclaredTransition = Section['transition'];
  */
 export function boundaryTransitions(
   segments: readonly Section[],
-  globalTransition: DeclaredTransition
+  globalTransition: DeclaredTransition,
+  canCrossfade = true
 ): BoundaryTransition[] {
   return segments.slice(0, -1).map((segment) => {
     const declared = segment.transition ?? globalTransition;
 
-    if (!declared || declared.type === 'cut') return { type: 'cut', duration: 0 };
+    // An FFmpeg without a working xfade (Node capability probe) cuts instead of failing the assembly.
+    if (!declared || declared.type === 'cut' || !canCrossfade) return { type: 'cut', duration: 0 };
 
     const duration = declared.duration ?? globalTransition?.duration ?? DEFAULT_TRANSITION_DURATION;
 

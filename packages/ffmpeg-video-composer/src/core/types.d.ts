@@ -287,6 +287,10 @@ export interface PartialSection {
   prefix?: string;
   sections?: unknown[];
   variables?: Record<string, string>;
+  /** Total seconds for this use; only the hold between the partial envelope IN and OUT stretches. */
+  duration?: number;
+  /** Snap a partial sync point onto a beat/cue by resizing the section before the ref. */
+  align?: { sync: string; to: number | string };
 }
 
 interface AudioFade {

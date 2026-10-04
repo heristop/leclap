@@ -3,6 +3,7 @@ import type { ProjectBuildInfos, ProjectConfig } from '../types';
 import DefaultConfig from '../default.config';
 import type { LoudnessReport, QcExpectations } from '../qc/types';
 import type { CommandInterceptor } from '../determinism/command-tap';
+import type { ProbedCapabilities } from '../capabilities';
 
 @singleton()
 class Project {
@@ -38,6 +39,9 @@ class Project {
   // core/encoding.ts) and the section-cache hook the command tap routes through (null elsewhere).
   public ffmpegVersion: string | null = null;
   public commandInterceptor: CommandInterceptor | null = null;
+  // Set by the Node compile() from the cached FFmpeg capability probe: filters this build cannot run are
+  // dropped (and designed transitions cut) with a warning instead of failing the render. Null elsewhere.
+  public capabilities: ProbedCapabilities | null = null;
 
   constructor() {
     this.init();

@@ -223,16 +223,20 @@ export function collectMotionWarnings(template: unknown): MotionWarning[] {
 
   if (!expansion.ok) return [];
 
+  // Expansion advisories (a partial squeezed under its fixed motion) index the AUTHORED ref.
+  const partialWarnings = (expansion.warnings ?? []).map((w) => ({ ...w, severity: 'warn' as const }));
+
   try {
     const timeline = motionTimeline(expansion.data);
 
     return [
+      ...partialWarnings,
       ...timeline.sections.flatMap((section, position) => sectionWarnings(section, position)),
       ...transitionMonotony(timeline.sections),
       ...tempoFlat(timeline.sections),
       ...skippedAssertions(expansion.data, timeline),
     ];
   } catch {
-    return [];
+    return partialWarnings;
   }
 }

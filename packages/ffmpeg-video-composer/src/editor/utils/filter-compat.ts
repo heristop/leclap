@@ -1,4 +1,5 @@
 import type { Filter, ProjectConfig } from '@/core/types';
+import type { ProbedCapabilities } from '@/core/capabilities';
 import { usesLgplEngine } from '../../core/encoding';
 import { eqValueToLutyuv } from '../presets/looks';
 import { DEVICE_FILTERS } from './device-filters.generated';
@@ -20,6 +21,8 @@ export type EngineCapabilities = {
   /** The curated on-device allowlist (generated from common.sh), or null on full GPL/WASM builds
    * where every filter the engine can emit is present. */
   deviceFilters: ReadonlySet<string> | null;
+  /** Filters the Node capability probe found absent or broken in the local FFmpeg, or null unprobed. */
+  missingFilters: ReadonlySet<string> | null;
 };
 
 // lut3d/colorkey are standard default-enabled filters present on every backend (host GPL, on-device
@@ -28,13 +31,17 @@ export type EngineCapabilities = {
 // below then drop the effect with a warning rather than aborting the render). text_shaping needs
 // HarfBuzz, which the host build and the WASM 6.x core do not reliably bundle, so it stays off — the
 // shadow/outline typography below covers legibility on every backend without it.
-export function engineCapabilities(config: ProjectConfig): EngineCapabilities {
+//
+// On Node, `probed` (the cached capability probe of the FFmpeg binary about to render, see
+// platform/ffmpeg/capability-probe-node.ts) narrows these to what that build really runs.
+export function engineCapabilities(config: ProjectConfig, probed?: ProbedCapabilities | null): EngineCapabilities {
   return {
-    gpl: !usesLgplEngine(config),
-    lut3d: true,
+    gpl: !usesLgplEngine(config) && (probed?.gpl ?? true),
+    lut3d: !probed?.missingFilters.has('lut3d'),
     colorkey: true,
-    textShaping: false,
+    textShaping: probed?.textShaping ?? false,
     deviceFilters: usesLgplEngine(config) ? DEVICE_FILTERS : null,
+    missingFilters: probed?.missingFilters ?? null,
   };
 }
 
@@ -55,6 +62,13 @@ export const FILTER_COMPAT: FilterCompatRule[] = [
     key: 'eq-to-lutyuv',
     match: (filter, caps) => filter.type === 'eq' && Boolean(filter.value) && !caps.gpl,
     remap: (filter) => ({ ...filter, type: 'lutyuv', value: eqValueToLutyuv(String(filter.value)) }),
+  },
+  {
+    // A filter the local FFmpeg lacks or cannot run (Node capability probe, e.g. drawtext on a build
+    // without libfreetype): dropped with a warning rather than failing the render.
+    key: 'drop-missing-on-host',
+    match: (filter, caps) => caps.missingFilters?.has(filter.type) === true,
+    remap: () => null,
   },
   {
     // Any filter still absent from the device allowlist after rewrites has no LGPL equivalent:

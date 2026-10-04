@@ -292,8 +292,11 @@ export {
   expandPartials,
   expandPartialsSafe,
   expandPartialsWithRegistry,
+  expandPartialsReport,
   partialsById,
+  PartialError,
   type PartialExpansion,
+  type PartialFinding,
 } from './core/partials';
 export type { ProjectConfig, TemplateDescriptor, CompileReporter } from './core/types';
 export {
@@ -314,6 +317,8 @@ export { createBundledFontLoader } from './services/geometry/bundled-font-loader
 // the MCP server share. The browser and React-Native entries never see it — it reaches disk and
 // network. Its geometry imports are type-only, so the lazy `import('./geometry')` still holds.
 export { geometryApproxNote, nodeGeometryWarnings } from './services/geometry/node-geometry';
+// Node entry only: the FFmpeg capability doctor (`leclap diagnose --json`, MCP get_capabilities).
+export * from './platform/ffmpeg/capability-exports-node';
 export type { RenderCheckOptions, RenderedGeometry } from './services/geometry/render-check';
 export { default as TeeLogAdapter } from './platform/logging/TeeLogAdapter';
 export {

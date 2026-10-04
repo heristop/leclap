@@ -4,6 +4,8 @@ import { BaseTemplateValidator, type ValidationError } from './BaseTemplateValid
 import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
+import { capabilityFindings } from './capability-validation';
+import type { CapabilityReport } from '@/core/capabilities';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -93,5 +95,12 @@ export class TemplateValidator extends BaseTemplateValidator {
   // shows it too.
   getMotionWarnings(template: unknown): MotionWarning[] {
     return [...collectMotionWarnings(template), ...accentAdvisories(template)];
+  }
+
+  // Advisory: `feature_unavailable` for every feature the template uses that the probed FFmpeg cannot
+  // render (drawtext, xfade, lut3d, loudnorm…). Pure; without a capability report there is nothing to
+  // compare against, so it returns nothing. Node hosts pass `probeCapabilities()`.
+  getCapabilityWarnings(template: unknown, capabilities?: CapabilityReport | null): ValidationError[] {
+    return capabilities ? capabilityFindings(template, capabilities) : [];
   }
 }

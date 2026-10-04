@@ -14,10 +14,12 @@ import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
 import { CAMERA_GUIDES, GRAPHIC_GUIDES, KINETIC_GUIDES, TRANSITION_GUIDES, type MotionGuide } from './catalog-guides';
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+import { PARTIAL_GUIDE } from './catalog-partials';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
 export type { BlueprintRole, MotionBlueprint } from './catalog-blueprints';
+export { partialCatalog, type PartialSummary } from './catalog-partials';
 import { TIME_REF_SYNTAX } from '../timing/grammar';
 
 const ART_DIRECTION = [
@@ -112,6 +114,8 @@ export interface MotionCatalog {
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
   themes: ThemeCatalog;
   timing: typeof TIMING;
+  /** Partials: rhetorical jobs, the elastic envelope, sync points and align. */
+  partials: typeof PARTIAL_GUIDE;
   starter: typeof STARTER;
 }
 
@@ -228,6 +232,7 @@ export function motionCatalog(): MotionCatalog {
     platforms: platformCatalog(),
     themes: themeCatalog(),
     timing: TIMING,
+    partials: PARTIAL_GUIDE,
     starter: STARTER,
   };
 }

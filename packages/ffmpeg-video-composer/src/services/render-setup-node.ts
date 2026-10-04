@@ -11,12 +11,18 @@ import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type { ProjectConfig } from '@/core/types';
 import { ffmpegVersionLine, versionFromLine } from '../platform/ffmpeg/analyze-node';
 import { createSectionCache, type SectionCache } from './section-cache-node';
+import { probeCapabilities } from '../platform/ffmpeg/capability-probe-node';
+import { probedCapabilities, type CapabilityReport } from '@/core/capabilities';
+import type AbstractLogger from '../platform/logging/AbstractLogger';
+import { capabilityFindings } from './capability-validation';
 import { descriptorAssetFiles, renderRoots } from './render-manifest-node';
 
 export interface NodeRenderContext {
   /** First line of `ffmpeg -version`, or null when the adapter runs no binary (or it could not run). */
   ffmpegVersionLine: string | null;
   cache: SectionCache | null;
+  /** What that FFmpeg can render (cached capability probe), or null when the adapter runs no binary. */
+  capabilities: CapabilityReport | null;
 }
 
 export interface NodeRenderSetup {
@@ -79,14 +85,29 @@ export async function prepareNodeRender(setup: NodeRenderSetup): Promise<NodeRen
       : null;
   setup.project.commandInterceptor = cache?.intercept ?? null;
 
-  return { ffmpegVersionLine: versionLine, cache };
+  // Filters the binary cannot run are dropped with a warning (filter-compat.ts) instead of failing.
+  const probe = binary && versionLine && process.env.FVC_CAPABILITY_PROBE !== '0';
+  const capabilities = probe ? await probeCapabilities({ binary }) : null;
+  setup.project.capabilities = capabilities ? probedCapabilities(capabilities) : null;
+
+  return { ffmpegVersionLine: versionLine, cache, capabilities };
+}
+
+// The compile-time face of `feature_unavailable`: what this render will drop or cut, said up front.
+function warnUnavailable(descriptor: unknown, context: NodeRenderContext): void {
+  if (!context.capabilities) return;
+
+  const logger = container.resolve<AbstractLogger>('logger');
+
+  for (const finding of capabilityFindings(descriptor, context.capabilities)) {
+    logger.warn(`[Capabilities] ${finding.path}: ${finding.message}${finding.hint ? ` — ${finding.hint}` : ''}`);
+  }
 }
 
 /** prepareNodeRender against the registered project, FFmpeg and filesystem adapters. */
-export function prepareRegisteredRender(config: ProjectConfig, descriptor: unknown): Promise<NodeRenderContext> {
+export async function prepareRegisteredRender(config: ProjectConfig, descriptor: unknown): Promise<NodeRenderContext> {
   const filesystem = container.resolve<AbstractFilesystem>('filesystemAdapter');
-
-  return prepareNodeRender({
+  const context = await prepareNodeRender({
     project: container.resolve<Project>('project'),
     adapter: container.resolve<AbstractFFmpeg>('ffmpegAdapter'),
     config,
@@ -95,4 +116,8 @@ export function prepareRegisteredRender(config: ProjectConfig, descriptor: unkno
     buildDir: path.resolve(config.buildDir ?? 'build'),
     tempDir: filesystem.getTempDir(),
   });
+
+  warnUnavailable(descriptor, context);
+
+  return context;
 }

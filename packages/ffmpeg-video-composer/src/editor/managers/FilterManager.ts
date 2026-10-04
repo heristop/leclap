@@ -46,7 +46,10 @@ class FilterManager {
     // Platform filter-compat: rewrite filters the active engine can't run (e.g. the on-device LGPL
     // engine lacks GPL `eq` → lutyuv). A null result means the filter has no equivalent here: degrade
     // to the no-op `null` filter and warn, rather than emitting a filter the engine will die on.
-    const compat = applyFilterCompat(resolvedFilter, engineCapabilities(this.project.config));
+    const compat = applyFilterCompat(
+      resolvedFilter,
+      engineCapabilities(this.project.config, this.project.capabilities)
+    );
 
     if (compat === null) {
       this.logger.warn(`[FilterCompat] dropped unavailable filter "${resolvedFilter.type}"`);

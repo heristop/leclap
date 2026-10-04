@@ -100,6 +100,18 @@ export const TitleCardSchema = z
 
 // ── lower third ────────────────────────────────────────────────────────────────
 
+export const LOWER_THIRD_STYLES = ['clean-bar', 'side-rule', 'kicker', 'stack-bars', 'pill'] as const;
+export type LowerThirdStyle = (typeof LOWER_THIRD_STYLES)[number];
+
+/** The reveal each lower-third style's lines use when the block sets none (lowering and timeline agree). */
+export const LOWER_THIRD_STYLE_REVEALS: Record<LowerThirdStyle, 'fade' | 'rise' | 'slide-right'> = {
+  'clean-bar': 'slide-right',
+  'side-rule': 'slide-right',
+  kicker: 'rise',
+  'stack-bars': 'slide-right',
+  pill: 'fade',
+};
+
 // A title/subtitle band composited over a clip. Lowered by the lowerThird preset
 // (editor/presets/text-blocks.ts) into the drawbox/drawtext filters that used to require inputs/maps/@name.
 export const LowerThirdSchema = z
@@ -118,6 +130,15 @@ export const LowerThirdSchema = z
       .optional()
       .describe('Legibility band opacity 0..1 (default 0.6; 0 = no band).'),
     position: z.enum(['bottom', 'top']).optional().describe('Vertical anchor of the band (default bottom).'),
+    style: z
+      .enum(LOWER_THIRD_STYLES)
+      .optional()
+      .describe(
+        'Layout and animation (default: the full-width band). clean-bar: tight boxes behind each line under an accent rule that draws itself. ' +
+          'side-rule: no band, a vertical accent rule grows beside the lines. kicker: the subtitle becomes an accent label above the title, ' +
+          'underlined by a drawn rule. stack-bars: an accent box for the title and a band box for the subtitle, sliding in one after the other. ' +
+          'pill: a rounded pill grows from a dot and the lines fade in inside it. Each style has its own default reveal.'
+      ),
     badge: TranslationSchema.optional().describe('Optional right-aligned pill (price, step number, badge).'),
     reveal: RevealSchema.optional().describe('Entrance for the lines, staggered (default "rise").'),
     effect: TextEffectSchema.optional().describe(

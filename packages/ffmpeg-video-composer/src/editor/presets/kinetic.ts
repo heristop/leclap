@@ -16,6 +16,7 @@ import {
 import { layoutWithin } from '@/core/kinetic/fit';
 import { unitTracks, type UnitTracks } from '@/core/kinetic/units';
 import { caretBoxes, counterText, markerSweep, scrambleDecoys } from '@/core/kinetic/extras';
+import { trailEchoes } from './kinetic-trail';
 import { applyTextEffect } from './text';
 import type { SugarContext } from './sugar-context';
 
@@ -45,8 +46,8 @@ function quoted(expr: string): string {
   return `'${expr}'`;
 }
 
-function offset(base: number, keys: TrackKey[]): string {
-  const expr = trackExpr(keys, 0);
+function offset(base: number, keys: TrackKey[], time: string): string {
+  const expr = trackExpr(keys, 0, time);
 
   return expr === '0' ? fmt(base) : quoted(`${fmt(base)}+(${expr})`);
 }
@@ -54,23 +55,27 @@ function offset(base: number, keys: TrackKey[]): string {
 interface PieceDraw {
   piece: LayoutPiece;
   tracks: UnitTracks;
+  start: number;
   arrive: number;
+  /** When the unit starts leaving and how long that takes, or null when it holds to the cut. */
+  leave: { at: number; duration: number } | null;
   index: number;
   color: string;
 }
 
-function waveTerm(block: KineticBlock, settings: ResolvedKinetic, draw: PieceDraw): string {
+function waveTerm(block: KineticBlock, settings: ResolvedKinetic, draw: PieceDraw, t: string): string {
   if (settings.preset !== 'wave') return '';
 
   const amplitude = (block.amplitude ?? settings.size * 0.06) * (settings.distance > 0 ? 1 : 0);
   const frequency = block.frequency ?? 1.2;
 
-  return `+${fmt(amplitude)}*sin(6.283185*(${fmt(frequency)}*t-${fmt(draw.index * 0.08)}))*clip((t-${fmt(draw.arrive)})/0.4,0,1)`;
+  return `+${fmt(amplitude)}*sin(6.283185*(${fmt(frequency)}*${t}-${fmt(draw.index * 0.08)}))*clip((${t}-${fmt(draw.arrive)})/0.4,0,1)`;
 }
 
-function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: PieceDraw): Filter {
+/** One unit's drawtext; `t` is its clock (an echo of the trail reads the unit a few frames late). */
+function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: PieceDraw, t = 't'): Filter {
   const { piece, tracks } = draw;
-  const scale = tracks.scale ? trackExpr(tracks.scale, 0) : null;
+  const scale = tracks.scale ? trackExpr(tracks.scale, 0, t) : null;
   const size = settings.size;
   // Every piece sits on the line's shared baseline: drawtext places a string by its own glyph box, so
   // `baseline - max_glyph_a` keeps a lone comma or lowercase glyph from floating. A scaled piece keeps
@@ -78,7 +83,7 @@ function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: Piece
   const baseline = scale
     ? `${fmt(piece.y + size / 2)}+${fmt(size * (BASELINE - 0.5))}*(${scale})`
     : fmt(piece.y + size * BASELINE);
-  const y = `${baseline}-max_glyph_a+(${trackExpr(tracks.y, 0)})${waveTerm(block, settings, draw)}`;
+  const y = `${baseline}-max_glyph_a+(${trackExpr(tracks.y, 0, t)})${waveTerm(block, settings, draw, t)}`;
   const values: Record<string, unknown> = {
     text: piece.text,
     fontfile: settings.font,
@@ -86,10 +91,10 @@ function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: Piece
     fontcolor: draw.color,
     // A scaled unit grows around its own centre: anchor x on the centre, y on the em box.
     x: scale
-      ? quoted(`${fmt(piece.x + piece.width / 2)}+(${trackExpr(tracks.x, 0)})-text_w/2`)
-      : offset(piece.x, tracks.x),
+      ? quoted(`${fmt(piece.x + piece.width / 2)}+(${trackExpr(tracks.x, 0, t)})-text_w/2`)
+      : offset(piece.x, tracks.x, t),
     y: quoted(y),
-    alpha: quoted(`clip(${trackExpr(tracks.opacity, 0)},0,1)`),
+    alpha: quoted(`clip(${trackExpr(tracks.opacity, 0, t)},0,1)`),
   };
   applyTextEffect(values, block.effect);
 
@@ -137,7 +142,15 @@ function pieceDraws(block: KineticBlock, plan: Choreography): PieceDraw[] {
     const line = layout.lines[piece.line];
     const tracks = unitTracks(settings, piece, line.x + line.width / 2, { start, arrive, leave }, exit);
 
-    return { piece, tracks, arrive, index, color: accents.has(piece.word) ? accentColor : settings.color };
+    return {
+      piece,
+      tracks,
+      start,
+      arrive,
+      leave: leave === null || !exit ? null : { at: leave, duration: exit.duration },
+      index,
+      color: accents.has(piece.word) ? accentColor : settings.color,
+    };
   });
 }
 
@@ -190,7 +203,10 @@ export function kineticToFilters(block: KineticBlock, ctx: KineticContext): Filt
 
   return [
     ...markers(block, plan, draws),
-    ...draws.map((draw) => pieceFilter(block, settings, draw)),
+    ...draws.flatMap((draw) => [
+      ...trailEchoes(block, draws.length, (time) => pieceFilter(block, settings, draw, time), draw),
+      pieceFilter(block, settings, draw),
+    ]),
     ...extras(block, plan, ctx.seed),
   ];
 }

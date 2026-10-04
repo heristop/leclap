@@ -145,7 +145,8 @@ export const TransitionSchema = z
       .union([z.enum(XFADE_TRANSITIONS), z.enum(DESIGNED_TRANSITIONS), z.literal('cut')])
       .describe(
         'xfade transition name between this section and the next, "cut" for a hard cut, or ' +
-          'a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris.'
+          'a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris, ' +
+          'whip-left/right/up/down (a push motion-blurred at peak speed).'
       ),
     ease: EasingSpecSchema.optional().describe(
       'Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot.'

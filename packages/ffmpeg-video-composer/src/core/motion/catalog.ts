@@ -11,7 +11,14 @@ import { CAMERA_PRESETS } from '../../schemas/camera.schemas';
 import { DESIGNED_TRANSITION_DESCRIPTIONS } from './transitions';
 import { platformCatalog, type PlatformCatalogEntry } from '../platforms';
 import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
-import { CAMERA_GUIDES, GRAPHIC_GUIDES, KINETIC_GUIDES, TRANSITION_GUIDES, type MotionGuide } from './catalog-guides';
+import {
+  CAMERA_GUIDES,
+  GRAPHIC_GUIDES,
+  KINETIC_GUIDES,
+  LOWER_THIRD_GUIDES,
+  TRANSITION_GUIDES,
+  type MotionGuide,
+} from './catalog-guides';
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
 
@@ -38,9 +45,13 @@ const ART_DIRECTION = [
   'Camera: one move per beat (push-in for build-up, drift for calm, orbit for product, handheld for documentary); ' +
     'add hits on the beats where impact type lands, optionally with a flash graphic at the same time.',
   'Graphics: corners or frame for focus, underline under a headline, panel as a backing plate, bars for cinema, ' +
-    'wipe as an in-scene page turn, flash for impact (at most 3 per second).',
-  'Transitions: push for sequence, swipe for layering, zoom-through for energy, iris for reveals; keep 0.5–0.8 s and ' +
-    'prefer cut between beats of the same idea. Designed transitions ease like any other motion (ease: $snappy…).',
+    'wipe as an in-scene page turn, flash for impact (at most 3 per second), glitch for a hook hit, focus to rack ' +
+    'into a beat, progress / ticker / bars-chart for data and broadcast.',
+  'Transitions: push for sequence, swipe for layering, zoom-through for energy, iris for reveals, whip for a fast ' +
+    'jump on the beat (0.3–0.5 s); keep the others 0.5–0.8 s and prefer cut between beats of the same idea. ' +
+    'Designed transitions ease like any other motion (ease: $snappy…).',
+  'Kinetic trail ({ echoes, delta, fade }) smears fast travel (impact, drop, slide, whip-paced edits); skip it on ' +
+    'calm presets and on long copy, where the echoes multiply the draw cost.',
   'Set global.platform (tiktok, reels, shorts, youtube, x, linkedin, facebook, square-feed) when the video ' +
     'has a destination: keep kinetic copy and graphics out of its safe zones (see platforms[].safe, fractions ' +
     'of the frame per edge) and the timeline under platforms[].maxDuration.',
@@ -96,6 +107,7 @@ export interface MotionCatalog {
     exits: readonly string[];
     orders: readonly string[];
     units: readonly string[];
+    trail: Guided<{ description: string; fields: string[] }>;
   };
   easing: {
     historical: readonly string[];
@@ -106,6 +118,8 @@ export interface MotionCatalog {
   camera: { presets: Array<Guided<{ preset: string }>>; fields: string[] };
   transitions: Record<string, Guided<{ description: string }>>;
   graphics: Record<string, Guided<{ description: string }>>;
+  /** `lowerThird.style` presets; `band` is the default look (no style). */
+  lowerThirds: Record<string, Guided<{ description: string }>>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
   /** Delivery platforms for `global.platform`: orientation, safe zones, max duration, loudness. */
   platforms: PlatformCatalogEntry[];
@@ -174,6 +188,32 @@ const GRAPHICS: Record<string, string> = {
   corners: 'Viewfinder brackets extending from the corners (inset, length, thickness).',
   wipe: 'A colour panel sweeping across the frame: covers then uncovers (direction).',
   panel: 'A solid block growing from one edge: a backing plate for text (x, y, width, height, from).',
+  glitch: 'A seeded digital tear: RGB split, jitter, grain and colour slices for a short hit (intensity).',
+  focus:
+    'Rack focus: the frame blurs in or out of focus (direction in|out, amount). above: false keeps later text sharp.',
+  progress: 'A bar that fills over a window, then holds (position, thickness, track, x, y, width; linear by default).',
+  ticker: 'A news band grows in, then copy scrolls right to left and loops (text, speed, position, height, font).',
+  'bars-chart':
+    'Bars grow one after another while their values count up (values, labels, max, x, y, width, height, stagger).',
+};
+
+const LOWER_THIRDS: Record<string, string> = {
+  band: 'Default (no style): a full-width translucent band, accent bar, title, subtitle and badge.',
+  'clean-bar': 'Tight boxes behind each line under an accent rule that draws itself; slides in.',
+  'side-rule': 'No band: a vertical accent rule grows beside the lines, which slide in.',
+  kicker: 'The subtitle becomes an accent label above the title, then a rule underlines the title.',
+  'stack-bars': 'Title on an accent box, subtitle on a band box, sliding in one after the other.',
+  pill: 'A rounded pill grows from a dot; title and subtitle fade in inside it.',
+};
+
+const TRAIL = {
+  description:
+    'kinetic[].trail: each unit leaves fading echoes of itself a few frames behind while it moves; they collapse into it when it rests.',
+  fields: ['echoes (2..6)', 'delta (s, default 0.04)', 'fade (0..1, default 0.5)'],
+  verb: 'SMEARS',
+  useWhen: 'fast travel that should feel kinetic: impact, drop, slide, split on a hype beat',
+  avoidWhen: 'calm presets (fade, typewriter), long copy, or premium tone',
+  pairsWith: ['whip transition', 'camera hits'],
 };
 
 function guided(descriptions: Record<string, string>, guides: Record<string, MotionGuide>) {
@@ -192,6 +232,7 @@ export function motionCatalog(): MotionCatalog {
       exits: KINETIC_EXIT_PRESETS,
       orders: KINETIC_ORDERS,
       units: ['line', 'word', 'glyph'],
+      trail: TRAIL,
     },
     easing: {
       historical: LEGACY_EASINGS,
@@ -224,6 +265,7 @@ export function motionCatalog(): MotionCatalog {
     },
     transitions: guided({ ...BASIC_TRANSITIONS, ...DESIGNED_TRANSITION_DESCRIPTIONS }, TRANSITION_GUIDES),
     graphics: guided(GRAPHICS, GRAPHIC_GUIDES),
+    lowerThirds: guided(LOWER_THIRDS, LOWER_THIRD_GUIDES),
     tokens: BUILTIN_MOTION_TOKENS,
     platforms: platformCatalog(),
     themes: themeCatalog(),

@@ -92,10 +92,29 @@ describe('validateGlyphCoverage', () => {
     expect(finding.message).not.toContain('"百"');
   });
 
-  it('reports emoji separately, ignoring joiners and variation selectors', () => {
-    const findings = validateGlyphCoverage(captioned({ en: 'Ship it 👍🏽 ❤️ 👨‍👩‍👧' }));
+  it('passes emoji by default: they render as bundled colour images (global.emoji "image" or "strip")', () => {
+    expect(validateGlyphCoverage(captioned({ en: 'Ship it 👍🏽 ❤️ 👨‍👩‍👧 1️⃣' }))).toEqual([]);
+
+    for (const emoji of ['image', 'strip']) {
+      const descriptor = { ...captioned({ en: 'Ship it 👍🏽 ❤️' }), global: { emoji } } as TemplateDescriptor;
+
+      expect(validateGlyphCoverage(descriptor), emoji).toEqual([]);
+    }
+  });
+
+  it('still reports missing glyphs next to emoji', () => {
+    const findings = validateGlyphCoverage(captioned({ en: 'Привет 🔥' }));
+
+    expect(findings.map((finding) => finding.code)).toEqual(['font_missing_glyphs']);
+    expect(findings[0].message).not.toContain('🔥');
+  });
+
+  it('reports emoji separately under global.emoji "error", ignoring joiners and variation selectors', () => {
+    const descriptor = { ...captioned({ en: 'Ship it 👍🏽 ❤️ 👨‍👩‍👧' }), global: { emoji: 'error' } };
+    const findings = validateGlyphCoverage(descriptor as TemplateDescriptor);
 
     expect(findings.map((finding) => finding.code)).toEqual(['emoji_unsupported']);
+    expect(findings[0].hint).toContain('global.emoji');
     expect(findings[0].message).toContain('"👍", "🏽", "❤", "👨", "👩", "👧"');
     expect(findings[0].message).not.toContain('\u200d');
   });

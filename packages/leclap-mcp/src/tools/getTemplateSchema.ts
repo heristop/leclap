@@ -33,6 +33,11 @@ const GUIDE = [
     'and validate_template then warns platform_ui_overlap (text under the app UI, per-edge safe zones such as ' +
     "TikTok's bottom 22%), platform_duration_exceeded and platform_fps_mismatch. get_motion_catalog lists " +
     'platforms[] with safe zones, max duration and loudness.',
+  'Emoji in any drawn text (captions, title cards, lower thirds, kinetic blocks, drawtext filters) render as ' +
+    'bundled colour images composited into a measured gap, sharing the text timing, motion and fades ' +
+    '(global.emoji "image", the default). About 250 common emoji ship (faces, hands, hearts, symbols, arrows, ' +
+    'flags, keycaps, skin tones); validate_template warns emoji_missing_asset for one without an image (it is ' +
+    'stripped) and emoji_overlay_cap past 24 per section. global.emoji "strip" drops them, "error" rejects them.',
   'Text reveal easing accepts linear, ease-out, ease-in-out and ease-out-back. Back easing overshoots travel by ' +
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +

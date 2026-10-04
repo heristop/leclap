@@ -42,6 +42,7 @@ examples/agentic-pr-video/evidence/
 /apps/leclap-expo/assets/musics/
 /apps/leclap-expo/assets/backgrounds/
 /apps/leclap-expo/assets/fonts/
+/apps/leclap-expo/assets/emoji/
 /apps/leclap-expo/assets/videos/
 # keep the Expo app's own (non-library) font tracked
 !/apps/leclap-expo/assets/fonts/SpaceMono-Regular.ttf

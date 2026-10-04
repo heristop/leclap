@@ -45,6 +45,13 @@ abstract class AbstractFilesystem {
     return Promise.resolve(null);
   }
 
+  // Resolve a bundled colour-emoji image (`1f525.png`) to an absolute local path, or null. Same role as
+  // resolveBundledFont: the Node adapter finds the creative kit's copy; the browser and Expo hosts
+  // stage the set under `/assets/emoji/` instead (scripts/copy-core-assets.ts).
+  resolveBundledEmoji(_file: string): Promise<string | null> {
+    return Promise.resolve(null);
+  }
+
   // Resolve a previously downloaded font from a cache that OUTLIVES the build directory, or null
   // when the platform keeps no such cache. Together with `cacheFont` this is what makes a second
   // render of the same resolved font work offline — the build dir is wiped between runs, so without

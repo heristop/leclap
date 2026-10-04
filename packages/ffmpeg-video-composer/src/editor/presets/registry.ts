@@ -7,6 +7,9 @@ import { cameraBackground } from './camera';
 import { graphicsToFilters } from './graphics';
 
 export type { SugarContext, KineticSugarContext } from './sugar-context';
+// Emoji leave the lowered text right after the sugar compiles (editor/emoji); re-exported so the builder
+// stages both from one place.
+export { createEmojiPlan, type EmojiPlan } from '../emoji/EmojiPlan';
 import type { SugarContext } from './sugar-context';
 
 // Where a sugar's filters sit relative to an animation/gradient overlay graph:

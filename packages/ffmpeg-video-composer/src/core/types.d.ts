@@ -135,6 +135,8 @@ export interface TemplateDescriptorGlobal {
   orientation?: string;
   /** Delivery platform id or alias (core/platforms.ts): orientation default, safe zones, loudness. */
   platform?: PlatformName;
+  /** Colour emoji in drawn text: composited bundled images (default), stripped, or a validation error. */
+  emoji?: 'image' | 'strip' | 'error';
   /** Root seed (uint32) for procedural effects; each element derives hash(seed, path). Default 0. */
   seed?: number;
   /** Motion tokens + energy, see schemas/motion.schemas.ts. */

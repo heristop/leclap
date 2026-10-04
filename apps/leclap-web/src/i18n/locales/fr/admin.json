@@ -850,8 +850,9 @@
     "label": "Cadrage",
     "cover": "Remplir",
     "letterbox": "Letterbox",
+    "blur": "Flou",
     "off": "Désactivé",
-    "hint": "Remplir recadre l'image pour remplir le cadre ; Letterbox garde tout visible avec des bandes ; Désactivé utilise le fichier tel quel, sans l'ajuster au cadre."
+    "hint": "Remplir recadre l'image pour remplir le cadre ; Letterbox garde tout visible avec des bandes ; Flou garde tout visible sur une copie floutée au lieu des bandes ; Désactivé utilise le fichier tel quel, sans l'ajuster au cadre."
   },
   "musicSection": {
     "pickTracks": "Choisis les pistes proposées aux spectateurs.",

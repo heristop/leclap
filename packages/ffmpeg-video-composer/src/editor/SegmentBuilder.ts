@@ -30,7 +30,13 @@ import {
   buildColorMetadataArgs,
   buildColorMetadataFilter,
 } from '@/core/encoding';
-import { cameraEndOfChain, conformMotionChain, motionSugarContext } from './presets/motion-chain';
+import {
+  cameraEndOfChain,
+  conformMotionChain,
+  motionSugarContext,
+  reframeFilters,
+  sectionFootageHead,
+} from './presets/motion-chain';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -80,6 +86,9 @@ class SegmentBuilder {
   // Count of background-sugar filters prepended to section.filters — the splice point for overlay text
   // in the no-overlay-graph case (text sits above the grade, below the section's authored chain).
   private backgroundSugarCount = 0;
+  // Count of footage-edit filters (clip range / ramp / freeze) at the head of section.filters; the
+  // reframe scale is spliced right after them. Reset per section with the sugar guard.
+  private footageHeadCount = 0;
   // Guards stageBackgroundSugar so it folds the sugar exactly once per section: buildSegment stages it
   // before buildMaps (so overlay base legs pick up the grade), and buildFilters calls it too (a no-op
   // then) so buildFilters stays self-contained when driven directly. Reset per section in hydrate.
@@ -162,6 +171,7 @@ class SegmentBuilder {
     this.sugarStaged = false;
     this.pendingOverlaySugar = [];
     this.backgroundSugarCount = 0;
+    this.footageHeadCount = 0;
 
     this.assetManager.segment = this.segment;
     this.mapManager.segment = this.segment;
@@ -420,11 +430,9 @@ class SegmentBuilder {
       this.section.filters.splice(this.backgroundSugarCount, 0, ...overlaySugar);
     }
 
-    // Force ratio (opts?.forceAspectRatio !== false is true when opts is undefined,
-    // so the RHS opts.forceOriginalAspectRatio is only reached when opts is defined).
-    if (opts?.forceAspectRatio !== false || opts.forceOriginalAspectRatio) {
-      this.prependScaleFilters(opts);
-    }
+    // Reframe (cover / letterbox / blur fill, focus), right after the footage edits staged ahead of
+    // everything (stageBackgroundSugar): frames are retimed before any of them is scaled or drawn on.
+    this.prependScaleFilters(opts);
 
     // Build simple filters
     for (const filter of this.section.filters) {
@@ -458,8 +466,12 @@ class SegmentBuilder {
     }
 
     const videoScale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
-    this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale);
+    const head = this.footageHead().map((filter) => this.filterManager.addFilter(filter));
+    this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale, head);
   };
+
+  // The footage edits' video head (core/footage/plan.ts), or none for an unedited section.
+  private readonly footageHead = (): Filter[] => sectionFootageHead(this.section, this.project.buildInfos, this.fps());
 
   /**
    * Chains overlay-class sugar (text) onto the final composited pad when the section has an overlay
@@ -534,13 +546,13 @@ class SegmentBuilder {
     this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
     const authored = this.section.filters;
 
-    // CFR conform + seeded noise (presets/motion-chain.ts).
-    this.section.filters = conformMotionChain(
-      [...background, ...authored],
-      this.template.descriptor,
-      this.fps(),
-      this.section.name
-    );
+    // Footage edits retime the raw clip first, then the CFR conform + seeded noise (presets/motion-chain.ts).
+    const head = this.footageHead();
+    this.footageHeadCount = head.length;
+    this.section.filters = [
+      ...head,
+      ...conformMotionChain([...background, ...authored], this.template.descriptor, this.fps(), this.section.name),
+    ];
     // Everything ahead of the authored chain (background sugar, plus the CFR conform) — the splice point
     // for overlay text, which must draw after the conform so it animates on the frame grid.
     this.backgroundSugarCount = this.section.filters.length - authored.length;
@@ -554,23 +566,18 @@ class SegmentBuilder {
    */
   protected buildAudioFadeArg = (): string => buildAudioFadeArg(this.section.options);
 
+  // Default COVER (scale up until the frame is filled, crop the overflow) never stretches a source whose
+  // aspect differs from the output; letterbox keeps the whole frame with bars; blur fills the bars with
+  // a blurred copy; off skips scaling (utils/reframe.ts).
   private readonly prependScaleFilters = (opts: SectionOptions | undefined): void => {
-    const baseScale = this.project.config.videoConfig?.scale ?? '';
-    // Default (forceAspectRatio): COVER — scale up until the frame is filled, then crop the overflow, so
-    // a source whose aspect differs from the output (e.g. a portrait clip in a square template) fills the
-    // frame WITHOUT being stretched. A bare `scale=W:H` would deform it; this preserves the content ratio.
-    let scaleFilter = baseScale ? `${baseScale}:force_original_aspect_ratio=increase,crop=${baseScale}` : baseScale;
+    const reframe = reframeFilters(opts, {
+      scale: this.project.config.videoConfig?.scale ?? '',
+      setsar: this.project.config.videoConfig?.setsar,
+      fps: this.fps(),
+    });
 
-    if (opts?.forceOriginalAspectRatio) {
-      // CONTAIN — letterbox: keep the whole frame visible with bars instead of cropping.
-      scaleFilter = `${baseScale}:force_original_aspect_ratio=decrease,pad=${baseScale}:(ow-iw)/2:(oh-ih)/2`;
-    }
-
-    this.section.filters = [
-      { type: 'setsar', value: this.project.config.videoConfig?.setsar },
-      { type: 'scale', value: scaleFilter },
-      ...(this.section.filters ?? []),
-    ];
+    this.section.filters ??= [];
+    this.section.filters.splice(this.footageHeadCount, 0, ...reframe);
   };
 
   /**

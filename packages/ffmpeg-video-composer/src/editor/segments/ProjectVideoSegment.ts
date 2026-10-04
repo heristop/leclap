@@ -3,6 +3,7 @@ import SegmentBuilder from '../SegmentBuilder';
 import { assertSafeArgToken } from '@/core/arg-guard';
 import { usesLgplEngine } from '@/core/encoding';
 import { buildAudioFadeArg } from '../utils/audio-fade';
+import { footageAudio } from '../utils/footage-section';
 
 @injectable()
 class ProjectVideo extends SegmentBuilder {
@@ -29,6 +30,11 @@ class ProjectVideo extends SegmentBuilder {
   // video-only clip already maps an endless silent source.
   private padsSourceAudio(noSourceAudio: boolean): boolean {
     return this.section.options?.muteSection !== true && !noSourceAudio && !usesLgplEngine(this.project.config);
+  }
+
+  // The mapped audio is the clip's own sound (not muted, not a synthesized silent track).
+  private mapsClipSound(noSourceAudio: boolean): boolean {
+    return this.section.options?.muteSection !== true && !noSourceAudio;
   }
 
   override configure = (): void => {
@@ -67,12 +73,20 @@ class ProjectVideo extends SegmentBuilder {
     const silentInput = noSourceAudio ? this.addBlankAudio() : '';
     // Source video is input 0, asset inputs follow, the appended silent leg is the last input.
     const audioMap = noSourceAudio ? `-map ${this.sources.length + 1}:a` : '-map 0:a?';
+    // Footage edits (clip range / ramp / freeze) retime the clip's own sound; `-t … -shortest` then ends
+    // the segment on the edited picture.
+    const footage = footageAudio(this.section, {
+      config: this.project.config,
+      buildInfos: this.project.buildInfos,
+      clipSound: this.mapsClipSound(noSourceAudio),
+    });
+    const audioArg = buildAudioFadeArg(this.section.options, this.padsSourceAudio(noSourceAudio), footage);
 
     this.command +=
       ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ${silentInput} ` +
       ` -r ${this.fps()} ${duration} ` +
       ` ${this.videoEncoderArgs()} -c:a aac -ac 2 ${this.pixFmtArg()} ${this.colorMetadataArgs()} -movflags +faststart -shortest ` +
-      ` ${this.filters} ${audioMap} ${buildAudioFadeArg(this.section.options, this.padsSourceAudio(noSourceAudio))}${this.destination} `;
+      ` ${this.filters} ${audioMap} ${audioArg}${this.destination} `;
   };
 }
 

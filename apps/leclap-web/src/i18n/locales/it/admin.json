@@ -850,8 +850,9 @@
     "label": "Inquadratura",
     "cover": "Riempi",
     "letterbox": "Letterbox",
+    "blur": "Sfocato",
     "off": "Disattivato",
-    "hint": "Riempi ritaglia il materiale per riempire il riquadro; Letterbox lo mostra intero con bande; Disattivato usa il file così com'è, senza adattarlo al riquadro."
+    "hint": "Riempi ritaglia il materiale per riempire il riquadro; Letterbox lo mostra intero con bande; Sfocato lo mostra intero su una copia sfocata invece delle bande; Disattivato usa il file così com'è, senza adattarlo al riquadro."
   },
   "musicSection": {
     "pickTracks": "Scegli le tracce tra cui gli spettatori possono selezionare.",

@@ -4,6 +4,7 @@ import { BaseTemplateValidator, type ValidationError } from './BaseTemplateValid
 import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
+import { footageAdvisories } from './footage-advisories';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -90,8 +91,9 @@ export class TemplateValidator extends BaseTemplateValidator {
   // front-loaded sections, dead air, flat tempo…) plus assertions that can't be measured render-free.
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
   // The theme's one-accent-per-idea advisory rides along, so every surface that shows pacing feedback
-  // shows it too.
+  // shows it too, as do the footage advisories (extreme ramp speeds, ignored focus, blur fit under
+  // overlays, a clip range shorter than the section).
   getMotionWarnings(template: unknown): MotionWarning[] {
-    return [...collectMotionWarnings(template), ...accentAdvisories(template)];
+    return [...collectMotionWarnings(template), ...accentAdvisories(template), ...footageAdvisories(template)];
   }
 }

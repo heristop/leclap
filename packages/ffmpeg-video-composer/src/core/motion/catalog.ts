@@ -14,6 +14,7 @@ import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
 import { CAMERA_GUIDES, GRAPHIC_GUIDES, KINETIC_GUIDES, TRANSITION_GUIDES, type MotionGuide } from './catalog-guides';
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+import { footageCatalog, type FootageCatalog } from '../footage/presets';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
@@ -112,6 +113,8 @@ export interface MotionCatalog {
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
   themes: ThemeCatalog;
   timing: typeof TIMING;
+  /** Footage editing: fits, focus, speed-ramp presets, clip range and freeze frames. */
+  footage: FootageCatalog;
   starter: typeof STARTER;
 }
 
@@ -128,6 +131,9 @@ const TIMING = {
     'filters[].reveal.delay (drawtext)',
     'filters[].exit.after (drawtext)',
     'filters[].animate.*[].t',
+    'options.speedRamp[].at',
+    'options.freeze[].at',
+    'options.focus[].t',
   ],
   grammar: TIME_REF_SYNTAX,
   bases: {
@@ -228,6 +234,7 @@ export function motionCatalog(): MotionCatalog {
     platforms: platformCatalog(),
     themes: themeCatalog(),
     timing: TIMING,
+    footage: footageCatalog(),
     starter: STARTER,
   };
 }

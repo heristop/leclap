@@ -24,6 +24,7 @@ import {
   timingOptions,
 } from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
+import { recordSectionLengths } from './footage-durations';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import { expandPartialsSafe, assertEffectsResolved } from '@/core/partials';
 import type Project from '../core/models/Project';
@@ -230,22 +231,19 @@ class TemplateDirector {
   };
 
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
-    const resolveDuration = async (segment: Section): Promise<number> => {
-      if (segment.type === 'project_video') {
-        return this.getVideoSectionDuration(segment);
-      }
+    const buildInfos = this.project.buildInfos;
+    const sourceDurations = (buildInfos.sourceDurations ??= {});
+    const probes = segments.filter((segment) => segment.type === 'project_video');
+    const probed = await Promise.all(probes.map((segment) => this.getVideoSectionDuration(segment)));
 
-      return segment.options?.duration ?? 0;
-    };
+    for (const [index, segment] of probes.entries()) sourceDurations[segment.name] = probed[index];
 
-    const durations = await Promise.all(segments.map(resolveDuration));
-    const durMap = this.project.buildInfos.durations;
-
-    for (const [index, segment] of segments.entries()) {
-      const duration = durations[index] ?? 0;
-      this.project.buildInfos.totalLength += duration;
-      durMap[segment.name] = duration;
-    }
+    // Footage edits (clip range / ramp / freeze) change a clip's length (director/footage-durations.ts);
+    // unedited sections keep the probed (project_video) or declared length.
+    const fps = this.project.config.videoConfig?.fps ?? 30;
+    recordSectionLengths(segments, buildInfos, fps, (note) => {
+      this.logger.warn(note);
+    });
 
     // Each non-cut boundary cross-dissolves, overlapping its two clips and shortening the rendered
     // timeline by the transition duration. Cut boundaries subtract 0.

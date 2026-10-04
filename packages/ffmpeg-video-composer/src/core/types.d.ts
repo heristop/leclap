@@ -24,6 +24,8 @@ import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
+import type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '../schemas/footage.schemas';
+export type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '../schemas/footage.schemas';
 import type { Beats } from './timing/timeline';
 export type { Beats } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
@@ -108,6 +110,9 @@ export type ProjectBuildInfos = {
   // Per project_video section: whether its source clip has an audio stream. Probed once by the
   // director; false lets the segment add a silent track so transition acrossfade always has audio.
   sourceHasAudio: Record<string, boolean>;
+  // Per probed clip: its full source length, before footage edits (clip range / ramp / freeze), which
+  // `durations` already account for. Optional so hand-built build infos (tests) stay valid.
+  sourceDurations?: Record<string, number>;
   videoInputs: string[];
   musicInputs: string[];
   musicFilters: string[];
@@ -314,6 +319,15 @@ export interface SectionOptions {
   backgroundColor?: string;
   forceAspectRatio?: boolean;
   forceOriginalAspectRatio?: boolean;
+  // Reframing (schemas/footage.schemas.ts): fit overrides the two aspect flags above.
+  fit?: FootageFit;
+  fill?: FitFill;
+  focus?: Focus;
+  // video / project_video footage edits: source in/out points, speed ramp, freeze frames.
+  clip?: ClipRange;
+  speedRamp?: SpeedRamp;
+  rampAudio?: 'stretch' | 'mute';
+  freeze?: Freeze[];
   // color_background extension
   layers?: BackgroundLayer[];
   // project_video extension

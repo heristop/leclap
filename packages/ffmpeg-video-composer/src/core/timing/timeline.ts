@@ -3,6 +3,8 @@
 // two clips it joins, capped to half the shorter one, see editor/utils/transition-graph.ts).
 
 import { DEFAULT_TRANSITION_DURATION } from '../../schemas/effects.schemas';
+import DefaultConfig from '../default.config';
+import { footagePlan, hasFootageEdits, type FootageOptions } from '../footage/plan';
 
 /** A tempo grid (`bpm`, first beat at `offset`) or explicit beat times from an analysis, in video seconds. */
 export type Beats = { bpm: number; offset?: number; beatsPerBar?: number } | { times: number[]; beatsPerBar?: number };
@@ -14,7 +16,7 @@ interface TimelineTransition {
 
 export interface TimelineSection {
   type: string;
-  options?: { duration?: number };
+  options?: FootageOptions;
   transition?: TimelineTransition;
 }
 
@@ -33,12 +35,34 @@ export function barTime(beats: Beats, index: number): number | null {
   return beatTime(beats, (index - 1) * (beats.beatsPerBar ?? 4) + 1);
 }
 
+// The edited length of an unprobed clip, tolerating an unvalidated descriptor (a malformed ease or key
+// leaves the declared duration in charge; validation reports the field itself).
+function editedLength(options: FootageOptions): number | undefined {
+  try {
+    return footagePlan(options, undefined, DefaultConfig.FPS)?.length;
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * The section's length when it is known before any media is probed: its `options.duration`, except for a
- * recorded clip (`project_video`), whose length comes from the probe.
+ * recorded clip (`project_video`), whose length comes from the probe. A `video` section whose footage
+ * edits fix its length (a clip range with an out-point) is capped at that edited length, timed on the
+ * default frame grid.
  */
 export function knownDuration(section: TimelineSection): number | undefined {
-  return section.type === 'project_video' ? undefined : section.options?.duration;
+  if (section.type === 'project_video') return undefined;
+
+  const declared = section.options?.duration;
+
+  if (section.type !== 'video' || !hasFootageEdits(section.options)) return declared;
+
+  const edited = editedLength(section.options ?? {});
+
+  if (edited === undefined) return declared;
+
+  return declared === undefined ? edited : Math.min(declared, edited);
 }
 
 // How far the boundary after `previous` pulls the next section back: a transition overlaps both clips.

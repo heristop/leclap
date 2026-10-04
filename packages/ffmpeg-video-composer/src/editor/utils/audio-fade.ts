@@ -38,6 +38,17 @@ function buildFadeOutPart(fade: SectionOptions['audioFade'], duration: number): 
   return [buildFadePart('out', Math.max(0, duration - fade.out.duration), fade.out)];
 }
 
+// The voice effect, then the fades (the fade-out timed against the section length).
+function effectAndFades(opts: SectionOptions | undefined, duration: number | undefined): string[] {
+  const effect = opts?.audioEffect;
+
+  return [
+    ...(effect ? [AUDIO_EFFECT_FILTERS[effect]] : []),
+    ...buildFadeInPart(opts?.audioFade),
+    ...buildFadeOutPart(opts?.audioFade, duration ?? 0),
+  ];
+}
+
 /**
  * Builds the `-af` argument string for a section's audio effect + fades, or returns '' when
  * neither is configured or the section is muted (processing a silent track is pointless).
@@ -47,17 +58,23 @@ function buildFadeOutPart(fade: SectionOptions['audioFade'], duration: number): 
  * `pad` appends `apad` for a clip's own (finite) audio encoded with `-shortest`: a phone clip whose
  * audio ends a few frames before its video would otherwise end the segment early, dropping those video
  * frames. Padded with silence, the audio never ends first, so `-shortest` (and `-t`) cut at the video.
+ *
+ * `footage` carries the clip-range / ramp / freeze audio prefix and the edited section length the
+ * fade-out is timed against (utils/footage-section.ts); its default leaves the chain unchanged.
  */
-export function buildAudioFadeArg(opts: SectionOptions | undefined, pad = false): string {
+export function buildAudioFadeArg(
+  opts: SectionOptions | undefined,
+  pad = false,
+  footage: { head: string[]; duration?: number } = { head: [] }
+): string {
   if (opts?.muteSection === true) {
     return '';
   }
 
-  const effect = opts?.audioEffect;
   const parts: string[] = [
-    ...(effect ? [AUDIO_EFFECT_FILTERS[effect]] : []),
-    ...buildFadeInPart(opts?.audioFade),
-    ...buildFadeOutPart(opts?.audioFade, opts?.duration ?? 0),
+    // Footage edits (utils/footage-lowering.ts) retime the clip sound before any effect or fade.
+    ...footage.head,
+    ...effectAndFades(opts, footage.duration ?? opts?.duration),
     ...(pad ? ['apad'] : []),
   ];
 

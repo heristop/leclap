@@ -6,7 +6,7 @@ import type { Filter, Section } from '@/core/types';
 import type { Graphic } from '../../schemas/graphics.schemas';
 import { parseEasing, type EasingSpec } from '@/core/motion/easing';
 import { fmt } from '@/core/motion/hermite';
-import { resolvedTimes } from '@/core/timing/seconds';
+import { resolvedTimes, seconds } from '@/core/timing/seconds';
 import type { SugarContext } from './sugar-context';
 
 export interface Rect {
@@ -284,4 +284,22 @@ export function graphicsToFilters(section: Section, ctx: SugarContext, above: bo
   const frame = frameOf(ctx);
 
   return graphics.filter((g) => spec(g, frame).above === above).flatMap((g) => graphicToFilters(g, frame));
+}
+
+/**
+ * Freeze-frame flash hits (options.freeze[].flash on video / project_video): a white flash graphic on
+ * the frozen frame, landing on the output frame the hold starts at.
+ */
+export function freezeFlashFilters(section: Section, ctx: SugarContext): Filter[] {
+  if (section.type !== 'video' && section.type !== 'project_video') return [];
+
+  const frame = frameOf(ctx);
+
+  return (section.options?.freeze ?? [])
+    .filter((freeze) => freeze.flash)
+    .flatMap((freeze) => {
+      const at = Math.round((seconds(freeze.at) ?? 0) * ctx.fps) / ctx.fps;
+
+      return graphicToFilters({ type: 'flash', at }, frame);
+    });
 }

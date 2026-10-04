@@ -4,7 +4,7 @@ import { captionToFilters } from './captions';
 import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
 import { kineticBlocksToFilters } from './kinetic';
 import { cameraBackground } from './camera';
-import { graphicsToFilters } from './graphics';
+import { freezeFlashFilters, graphicsToFilters } from './graphics';
 
 export type { SugarContext, KineticSugarContext } from './sugar-context';
 import type { SugarContext } from './sugar-context';
@@ -99,6 +99,13 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     order: 70,
     layer: 'overlay',
     compile: (section, ctx) => graphicsToFilters(section, ctx, true),
+  },
+  {
+    // A freeze frame's optional flash hit (options.freeze[].flash), on top of everything like a flash graphic.
+    key: 'freeze-flash',
+    order: 75,
+    layer: 'overlay',
+    compile: (section, ctx) => freezeFlashFilters(section, ctx),
   },
 ];
 

@@ -13,7 +13,7 @@ import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/arg-guard';
 import { SectionError } from '@/core/errors/section-error';
-import { compileSugarLayers, compileGlobalDecorations } from './presets/registry';
+import { compileSugarLayers, compileGlobalDecorations, createEmojiPlan, type EmojiPlan } from './presets/registry';
 import {
   buildSingleFileAnimationSource,
   buildSingleFileImageSource,
@@ -84,6 +84,8 @@ class SegmentBuilder {
   // before buildMaps (so overlay base legs pick up the grade), and buildFilters calls it too (a no-op
   // then) so buildFilters stays self-contained when driven directly. Reset per section in hydrate.
   private sugarStaged = false;
+  // The section's emoji images (editor/emoji): set by stageBackgroundSugar, null for a section not staged yet.
+  private emojiPlan: EmojiPlan | null = null;
 
   /** The video encoder name for this platform — `codecConfig.videoCodec` (h264_mediacodec on device) or `h264`. */
   protected videoCodec(): string {
@@ -160,6 +162,7 @@ class SegmentBuilder {
     // Structured-sugar staging is per-section: clear the guard + carried sugar so the next section
     // stages its own look/grade/motion afresh.
     this.sugarStaged = false;
+    this.emojiPlan = null;
     this.pendingOverlaySugar = [];
     this.backgroundSugarCount = 0;
 
@@ -213,6 +216,7 @@ class SegmentBuilder {
       // are built, so an animation/gradient overlay's base leg (which bakes the section filters via
       // `useSectionFilters` during buildMaps) picks up the colour grade and motion.
       this.stageBackgroundSugar();
+      await this.emojiPlan?.prepare(this.filesystemAdapter);
 
       await timer.span('segment:maps', () => this.buildMaps());
       this.logger.info(`[${this.section.name}][Maps] built`);
@@ -230,6 +234,8 @@ class SegmentBuilder {
 
       await timer.span('segment:luts', () => this.assetManager.fetchLuts());
       this.logger.info(`[${this.section.name}][LUTs] fetched`);
+
+      await this.emojiPlan?.stage(this.filesystemAdapter);
     } catch (error) {
       const failure = new SectionError(this.section.name, error);
       this.logger.error(failure.message);
@@ -322,11 +328,16 @@ class SegmentBuilder {
     // filters), then the animation overlays on top — so the final mapped pad is an animation overlay,
     // not the gradient (which would otherwise overwrite the output and drop the overlays). The video
     // leg is normalized to the output scale before compositing so full-frame animations fill the frame.
-    this.buildGradientLayers(inputIndex, inputsAsset);
+    this.registerEmojiInputs(this.buildGradientLayers(inputIndex, inputsAsset), inputsAsset);
 
     for (const animation of pendingAnimations) {
       this.mapManager.addAnimationOverlay(animation.input, animation.index, videoScale);
     }
+  };
+
+  // Emoji images (pulled out of the section's text) follow every other input, from stream `firstIndex`.
+  private readonly registerEmojiInputs = (firstIndex: number, inputsAsset: InputsAssetMap): void => {
+    this.emojiPlan?.register(inputsAsset, firstIndex);
   };
 
   /**
@@ -376,7 +387,7 @@ class SegmentBuilder {
    * section filters folded into the first map) forces this overlay-after-filters order; the visual
    * difference is acceptable for v1.
    */
-  private readonly buildGradientLayers = (firstGradientIndex: number, inputsAsset: InputsAssetMap): void => {
+  private readonly buildGradientLayers = (firstGradientIndex: number, inputsAsset: InputsAssetMap): number => {
     const layers = this.section.options?.layers ?? [];
     const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const duration = this.section.options?.duration ?? 0;
@@ -397,6 +408,8 @@ class SegmentBuilder {
       this.mapManager.addGradientOverlay(layer, gradientIndex, `gradient_layer_${i}`, `${geometry.x}:${geometry.y}`);
       gradientIndex++;
     }
+
+    return gradientIndex;
   };
 
   buildFilters = async (): Promise<void> => {
@@ -446,6 +459,9 @@ class SegmentBuilder {
     // is ignored — so overlay-class sugar (caption/lowerThird text) is chained ONTO the final map
     // instead, drawing on top of the overlay rather than being dropped.
     this.appendOverlayChain(hasOverlayGraph ? overlaySugar : []);
+
+    // Colour emoji composite above the text they were pulled out of (editor/emoji).
+    this.emojiPlan?.compose(this.segment, this.section.filters, `${this.videoInputIndex()}:v`);
 
     this.formatFilters();
   };
@@ -544,6 +560,23 @@ class SegmentBuilder {
     // Everything ahead of the authored chain (background sugar, plus the CFR conform) — the splice point
     // for overlay text, which must draw after the conform so it animates on the frame grid.
     this.backgroundSugarCount = this.section.filters.length - authored.length;
+    this.stageEmoji(ctx);
+  };
+
+  // Pulls colour emoji out of every drawtext (sugar and authored); they come back as image overlays.
+  private readonly stageEmoji = (ctx: { scale: string; duration: number; fps: number }): void => {
+    const plan = createEmojiPlan({
+      global: this.template.descriptor.global,
+      section: this.section,
+      sugar: ctx,
+      locale: this.project.config.currentLocale ?? '',
+      substitute: (text) => this.variableManager.mapFields(this.variableManager.mapVariables(text)),
+      logger: this.logger,
+    });
+
+    this.pendingOverlaySugar = plan.rewrite(this.pendingOverlaySugar);
+    this.section.filters = plan.rewrite(this.section.filters ?? []);
+    this.emojiPlan = plan;
   };
 
   /**

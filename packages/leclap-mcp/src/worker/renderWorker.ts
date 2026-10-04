@@ -8,6 +8,7 @@ import {
   container,
   type AbstractFFmpeg,
   type ProjectConfig,
+  type QcReport,
   type TemplateDescriptor,
 } from 'ffmpeg-video-composer';
 
@@ -22,7 +23,9 @@ interface RenderJob {
   template: TemplateDescriptor;
 }
 
-type WorkerResult = { ok: true; outputPath: string; infos: unknown; sizeBytes: number } | { ok: false; error?: string };
+type WorkerResult =
+  | { ok: true; outputPath: string; infos: unknown; sizeBytes: number; qc?: QcReport }
+  | { ok: false; error?: string };
 
 // process.send is asynchronous: the message is queued on the IPC channel and flushed on the next
 // tick. Exiting immediately after (as a `finally { process.exit(0) }` would) can truncate that flush,
@@ -53,19 +56,22 @@ function sendProgress(message: ProgressMessage): void {
 
 async function runJob(job: RenderJob): Promise<WorkerResult> {
   // compile() resolves null on failure and hands the cause (e.g. which section failed) to onError.
-  const failure: { error?: Error } = {};
+  const failure: { error?: Error; qc?: QcReport } = {};
   const outputPath = await compile(job.projectConfig, job.template, {
     onProgress: createProgressReporter(sendProgress),
     onError: (error) => {
       failure.error = error;
     },
+    onQc: (report) => (failure.qc = report),
   });
 
   if (typeof outputPath !== 'string' || outputPath.length === 0) {
     return { ok: false, error: failure.error?.message };
   }
 
-  return describeOutput(outputPath);
+  const described = await describeOutput(outputPath);
+
+  return described.ok && failure.qc ? { ...described, qc: failure.qc } : described;
 }
 
 async function resolveResult(job: RenderJob): Promise<WorkerResult> {

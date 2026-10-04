@@ -136,6 +136,13 @@ export const KineticBlockSchema = z
       .optional()
       .describe('Top of the block in px, or top / center / bottom inside the title-safe area (default center).'),
     maxWidth: z.number().positive().optional().describe('Wrap width in px (default 84% of the frame width).'),
+    wrap: z
+      .enum(['greedy', 'balanced'])
+      .optional()
+      .describe(
+        'Line breaking (default greedy: fill each line). balanced keeps the line count but evens line widths and ' +
+          'avoids ending a line on an article or preposition.'
+      ),
     lineHeight: z.number().min(0.6).max(3).optional().describe('Line spacing as a multiple of size (default 1.05).'),
     effect: TextEffectSchema.optional().describe('Drop shadow / outline for legibility over footage.'),
     caret: z.boolean().optional().describe('typewriter: draw a blinking caret (default true).'),

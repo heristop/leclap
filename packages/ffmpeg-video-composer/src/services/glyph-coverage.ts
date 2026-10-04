@@ -9,6 +9,7 @@ import { DEFAULT_CHARSET } from '@/core/kinetic/extras';
 import { kineticFontFile } from '@/core/kinetic/resolve';
 import type { TemplateDescriptor } from '../schemas/template.schemas';
 import { canvasFor, isRenderableSection, lowerTemplate, type LoweredSection } from './geometry/text-boxes';
+import { subtitleSources } from './glyph-coverage-subtitles';
 
 /** Structurally a ValidationError, plus an optional remedy. */
 export interface GlyphFinding {
@@ -173,6 +174,10 @@ function glyphHint(chars: string[], path: string): string {
     return `${NO_BUNDLED_FONT} Kinetic blocks need a bundled font; draw this copy as a caption or title card with a font named by family instead.`;
   }
 
+  if (path.includes('.subtitles.')) {
+    return `${NO_BUNDLED_FONT} Subtitles are laid out with a bundled font; draw this copy as a caption with a font named by family instead.`;
+  }
+
   return `${NO_BUNDLED_FONT} Name a font by family that does, e.g. { "family": "Noto Sans JP" } (resolved on Node and on device; the browser refuses family fonts).`;
 }
 
@@ -220,9 +225,8 @@ function sourceFindings(source: TextSource, variables: Variables): GlyphFinding[
 /** Characters a bundled font can't draw, per drawn text and locale. */
 export function validateGlyphCoverage(template: TemplateDescriptor): GlyphFinding[] {
   const variables = template.global?.variables as Variables;
-  const findings = [...drawLayerSources(template), ...kineticSources(template)].flatMap((source) =>
-    sourceFindings(source, variables)
-  );
+  const sources = [...drawLayerSources(template), ...kineticSources(template), ...subtitleSources(template.sections)];
+  const findings = sources.flatMap((source) => sourceFindings(source, variables));
   const seen = new Set<string>();
 
   // A global overlay is lowered once per section it covers; report it once.

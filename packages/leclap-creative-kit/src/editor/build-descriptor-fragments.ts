@@ -42,6 +42,8 @@ function captionDescriptorFrom(caption: EditorCaption | undefined): Section['cap
     boxOpacity: caption.boxOpacity,
     reveal: caption.reveal,
     effect: caption.effect,
+    wrap: caption.wrap,
+    fit: caption.fit,
   }) as Section['caption'];
 }
 

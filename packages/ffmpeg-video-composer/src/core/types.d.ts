@@ -24,6 +24,7 @@ import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
+import type { Subtitles } from '../schemas/subtitles.schemas';
 import type { Beats } from './timing/timeline';
 export type { Beats } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
@@ -262,6 +263,8 @@ export interface Section {
   graphics?: Graphic[];
   /** Named moments in seconds from the section start, referenced as "cue:<name>" in time fields. */
   cues?: Record<string, number>;
+  /** Word-timed captions (cues, SRT or word timings) drawn in a caption DNA with optional karaoke. */
+  subtitles?: Subtitles;
   look?: string;
   grade?: GradeConfig;
   letterbox?: Letterbox;

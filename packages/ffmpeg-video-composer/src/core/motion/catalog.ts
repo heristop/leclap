@@ -19,6 +19,7 @@ export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
 export type { BlueprintRole, MotionBlueprint } from './catalog-blueprints';
 import { TIME_REF_SYNTAX } from '../timing/grammar';
+import { captionCatalog, type CaptionCatalog } from '../captions/catalog';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -111,6 +112,8 @@ export interface MotionCatalog {
   platforms: PlatformCatalogEntry[];
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
   themes: ThemeCatalog;
+  /** Word-timed captions (`sections[].subtitles`): caption DNA identities, karaoke modes, grouping. */
+  captions: CaptionCatalog;
   timing: typeof TIMING;
   starter: typeof STARTER;
 }
@@ -128,6 +131,7 @@ const TIMING = {
     'filters[].reveal.delay (drawtext)',
     'filters[].exit.after (drawtext)',
     'filters[].animate.*[].t',
+    'subtitles.cues[].at / end',
   ],
   grammar: TIME_REF_SYNTAX,
   bases: {
@@ -227,6 +231,7 @@ export function motionCatalog(): MotionCatalog {
     tokens: BUILTIN_MOTION_TOKENS,
     platforms: platformCatalog(),
     themes: themeCatalog(),
+    captions: captionCatalog(),
     timing: TIMING,
     starter: STARTER,
   };

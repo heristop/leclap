@@ -38,6 +38,27 @@ export const CaptionSchema = z
     boxOpacity: z.number().min(0).max(1).optional().describe('Box opacity 0..1 when the box is on.'),
     reveal: RevealSchema.optional().describe('Animated entrance for the caption (fade/rise/slide); default none.'),
     effect: TextEffectSchema.optional().describe('Drop shadow / outline for legibility over busy footage.'),
+    wrap: z
+      .enum(['greedy', 'balanced'])
+      .optional()
+      .describe(
+        'Wrap the caption to the frame (bundled fonts only), one drawtext per line. greedy fills each line; ' +
+          'balanced keeps the line count but evens line widths and avoids ending a line on an article or ' +
+          'preposition. Default: no wrapping (a single line).'
+      ),
+    fit: z
+      .object({
+        minSize: z
+          .number()
+          .min(8)
+          .max(400)
+          .optional()
+          .describe('Smallest font size to shrink to (default 75% of the size).'),
+        maxLines: z.number().int().min(1).max(4).optional().describe('Most lines the caption may take (default 2).'),
+      })
+      .strict()
+      .optional()
+      .describe('Shrink the font until the wrapped caption fits maxLines lines (implies wrap, greedy by default).'),
   })
   .strict()
   .describe('A styled lower-third / overlay caption rendered as a drawtext filter.');

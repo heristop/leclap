@@ -1,5 +1,6 @@
 // Motion fields the builder has no controls for yet (kinetic typography, the section camera, animated
-// graphics, designed-transition easing, global.seed, global.motion tokens and the global.theme). The editor carries them
+// graphics, word-timed subtitles, designed-transition easing, global.seed, global.motion tokens and the
+// global.theme). The editor carries them
 // through in descriptor shape, so opening a template in the builder and saving it never strips them.
 
 import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
@@ -8,6 +9,7 @@ import type { Camera } from 'ffmpeg-video-composer/src/schemas/camera.schemas.ts
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import type { EasingSpecInput, MotionTokens } from 'ffmpeg-video-composer/src/schemas/motion.schemas.ts';
 import type { Theme } from 'ffmpeg-video-composer/src/schemas/theme.schemas.ts';
+import type { Subtitles } from 'ffmpeg-video-composer/src/schemas/subtitles.schemas.ts';
 
 export type MotionEase = EasingSpecInput;
 
@@ -16,6 +18,8 @@ export interface MotionBlocks {
   kinetic?: KineticBlock[];
   camera?: Camera;
   graphics?: Graphic[];
+  /** Word-timed captions (cues / SRT / word timings, caption DNA, karaoke), carried verbatim. */
+  subtitles?: Subtitles;
 }
 
 /** Template-wide motion settings. */
@@ -31,6 +35,7 @@ export function motionBlocksOf(source: MotionBlocks): MotionBlocks {
     ...(source.kinetic ? { kinetic: source.kinetic } : {}),
     ...(source.camera ? { camera: source.camera } : {}),
     ...(source.graphics ? { graphics: source.graphics } : {}),
+    ...(source.subtitles ? { subtitles: source.subtitles } : {}),
   };
 }
 

@@ -37,8 +37,8 @@ export const TEMPO_MIN_SECTIONS = 4;
 /** Presets whose linear stepping is the effect itself (exempt from curve and stagger rules). */
 const STEPPED_PRESETS = new Set(['typewriter', 'scramble']);
 const STILL_BACKGROUNDS = new Set(['color_background', 'image_background']);
-/** Camera "curves" that are not curves: punches, shake and Ken Burns. */
-const NOT_A_CURVE = new Set(['hit', 'shake', 'kenburns']);
+/** Camera "curves" that are not curves: punches, shake and Ken Burns; and a subtitle track's karaoke. */
+const NOT_A_CURVE = new Set(['hit', 'shake', 'kenburns', 'karaoke']);
 
 function warn(path: string, code: string, message: string, hint: string): MotionWarning {
   return { path, code, message, severity: 'warn', hint };

@@ -81,6 +81,8 @@ function captionFrom(s: Section): EditorCaption | undefined {
     boxOpacity: caption.boxOpacity,
     reveal: caption.reveal,
     effect: caption.effect,
+    wrap: caption.wrap,
+    fit: caption.fit,
   }) as EditorCaption;
 }
 

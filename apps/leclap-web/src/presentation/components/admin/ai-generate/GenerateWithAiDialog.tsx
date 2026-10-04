@@ -4,7 +4,6 @@
 // Lazy-loaded by the shell, so the prompt material (schema, samples, catalog) loads only on open.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Orientation } from '@/application/usecases/ai-template/system-prompt';
 import { findProvider } from '@/infrastructure/ai/registry';
 import { JEV_KEY_ID } from '@/infrastructure/ai/typesafe-jev';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
@@ -14,10 +13,22 @@ import { BriefFields } from './BriefFields';
 import { DialogFooterActions } from './DialogFooterActions';
 import { GenerationStatus } from './GenerationStatus';
 import { JevPanel } from './JevPanel';
+import { PlanOptions } from './PlanOptions';
+import { PlanReview } from './PlanReview';
+import { planIsComplete } from './plan-review.logic';
 import { ProviderSettings } from './ProviderSettings';
+import { ReferenceStyleSection } from './ReferenceStyleSection';
 import { ResultCard } from './ResultCard';
 import { generatedToEditorState, needsReplaceConfirmation } from './load-generated';
-import { effectiveHints, preferredSamples, routeChips, type RouteChip, type RouteOverrides } from './route-decisions';
+import {
+  effectiveHints,
+  preferredSamples,
+  routeChips,
+  withoutThemeHint,
+  type Orientation,
+  type RouteChip,
+  type RouteOverrides,
+} from './route-decisions';
 import { useAiGeneration } from './use-ai-generation';
 import { useApiKey } from './use-api-key';
 
@@ -36,6 +47,8 @@ function useBriefState() {
   const [providerId, setProviderId] = useState('anthropic');
   const [models, setModels] = useState<Record<string, string>>({});
   const [overrides, setOverrides] = useState<RouteOverrides>({});
+  const [planFirst, setPlanFirst] = useState(true);
+  const [reviewPlan, setReviewPlan] = useState(true);
   const provider = findProvider(providerId);
 
   return {
@@ -58,6 +71,10 @@ function useBriefState() {
     resetOverrides: () => {
       setOverrides({});
     },
+    planFirst,
+    setPlanFirst,
+    reviewPlan,
+    setReviewPlan,
   };
 }
 
@@ -68,8 +85,12 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
   const { key } = useApiKey(form.provider.id);
   const jev = useApiKey(JEV_KEY_ID);
   const [pending, setPending] = useState<EditorState | null>(null);
+  // Binding style rules from "Match a reference", or null when no reference is attached.
+  const [referenceStyle, setReferenceStyle] = useState<string | null>(null);
   const chips = run.route.kind === 'ready' ? routeChips(run.route.route, form.overrides) : [];
   const running = isRunning(run.status) || run.route.kind === 'routing';
+  // A plan under review belongs to the current brief: the form waits until it is written or dropped.
+  const locked = running || run.status.kind === 'plan-ready';
   const userHints = {
     orientation: form.orientation,
     durationSeconds: form.duration === 'auto' ? null : Number(form.duration),
@@ -100,8 +121,11 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
       model: form.model.trim() || form.provider.defaultModel,
       apiKey: key,
       brief: form.brief,
-      hints: effectiveHints(routed, userHints),
+      hints: withoutThemeHint(effectiveHints(routed, userHints), referenceStyle),
       preferSampleIds: preferredSamples(routed),
+      planFirst: form.planFirst,
+      reviewPlan: form.reviewPlan,
+      ...(referenceStyle ? { referenceStyle } : {}),
     });
   };
 
@@ -129,7 +153,7 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
             onOrientationChange={form.setOrientation}
             duration={form.duration}
             onDurationChange={form.setDuration}
-            disabled={running}
+            disabled={locked}
           />
           <JevPanel
             hasKey={jev.key !== ''}
@@ -141,6 +165,23 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
               run.analyse(form.brief, jev.key).catch(() => {});
             }}
             onStartFromMatch={load}
+            disabled={locked}
+          />
+          <PlanOptions
+            planFirst={form.planFirst}
+            onPlanFirstChange={form.setPlanFirst}
+            reviewPlan={form.reviewPlan}
+            onReviewPlanChange={form.setReviewPlan}
+            disabled={locked}
+          />
+          <ReferenceStyleSection
+            attached={referenceStyle !== null}
+            onAttach={(style) => {
+              setReferenceStyle(style.promptRules);
+            }}
+            onDetach={() => {
+              setReferenceStyle(null);
+            }}
             disabled={running}
           />
           <ProviderSettings
@@ -149,15 +190,22 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
             onProviderChange={form.setProviderId}
             onModelChange={form.setModel}
           />
+          {run.status.kind === 'plan-ready' && <PlanReview plan={run.status.plan} onChange={run.editPlan} />}
           {run.status.kind === 'ready' && (
-            <ResultCard summary={run.status.summary} warnings={run.status.result.warnings} />
+            <ResultCard
+              summary={run.status.summary}
+              warnings={run.status.result.warnings}
+              advisories={run.status.result.advisories}
+            />
           )}
         </div>
         <DialogFooterActions
           status={run.status}
           confirming={pending !== null}
           canGenerate={canGenerate(form.brief, key, run.status) && run.route.kind !== 'routing'}
-          statusSlot={<GenerationStatus status={run.status} providerLabel={form.provider.label} />}
+          statusSlot={
+            <GenerationStatus status={run.status} providerLabel={form.provider.label} planned={form.planFirst} />
+          }
           blockedReason={key ? t('footer.needBrief') : t('footer.needKey', { provider: form.provider.label })}
           onGenerate={() => {
             generate().catch(() => {});
@@ -175,6 +223,10 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
           }}
           onKeepEditing={() => {
             setPending(null);
+          }}
+          canWritePlan={run.status.kind === 'plan-ready' && planIsComplete(run.status.plan)}
+          onWritePlan={() => {
+            if (run.status.kind === 'plan-ready') run.writeFromPlan(run.status.plan).catch(() => {});
           }}
           onRegenerate={() => {
             setPending(null);

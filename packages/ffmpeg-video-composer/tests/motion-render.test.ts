@@ -130,3 +130,67 @@ describe('camera and graphics example', () => {
     await expect(graphGolden(runs[0].manifest)).toMatchFileSnapshot('__goldens__/motion/camera-and-graphics.txt');
   }, 300000);
 });
+
+// Motion FX pack through real FFmpeg (examples/motion-design/fx-pack.json): echo trails, whip
+// transitions, glitch / focus hits, progress, ticker, bar chart and lower-third styles.
+describe('motion fx pack example', () => {
+  const fx = JSON.parse(
+    fs.readFileSync(path.resolve(repoRoot, 'examples/motion-design/fx-pack.json'), 'utf8')
+  ) as TemplateDescriptor;
+
+  it('validates cleanly, without pacing warnings', () => {
+    const validator = new TemplateValidator();
+
+    expect(validator.validateTemplate(fx).errors ?? []).toEqual([]);
+    expect(validator.getMotionWarnings(fx)).toEqual([]);
+  });
+
+  it('renders twice to identical bytes, with a stable graph', async () => {
+    async function renderFx(): Promise<{ bytes: Buffer; manifest: RenderManifest }> {
+      let manifest: RenderManifest | undefined;
+      const output = await compile(config, fx, { onManifest: (m) => (manifest = m) });
+
+      expect(output).not.toBeNull();
+
+      return { bytes: fs.readFileSync(output as string), manifest: manifest as RenderManifest };
+    }
+
+    // Sequential: both renders share the build directory.
+    const runs = [await renderFx()];
+    runs.push(await renderFx());
+
+    expect(runs[1].bytes.equals(runs[0].bytes)).toBe(true);
+    expect(runs[0].manifest.deterministic).toBe(true);
+    await expect(graphGolden(runs[0].manifest)).toMatchFileSnapshot('__goldens__/motion/fx-pack.txt');
+  }, 300000);
+});
+
+// Word-timed captions through real FFmpeg (examples/motion-design/word-captions.json): karaoke in two
+// caption DNAs, grouped from word timings, renders twice to the same bytes with a stable graph.
+describe('word captions example', () => {
+  const captions = JSON.parse(
+    fs.readFileSync(path.resolve(repoRoot, 'examples/motion-design/word-captions.json'), 'utf8')
+  ) as TemplateDescriptor;
+
+  async function renderCaptions(): Promise<{ bytes: Buffer; manifest: RenderManifest }> {
+    let manifest: RenderManifest | undefined;
+    const output = await compile(config, captions, { onManifest: (m) => (manifest = m) });
+
+    expect(output).not.toBeNull();
+
+    return { bytes: fs.readFileSync(output as string), manifest: manifest as RenderManifest };
+  }
+
+  it('validates cleanly', () => {
+    expect(new TemplateValidator().validateTemplate(captions).errors ?? []).toEqual([]);
+  });
+
+  it('renders twice to identical bytes, with a stable graph', async () => {
+    const runs = [await renderCaptions()];
+    runs.push(await renderCaptions());
+
+    expect(runs[1].bytes.equals(runs[0].bytes)).toBe(true);
+    expect(runs[0].manifest.deterministic).toBe(true);
+    await expect(graphGolden(runs[0].manifest)).toMatchFileSnapshot('__goldens__/motion/word-captions.txt');
+  }, 240000);
+});

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TranslationSchema } from './global.schemas';
 import { TextEffectSchema } from './effects.schemas';
-import { EasingSpecSchema } from './motion.schemas';
+import { EasingSpecSchema, MotionRoleSchema } from './motion.schemas';
 import { ElementIdSchema, timeValue } from './time.schemas';
 
 // ── kinetic typography (docs/plans/motion-system-v2.md §4.1) ──────────────────────
@@ -167,6 +167,7 @@ export const KineticBlockSchema = z
       .optional()
       .describe('Seconds each unit takes to arrive. Omit with a spring ease to let physics decide.'),
     ease: EasingSpecSchema.optional().describe('Arrival curve (default per preset, e.g. $snappy, $bouncy, $expo).'),
+    role: MotionRoleSchema.optional(),
     distance: z
       .number()
       .min(0)
@@ -208,6 +209,13 @@ export const KineticBlockSchema = z
       .optional()
       .describe('Top of the block in px, or top / center / bottom inside the title-safe area (default center).'),
     maxWidth: z.number().positive().optional().describe('Wrap width in px (default 84% of the frame width).'),
+    wrap: z
+      .enum(['greedy', 'balanced'])
+      .optional()
+      .describe(
+        'Line breaking (default greedy: fill each line). balanced keeps the line count but evens line widths and ' +
+          'avoids ending a line on an article or preposition.'
+      ),
     lineHeight: z.number().min(0.6).max(3).optional().describe('Line spacing as a multiple of size (default 1.05).'),
     effect: TextEffectSchema.optional().describe('Drop shadow / outline for legibility over footage.'),
     caret: z.boolean().optional().describe('typewriter: draw a blinking caret (default true).'),
@@ -230,6 +238,27 @@ export const KineticBlockSchema = z
       .strict()
       .optional()
       .describe('counter preset: the rolling number (text is ignored).'),
+    trail: z
+      .object({
+        echoes: z.number().int().min(2).max(6).describe('Ghost copies drawn behind each moving unit (2..6).'),
+        delta: z
+          .number()
+          .min(0.01)
+          .max(0.25)
+          .optional()
+          .describe('Seconds each echo lags the one before it (default 0.04).'),
+        fade: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe('Opacity of the first echo; each further echo multiplies it again (default 0.5).'),
+      })
+      .strict()
+      .optional()
+      .describe(
+        'Echo trail (motion smear): each unit leaves fading copies of itself a few frames behind while it travels; the echoes collapse into it once it rests. Not applied to counter.'
+      ),
     exit: z
       .union([z.enum(KINETIC_EXIT_PRESETS), KineticExitSchema])
       .optional()

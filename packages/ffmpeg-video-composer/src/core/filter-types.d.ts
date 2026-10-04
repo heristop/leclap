@@ -3,7 +3,7 @@
 // from `./types` so `@/core/types` stays the single entry point.
 import type { Reveal, TimedReveal, TimedExit } from './descriptor-text';
 import type { FontRef } from './fonts';
-import type { Animate } from '../schemas/motion.schemas';
+import type { Animate, MotionRole } from '../schemas/motion.schemas';
 
 /** How an overlay maps into its "w:h" scale box: free stretch, letterbox inside, or fill + centre-crop. */
 export type OverlayFit = 'stretch' | 'contain' | 'cover';
@@ -92,6 +92,8 @@ export interface Filter {
   exit?: TimedExit;
   // Keyframe tracks, lowered by core/motion/tracks.ts; override reveal/exit per property.
   animate?: Animate;
+  // Motion role (global.motion.roles): fills reveal/exit easing (and duration) and animate key eases left unset.
+  role?: MotionRole;
   // ENGINE-INTERNAL (never authored): a sub-graph spliced into the chain in place of one filter, for
   // lowerings that branch (masks, split screens). See editor/utils/filter-graph.ts.
   graph?: FilterGraphChain[];

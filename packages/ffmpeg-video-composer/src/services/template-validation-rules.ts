@@ -10,6 +10,8 @@ import { nearest } from './validation/suggest';
 import type { ValidationError } from './validation/types';
 import { validateTimeRefs } from './time-ref-validation';
 import { validateLayouts } from './layout-validation';
+import { validateSubtitles } from './subtitles-validation';
+import { validateFootage } from './footage-validation';
 
 export type { ValidationError, ValidationFindingKind } from './validation/types';
 
@@ -60,8 +62,8 @@ function transitionPairError(
   const durationA = sectionA.options?.duration;
   const durationB = sectionB.options?.duration;
 
-  // Skip when either adjacent duration is undeclared
-  if (durationA === undefined || durationB === undefined) {
+  // Skip when either adjacent duration is undeclared (or still in beats: the grid awaits the analysis)
+  if (typeof durationA !== 'number' || typeof durationB !== 'number') {
     return null;
   }
 
@@ -283,5 +285,7 @@ export function validateDescriptorRules(template: TemplateDescriptor): Validatio
     ...validateGlyphCoverage(template),
     ...validateTimeRefs(template),
     ...validateLayouts(template),
+    ...validateSubtitles(template),
+    ...validateFootage(template),
   ];
 }

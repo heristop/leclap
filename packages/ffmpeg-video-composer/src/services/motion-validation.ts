@@ -14,6 +14,7 @@ import { KINETIC_PRESET_DEFAULTS } from '@/core/kinetic/presets';
 import { parseTimeRef } from '@/core/timing/grammar';
 import { resolveTimeRefs } from '@/core/timing/resolve';
 
+import { motionRoleErrors } from './motion-roles-validation';
 import { withEasingHint } from './validation/easing-hint';
 import { nearest } from './validation/suggest';
 import type { ValidationError } from './validation/types';
@@ -92,7 +93,8 @@ function suggested(finding: ValidationError, suggestion: string | undefined): Va
 }
 
 function unknownTokenError(path: string, token: string, tokens: ResolvedTokens): ValidationError {
-  const names = Object.keys(tokens.easings);
+  // Role tokens are only offered for a `$role.` reference, so a curve typo still gets a curve suggestion.
+  const names = Object.keys(tokens.easings).filter((name) => name.startsWith('role.') === token.startsWith('$role.'));
   const near = nearest(token.slice(1), names);
   const finding: ValidationError = {
     path,
@@ -200,7 +202,7 @@ function kineticErrors(template: TemplateDescriptor): ValidationError[] {
 
 export function validateMotionSystem(template: TemplateDescriptor): ValidationError[] {
   // Keyframe times may be time references: check the tracks as they will lower, in seconds.
-  const uses = motionUses(resolveTimeRefs(template).descriptor);
+  const uses = motionUses(resolveTimeRefs(template, { deferBeatsAnalysis: true }).descriptor);
 
   const tokens = resolveTokens(template.global?.motion);
   const easingErrors = uses.filter((use) => use.kind === 'easing').map((use) => easingUseError(use, tokens));
@@ -210,6 +212,7 @@ export function validateMotionSystem(template: TemplateDescriptor): ValidationEr
   return [
     ...springTokenErrors(template.global?.motion),
     ...curveTokenErrors(template.global?.motion),
+    ...motionRoleErrors(template.global?.motion),
     ...easingErrors.filter((error): error is ValidationError => error !== null),
     ...tracks.flatMap((use) => animateUseErrors(use, tokens)),
     ...kineticErrors(template),

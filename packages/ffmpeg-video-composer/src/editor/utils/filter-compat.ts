@@ -153,6 +153,12 @@ export const ENGINE_EMITTED_FILTERS = [
   'setpts',
   // colour metadata (core/encoding.ts buildColorMetadataFilter, appended as every segment's final node)
   'setparams',
+  // footage edits (footage-lowering.ts: clip range trim, freeze loop, the audio concat of ramp pieces
+  // and freeze silences) and the blur fit subgraph (reframe.ts: split/scale/crop/gblur/lutyuv/overlay,
+  // all listed above). tpad/apad/adelay are deliberately not used: they are absent on device.
+  'trim',
+  'loop',
+  'concat',
   // assembly & audio (transition-graph.ts, MusicComposer, audio-fade.ts): atempo is FormatterManager's
   // audio counterpart to setpts (authored via section.filters); asplit/sidechaincompress/amix drive the
   // ducking mix; loudnorm/dynaudnorm the normalize pass; afftdn the noise-reduction pass
@@ -180,4 +186,12 @@ export const ENGINE_EMITTED_FILTERS = [
   'aecho',
   'highpass',
   'lowpass',
+  // voice clean-up presets (core/audio/voice-presets.ts VOICE_PRESET_STAGES, subset-filtered on device)
+  'acompressor',
+  'agate',
+  'alimiter',
+  'equalizer',
+  // sound-effect placement (editor/utils/sfx-mix.ts): adelay, else an anullsrc lead joined by concat
+  'adelay',
+  'concat',
 ] as const;

@@ -6,12 +6,16 @@
 
 | filter              | node (full build) | browser wasm (full build) | on-device (lgpl allowlist) |
 | ------------------- | ----------------- | ------------------------- | -------------------------- |
+| `acompressor`       | yes               | yes                       | yes                        |
 | `acrossfade`        | yes               | yes                       | yes                        |
+| `adelay`            | yes               | yes                       | yes                        |
 | `aecho`             | yes               | yes                       | yes                        |
 | `aevalsrc`          | yes               | yes                       | yes                        |
 | `afade`             | yes               | yes                       | yes                        |
 | `afftdn`            | yes               | yes                       | yes                        |
 | `aformat`           | yes               | yes                       | yes                        |
+| `agate`             | yes               | yes                       | yes                        |
+| `alimiter`          | yes               | yes                       | yes                        |
 | `alphamerge`        | yes               | yes                       | yes                        |
 | `amix`              | yes               | yes                       | yes                        |
 | `anullsrc`          | yes               | yes                       | yes                        |
@@ -23,6 +27,8 @@
 | `colorbalance`      | yes               | yes                       | yes                        |
 | `colorchannelmixer` | yes               | yes                       | yes                        |
 | `colorkey`          | yes               | yes                       | yes                        |
+| `concat`            | yes               | yes                       | yes                        |
+| `concat`            | yes               | yes                       | yes                        |
 | `crop`              | yes               | yes                       | yes                        |
 | `curves`            | yes               | yes                       | yes                        |
 | `drawbox`           | yes               | yes                       | yes                        |
@@ -30,6 +36,7 @@
 | `dynaudnorm`        | yes               | yes                       | yes                        |
 | `edgedetect`        | yes               | yes                       | yes                        |
 | `eq`                | yes               | yes                       | via compat: eq-to-lutyuv   |
+| `equalizer`         | yes               | yes                       | yes                        |
 | `fade`              | yes               | yes                       | yes                        |
 | `format`            | yes               | yes                       | yes                        |
 | `fps`               | yes               | yes                       | yes                        |
@@ -38,6 +45,7 @@
 | `hflip`             | yes               | yes                       | yes                        |
 | `highpass`          | yes               | yes                       | yes                        |
 | `hue`               | yes               | yes                       | yes                        |
+| `loop`              | yes               | yes                       | yes                        |
 | `loudnorm`          | yes               | yes                       | yes                        |
 | `lowpass`           | yes               | yes                       | yes                        |
 | `lut3d`             | yes               | yes                       | yes                        |
@@ -54,9 +62,10 @@
 | `setsar`            | yes               | yes                       | yes                        |
 | `sidechaincompress` | yes               | yes                       | yes                        |
 | `split`             | yes               | yes                       | yes                        |
+| `trim`              | yes               | yes                       | yes                        |
 | `vflip`             | yes               | yes                       | yes                        |
 | `volume`            | yes               | yes                       | yes                        |
 | `xfade`             | yes               | yes                       | yes                        |
 | `zoompan`           | yes               | yes                       | yes                        |
 
-Device allowlist size: 63 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and affected renders can fail. Expo compilation stays local; there is no server fallback.
+Device allowlist size: 68 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and affected renders can fail. Expo compilation stays local; there is no server fallback.

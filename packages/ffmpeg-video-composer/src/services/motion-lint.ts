@@ -6,6 +6,7 @@ import { motionTimeline } from '@/core/motion/timeline';
 import { longestStill, type MotionEvent, type SectionTimeline } from '@/core/motion/timeline-model';
 import { expandPartialsSafe } from '@/core/partials';
 import { skippedAssertions } from './motion-assertions';
+import { roleWarnings } from './motion-roles-lint';
 
 export interface MotionWarning {
   path: string;
@@ -37,8 +38,8 @@ export const TEMPO_MIN_SECTIONS = 4;
 /** Presets whose linear stepping is the effect itself (exempt from curve and stagger rules). */
 const STEPPED_PRESETS = new Set(['typewriter', 'scramble']);
 const STILL_BACKGROUNDS = new Set(['color_background', 'image_background']);
-/** Camera "curves" that are not curves: punches, shake and Ken Burns. */
-const NOT_A_CURVE = new Set(['hit', 'shake', 'kenburns']);
+/** Camera "curves" that are not curves: punches, shake and Ken Burns; and a subtitle track's karaoke. */
+const NOT_A_CURVE = new Set(['hit', 'shake', 'kenburns', 'karaoke']);
 
 function warn(path: string, code: string, message: string, hint: string): MotionWarning {
   return { path, code, message, severity: 'warn', hint };
@@ -231,6 +232,7 @@ export function collectMotionWarnings(template: unknown): MotionWarning[] {
       ...transitionMonotony(timeline.sections),
       ...tempoFlat(timeline.sections),
       ...skippedAssertions(expansion.data, timeline),
+      ...roleWarnings(expansion.data, timeline),
     ];
   } catch {
     return [];

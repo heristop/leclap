@@ -13,8 +13,9 @@ import { resolveMusicFade } from './utils/music-fade';
 import { finalizeLeg, type PendingLeg } from './utils/music-leg';
 import { formatMusicName, removeExtension } from './utils/music-name';
 import { musicAssetUrl } from '@/core/asset-source';
-import { loudnessTarget, musicMixGraph, normalizeSuffix } from './utils/music-mix';
+import { loudnessTarget, musicMixGraph, normalizeSuffix, sfxOnlyGraph } from './utils/music-mix';
 import { normalizeWithTruePeakGuard } from './utils/true-peak-guard';
+import { descriptorHasSfx, prepareSfxStage, type SfxStage } from './utils/sfx-stage';
 
 type AppendMusicOptions = {
   videoInputArgs: string;
@@ -24,7 +25,10 @@ type AppendMusicOptions = {
   reduceNoiseConfig: string;
   sampleRate: number | undefined;
   hasSegmentAudio: boolean;
+  sfx: SfxStage | null;
 };
+
+type SfxBed = { hasSegmentAudio: boolean; ceiling?: number };
 
 @injectable()
 class MusicComposer {
@@ -318,9 +322,11 @@ class MusicComposer {
       channelConfig,
       hasSegmentAudio: opts.hasSegmentAudio,
       ceiling,
+      // Inputs: 0 the video, 1 the music, then one per distinct sound effect.
+      sfx: opts.sfx?.graph(2, channelConfig),
     });
 
-    let command = ` -y ${opts.videoInputArgs} -i ${this.project.buildInfos.musicPath} `;
+    let command = ` -y ${opts.videoInputArgs} -i ${this.project.buildInfos.musicPath}${opts.sfx?.inputArgs ?? ''} `;
     command += ` -filter_complex "${filterComplex}" `;
     // +faststart so the music-mixed final output previews in a browser <video> (moov to the front),
     // matching the concat/single-file paths. -shortest bounds the muxed output to the (finite, stream-
@@ -365,6 +371,7 @@ class MusicComposer {
       reduceNoiseConfig: 'afftdn=nr=20:nf=-20',
       sampleRate: this.project.config.audioConfig?.sampleRate,
       hasSegmentAudio,
+      sfx: await this.prepareSfx(),
     };
 
     await this.runNormalizedPass(finalVideo, (ceiling) =>
@@ -381,6 +388,37 @@ class MusicComposer {
   // descriptor logic.
   hasNormalization = (): boolean => normalizeSuffix(this.template.descriptor.global) !== '';
 
+  // True when a render without music still needs its own audio pass: normalisation or sound effects.
+  hasStandaloneAudioPass = (): boolean => this.hasNormalization() || descriptorHasSfx(this.template.descriptor);
+
+  // The planned sound effects with their files resolved (utils/sfx-stage.ts), null when there are none.
+  private prepareSfx(): Promise<SfxStage | null> {
+    return prepareSfxStage({
+      descriptor: this.template.descriptor,
+      buildInfos: this.project.buildInfos,
+      config: this.project.config,
+      filesystem: this.filesystemAdapter,
+      logger: this.logger,
+    });
+  }
+
+  // The no-music pass with sound effects: the clip sound as the bed, the effects over it, then the
+  // normalize filter (when requested), as one -filter_complex.
+  private sfxOnlyCommand(videoInputArgs: string, finalVideo: string, sfx: SfxStage, bed: SfxBed): string {
+    const channelConfig = `aformat=sample_fmts=fltp:sample_rates=${sfx.sampleRate}:channel_layouts=stereo`;
+    const graph = sfxOnlyGraph(this.template.descriptor.global, sfx.graph(1, channelConfig), {
+      channelConfig,
+      hasSegmentAudio: bed.hasSegmentAudio,
+      total: sfx.total,
+      sampleRate: sfx.sampleRate,
+      ceiling: bed.ceiling,
+    });
+
+    const output = ` -map 0:v -map "[final]" -c:v copy -c:a aac -ac 2 -movflags +faststart ${finalVideo} `;
+
+    return ` -y ${videoInputArgs}${sfx.inputArgs} -filter_complex "${graph}" ${output}`;
+  }
+
   /**
    * Apply audio normalization to a final video when music is disabled. Called after assembly when
    * global.audio.normalize is set and music is not enabled.
@@ -391,14 +429,24 @@ class MusicComposer {
    * loudnorm runs through the true-peak guard, which may repeat the pass with a lower ceiling.
    */
   normalizeAudio = async (finalVideo: string, videoSource?: VideoSource): Promise<void> => {
-    if (!this.hasNormalization()) {
+    if (!this.hasStandaloneAudioPass()) {
       return;
     }
 
     const source = videoSource ?? { kind: 'file' as const, path: finalVideo };
-    const { videoInputArgs, tempToClean } = await resolveVideoInput(source, this.filesystemAdapter, 'tmp_normalize');
+    const input = await resolveVideoInput(source, this.filesystemAdapter, 'tmp_normalize');
+    const { videoInputArgs, tempToClean } = input;
+    const sfx = await this.prepareSfx();
+    // Only the sound-effect mix needs to know whether the joined video carries audio (else a silent bed).
+    const hasSegmentAudio = !sfx || (await this.ffmpegAdapter.getInfos(input.probeTarget)).audioCodec !== null;
 
     await this.runNormalizedPass(finalVideo, (ceiling) => {
+      if (sfx) {
+        const command = this.sfxOnlyCommand(videoInputArgs, finalVideo, sfx, { hasSegmentAudio, ceiling });
+
+        return this.executeAudioPass(command, 'Music][Sfx', 'Error on sound effects mix');
+      }
+
       // Strip the leading comma so it can be used as a standalone -af value.
       const afFilter = normalizeSuffix(this.template.descriptor.global, ceiling).slice(1);
       const command = ` -y ${videoInputArgs} -af "${afFilter}" -c:v copy -movflags +faststart ${finalVideo} `;

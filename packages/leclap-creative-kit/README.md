@@ -23,7 +23,7 @@ Descriptors control scene timing, orientation, fps and creative direction. The h
 src/
   templates/      one JSON per catalog template (fast-curious, quote, spotlights, …)
   partials/       reusable section fragments (logo-bumper, flash-card, …)
-  library/        the actual asset files — videos/ musics/ pictures/ fonts/ backgrounds/ animations/
+  library/        the actual asset files — videos/ musics/ pictures/ fonts/ backgrounds/ animations/ emoji/
   editor/         builder model: descriptor ⇄ editor-state mapping
   *.generated.ts  codegen indexes (templates.generated.ts, partials.generated.ts) — do not edit by hand
 ```
@@ -34,6 +34,8 @@ src/
 pnpm --filter @leclap/creative-kit gen:templates   # rebuild templates.generated.ts after adding a JSON
 pnpm --filter @leclap/creative-kit gen:partials    # rebuild partials.generated.ts after adding a partial
 ```
+
+`library/emoji/` holds the colour emoji the engine composites over drawn text (72x72 PNGs named by code-point sequence, e.g. `1f44d-1f3fd.png`). They are rendered from [Twemoji](https://github.com/jdecked/twemoji) — © Twitter, Inc, jdecked and other contributors, licensed [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Regenerate the set (and the engine's `src/core/emoji-manifest.generated.ts`) with `pnpm gen:emoji`; edit the list in `scripts/gen-emoji.ts`.
 
 `scripts/copy-core-assets.ts` (run on dev/build) stages `src/library/*` into each app's static dir, so the web/Expo apps serve the same media the engine renders with — the generated copies are git-ignored.
 

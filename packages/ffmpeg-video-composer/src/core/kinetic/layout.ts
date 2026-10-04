@@ -2,6 +2,8 @@
 // text so each word or glyph can be drawn — and animated — on its own. Widths come from the generated
 // advance table of the bundled fonts, so layout is synchronous and identical on every platform.
 
+import { EMOJI_SCALE } from '../emoji-assets';
+import { hasEmoji, splitEmoji } from '../emoji-clusters';
 import { FIRST_CODE_POINT, FONT_ADVANCES, LAST_CODE_POINT, type FontAdvanceTable } from '../font-advances.generated';
 
 export type KineticUnit = 'line' | 'word' | 'glyph';
@@ -49,10 +51,12 @@ export function codePoints(text: string): string[] {
   return points;
 }
 
+type AdvanceTable = FontAdvanceTable;
+
 // Decoded advance runs (see font-advances.generated.ts), by encoded string: -1 = no glyph.
 const decoded = new Map<string, number[]>();
 
-function run(encoded: string): number[] {
+function decodeRun(encoded: string): number[] {
   let values = decoded.get(encoded);
 
   if (!values) {
@@ -65,11 +69,11 @@ function run(encoded: string): number[] {
 
 // A code point's advance in font units, -1 when the table has no glyph for it: the Latin range, then
 // the font's extra script blocks (Hebrew, Arabic).
-function advanceOf(table: FontAdvanceTable, cp: number): number {
-  if (cp >= FIRST_CODE_POINT && cp <= LAST_CODE_POINT) return run(table.advances)[cp - FIRST_CODE_POINT];
+export function advanceOf(table: AdvanceTable, cp: number): number {
+  if (cp >= FIRST_CODE_POINT && cp <= LAST_CODE_POINT) return decodeRun(table.advances)[cp - FIRST_CODE_POINT];
 
   for (const block of table.extra ?? []) {
-    const values = run(block.advances);
+    const values = decodeRun(block.advances);
 
     if (cp >= block.start && cp < block.start + values.length) return values[cp - block.start];
   }
@@ -77,12 +81,7 @@ function advanceOf(table: FontAdvanceTable, cp: number): number {
   return -1;
 }
 
-/** Width of `text` in px, or null when the font isn't bundled or lacks a glyph. */
-export function measureBundled(font: string, text: string, size: number): number | null {
-  const table = FONT_ADVANCES[font] as FontAdvanceTable | undefined;
-
-  if (!table) return null;
-
+function advanceUnits(table: AdvanceTable, text: string): number | null {
   let units = 0;
 
   for (const char of text) {
@@ -93,7 +92,40 @@ export function measureBundled(font: string, text: string, size: number): number
     units += advance;
   }
 
-  return (units / table.unitsPerEm) * size;
+  return units;
+}
+
+// An emoji cluster is drawn as a colour image EMOJI_SCALE em wide (editor/emoji), not by the font.
+function emojiAwareUnits(table: AdvanceTable, text: string): number | null {
+  let units = 0;
+
+  for (const segment of splitEmoji(text)) {
+    const run = segment.emoji ? EMOJI_SCALE * table.unitsPerEm : advanceUnits(table, segment.text);
+
+    if (run === null) return null;
+
+    units += run;
+  }
+
+  return units;
+}
+
+/** Width of `text` in px, or null when the font isn't bundled or lacks a glyph (emoji count as images). */
+export function measureBundled(font: string, text: string, size: number): number | null {
+  const table = FONT_ADVANCES[font] as AdvanceTable | undefined;
+
+  if (!table) return null;
+
+  const units = hasEmoji(text) ? emojiAwareUnits(table, text) : advanceUnits(table, text);
+
+  return units === null ? null : (units / table.unitsPerEm) * size;
+}
+
+// The glyph unit's pieces: code points, except that an emoji cluster stays whole (one image).
+function glyphUnits(word: string): string[] {
+  if (!hasEmoji(word)) return codePoints(word);
+
+  return splitEmoji(word).flatMap((segment) => (segment.emoji ? [segment.text] : codePoints(segment.text)));
 }
 
 /** Greedy wrap on spaces; explicit "\n" always breaks. A word wider than maxWidth gets its own line. */
@@ -143,7 +175,7 @@ function lineWords(line: string, font: string, size: number): Array<{ text: stri
 }
 
 function glyphPieces(word: string, font: string, size: number): Array<{ text: string; offset: number; width: number }> {
-  const glyphs = codePoints(word);
+  const glyphs = glyphUnits(word);
 
   return glyphs.map((glyph, index) => ({
     text: glyph,

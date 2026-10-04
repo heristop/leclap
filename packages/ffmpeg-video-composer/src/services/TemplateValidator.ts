@@ -2,9 +2,14 @@ import type { TemplateDescriptor } from '../schemas/template.schemas';
 import { referenceFinding } from './validation/reference-finding';
 import { BaseTemplateValidator, type ValidationError } from './BaseTemplateValidator';
 import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
+import { findPaletteDrift, paletteAdvisories } from '@/core/theme/palette';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
 import { collectScriptWarnings, type ScriptLintCapabilities } from './script-lint';
+import { emojiAdvisories } from './emoji-advisories';
+import { subtitleAdvisories } from './subtitles-advisories';
+import { footageAdvisories } from './footage-advisories';
+import { beatGridAdvisories } from './beats-advisory';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -71,9 +76,10 @@ export class TemplateValidator extends BaseTemplateValidator {
     return this.validateVariableReferences(template);
   }
 
-  // Advisory: sections that spread the theme accent over too many elements (core/theme/accent.ts).
+  // Advisory: sections that spread the theme accent over too many elements (core/theme/accent.ts),
+  // and colours/fonts that drift off the theme (core/theme/palette.ts).
   getThemeWarnings(template: TemplateDescriptor): ValidationError[] {
-    return findAccentOveruse(template);
+    return [...findAccentOveruse(template), ...findPaletteDrift(template)];
   }
 
   // Advisory, exactly like getVariableWarnings: geometry findings never enter `errors` and never
@@ -91,14 +97,21 @@ export class TemplateValidator extends BaseTemplateValidator {
   // Advisory, like getGeometryWarnings: pacing findings read off the motion timeline (ease monotony,
   // front-loaded sections, dead air, flat tempo…) plus assertions that can't be measured render-free.
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
-  // The theme's one-accent-per-idea advisory rides along, so every surface that shows pacing feedback
-  // shows it too.
+  // The theme advisories (one accent per idea, palette drift), the emoji advisories (missing bundled image,
+  // per-section cap, strip mode), the subtitle advisories (split, shrunk, past the end) and the footage
+  // advisories (extreme ramp speeds, ignored focus, blur fit under overlays, a clip range shorter than the
+  // section) and the low-confidence beat grid advisory (beats-advisory.ts) ride along, so every surface that shows pacing feedback shows them.
   // Script/mask advisories ride along too (services/script-lint.ts); pass the target build's
   // capabilities to also hear what it can't draw (rtl_unshaped, mask_unavailable).
   getMotionWarnings(template: unknown, capabilities?: ScriptLintCapabilities): MotionWarning[] {
     return [
       ...collectMotionWarnings(template),
       ...accentAdvisories(template),
+      ...paletteAdvisories(template),
+      ...emojiAdvisories(template),
+      ...subtitleAdvisories(template),
+      ...footageAdvisories(template),
+      ...beatGridAdvisories(template),
       ...collectScriptWarnings(template, capabilities),
     ];
   }

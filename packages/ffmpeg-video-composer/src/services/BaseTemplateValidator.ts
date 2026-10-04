@@ -18,6 +18,8 @@ import {
 import { validateDescriptorRules, type ValidationError } from './template-validation-rules';
 import { expandPartialsSafe } from '@/core/partials';
 import { resolveThemeDescriptor } from '@/core/theme/resolve';
+import { resolveSectionDurations } from '@/core/timing/durations';
+import { validateBeatsAnalysis } from './time-ref-validation';
 
 export type { ValidationError } from './template-validation-rules';
 
@@ -35,7 +37,18 @@ const FREE_FORM_SCHEMAS: ReadonlySet<unknown> = new Set([FilterValuesSchema]);
 // The advisory passes (pacing lint, theme accent, geometry, variable references) live on the
 // TemplateValidator subclass, so the models (and through them the browser / React Native entries), which
 // only validate, never statically pull in the pacing lint or reach the lazy geometry chunk.
+export interface ValidatorOptions {
+  /**
+   * Whether the host measures `global.beats: { analyze: 'music' }` itself (the Node compile does). False
+   * on the browser and on-device engines, where such a template fails with beats_analysis_unavailable.
+   * Default true.
+   */
+  beatsAnalysis?: boolean;
+}
+
 export class BaseTemplateValidator {
+  constructor(private readonly options: ValidatorOptions = {}) {}
+
   private formatZodError(error: IssueSource, data?: unknown, unknownKeys: UnknownKey[] = []): ValidationError[] {
     try {
       return zodIssueFindings(zodIssues(error), data, unknownKeys);
@@ -183,9 +196,16 @@ export class BaseTemplateValidator {
 
   // Runs every descriptor-level rule (beyond the zod schema itself) and merges their errors. Extracted
   // out of validateParsed to keep that function under the statement-count lint budget. The rules see the
-  // theme-resolved descriptor (what the engine lowers), so `$font.display` is checked as the font it names.
+  // theme-resolved descriptor (what the engine lowers), so `$font.display` is checked as the font it names,
+  // with section lengths in beats already in seconds.
   private collectDescriptorErrors(template: TemplateDescriptor): ValidationError[] {
-    return [...this.validateSectionReferences(template), ...validateDescriptorRules(resolveThemeDescriptor(template))];
+    const lowered = resolveThemeDescriptor(resolveSectionDurations(template).descriptor);
+
+    return [
+      ...this.validateSectionReferences(template),
+      ...validateBeatsAnalysis(template, this.options.beatsAnalysis ?? true),
+      ...validateDescriptorRules(lowered),
+    ];
   }
 
   validateSection(sectionData: unknown): ValidationResult {

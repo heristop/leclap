@@ -38,6 +38,9 @@ DIST_DIR="$REPO_ROOT/scripts/ffmpeg/dist"
 # `--enable-libfribidi` (LGPL-2.1, built by build-deps.sh / build-deps-ios.sh) adds the drawtext
 # `text_shaping` option: bidi reordering for Arabic/Hebrew copy on top of HarfBuzz shaping. The engine
 # reads this flag (device-filters.generated.ts DEVICE_LIBRARIES) to advertise textShaping on device.
+# Audio polish: `acompressor`/`agate`/`alimiter`/`equalizer` (voice clean-up presets) and `adelay` (sound-
+# effect placement) are LGPL (no `_deps` in configure; af_sidechaincompress.c, af_agate.c, af_alimiter.c,
+# af_biquads.c, af_adelay.c).
 FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --disable-gpl \
  --disable-ffplay --disable-doc --disable-autodetect \
  --enable-zlib \
@@ -54,6 +57,7 @@ alphamerge,\
 drawbox,gblur,noise,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
 lut3d,colorkey,split,setparams,null,rgbashift,edgedetect,\
 atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,sidechaincompress,volume,anull,anullsrc,aevalsrc,color,sine,gradients,\
+acompressor,adelay,agate,alimiter,equalizer,\
 atempo,asplit,loudnorm,dynaudnorm,aecho,highpass,lowpass \
  --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc"
 

@@ -1,30 +1,51 @@
-// What the run is doing, inline where the result will appear: a step track (Thinking → Validating →
-// Repairing → Ready) with an indeterminate bar while the model works, the error with its recovery,
-// or the ready summary. One polite live region announces each step; errors use role="alert".
+// What the run is doing, inline where the result will appear: a step track (Planning → Thinking →
+// Validating → Repairing → Polishing → Ready; optional steps only when they run) with an
+// indeterminate bar while the model works, the error with its recovery, or the ready summary. One polite live region announces each step; errors use role="alert".
 import { useTranslation } from 'react-i18next';
 import { AlertCircle, CheckCircle2 } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { isRunning, statusLine, type FailureCopy, type RunStatus } from './ai-generation.logic';
 
-type Step = 'thinking' | 'validating' | 'repairing' | 'ready';
-const STEPS: Step[] = ['thinking', 'validating', 'repairing', 'ready'];
+type Step = 'planning' | 'thinking' | 'validating' | 'repairing' | 'polishing' | 'ready';
+const STEPS: Step[] = ['planning', 'thinking', 'validating', 'repairing', 'polishing', 'ready'];
+const STEP_KINDS = new Set<string>(STEPS);
 
 function currentStep(status: RunStatus): Step | null {
-  if (status.kind === 'thinking' || status.kind === 'validating' || status.kind === 'repairing') return status.kind;
+  if (status.kind === 'plan-ready') return 'planning';
 
-  return status.kind === 'ready' ? 'ready' : null;
+  return STEP_KINDS.has(status.kind) ? (status.kind as Step) : null;
 }
 
-// "Repairing" only appears when a repair round actually ran.
-function visibleSteps(status: RunStatus): Step[] {
-  const repaired = status.kind === 'repairing' || (status.kind === 'ready' && status.result.rounds > 1);
+// Optional steps (planning, repairing, polishing) only appear when they ran — or, while running,
+// when planning is how this run started.
+function ranSteps(status: RunStatus, planned: boolean): Set<Step> {
+  const steps = new Set<Step>(planned ? ['planning'] : []);
+  const step = currentStep(status);
 
-  return repaired ? STEPS : STEPS.filter((name) => name !== 'repairing');
+  if (step) steps.add(step);
+
+  if (status.kind === 'ready') {
+    if (status.result.plan) steps.add('planning');
+
+    if (status.result.repairs > 0) steps.add('repairing');
+
+    if (status.result.polished > 0) steps.add('polishing');
+  }
+
+  return steps;
 }
 
-const StepTrack = ({ status }: { status: RunStatus }) => {
+const OPTIONAL: Step[] = ['planning', 'repairing', 'polishing'];
+
+function visibleSteps(status: RunStatus, planned: boolean): Step[] {
+  const ran = ranSteps(status, planned);
+
+  return STEPS.filter((name) => !OPTIONAL.includes(name) || ran.has(name));
+}
+
+const StepTrack = ({ status, planned }: { status: RunStatus; planned: boolean }) => {
   const { t } = useTranslation('ai');
-  const steps = visibleSteps(status);
+  const steps = visibleSteps(status, planned);
   const step = currentStep(status);
   const reached = step ? steps.indexOf(step) : -1;
 
@@ -83,16 +104,20 @@ const ErrorPanel = ({ error, providerLabel }: { error: FailureCopy; providerLabe
 interface GenerationStatusProps {
   status: RunStatus;
   providerLabel: string;
+  // The run started with a planning call: keep the Planning step on the track after it.
+  planned?: boolean;
 }
 
-export const GenerationStatus = ({ status, providerLabel }: GenerationStatusProps) => {
+export const GenerationStatus = ({ status, providerLabel, planned = false }: GenerationStatusProps) => {
   const { t } = useTranslation('ai');
   const line = statusLine(status);
   const running = isRunning(status);
 
   return (
     <div className="grid gap-2" aria-busy={running || undefined}>
-      {(running || status.kind === 'ready') && <StepTrack status={status} />}
+      {(running || status.kind === 'ready' || status.kind === 'plan-ready') && (
+        <StepTrack status={status} planned={planned} />
+      )}
       {running && (
         <div className="h-1 overflow-hidden rounded-full bg-foreground/10" aria-hidden>
           <div className="ai-progress-bar h-full w-1/3 rounded-full bg-brand-500" />

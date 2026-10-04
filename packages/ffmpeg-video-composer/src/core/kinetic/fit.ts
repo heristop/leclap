@@ -6,6 +6,7 @@ import type { KineticBlock } from '../../schemas/kinetic.schemas';
 import { needsShaping } from '../text-scripts';
 import { layoutKinetic, type KineticUnit, type Layout } from './layout';
 import { resolveKinetic, staggerRanks, type KineticFrame, type ResolvedKinetic } from './resolve';
+import { wrapText } from '../captions/wrap';
 
 /** Upper bound of independently animated units per block (each is a drawtext). */
 export const MAX_KINETIC_UNITS = 64;
@@ -39,9 +40,13 @@ function unmeasuredLines(settings: ResolvedKinetic, text: string): Layout {
 }
 
 /** The block laid out at its unit, stepping up to coarser units until it fits the budget. */
-export function layoutWithin(settings: ResolvedKinetic, text: string): FittedLayout | null {
+export function layoutWithin(settings: ResolvedKinetic, source: string): FittedLayout | null {
   let unit = settings.unit;
-  const shaped = needsShaping(text);
+  const shaped = needsShaping(source);
+  // Balanced lines are pre-broken with explicit newlines; each already fits, so layout keeps them.
+  const balanced =
+    settings.wrap === 'balanced' ? wrapText(source, settings.font, settings.size, settings.maxWidth, 'balanced') : null;
+  const text = balanced ? balanced.join('\n') : source;
 
   for (;;) {
     const layout = layoutKinetic({ ...settings, unit, text, y: 0 });

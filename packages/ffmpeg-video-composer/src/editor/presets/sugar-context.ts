@@ -11,6 +11,8 @@ export type SugarContext = {
   isVideo: boolean;
   /** `global.platform` (core/platforms.ts): the default caption clears that app's bottom UI. */
   platform?: string;
+  /** `global.theme` (resolved per use): subtitle DNA colours may be `$color.*` tokens. */
+  theme?: unknown;
   /** Motion inputs for kinetic typography (energy, seeds, text resolution). */
   motion?: KineticSugarContext;
   /** Mask/compositing services (kinetic fills, section layouts); absent = no mask features. */

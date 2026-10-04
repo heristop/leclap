@@ -13,8 +13,12 @@ import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
 import {
+  awaitsBeatsAnalysis,
   boundaryTransitions,
   discardOutput,
+  expandForBuild,
+  logVideoPaths,
+  prepareMeasuredMotion,
   prepareMotion,
   publishOutput,
   qcExpectations,
@@ -22,10 +26,11 @@ import {
   resolveBuildVideoConfig,
   resolveOutputPaths,
   timingOptions,
+  type TimingOptions,
 } from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
+import { recordSectionLengths } from './footage-durations';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
-import { expandPartialsSafe, assertEffectsResolved } from '@/core/partials';
 import type Project from '../core/models/Project';
 import type Template from '../core/models/Template';
 import type TemplateConcreteBuilder from './TemplateConcreteBuilder';
@@ -67,6 +72,9 @@ class TemplateDirector {
   private readonly logger: AbstractLogger;
   private readonly ffmpegAdapter: AbstractFFmpeg;
   private readonly filesystemAdapter: AbstractFilesystem;
+  // Set when global.beats asks for a music analysis: the time references resolve in init(), once the
+  // music track is on disk and measured (beats-analysis.ts).
+  private pendingTiming: TimingOptions | null = null;
 
   constructor(
     @inject('eventManager') private readonly eventManager: AbstractEventManager,
@@ -94,23 +102,8 @@ class TemplateDirector {
   }
 
   config = (projectConfig: ProjectConfig, templateDescriptor: TemplateDescriptor): this => {
-    // Deep-clone the descriptor: section.filters are mutated in place during builds (sugar/scale prepend
-    // preset filters), so compiling the same descriptor twice would double-apply them (Ken Burns twice,
-    // contrast squared). JSON round-trip matches the repo's deep-clone (Hermes/WASM-safe plain JSON).
-    const clonedDescriptor = structuredClone(templateDescriptor);
-    // Expand `{ type:'partial', ref }` sections into real sections here, the single point where the
-    // descriptor used for compilation is set. Callers pass the raw descriptor (Node `compile` never
-    // validates; the browser path validates into the template but this assignment would overwrite it),
-    // so without this every partial — logo bumper, flash-card — is dropped downstream by the
-    // rendering-type filter. Idempotent: re-expanding an already-expanded descriptor is a no-op.
-    const expansion = expandPartialsSafe(clonedDescriptor);
-
-    if (!expansion.ok) {
-      // Unknown ref: keep the clone (the stray partial is skipped by compileVideoSegments, as before).
-      this.logger.warn(`[Director] partial expansion failed: ${expansion.error.message}`);
-    }
-
-    const expanded = assertEffectsResolved(expansion.ok ? expansion.data : clonedDescriptor);
+    // The clone the build compiles, partials expanded (prepare-build.ts).
+    const expanded = expandForBuild(templateDescriptor, this.logger);
     this.template.descriptor = expanded;
     this.project.config = projectConfig;
 
@@ -129,15 +122,12 @@ class TemplateDirector {
       this.template.descriptor
     );
     // Resolve $tokens, energy and time references once, before any lowering, against the resolved
-    // frame, locale and fields (prepare-build.ts).
-    this.template.descriptor = prepareMotion(expanded, timingOptions(this.project.config));
+    // frame, locale and fields (prepare-build.ts) — after the music analysis when the beats await one.
+    const timing = timingOptions(this.project.config);
+    this.pendingTiming = awaitsBeatsAnalysis(expanded) ? timing : null;
+    this.template.descriptor = this.pendingTiming ? expanded : prepareMotion(expanded, timing);
 
-    const paths = this.project.config.userVideoPaths;
-    this.logger.info(
-      paths
-        ? `TemplateDirector received userVideoPaths for sections: ${Object.keys(paths).join(', ')}`
-        : 'TemplateDirector: No userVideoPaths provided in config'
-    );
+    logVideoPaths(this.project.config, this.logger);
 
     return this;
   };
@@ -174,6 +164,8 @@ class TemplateDirector {
     this.project.output = resolveOutputPaths(this.filesystemAdapter.getBuildDir() ?? 'build', this.ffmpegAdapter);
 
     await this.musicComposer.loadMusic();
+
+    if (this.pendingTiming) await prepareMeasuredMotion(this.template, this.project, this.pendingTiming);
 
     await this.filesystemAdapter.write(this.project.buildInfos.fileConcatPath);
 
@@ -230,22 +222,19 @@ class TemplateDirector {
   };
 
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
-    const resolveDuration = async (segment: Section): Promise<number> => {
-      if (segment.type === 'project_video') {
-        return this.getVideoSectionDuration(segment);
-      }
+    const buildInfos = this.project.buildInfos;
+    const sourceDurations = (buildInfos.sourceDurations ??= {});
+    const probes = segments.filter((segment) => segment.type === 'project_video');
+    const probed = await Promise.all(probes.map((segment) => this.getVideoSectionDuration(segment)));
 
-      return segment.options?.duration ?? 0;
-    };
+    for (const [index, segment] of probes.entries()) sourceDurations[segment.name] = probed[index];
 
-    const durations = await Promise.all(segments.map(resolveDuration));
-    const durMap = this.project.buildInfos.durations;
-
-    for (const [index, segment] of segments.entries()) {
-      const duration = durations[index] ?? 0;
-      this.project.buildInfos.totalLength += duration;
-      durMap[segment.name] = duration;
-    }
+    // Footage edits (clip range / ramp / freeze) change a clip's length (director/footage-durations.ts);
+    // unedited sections keep the probed (project_video) or declared length.
+    const fps = this.project.config.videoConfig?.fps ?? 30;
+    recordSectionLengths(segments, buildInfos, fps, (note) => {
+      this.logger.warn(note);
+    });
 
     // Each non-cut boundary cross-dissolves, overlapping its two clips and shortening the rendered
     // timeline by the transition duration. Cut boundaries subtract 0.
@@ -333,7 +322,8 @@ class TemplateDirector {
       hasAnimations,
       musicEnabled: Boolean(global?.musicEnabled),
       musicWillRun,
-      normalizeWillRun: !global?.musicEnabled && this.musicComposer.hasNormalization(),
+      // Without a music mix, normalisation and sound effects need their own audio pass.
+      normalizeWillRun: !musicWillRun && this.musicComposer.hasStandaloneAudioPass(),
       disableFold: Boolean(process.env.FVC_DISABLE_CONCAT_FOLD),
       finalPath: this.project.output.staging || `${buildDir}/output.mp4`,
       listPath: this.project.buildInfos.fileConcatPath,

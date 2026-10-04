@@ -13,8 +13,9 @@ import {
   type MediaCredit,
 } from '@leclap/creative-kit/media';
 import { ANIMATION_ASSETS } from './animation-assets.generated';
+import { EMOJI_ASSETS } from './emoji-assets.generated';
 
-export { ANIMATION_ASSETS };
+export { ANIMATION_ASSETS, EMOJI_ASSETS };
 
 export const MUSIC_LIBRARY: MediaCredit[] = [...CORE_MUSIC_LIBRARY].sort((a, b) => a.title.localeCompare(b.title));
 export { BACKGROUND_LIBRARY, findMusic, findBackground, type MediaCredit };

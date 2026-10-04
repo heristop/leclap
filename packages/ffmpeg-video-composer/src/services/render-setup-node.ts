@@ -1,6 +1,7 @@
 // What the Node compile() prepares between configuring the director and running it: refuse an output
-// that would overwrite one of the render's own inputs, identify the FFmpeg build (its colour-tag flags
-// and every cache key depend on it) and, when the host passed `cacheDir`, install the section cache.
+// that would overwrite one of the render's own inputs, register the music analyzer, identify the FFmpeg
+// build (its colour-tag flags and every cache key depend on it) and, when the host passed `cacheDir`,
+// install the section cache.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,6 +13,7 @@ import type { ProjectConfig } from '@/core/types';
 import { ffmpegTextFeatures, ffmpegVersionLine, versionFromLine } from '../platform/ffmpeg/analyze-node';
 import { createSectionCache, type SectionCache } from './section-cache-node';
 import { descriptorAssetFiles, renderRoots } from './render-manifest-node';
+import { registerBeatsAnalyzer } from './beats-analysis-node';
 
 export interface NodeRenderContext {
   /** First line of `ffmpeg -version`, or null when the adapter runs no binary (or it could not run). */
@@ -62,6 +64,8 @@ export function assertOutputIsNotInput(buildDir: string, config: ProjectConfig, 
 
 export async function prepareNodeRender(setup: NodeRenderSetup): Promise<NodeRenderContext> {
   assertOutputIsNotInput(setup.buildDir, setup.config, setup.descriptor);
+  // The director measures `global.beats: { analyze: 'music' }` with it once the music is on disk.
+  registerBeatsAnalyzer();
 
   const binary = setup.adapter.binaries?.ffmpeg;
   const versionLine = binary ? await ffmpegVersionLine(binary) : null;

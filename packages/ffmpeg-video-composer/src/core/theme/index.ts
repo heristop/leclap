@@ -22,4 +22,11 @@ export {
 } from './resolve';
 export { nearestName, validateTheme } from './validate';
 export { MAX_ACCENT_ELEMENTS, findAccentOveruse, type AccentWarning } from './accent';
+export {
+  MAX_FONT_FAMILIES,
+  PALETTE_DRIFT_DELTA,
+  findPaletteDrift,
+  parseHexColor,
+  type PaletteWarning,
+} from './palette';
 export { themeCatalog, type ThemeCatalog, type ThemeCatalogEntry } from './catalog';

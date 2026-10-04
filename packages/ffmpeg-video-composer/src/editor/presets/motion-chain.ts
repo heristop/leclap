@@ -61,3 +61,7 @@ export function motionSugarContext(
 }
 
 export { cameraEndOfChain } from './camera';
+// The chain's head: footage edits (clip range / ramp / freeze) and the reframe scale, both prepended by
+// SegmentBuilder ahead of the conform above.
+export { sectionFootageHead } from '../utils/footage-section';
+export { reframeFilters } from '../utils/reframe';

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TranslationSchema } from './global.schemas';
 import { TimedRevealSchema, TimedExitSchema } from './reveal.schemas';
-import { AnimateSchema } from './motion.schemas';
+import { AnimateSchema, MotionRoleSchema } from './motion.schemas';
 import { ElementIdSchema } from './time.schemas';
 
 // ── filter schemas ─────────────────────────────────────────────────────────────
@@ -93,6 +93,9 @@ export const FilterSchema = z
       'Animated exit for a drawtext filter; baked alongside the entrance at compile.'
     ),
     animate: AnimateSchema.optional(),
+    role: MotionRoleSchema.optional().describe(
+      'Motion role of a drawtext filter: fills reveal/exit easing (and duration) and animate key eases it leaves unset.'
+    ),
   })
   .describe('A single FFmpeg filter applied to the section or input stream.');
 

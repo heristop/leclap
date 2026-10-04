@@ -850,8 +850,9 @@
     "label": "Cadrage",
     "cover": "Remplir",
     "letterbox": "Letterbox",
+    "blur": "Flou",
     "off": "Désactivé",
-    "hint": "Remplir recadre l'image pour remplir le cadre ; Letterbox garde tout visible avec des bandes ; Désactivé utilise le fichier tel quel, sans l'ajuster au cadre."
+    "hint": "Remplir recadre l'image pour remplir le cadre ; Letterbox garde tout visible avec des bandes ; Flou garde tout visible sur une copie floutée au lieu des bandes ; Désactivé utilise le fichier tel quel, sans l'ajuster au cadre."
   },
   "musicSection": {
     "pickTracks": "Choisis les pistes proposées aux spectateurs.",
@@ -1053,5 +1054,55 @@
     "notes": "Notes de scène",
     "notesHint": "Notes privées pour les collaborateurs — jamais affichées dans la vidéo.",
     "notesPlaceholder": "p. ex. Remplacer ce clip après le lancement…"
+  },
+  "styleReference": {
+    "label": "S’inspirer d’une référence",
+    "hint": "Importez une image, et éventuellement un court clip. Sa palette, sa texture et son rythme deviennent un thème ; les sujets, logos et textes ne sont jamais copiés.",
+    "image": "Image de référence",
+    "clip": "Clip de référence (facultatif)",
+    "remove": "Retirer {{name}}",
+    "analyse": "Analyser la référence",
+    "analysing": "Lecture de la palette, de la texture et du rythme…",
+    "error": "Impossible d’analyser cette référence : {{message}}",
+    "roles": {
+      "bg": "Fond",
+      "fg": "Texte",
+      "muted": "Atténué",
+      "surface": "Surface",
+      "brand": "Marque",
+      "accent": "Accent",
+      "accent2": "Accent 2"
+    },
+    "source": {
+      "extracted": "issu de la référence",
+      "adjusted": "ajusté pour le contraste",
+      "derived": "dérivé"
+    },
+    "contrast": {
+      "aa": "AA {{ratio}}:1",
+      "aaLarge": "AA grand {{ratio}}:1",
+      "fail": "Faible {{ratio}}:1"
+    },
+    "level": {
+      "aa": "conforme WCAG AA",
+      "aaLarge": "conforme AA pour le grand texte uniquement",
+      "fail": "sous le seuil WCAG AA"
+    },
+    "contrastLabel": "Contraste sur le fond {{ratio}} pour 1, {{level}}",
+    "swatches": "Couleurs du thème dérivé",
+    "pacing": "Plans de {{avgShot}} s · {{cpm}} coupes/min · énergie {{energy}}",
+    "texture": {
+      "grain": "grain ≈ {{grain}}",
+      "none": "net, sans grain"
+    },
+    "genre": "genre suggéré : {{genre}}",
+    "confidence": "confiance {{value}} %",
+    "apply": "Appliquer comme thème",
+    "applied": "Thème appliqué à global.theme. Annuler le retire.",
+    "current": {
+      "named": "Thème actuel : {{name}}",
+      "custom": "Thème actuel : personnalisé",
+      "none": "Thème actuel : LeClap (par défaut)"
+    }
   }
 }

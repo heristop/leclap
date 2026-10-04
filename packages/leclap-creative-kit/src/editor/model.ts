@@ -29,10 +29,12 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { EditorMotion, MotionBlocks } from './motion-passthrough';
+import type { AudioMixPassthrough, EditorMeta, EditorMotion, FootageEdits, MotionBlocks } from './motion-passthrough';
 import type { DefaultTransition, SectionTransition } from './transition-types';
 export { DEFAULT_TRANSITION, type DefaultTransition, type SectionTransition } from './transition-types';
-export type { EditorMotion, MotionBlocks } from './motion-passthrough';
+export type { EditorMotion, FootageEdits, MotionBlocks } from './motion-passthrough';
+import type { VisualAudio } from './visual-audio';
+export type { AudioEffect, AudioFadeSide, SectionAudioFade, VisualAudio } from './visual-audio';
 import type {
   Orientation,
   GlobalTextOverlaySchema,
@@ -87,21 +89,16 @@ export type CaptureMode = z.infer<typeof CaptureModeSchema>;
 // Every capture mode, in display order — the recorder default when a template doesn't restrict them.
 export const ALL_CAPTURE_MODES: readonly CaptureMode[] = CaptureModeSchema.options;
 
-// Voice effect applied to the section's own audio (descriptor options.audioEffect): echo (aecho),
-// telephone (band-pass), or muffled (low-pass). Hand-modeled rather than schema-inferred (like
-// SectionFit below) since SectionOptionsSchema keeps every option flattened on one object with no
-// standalone exported enum to `z.infer` from.
-export type AudioEffect = 'echo' | 'telephone' | 'muffled';
-
 // How a section's SOURCE footage maps into the output frame (descriptor options.forceAspectRatio /
-// forceOriginalAspectRatio, lowered by SegmentBuilder.prependScaleFilters — scale/crop/pad only,
-// LGPL-safe). 'cover' (default, omitted) fills the frame and centre-crops the overflow; 'letterbox'
-// keeps the whole frame visible with pad bars (forceOriginalAspectRatio: true); 'off' skips the
-// conform scaling entirely (forceAspectRatio: false) for sources that already match the output.
-export type SectionFit = 'cover' | 'letterbox' | 'off';
+// forceOriginalAspectRatio / fit, lowered by the engine's reframe step — scale/crop/pad, LGPL-safe).
+// 'cover' (default, omitted) fills the frame and crops the overflow; 'letterbox' keeps the whole frame
+// visible with pad bars (forceOriginalAspectRatio: true); 'blur' keeps the whole frame over a blurred,
+// dimmed copy of itself (options.fit: 'blur'); 'off' skips the conform scaling entirely
+// (forceAspectRatio: false) for sources that already match the output.
+export type SectionFit = 'cover' | 'letterbox' | 'blur' | 'off';
 
 // Every fit mode, in display order — shared by the builder UIs' segmented control.
-export const SECTION_FIT_MODES: readonly SectionFit[] = ['cover', 'letterbox', 'off'];
+export const SECTION_FIT_MODES: readonly SectionFit[] = ['cover', 'letterbox', 'blur', 'off'];
 
 // --- Editor-friendly section model (flattened; compiled to a descriptor on save) ---
 export type FormField = { name: string; label: string; maxLength: number };
@@ -142,25 +139,6 @@ export interface TextOverlay extends VideoOverlaySlot {
   accent?: string | AccentBar;
 }
 
-// Per-section audio fade: applied to the music track at the start / end of a section.
-export interface AudioFadeSide {
-  duration: number;
-  curve?: string;
-}
-
-export interface SectionAudioFade {
-  in?: AudioFadeSide;
-  out?: AudioFadeSide;
-}
-
-// Visual-section audio extras: per-section music-volume override, fade-in/out, and voice effect.
-// Co-located with look/grade/motion because they all ride on visual sections only.
-export interface VisualAudio {
-  musicVolume?: number;
-  audioFade?: SectionAudioFade;
-  audioEffect?: AudioEffect;
-}
-
 // Per-section playback tempo (descriptor options.speed, engine FormatterManager). NOTE the descriptor
 // value is a PTS multiplier, NOT a rate: speed 2 = slow motion at half rate, speed 0.5 = twice as fast.
 // The builder UI presents the intuitive rate (×) and converts (see speedRate helpers web-side).
@@ -185,6 +163,9 @@ export interface EditorCaption {
   reveal?: Reveal;
   // Drop shadow / outline for legibility; stored as the descriptor shape (pass-through).
   effect?: TextEffect;
+  // Opt-in wrapping to the frame (greedy / balanced) and shrink-to-fit; carried through untouched.
+  wrap?: DescriptorCaption['wrap'];
+  fit?: DescriptorCaption['fit'];
 }
 
 export interface VisualCaption {
@@ -325,6 +306,8 @@ export type EditorSection =
       images?: ImageOverlay[];
       // How the recorded clip / fixed video maps into the output frame; omitted = 'cover'.
       fit?: SectionFit;
+      // Footage edits without builder controls (pass-through, see FootageEdits).
+      footage?: FootageEdits;
     } & VisualAudio &
       VisualPlayback &
       VisualCaption &
@@ -371,6 +354,8 @@ export type EditorSection =
       images?: ImageOverlay[];
       // How the picked/uploaded background image maps into the output frame; omitted = 'cover'.
       fit?: SectionFit;
+      // Blur-fill tuning / crop focus without builder controls (pass-through, see FootageEdits).
+      footage?: FootageEdits;
     } & VisualAudio &
       VisualPlayback &
       VisualCaption &
@@ -382,7 +367,7 @@ export type { Orientation };
 // (sourceVolume) vs the background music (musicVolume), each 0..1. normalize/ducking are
 // finishing options surfaced by the builder. `ducking` mirrors the descriptor union: false = off,
 // true = engine defaults, object = fine-tuned threshold/ratio/attack/release (DuckingSchema).
-export interface AudioMix {
+export interface AudioMix extends AudioMixPassthrough {
   sourceVolume: number;
   musicVolume: number;
   normalize?: 'loudnorm' | 'dynaudnorm';
@@ -396,7 +381,7 @@ export const DEFAULT_AUDIO_MIX: AudioMix = { sourceVolume: 1, musicVolume: 0.5, 
 // a freshly-added one. The guide is a recording aid only — never burned into the video.
 export const DEFAULT_FRAMING_OPACITY = 0.45;
 
-export interface EditorState extends Pick<NonNullable<TemplateDescriptor['meta']>, 'creativeDirection'> {
+export interface EditorState extends EditorMeta {
   id: string;
   // Motion settings (global.seed, global.motion); absent when the template sets none.
   motion?: EditorMotion;

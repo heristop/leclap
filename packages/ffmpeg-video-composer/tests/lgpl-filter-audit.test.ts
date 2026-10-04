@@ -16,6 +16,8 @@ import { KineticBlockSchema } from '@/schemas/kinetic.schemas';
 import { kineticToFilters } from '@/editor/presets/kinetic';
 import { layoutToFilters } from '@/editor/presets/layout';
 import type { Filter } from '@/core/types';
+import { VOICE_FILTERS, VOICE_PRESETS, voiceChain } from '@/core/audio/voice-presets';
+import { sfxGraph } from '@/editor/utils/sfx-mix';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const commonSh = fs.readFileSync(path.resolve(here, '../../../scripts/ffmpeg/common.sh'), 'utf8');
@@ -82,6 +84,38 @@ describe('LGPL device filter audit', () => {
   it('every filter the engine declares it can emit is device-safe', () => {
     for (const filterType of ENGINE_EMITTED_FILTERS) {
       expect(isDeviceSafe(filterType, enabled), `engine emits "${filterType}"`).toBe(true);
+    }
+  });
+
+  it('every voice preset keeps its full chain on device', () => {
+    for (const filter of VOICE_FILTERS) {
+      expect(enabled.has(filter), `voice presets emit "${filter}"`).toBe(true);
+    }
+
+    for (const preset of VOICE_PRESETS) {
+      expect(voiceChain(preset, DEVICE_FILTERS)).toEqual(voiceChain(preset));
+    }
+  });
+
+  it('the sound-effect mix only emits device filters', () => {
+    const placements = [
+      { id: 'hit' as const, file: 'hit.m4a', start: 1.5, trim: 0, volume: 0.7 },
+      { id: 'riser' as const, file: 'riser.m4a', start: 0, trim: 0.5, volume: 0.5 },
+    ];
+    const channelConfig = 'aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo';
+    const { graph } = sfxGraph({
+      placements,
+      firstInput: 2,
+      channelConfig,
+      sampleRate: 48000,
+      deviceFilters: DEVICE_FILTERS,
+    });
+    const names = [...graph.matchAll(/(?:^|[\],;]\s*)([a-z0-9_]+)=/g)].map((match) => match[1]);
+
+    expect(names.length).toBeGreaterThan(0);
+
+    for (const name of names) {
+      expect(enabled.has(name), `sfx mix emits "${name}"`).toBe(true);
     }
   });
 

@@ -40,6 +40,8 @@ export interface ResolvedKinetic {
   x: number;
   maxWidth: number;
   lineHeight: number;
+  /** Line breaking: greedy (default) or balanced. */
+  wrap: 'greedy' | 'balanced';
   delay: number;
   stagger: number;
   duration: number;
@@ -80,7 +82,7 @@ function anchorX(block: KineticBlock, align: KineticAlign, frame: KineticFrame):
 function resolveType(
   block: KineticBlock,
   frame: KineticFrame
-): Pick<ResolvedKinetic, 'font' | 'size' | 'color' | 'align' | 'x' | 'maxWidth' | 'lineHeight'> {
+): Pick<ResolvedKinetic, 'font' | 'size' | 'color' | 'align' | 'x' | 'maxWidth' | 'lineHeight' | 'wrap'> {
   const size = block.size ?? Math.round(frame.height * 0.11);
   const align = block.align ?? 'center';
 
@@ -92,6 +94,7 @@ function resolveType(
     x: anchorX(block, align, frame),
     maxWidth: block.maxWidth ?? frame.width * (1 - 2 * SAFE_MARGIN),
     lineHeight: (block.lineHeight ?? 1.05) * size,
+    wrap: block.wrap ?? 'greedy',
   };
 }
 

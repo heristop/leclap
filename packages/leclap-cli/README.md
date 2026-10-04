@@ -46,7 +46,8 @@ leclap render template.json \
 Use the descriptor's effective section and field names. Repeat `--video` and `--field` to bind
 multiple inputs; later values win for the same key. All relative file/directory paths resolve from
 the working directory. `--orientation` overrides `template.global.orientation`, while frame rate
-comes from `global.fps`. `--output` copies the finished video after successful compilation.
+comes from `global.fps`. `--output` copies the finished video atomically after successful compilation,
+and refuses a path that is the template or a `--video` clip.
 
 Renders use the deterministic encoder profile by default (bit-exact muxing, pinned encoder threads):
 the same template, assets and FFmpeg build always produce the same bytes. `--no-deterministic` turns
@@ -57,6 +58,15 @@ filtergraph and output digests.
 leclap render template.json --output out.mp4 --manifest
 leclap verify out.mp4.manifest.json             # is out.mp4 still that render?
 leclap verify out.mp4.manifest.json --rerender  # render the recorded template again; compare every digest
+```
+
+`--qc` checks the finished file (duration, frame count, A/V drift, pixel format, colour tags, audio,
+black and frozen frames, silence, loudness and true peak), prints a findings table and exits non-zero
+when a check fails. `--cache <dir>` reuses sections whose command, inputs and FFmpeg build are
+unchanged, so iterating on one scene re-encodes only that scene.
+
+```bash
+leclap render template.json --output out.mp4 --qc --cache .leclap-cache
 ```
 
 `verify --rerender` takes `--assets`, `--build` and repeatable `--input section=path` for

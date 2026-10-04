@@ -31,6 +31,8 @@ All fields are optional in the type. `Project.applyDefault()` merges defaults fo
 | `qualityTier`    | `'draft' \| 'standard' \| 'high'`                                              | `standard`; encoder-family-specific quality settings                                                         |
 | `skipValidation` | `boolean`                                                                      | `false`; trusted Node callers only                                                                           |
 | `deterministic`  | `boolean`                                                                      | On by default (`false` opts out for faster local drafts); the CLI and MCP keep it on                         |
+| `qc`             | `boolean \| { content?: boolean }`                                             | Off. Node only: checks the finished output (see [`qc`](#qc))                                                 |
+| `cacheDir`       | `string`                                                                       | Unset. Node only: per-section render cache (see [`cacheDir`](#cachedir))                                     |
 | `codecConfig`    | `{ videoCodec?: string; audioCodec?: string }`                                 | Empty codec strings use the engine's encoder fallbacks                                                       |
 | `hardwareConfig` | `{ hwaccel?: string \| null; preset?: string; maxRenderConcurrency?: number }` | `hwaccel: null`, `preset: 'ultrafast'`; concurrency depends on the adapter                                   |
 | `audioConfig`    | `{ sampleRate?: number; channelLayout?: string }`                              | `44100`, `stereo`                                                                                            |
@@ -69,6 +71,24 @@ Templates never carry crf/preset/bitrate directly — encoder numbers stay an ap
 
 The Node `compile()` reporter accepts `onManifest(manifest)`. After a successful render it receives the render manifest: engine and FFmpeg versions, the template digest and canonical descriptor, asset digests, the normalized and sorted command list with its digest, and the output digest. Machine paths are normalized to `$BUILD`, `$ASSETS`, `$TMP` and `$VIDEO{section}`, so two machines produce the same graph digest.
 
+### `qc`
+
+`boolean | { content?: boolean }`, Node only. Checks the finished output and reports findings `{ check, status: pass|warn|fail, value, expected, reason, kind: format|judgement }` through `CompileReporter.onQc` and the manifest's `qc`.
+
+- **Format checks** (`verified` is true when all of them pass): duration against the planned length (sections minus transition overlaps, tolerance max(1.5 frames, 50 ms)), frame count, A/V drift, `yuv420p`, Rec.709 tags, and audio present when music or clip sound is planned.
+- **`{ content: true }`** adds one decode pass: black frames (warn above 10%, fail at 95% or more), the longest freeze (warn above max(3 s, 30%); a static card may be intended), silence (warn above 50% when sound is planned), integrated loudness and true peak (a format check under `loudnorm`, against the platform target when `global.platform` is set).
+- A measurement that cannot run reports `warn` "not checked: …", never a silent pass.
+
+### `cacheDir`
+
+`string`, Node only. A per-section render cache: a section whose normalized FFmpeg command, input file contents, FFmpeg build (`ffmpeg -version`) and engine version match a previous render is copied instead of re-encoded. Entries are written atomically (temp file, rename, completion marker), and the cache is off when the FFmpeg version is unknown. Hits and misses are listed in the manifest's `cache`; a warm render is byte-identical to a cold one.
+
+### Render manifest extras (Node)
+
+`planHash` is a SHA-256 over the canonical template, the asset and font digests, the resolved encoder/quality config, the engine version and the `ffmpeg -version` line: equal plan hashes on one platform profile are expected to yield identical bytes. `loudness` records the `loudnorm` ceiling used after the true-peak re-check (each pass's ceiling and measured peak): the encoded AAC can overshoot the ceiling, so the pass is repeated with the ceiling lowered by the overshoot plus 0.2 dB, at most twice.
+
+Final outputs on the Node and static adapters are written to `output.partial.mp4` and renamed onto `output.mp4` only when the build completes; a failed or cancelled build leaves no partial file, and a build whose output would overwrite one of its inputs is refused.
+
 ### `skipValidation`
 
 `boolean` — skips schema validation of the `TemplateDescriptor` before compiling. Trusted-caller opt-out only (e.g. a descriptor already validated upstream); validation is **on by default**. Applies to the **Node `compile()` path only** — the browser (`compileBrowser`) and React Native (`compileReactNative`) paths always validate, regardless of this flag.
@@ -97,15 +117,17 @@ This is FFmpeg segment concurrency, not Remotion worker concurrency. The MCP reg
 
 The published [`leclap render`](../packages/leclap-cli/README.md#render-configuration) command maps these flags onto the host configuration:
 
-| Flag                                        | Mapping                                                                    |
-| ------------------------------------------- | -------------------------------------------------------------------------- |
-| `--assets <dir>`                            | `assetsDir`; relative paths resolve from the working directory             |
-| `--build <dir>`                             | `buildDir`; relative paths resolve from the working directory              |
-| `--field key=value`                         | `fields`; repeatable, later values replace earlier values for the same key |
-| `--video section=path`                      | `userVideoPaths`; repeatable, paths resolve from the working directory     |
-| `--locale <code>`                           | `currentLocale`                                                            |
-| `--orientation landscape\|portrait\|square` | Overrides descriptor `global.orientation` before compilation               |
-| `--output <path>` / `-o`                    | Copies the finished file to this path after a successful render            |
+| Flag                                        | Mapping                                                                                                                          |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `--assets <dir>`                            | `assetsDir`; relative paths resolve from the working directory                                                                   |
+| `--build <dir>`                             | `buildDir`; relative paths resolve from the working directory                                                                    |
+| `--field key=value`                         | `fields`; repeatable, later values replace earlier values for the same key                                                       |
+| `--video section=path`                      | `userVideoPaths`; repeatable, paths resolve from the working directory                                                           |
+| `--locale <code>`                           | `currentLocale`                                                                                                                  |
+| `--orientation landscape\|portrait\|square` | Overrides descriptor `global.orientation` before compilation                                                                     |
+| `--output <path>` / `-o`                    | Copies the finished file to this path atomically after a successful render; refused when it is the template or a `--video` input |
+| `--qc`                                      | `qc: { content: true }`; prints a findings table and exits non-zero if any check fails                                           |
+| `--cache <dir>`                             | `cacheDir`                                                                                                                       |
 
 Codec, quality-tier and segment-concurrency overrides use the library API; the CLI has no flags for those fields. `FVC_RENDER_CONCURRENCY` belongs to the monorepo dev compile script, not the published CLI.
 
@@ -177,6 +199,8 @@ Read via `process.env`; these are optional host, asset, and bench/debug controls
 | `FFMPEG_COMPOSER_SKIP_WELCOME` | Suppresses the CLI's startup banner. The banner is already skipped in CI or a non-TTY terminal regardless of this flag.                                                                                                                                                                                                                                                                                               | unset (banner shown when TTY and not CI)                              | `compile.ts` / `src/main.ts` — `shouldShowWelcome`                                                  |
 
 ## Encoder selection & tiers
+
+On FFmpeg 7.1 and later, libx264 renders tag Rec.709 with `-x264-params colorprim=bt709:transfer=bt709:colormatrix=bt709:range=tv` instead of `-colorspace`/`-color_primaries`/`-color_trc`/`-color_range`, which from 7.1 can trigger a real colour conversion of untagged frames. The `setparams` frame tagging is unchanged, and unknown FFmpeg versions (WASM, on-device) keep the output flags.
 
 **Shared encoder selection order** (`resolveVideoCodec` / `buildVideoEncoderArgs`):
 

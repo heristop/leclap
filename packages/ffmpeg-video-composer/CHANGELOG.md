@@ -59,10 +59,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `font_missing_glyphs` (listing the characters and a bundled font that covers them); emoji in drawn text
   fail with `emoji_unsupported`. `pnpm generate:font-advances` also writes a per-font coverage table.
 
+- Output QC (`ProjectConfig.qc`, `CompileReporter.onQc`, manifest `qc`): format checks (duration, frame
+  count, A/V drift, pixel format, colour tags, audio present) and an optional content pass (black, frozen,
+  silence, loudness, true peak) with a `verified` verdict; unmeasurable checks report "not checked".
+- Render manifest `planHash`, and a Node per-section render cache (`ProjectConfig.cacheDir`, manifest
+  `cache`) whose warm renders are byte-identical to cold ones.
+- `loudnorm` re-checks the true peak after AAC encoding and retries with a lower ceiling (manifest
+  `loudness`); it targets the delivery platform's loudness when `global.platform` is set.
+- Final output on the Node/static adapters is published atomically; a render whose output is one of its
+  inputs is refused.
+
 ### Fixed
 
 - Backslashes in drawtext text (captions, title cards, overlays, kinetic counter prefix/suffix) render
   literally instead of being swallowed; escaping is shared and verified against a real FFmpeg.
+- FFmpeg 7.1+: Rec.709 tags are set through libx264 parameters, avoiding an unintended colour conversion.
+- `project_video` sections whose audio is shorter than the video no longer lose video frames to
+  `-shortest` (the clip's audio is padded).
 
 ## [2.5.0] - 2026-10-03
 

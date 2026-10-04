@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `leclap render --qc` prints output QC findings and exits non-zero on a failing check (`--json`
+  includes the report); `--cache <dir>` reuses unchanged sections across renders. `--output` is written
+  atomically and refused when it equals the template or a `--video` input.
 - `leclap render --manifest` writes `<output>.manifest.json`. Renders use the deterministic encoder
   profile by default (`--no-deterministic` turns it off).
 - `leclap verify <manifest> [--rerender]` checks a video against its render manifest, or re-renders the

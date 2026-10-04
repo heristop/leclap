@@ -128,6 +128,7 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 - **[🧩 Template Configuration](docs/template-configuration.md)** — the template JSON reference.
 - **[🎬 Effects Configuration](docs/effects-configuration.md)** — generated effect contracts, custom registration, bounds, assets and preview/edit workflow.
 - **[⚙️ Engine Configuration](docs/engine-configuration.md)** — host `ProjectConfig`, CLI bindings, MCP flags, deadlines, cache and output precedence.
+- **[✨ Generate with AI](docs/ai-template-generation.md)** — bring-your-own-key template generation in the web builder, with validation, automatic repair and optional Jev brief routing.
 - **[🏗 Architecture](docs/architecture.md)** — system architecture and design patterns.
 - **[🔧 FFmpeg Fallback Strategy](docs/architecture.md#cross-platform-support)** — how automatic FFmpeg detection works.
 - **[📱 On-Device Compilation](docs/on-device-compilation.md)** — the serverless Expo compile pipeline.

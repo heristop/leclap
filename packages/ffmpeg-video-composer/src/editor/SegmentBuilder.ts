@@ -494,7 +494,9 @@ class SegmentBuilder {
     const fps = this.project.config.videoConfig?.fps ?? DefaultConfig.FPS;
     const motion = motionSugarContext(this.template.descriptor, this.section.name);
 
-    return { duration, scale, fps, isVideo, motion: { ...motion, resolveText: this.resolveSugarText } };
+    const platform = this.template.descriptor.global?.platform;
+
+    return { duration, scale, fps, isVideo, platform, motion: { ...motion, resolveText: this.resolveSugarText } };
   };
 
   // Final text for sugar that lays copy out itself (kinetic): locale, variables, fields, section case.

@@ -9,6 +9,7 @@ import { kineticCatalog } from '../kinetic/presets';
 import { KINETIC_EXIT_PRESETS, KINETIC_ORDERS } from '../../schemas/kinetic.schemas';
 import { CAMERA_PRESETS } from '../../schemas/camera.schemas';
 import { DESIGNED_TRANSITION_DESCRIPTIONS } from './transitions';
+import { platformCatalog, type PlatformCatalogEntry } from '../platforms';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -31,6 +32,9 @@ const ART_DIRECTION = [
     'wipe as an in-scene page turn, flash for impact (at most 3 per second).',
   'Transitions: push for sequence, swipe for layering, zoom-through for energy, iris for reveals; keep 0.5–0.8 s and ' +
     'prefer cut between beats of the same idea. Designed transitions ease like any other motion (ease: $snappy…).',
+  'Set global.platform (tiktok, reels, shorts, youtube, x, linkedin, facebook, square-feed) when the video ' +
+    'has a destination: keep kinetic copy and graphics out of its safe zones (see platforms[].safe, fractions ' +
+    'of the frame per edge) and the timeline under platforms[].maxDuration.',
   'Every result is deterministic: the same JSON and global.seed render the same frames. Change the seed to ' +
     'reshuffle random order, scramble glyphs and grain.',
 ];
@@ -78,6 +82,8 @@ export interface MotionCatalog {
   transitions: Record<string, string>;
   graphics: Record<string, string>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
+  /** Delivery platforms for `global.platform`: orientation, safe zones, max duration, loudness. */
+  platforms: PlatformCatalogEntry[];
   starter: typeof STARTER;
 }
 
@@ -132,6 +138,7 @@ export function motionCatalog(): MotionCatalog {
     transitions: DESIGNED_TRANSITION_DESCRIPTIONS,
     graphics: GRAPHICS,
     tokens: BUILTIN_MOTION_TOKENS,
+    platforms: platformCatalog(),
     starter: STARTER,
   };
 }

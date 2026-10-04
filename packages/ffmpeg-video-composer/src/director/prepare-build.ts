@@ -5,16 +5,23 @@ import { tapFFmpegCommands } from '@/core/determinism/command-tap';
 import { resolveDeterministic } from '@/core/determinism/contract';
 import { resolveFps, resolveOrientationScale } from './resolve-video-config';
 import { resolveMotionDescriptor } from '@/core/motion/tokens';
+import { effectiveOrientation } from '@/core/platforms';
 
 // Per-build preparation the director runs once per compile, kept out of TemplateDirector for its line
 // and dependency budgets.
 
-/** The build's video config: orientation swap/square preset, then the descriptor's fps. */
+/**
+ * The build's video config: orientation swap/square preset (the authored orientation, else the
+ * `global.platform` default), then the descriptor's fps.
+ */
 export function resolveBuildVideoConfig(
   videoConfig: VideoConfig | undefined,
   descriptor: TemplateDescriptor
 ): VideoConfig | undefined {
-  return resolveFps(resolveOrientationScale(videoConfig, descriptor.global?.orientation), descriptor.global?.fps);
+  return resolveFps(
+    resolveOrientationScale(videoConfig, effectiveOrientation(descriptor.global)),
+    descriptor.global?.fps
+  );
 }
 
 /**

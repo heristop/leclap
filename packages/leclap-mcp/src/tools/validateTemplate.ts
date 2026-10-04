@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import {
+  effectiveOrientation,
   geometryApproxNote,
   nodeGeometryWarnings,
   type GeometryWarning,
@@ -264,7 +265,8 @@ async function summary(
   config: RenderConfig
 ) {
   const sectionCount = descriptor.sections?.length ?? 0;
-  const orientation = descriptor.global?.orientation ?? null;
+  // The authored orientation, else the one global.platform implies.
+  const orientation = effectiveOrientation(descriptor.global) ?? null;
   const clips = requiredClips(descriptor);
   const fields = formFields(descriptor);
   const hasEffects = (descriptor.sections ?? []).some((section) => section.type === 'effect');

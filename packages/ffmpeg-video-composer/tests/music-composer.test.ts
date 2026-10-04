@@ -441,6 +441,19 @@ describe('MusicComposer.normalizeAudio / hasNormalization', () => {
     expect(filesystem.move).not.toHaveBeenCalled();
   });
 
+  it('aims loudnorm at the delivery platform loudness when global.platform is set', async () => {
+    const template = makeTemplate({ global: { platform: 'tiktok', audio: { normalize: 'loudnorm' } } });
+    const ffmpeg = {
+      execute: vi.fn<(cmd: string) => Promise<{ rc: number }>>(async () => ({ rc: 0 })),
+      getInfos: vi.fn(async () => ({ duration: 10, videoCodec: 'h264', audioCodec: 'aac', sampleRate: 48000 })),
+    };
+    const { composer } = makeComposer({ template, ffmpeg });
+
+    await composer.normalizeAudio('/build/output.mp4', { kind: 'concat', listPath: '/build/segments.list' });
+
+    expect(ffmpeg.execute.mock.calls[0][0]).toContain('-af "loudnorm=I=-14:TP=-1:LRA=11"');
+  });
+
   it('moves and reads a file source by default (unchanged behavior)', async () => {
     const project = makeProject();
     const template = makeTemplate({ global: { audio: { normalize: 'dynaudnorm' } } });

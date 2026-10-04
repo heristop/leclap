@@ -11,6 +11,7 @@ import {
   RevealSchema,
   TextEffectSchema,
 } from './effects.schemas';
+import { PLATFORM_NAMES } from '../core/platforms';
 
 export const TranslationSchema = z
   .record(z.string(), z.string())
@@ -181,12 +182,25 @@ export const OrientationSchema = z
 
 export type Orientation = z.infer<typeof OrientationSchema>;
 
+export const PlatformSchema = z
+  .enum(PLATFORM_NAMES)
+  .describe(
+    'Delivery platform the video is made for: tiktok, reels (aliases ig, instagram), shorts (aliases ' +
+      'yt-shorts, youtube-shorts), youtube, x (alias twitter), linkedin, facebook or square-feed. Sets the ' +
+      'default orientation when global.orientation is omitted (portrait for tiktok/reels/shorts, square for ' +
+      'square-feed, landscape otherwise); validation then warns about text under the app UI (per-edge safe ' +
+      'zones, e.g. the bottom 22% under TikTok captions), a timeline longer than the platform accepts and an ' +
+      'unusual fps; the default caption position is lifted clear of the bottom UI; and loudnorm targets the ' +
+      'platform loudness (-14 LUFS, -1 dBTP). Rendering is otherwise unchanged.'
+  );
+
 export const GlobalConfigSchema = z
   .object({
     variables: VariablesSchema.optional().describe(
       'Template-wide variable definitions referenced via {{ varName }} syntax.'
     ),
     orientation: OrientationSchema.optional(),
+    platform: PlatformSchema.optional(),
     seed: z
       .number()
       .int()

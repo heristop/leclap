@@ -67,7 +67,7 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     key: 'caption',
     order: 50,
     layer: 'overlay',
-    compile: (section) => captionToFilters(section.caption),
+    compile: (section, ctx) => captionToFilters(section.caption, ctx),
   },
   {
     key: 'titleCard',

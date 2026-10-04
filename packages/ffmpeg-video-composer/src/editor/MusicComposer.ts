@@ -13,6 +13,7 @@ import { resolveMusicFade } from './utils/music-fade';
 import { finalizeLeg, type PendingLeg } from './utils/music-leg';
 import { formatMusicName, removeExtension } from './utils/music-name';
 import { musicAssetUrl } from '@/core/asset-source';
+import { platformLoudnorm, resolvePlatform } from '@/core/platforms';
 
 type AppendMusicOptions = {
   videoInputArgs: string;
@@ -281,12 +282,15 @@ class MusicComposer {
 
   // Comma-prefixed normalize filter string inserted at the end of the chain that produces
   // [final] (a labeled output ends an ffmpeg chain, so the filter must come BEFORE the label).
+  // loudnorm aims at the delivery platform's playback loudness when `global.platform` names one.
   private buildNormalizeSuffix(): string {
+    const global = this.template.descriptor.global;
+    const platform = resolvePlatform(global?.platform);
     const filters: Record<string, string> = {
-      loudnorm: ',loudnorm=I=-16:TP=-1.5:LRA=11',
+      loudnorm: platform ? `,${platformLoudnorm(platform)}` : ',loudnorm=I=-16:TP=-1.5:LRA=11',
       dynaudnorm: ',dynaudnorm=f=150:g=15',
     };
-    const n = this.template.descriptor.global?.audio?.normalize ?? '';
+    const n = global?.audio?.normalize ?? '';
 
     return filters[n] ?? '';
   }

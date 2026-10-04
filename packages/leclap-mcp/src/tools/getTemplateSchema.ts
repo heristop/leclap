@@ -27,6 +27,12 @@ const GUIDE = [
     '$tokens ($snappy, $bouncy, $expo…); `animate` keyframe tracks drive x/y/opacity/scale on drawtext filters; ' +
     'global.motion holds tokens and the energy dial; global.seed makes every random-looking choice repeatable. ' +
     'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
+  'Delivery platforms: set global.platform (tiktok, reels/ig, shorts/yt-shorts, youtube, x/twitter, linkedin, ' +
+    'facebook, square-feed) when the video has a destination. It defaults the orientation (portrait for ' +
+    'tiktok/reels/shorts), lifts the default caption above the app UI, aims loudnorm at the platform loudness, ' +
+    'and validate_template then warns platform_ui_overlap (text under the app UI, per-edge safe zones such as ' +
+    "TikTok's bottom 22%), platform_duration_exceeded and platform_fps_mismatch. get_motion_catalog lists " +
+    'platforms[] with safe zones, max duration and loudness.',
   'Text reveal easing accepts linear, ease-out, ease-in-out and ease-out-back. Back easing overshoots travel by ' +
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +

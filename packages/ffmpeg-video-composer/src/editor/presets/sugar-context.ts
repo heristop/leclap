@@ -7,6 +7,8 @@ export type SugarContext = {
   fps: number;
   /** True for real footage (project_video/video) so motion advances one output frame per input frame. */
   isVideo: boolean;
+  /** `global.platform` (core/platforms.ts): the default caption clears that app's bottom UI. */
+  platform?: string;
   /** Motion inputs for kinetic typography (energy, seeds, text resolution). */
   motion?: KineticSugarContext;
 };

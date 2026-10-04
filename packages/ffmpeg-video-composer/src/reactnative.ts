@@ -230,6 +230,16 @@ export type { EffectReference, JsonValue } from './schemas/effect-reference.sche
 export { EffectSectionSchema } from './schemas/section.schemas';
 export type { EffectSection } from './schemas/section.schemas';
 export { resolveTemplateEffects } from './core/resolve-template-effects';
+export {
+  platformCatalog,
+  resolvePlatform,
+  type DeliveryPlatform,
+  type PlatformCatalogEntry,
+  type PlatformId,
+  type PlatformName,
+  type ResolvedPlatform,
+  type SafeZone,
+} from './core/platforms';
 export type {
   EffectRenderResult,
   EffectRenderer,

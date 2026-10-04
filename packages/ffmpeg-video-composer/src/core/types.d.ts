@@ -13,6 +13,7 @@ export type {
 } from './descriptor-text';
 import type { Reveal, RevealEasing, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 import type { FontInput } from './fonts';
+import type { PlatformName } from './platforms';
 import type { RenderManifest } from './determinism/manifest';
 import type { MotionTokens } from '../schemas/motion.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
@@ -115,6 +116,8 @@ interface TemplateMeta {
 export interface TemplateDescriptorGlobal {
   variables?: Variables;
   orientation?: string;
+  /** Delivery platform id or alias (core/platforms.ts): orientation default, safe zones, loudness. */
+  platform?: PlatformName;
   /** Root seed (uint32) for procedural effects; each element derives hash(seed, path). Default 0. */
   seed?: number;
   /** Motion tokens + energy, see schemas/motion.schemas.ts. */

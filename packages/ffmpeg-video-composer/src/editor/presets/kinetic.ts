@@ -4,7 +4,7 @@ import type { Filter } from '@/core/types';
 import type { KineticBlock } from '../../schemas/kinetic.schemas';
 import { trackExpr, type TrackKey } from '@/core/motion/tracks';
 import { fmt } from '@/core/motion/hermite';
-import { layoutKinetic, type KineticUnit, type Layout, type LayoutPiece } from '@/core/kinetic/layout';
+import type { Layout, LayoutPiece } from '@/core/kinetic/layout';
 import {
   blockTop,
   resolveExit,
@@ -13,14 +13,13 @@ import {
   type KineticFrame,
   type ResolvedKinetic,
 } from '@/core/kinetic/resolve';
+import { layoutWithin } from '@/core/kinetic/fit';
 import { unitTracks, type UnitTracks } from '@/core/kinetic/units';
 import { caretBoxes, counterText, markerSweep, scrambleDecoys } from '@/core/kinetic/extras';
 import { applyTextEffect } from './text';
 import type { SugarContext } from './sugar-context';
 
-/** Upper bound of independently animated units per block (each is a drawtext). */
-export const MAX_KINETIC_UNITS = 64;
-const COARSER: Record<KineticUnit, KineticUnit> = { glyph: 'word', word: 'line', line: 'line' };
+export { MAX_KINETIC_UNITS } from '@/core/kinetic/fit';
 const ACCENT_COLOR = '#FFF685';
 const MARKER_COLOR = '#7C83FD@0.85';
 /** Baseline below the line top, as a fraction of the font size. */
@@ -29,20 +28,6 @@ export const BASELINE = 0.8;
 export interface KineticContext extends KineticFrame {
   /** The block's text, already resolved for locale, variables and case. */
   text: string;
-}
-
-function layoutWithin(settings: ResolvedKinetic, text: string): { layout: Layout; unit: KineticUnit } | null {
-  let unit = settings.unit;
-
-  for (;;) {
-    const layout = layoutKinetic({ ...settings, unit, text, y: 0 });
-
-    if (!layout) return null;
-
-    if (layout.pieces.length <= MAX_KINETIC_UNITS || unit === 'line') return { layout, unit };
-
-    unit = COARSER[unit];
-  }
 }
 
 function accentWords(block: KineticBlock, layout: Layout): Set<number> {

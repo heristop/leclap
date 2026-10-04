@@ -340,6 +340,21 @@ export function revealEnableExpr(input: RevealInput | undefined): string | undef
   return `'gte(t,${num(delay)})'`;
 }
 
+/** A reveal's default delay in seconds, for callers that time against an entrance. */
+export const REVEAL_DEFAULT_DELAY = DEFAULT_DELAY;
+
+/** Seconds a reveal's entrance takes (a spring's settle time when no duration is authored); 0 for none. */
+export function revealSpan(
+  input: RevealType | { type: RevealType; duration?: number; easing?: RevealEasing } | undefined
+): number {
+  if (input === undefined) return 0;
+
+  const reveal: { type: RevealType; duration?: number; easing?: RevealEasing } =
+    typeof input === 'string' ? { type: input } : input;
+
+  return reveal.type === 'none' ? 0 : phaseDuration(reveal.duration, reveal.easing, DEFAULT_DURATION);
+}
+
 // Shifts a reveal's delay by its line index so stacked lines enter in sequence.
 export function staggered(reveal: RevealInput, index: number, step = STAGGER_STEP): Reveal {
   const obj = normalize(reveal);

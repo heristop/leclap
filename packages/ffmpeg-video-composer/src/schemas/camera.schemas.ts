@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EasingSpecSchema, KeyframeSchema } from './motion.schemas';
+import { TimeRefSchema, timeValue } from './time.schemas';
 
 // ── virtual camera (docs/plans/motion-system-v2.md §4.2) ─────────────────────────
 //
@@ -23,7 +24,9 @@ const CameraTrackSchema = z.array(KeyframeSchema).min(1).max(32);
 
 export const CameraHitSchema = z
   .object({
-    at: z.number().min(0).describe('Seconds from the section start when the punch lands.'),
+    at: timeValue(z.number().min(0)).describe(
+      'When the punch lands: seconds from the section start or a time reference ("beat:8", "title.end").'
+    ),
     strength: z.number().min(0.01).max(0.4).optional().describe('Zoom bump (0.08 = 8% punch-in; default 0.08).'),
     decay: z.number().min(1).max(40).optional().describe('How fast the punch relaxes, per second (default 10).'),
   })
@@ -44,7 +47,9 @@ export const CameraSchema = z
       .max(0.6)
       .optional()
       .describe('Move strength: zoom delta and drift range (default 0.12).'),
-    delay: z.number().min(0).optional().describe('Seconds before the preset move starts (default 0).'),
+    delay: timeValue(z.number().min(0))
+      .optional()
+      .describe('When the preset move starts: seconds (default 0) or a time reference.'),
     duration: z.number().positive().optional().describe('Seconds the preset move takes (default: to the section end).'),
     ease: EasingSpecSchema.optional().describe('Curve of the preset move (default ease-in-out-sine).'),
     zoom: CameraTrackSchema.optional().describe(
@@ -58,10 +63,12 @@ export const CameraSchema = z
     ),
     rotate: CameraTrackSchema.optional().describe('Roll keyframes in degrees (+ clockwise), within ±15.'),
     hits: z
-      .array(z.union([z.number().min(0), CameraHitSchema]))
+      .array(z.union([z.number().min(0), TimeRefSchema, CameraHitSchema]))
       .max(16)
       .optional()
-      .describe('Punch-ins on beats: seconds, or { at, strength, decay }. Pair with kinetic impact or a flash.'),
+      .describe(
+        'Punch-ins on beats: seconds, a time reference ("beat:8"), or { at, strength, decay }. Pair with kinetic impact or a flash.'
+      ),
     shake: z
       .object({
         amplitude: z.number().min(0).max(60).optional().describe('Wander in output px (default 6).'),

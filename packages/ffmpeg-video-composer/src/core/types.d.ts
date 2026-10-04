@@ -10,6 +10,9 @@ export type {
   LowerThird,
   ChromaKey,
   Caption,
+  TimeValue,
+  TimedReveal,
+  TimedExit,
 } from './descriptor-text';
 import type { Reveal, RevealEasing, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 import type { FontInput } from './fonts';
@@ -18,6 +21,8 @@ import type { MotionTokens } from '../schemas/motion.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
+import type { Beats } from './timing/timeline';
+export type { Beats } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -119,6 +124,8 @@ export interface TemplateDescriptorGlobal {
   seed?: number;
   /** Motion tokens + energy, see schemas/motion.schemas.ts. */
   motion?: MotionTokens;
+  /** Beat grid of the whole video for "beat:n" / "bar:n" time references (core/timing/timeline.ts). */
+  beats?: Beats;
   fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;
@@ -236,6 +243,8 @@ export interface Section {
   kinetic?: KineticBlock[];
   camera?: Camera;
   graphics?: Graphic[];
+  /** Named moments in seconds from the section start, referenced as "cue:<name>" in time fields. */
+  cues?: Record<string, number>;
   look?: string;
   grade?: GradeConfig;
   letterbox?: Letterbox;

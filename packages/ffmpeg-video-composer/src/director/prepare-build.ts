@@ -1,4 +1,5 @@
-import type { TemplateDescriptor, VideoConfig } from '@/core/types';
+import type { ProjectConfig, TemplateDescriptor, VideoConfig } from '@/core/types';
+import { resolveTimeRefs, type TimingOptions } from '@/core/timing/resolve';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type Project from '../core/models/Project';
 import { tapFFmpegCommands } from '@/core/determinism/command-tap';
@@ -29,10 +30,31 @@ export function recordBuildCommands(adapter: AbstractFFmpeg, project: Project): 
   });
 }
 
+/** What the time-reference pass needs from the build: output frame, fps, locale and form fields. */
+export function timingOptions(config: ProjectConfig): TimingOptions {
+  return {
+    scale: config.videoConfig?.scale,
+    fps: config.videoConfig?.fps,
+    locale: config.currentLocale,
+    fields: config.fields,
+  };
+}
+
 /**
- * The descriptor with every `$token` resolved and travel scaled by `global.motion.energy`
- * (core/motion/tokens.ts).
+ * The descriptor with every `$token` resolved, travel scaled by `global.motion.energy`
+ * (core/motion/tokens.ts), then every time reference ("title.end + 0.2", "beat:12"...) resolved to
+ * seconds (core/timing/resolve.ts). Lowering only ever sees numbers; a reference that cannot be resolved
+ * fails the build here, naming the field, rather than rendering a wrong frame.
  */
-export function prepareMotion<T extends { meta?: unknown; global?: unknown; sections?: unknown }>(descriptor: T): T {
-  return resolveMotionDescriptor(descriptor);
+export function prepareMotion<T extends { meta?: unknown; global?: unknown; sections?: unknown }>(
+  descriptor: T,
+  timing: TimingOptions = {}
+): T {
+  const { descriptor: resolved, issues } = resolveTimeRefs(resolveMotionDescriptor(descriptor), timing);
+
+  if (issues.length > 0) {
+    throw new Error(`Time references: ${issues.map((issue) => `${issue.path}: ${issue.message}`).join('; ')}`);
+  }
+
+  return resolved;
 }

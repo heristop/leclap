@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { TranslationSchema } from './global.schemas';
 import { TextEffectSchema } from './effects.schemas';
 import { EasingSpecSchema } from './motion.schemas';
+import { ElementIdSchema, timeValue } from './time.schemas';
 
 // ── kinetic typography (docs/plans/motion-system-v2.md §4.1) ──────────────────────
 //
@@ -42,11 +43,11 @@ const PRESET_DESCRIPTION =
 export const KineticExitSchema = z
   .object({
     preset: z.enum(KINETIC_EXIT_PRESETS).describe('How the block leaves (default fade). cascade = staggered rise-out.'),
-    at: z
-      .number()
-      .min(0)
+    at: timeValue(z.number().min(0))
       .optional()
-      .describe('Seconds from the section start when the exit begins (default: ends with the section).'),
+      .describe(
+        'When the exit begins: seconds from the section start or a time reference ("end - 0.6"); default: ends with the section.'
+      ),
     duration: z.number().positive().max(5).optional().describe('Seconds each unit takes to leave (default 0.35).'),
     stagger: z
       .number()
@@ -76,7 +77,12 @@ export const KineticBlockSchema = z
       .enum(KINETIC_ORDERS)
       .optional()
       .describe('Stagger order (default forward). random is seeded by global.seed.'),
-    delay: z.number().min(0).max(30).optional().describe('Seconds before the first unit moves (default 0.2).'),
+    id: ElementIdSchema.optional(),
+    delay: timeValue(z.number().min(0).max(30))
+      .optional()
+      .describe(
+        'When the first unit moves: seconds from the section start (default 0.2) or a time reference ("title.end + 0.1", "beat:4 - 0.1").'
+      ),
     stagger: z
       .number()
       .min(0)

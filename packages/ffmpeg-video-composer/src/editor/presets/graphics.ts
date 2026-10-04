@@ -6,6 +6,7 @@ import type { Filter, Section } from '@/core/types';
 import type { Graphic } from '../../schemas/graphics.schemas';
 import { parseEasing, type EasingSpec } from '@/core/motion/easing';
 import { fmt } from '@/core/motion/hermite';
+import { resolvedTimes } from '@/core/timing/seconds';
 import type { SugarContext } from './sugar-context';
 
 interface Rect {
@@ -225,9 +226,15 @@ function window(from: number, to: number | undefined): string {
   return to === undefined ? `'gte(t,${fmt(from)})'` : `'gte(t,${fmt(from)})*lt(t,${fmt(to)})'`;
 }
 
+/** Seconds the graphic's animation takes (its authored duration or the type's default). */
+export function graphicDuration(g: Graphic, frame: Frame): number {
+  return spec(g, frame).duration;
+}
+
 /** One graphic as drawbox filters, frame by frame, then its held final state. */
-export function graphicToFilters(g: Graphic, frame: Frame): Filter[] {
-  const s = spec(g, frame);
+export function graphicToFilters(graphic: Graphic, frame: Frame): Filter[] {
+  const g = resolvedTimes(graphic);
+  const s = spec(graphic, frame);
   const at = g.at ?? 0;
   const curve = parseEasing(s.ease).fn;
   const frames = Math.min(MAX_FRAMES, Math.max(1, Math.ceil(s.duration * frame.fps)));

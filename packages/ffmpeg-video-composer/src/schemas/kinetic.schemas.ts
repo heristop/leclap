@@ -3,7 +3,7 @@ import { TranslationSchema } from './global.schemas';
 import { TextEffectSchema } from './effects.schemas';
 import { EasingSpecSchema } from './motion.schemas';
 
-// ── kinetic typography (docs/plans/motion-system-v2.md §4.1, motionVersion 2) ──────────────────────
+// ── kinetic typography (docs/plans/motion-system-v2.md §4.1) ──────────────────────
 //
 // One block = one piece of animated copy. Pick a preset; every other field is optional and has a
 // preset-specific default, so `{ "text": { "en": "Make it move" }, "preset": "cascade" }` is a complete,
@@ -158,15 +158,13 @@ export const KineticBlockSchema = z
       .describe('How the block leaves: a preset name or an object (default none: holds to the cut).'),
   })
   .strict()
-  .describe(
-    'Kinetic typography block (meta.motionVersion 2): per-word / per-glyph choreography, laid out and wrapped automatically.'
-  )
+  .describe('Kinetic typography block: per-word / per-glyph choreography, laid out and wrapped automatically.')
   .meta({ id: 'KineticBlock' });
 
 export const KineticBlocksSchema = z
   .array(KineticBlockSchema)
   .max(8)
-  .describe('Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section.');
+  .describe('Kinetic typography blocks: animated copy drawn on top of the section.');
 
 export type KineticBlock = z.infer<typeof KineticBlockSchema>;
 export type KineticExit = z.infer<typeof KineticExitSchema>;

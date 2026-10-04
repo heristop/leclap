@@ -1,4 +1,4 @@
-// The v2 easing vocabulary (docs/plans/motion-system-v2.md §2.1), as plain functions of progress
+// The easing vocabulary (docs/plans/motion-system-v2.md §2.1), as plain functions of progress
 // p ∈ [0, 1]. Nothing here emits FFmpeg syntax: hermite.ts samples these curves at compile time and
 // lowers them to a piecewise polynomial in time, so every curve costs the same at render time and runs
 // on every backend (no filter, only expression arithmetic).

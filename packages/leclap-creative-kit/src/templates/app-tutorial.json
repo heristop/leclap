@@ -2,7 +2,7 @@
   "meta": {
     "name": "App Tutorial",
     "description": "A screen-first square lesson with numbered steps, calm mint typography and a letterboxed walkthrough.",
-    "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Stagger the numbered instruction with short, restrained directional entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction."
+    "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Stagger the numbered instruction with short, restrained directional entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction. Motion: calm pushes between steps and a rule that draws under the topic; no camera over the interface."
   },
   "global": {
     "orientation": "square",
@@ -183,6 +183,22 @@
             "easing": "ease-out"
           }
         }
+      ],
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$smooth"
+      },
+      "graphics": [
+        {
+          "type": "underline",
+          "x": 64,
+          "y": 448,
+          "width": 300,
+          "thickness": 6,
+          "at": 0.6,
+          "color": "#436354"
+        }
       ]
     },
     {
@@ -220,6 +236,11 @@
           "easing": "ease-out",
           "distance": 24
         }
+      },
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$smooth"
       }
     },
     {

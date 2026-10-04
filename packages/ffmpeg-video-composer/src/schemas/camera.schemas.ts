@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { EasingSpecSchema, KeyframeSchema } from './motion.schemas';
 
-// ── virtual camera (docs/plans/motion-system-v2.md §4.2, motionVersion 2) ─────────────────────────
+// ── virtual camera (docs/plans/motion-system-v2.md §4.2) ─────────────────────────
 //
 // A section-level camera that moves over the finished frame (footage, graphics and, by default, text).
 // A preset gives a complete move; tracks, hits and shake refine or replace it. Lowered to `zoompan` +
@@ -79,7 +79,7 @@ export const CameraSchema = z
       ),
   })
   .strict()
-  .describe('Virtual camera over the section (meta.motionVersion 2).')
+  .describe('Virtual camera over the section.')
   .meta({ id: 'Camera' });
 
 export type Camera = z.infer<typeof CameraSchema>;

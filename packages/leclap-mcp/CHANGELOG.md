@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `get_motion_catalog` returns the engine's motion system v2 catalog: kinetic typography presets with
+- `get_motion_catalog` returns the engine's motion catalog: kinetic typography presets with
   defaults, exits, stagger orders, the easing grammar, built-in tokens, art-direction rules and a starter.
   `get_template_schema` and the `compose-video` prompt point agents at it.
 - `compose_video` renders with the deterministic encoder profile.

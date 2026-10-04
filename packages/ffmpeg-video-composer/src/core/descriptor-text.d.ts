@@ -7,7 +7,7 @@
 import type { FontInput } from './fonts';
 
 export type RevealType = 'none' | 'fade' | 'rise' | 'slide-left' | 'slide-right';
-// The four historical names, or (motionVersion 2) any easing spec: springs, beziers, named curves, $tokens.
+// The four historical names, or any easing spec: springs, beziers, named curves, $tokens.
 export type RevealEasing = string | { points: Array<[number, number]> };
 export type Reveal =
   | RevealType

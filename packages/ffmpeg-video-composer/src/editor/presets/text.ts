@@ -47,7 +47,7 @@ export const REVEAL_TYPES = ['none', 'fade', 'rise', 'slide-left', 'slide-right'
 export type RevealType = (typeof REVEAL_TYPES)[number];
 
 export const REVEAL_EASINGS = ['linear', 'ease-out', 'ease-in-out', 'ease-out-back'] as const;
-/** Any easing spec: the historical names, or (motionVersion 2) springs, beziers, the named set, points. */
+/** Any easing spec: the historical names, or springs, beziers, the named set, points. */
 export type RevealEasing = EasingSpec;
 
 export type Reveal = {

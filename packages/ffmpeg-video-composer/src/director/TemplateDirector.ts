@@ -101,7 +101,7 @@ class TemplateDirector {
       this.logger.warn(`[Director] partial expansion failed: ${expansion.error.message}`);
     }
 
-    // motionVersion 2: resolve $tokens and scale travel by energy once, before any lowering (prepare-build.ts).
+    // Resolve $tokens and scale travel by energy once, before any lowering (prepare-build.ts).
     this.template.descriptor = prepareMotion(assertEffectsResolved(expansion.ok ? expansion.data : clonedDescriptor));
     this.project.config = projectConfig;
 
@@ -132,7 +132,7 @@ class TemplateDirector {
 
   construct = async (): Promise<string | null> => {
     // Deterministic encoder profile + command record for the render manifest (director/prepare-build.ts).
-    const restoreAdapter = recordBuildCommands(this.ffmpegAdapter, this.project, this.template.descriptor);
+    const restoreAdapter = recordBuildCommands(this.ffmpegAdapter, this.project);
 
     try {
       await getPerfTimer().span('director:init', () => this.init());

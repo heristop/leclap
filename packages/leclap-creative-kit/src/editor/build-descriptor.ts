@@ -4,6 +4,7 @@ import type { TemplateDescriptor, Section } from 'ffmpeg-video-composer/src/core
 import type { EditorSection, EditorState, FormField, AudioMix, MediaChoice } from './model';
 import { pruneEmpty } from './prune';
 import { metaFrom } from './template-meta';
+import { motionGlobalFrom } from './motion-passthrough';
 import { overlayFiltersFrom, videoFiltersFrom } from './overlay-filters';
 import {
   DEFAULT_LOCALE,
@@ -277,7 +278,13 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
   const global: NonNullable<TemplateDescriptor['global']> = {
     orientation: state.orientation,
     musicEnabled: false,
-    transition: { type: state.defaultTransition.type, duration: state.defaultTransition.duration },
+    transition: {
+      type: state.defaultTransition.type,
+      duration: state.defaultTransition.duration,
+      ...(state.defaultTransition.ease === undefined ? {} : { ease: state.defaultTransition.ease }),
+    },
+    // Motion template settings, carried through from the loaded descriptor.
+    ...motionGlobalFrom(state.motion),
     // Audio mix: source (recorded clip) volume and background-music volume, each 0..1 (0 = muted).
     audio: audioGlobal(state.audio),
     ...(state.globalAnimations.length > 0 ? { animations: state.globalAnimations.map(globalAnimationFrom) } : {}),

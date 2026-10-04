@@ -12,8 +12,8 @@ export function registerGetMotionCatalog(server: McpServer): void {
       description:
         'Return the motion system v2 catalog: kinetic typography presets with their defaults, exit presets, ' +
         'stagger orders, the easing grammar (springs, cubic-bezier, named curves), built-in motion tokens, ' +
-        'art-direction rules and a complete starter template. Call it before authoring animated copy; then ' +
-        'set meta.motionVersion: 2 and use section `kinetic` blocks.',
+        'art-direction rules and a complete starter template. Call it before authoring animated copy, ' +
+        'camera moves, graphics or designed transitions.',
     },
     () => ({
       content: [{ type: 'text', text: JSON.stringify(motionCatalog(), null, 2) }],

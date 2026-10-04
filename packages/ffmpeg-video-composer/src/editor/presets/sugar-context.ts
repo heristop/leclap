@@ -7,7 +7,7 @@ export type SugarContext = {
   fps: number;
   /** True for real footage (project_video/video) so motion advances one output frame per input frame. */
   isVideo: boolean;
-  /** motionVersion 2 inputs for kinetic typography; absent on v1 (kinetic needs v2, validation enforces it). */
+  /** Motion inputs for kinetic typography (energy, seeds, text resolution). */
   motion?: KineticSugarContext;
 };
 

@@ -8,7 +8,7 @@ function manifest(overrides: Partial<{ output: string; graph: string; commands: 
     engine: { name: 'ffmpeg-video-composer', version: '2.5.0' },
     ffmpeg: { version: '8.1.1' },
     deterministic: true,
-    template: { sha256: 'aaaa', motionVersion: 2, seed: 0, descriptor: {} },
+    template: { sha256: 'aaaa', seed: 0, descriptor: {} },
     config: {},
     assets: [{ path: '$ASSETS/fonts/Oswald.ttf', sha256: 'ffff' }],
     graph: { sha256: overrides.graph ?? 'gggg', commands: overrides.commands ?? ['-i a $BUILD/o.mp4'] },

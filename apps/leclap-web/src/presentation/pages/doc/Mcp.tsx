@@ -52,7 +52,7 @@ export const DocMcp = () => (
     <DocSection id="what" title="What it is" kicker="Authoring, not generating">
       <Prose>
         <p>
-          The server includes <strong>32 packaged showcase samples</strong> with creative direction and input
+          The server includes <strong>35 packaged showcase samples</strong> with creative direction and input
           requirements. Discovery reads data only; rendering uses your media and the configured backend. Keep the
           descriptor, assets, fonts, configuration and runtime versions together for reproducibility. Different encoders
           and platforms can produce different bytes.
@@ -68,7 +68,7 @@ export const DocMcp = () => (
     <DocSection id="tools" title="Tools" kicker={`${mcpDoc.tools.length} tools`}>
       <Prose>
         <p>
-          Eight tools are always registered. Remotion opt-in adds <Code>get_effect_schema</Code>,{' '}
+          Nine tools are always registered. Remotion opt-in adds <Code>get_effect_schema</Code>,{' '}
           <Code>render_preview</Code> and <Code>render_remotion_clip</Code>. Every argument below is the literal key the
           agent passes. Patch availability does not bypass effect-backend validation.
         </p>

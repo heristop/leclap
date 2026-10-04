@@ -62,7 +62,7 @@ export type ProjectConfig = {
   // (crf/preset/bitrate) stay an app concern — templates never carry them.
   qualityTier?: 'draft' | 'standard' | 'high';
   // Deterministic encoder profile (bit-exact muxing, fixed libx264 threads), applied to every FFmpeg
-  // command of the build. Default: on for `meta.motionVersion: 2` templates, off otherwise.
+  // command of the build. Default: on; false opts out (faster local drafts).
   deterministic?: boolean;
 };
 
@@ -108,8 +108,6 @@ interface TemplateMeta {
   name?: string;
   description?: string;
   creativeDirection?: string;
-  /** Motion semantics pin: 1 (default) = historical output, 2 = the v2 motion system. */
-  motionVersion?: 1 | 2;
   /** Skip the nondeterministic_expression validation (wall clock / unseeded random in raw filters). */
   allowNondeterministic?: boolean;
 }
@@ -119,7 +117,7 @@ export interface TemplateDescriptorGlobal {
   orientation?: string;
   /** Root seed (uint32) for procedural effects; each element derives hash(seed, path). Default 0. */
   seed?: number;
-  /** Motion tokens + energy (motionVersion 2), see schemas/motion.schemas.ts. */
+  /** Motion tokens + energy, see schemas/motion.schemas.ts. */
   motion?: MotionTokens;
   fps?: number;
   colorsList?: string[];
@@ -196,7 +194,7 @@ export interface Watermark {
 interface SectionTransition {
   type: string;
   duration?: number;
-  /** Curve of a designed transition (motionVersion 2). */
+  /** Curve of a designed transition. */
   ease?: RevealEasing;
 }
 

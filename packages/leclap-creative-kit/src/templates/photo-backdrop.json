@@ -20,7 +20,12 @@
       "musicVolume": 0.25,
       "musicFade": 0.8,
       "normalize": "loudnorm",
-      "ducking": { "threshold": 0.05, "ratio": 8, "attack": 20, "release": 400 }
+      "ducking": {
+        "threshold": 0.05,
+        "ratio": 8,
+        "attack": 20,
+        "release": 400
+      }
     }
   },
   "sections": [
@@ -100,6 +105,15 @@
             "st": "{{ transitionStartTime }}",
             "color": "#000000"
           }
+        }
+      ],
+      "graphics": [
+        {
+          "type": "frame",
+          "at": 0.3,
+          "inset": 36,
+          "thickness": 3,
+          "color": "#F5F3F7@0.75"
         }
       ]
     },

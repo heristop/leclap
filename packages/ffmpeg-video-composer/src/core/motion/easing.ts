@@ -9,7 +9,7 @@
 //   { "points": [[0,0],[0.4,1.08],[1,1]] }                                  custom curve
 //
 // The four historical names (linear, ease-out, ease-in-out, ease-out-back) keep their exact legacy
-// expressions (editor/presets/text.ts), so v1 output never changes; this module covers the rest.
+// expressions (editor/presets/text.ts); this module covers the rest.
 
 import {
   CSS_BEZIERS,

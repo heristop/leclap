@@ -8,7 +8,7 @@ import type { RenderManifest } from '@/core/determinism/manifest';
 import { TemplateValidator } from '@/services/TemplateValidator';
 import { testBuildDir } from './fixtures/build-dir';
 
-// The motion system v2 study (examples/motion-design/spring-kinetics.json) through real FFmpeg: every
+// The motion system study (examples/motion-design/spring-kinetics.json) through real FFmpeg: every
 // spring, bezier, token and track must parse in FFmpeg's own expression evaluator, render twice to the
 // same bytes, and keep its compiled graph stable (golden).
 
@@ -37,7 +37,7 @@ async function render(): Promise<{ bytes: Buffer; manifest: RenderManifest }> {
   return { bytes: fs.readFileSync(output as string), manifest: manifest as RenderManifest };
 }
 
-describe('motion system v2 example', () => {
+describe('motion system example', () => {
   it('validates cleanly', () => {
     const result = new TemplateValidator().validateTemplate(descriptor);
 

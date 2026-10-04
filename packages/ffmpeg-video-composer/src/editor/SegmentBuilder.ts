@@ -30,7 +30,7 @@ import {
   buildColorMetadataArgs,
   buildColorMetadataFilter,
 } from '@/core/encoding';
-import { cameraEndOfChain, conformMotionV2Chain, motionSugarContext } from './presets/motion-v2-chain';
+import { cameraEndOfChain, conformMotionChain, motionSugarContext } from './presets/motion-chain';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -494,7 +494,7 @@ class SegmentBuilder {
     const fps = this.project.config.videoConfig?.fps ?? DefaultConfig.FPS;
     const motion = motionSugarContext(this.template.descriptor, this.section.name);
 
-    return { duration, scale, fps, isVideo, motion: motion && { ...motion, resolveText: this.resolveSugarText } };
+    return { duration, scale, fps, isVideo, motion: { ...motion, resolveText: this.resolveSugarText } };
   };
 
   // Final text for sugar that lays copy out itself (kinetic): locale, variables, fields, section case.
@@ -532,14 +532,14 @@ class SegmentBuilder {
     this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
     const authored = this.section.filters;
 
-    // motionVersion 2: CFR conform + seeded noise (presets/motion-v2-chain.ts); v1 chains pass through.
-    this.section.filters = conformMotionV2Chain(
+    // CFR conform + seeded noise (presets/motion-chain.ts).
+    this.section.filters = conformMotionChain(
       [...background, ...authored],
       this.template.descriptor,
       this.fps(),
       this.section.name
     );
-    // Everything ahead of the authored chain (background sugar, plus the v2 conform) — the splice point
+    // Everything ahead of the authored chain (background sugar, plus the CFR conform) — the splice point
     // for overlay text, which must draw after the conform so it animates on the frame grid.
     this.backgroundSugarCount = this.section.filters.length - authored.length;
   };
@@ -586,7 +586,7 @@ class SegmentBuilder {
   // xfade and overlay passes inherit the clean tag. setparams is pixel-neutral metadata, so it is the
   // last node of the chain — appended to the linear `-vf` list, or as a node off the complex graph's
   // final video pad. (The output `-color*` flags are a matrix/range floor for the no-filter case.)
-  // The section camera (motionVersion 2) rides just before the tag, so it moves the finished frame.
+  // The section camera rides just before the tag, so it moves the finished frame.
   private readonly appendColorMetadataFilter = (): void => {
     const tag = [...cameraEndOfChain(this.section, this.sugarContext()), buildColorMetadataFilter()].join(',');
 

@@ -53,7 +53,7 @@
     {
       "id": "fast-curious",
       "title": "Fast & Curious",
-      "description": "Punchy two-tone flash intro \u2014 your name on a bold cut, then your clip.",
+      "description": "Punchy two-tone flash intro — your name on a bold cut, then your clip.",
       "category": "templates",
       "source": "packages/leclap-creative-kit/src/templates/fast-curious.json"
     },
@@ -74,14 +74,14 @@
     {
       "id": "present-yourself-portrait",
       "title": "Present Yourself (Portrait)",
-      "description": "Introduce yourself \u2014 a cinematic title card wipes into your graded clip with your name on a lower third, all rendered on this device.",
+      "description": "Introduce yourself — a cinematic title card wipes into your graded clip with your name on a lower third, all rendered on this device.",
       "category": "templates",
       "source": "packages/leclap-creative-kit/src/templates/present-yourself-portrait.json"
     },
     {
       "id": "present-yourself",
       "title": "Present Yourself",
-      "description": "Introduce yourself \u2014 a cinematic title card wipes into your graded clip with your name on a lower third, all rendered on this device.",
+      "description": "Introduce yourself — a cinematic title card wipes into your graded clip with your name on a lower third, all rendered on this device.",
       "category": "templates",
       "source": "packages/leclap-creative-kit/src/templates/present-yourself.json"
     },
@@ -154,6 +154,13 @@
       "description": "Physical springs, brand curves and keyframe tracks instead of timings.",
       "category": "typography",
       "source": "examples/motion-design/spring-kinetics.json"
+    },
+    {
+      "id": "camera-and-graphics",
+      "title": "Camera and graphics",
+      "description": "Designed transitions, a virtual camera with hits and shake, and graphics that animate on a curve.",
+      "category": "typography",
+      "source": "examples/motion-design/camera-and-graphics.json"
     },
     {
       "id": "title-reveal",

@@ -94,7 +94,7 @@ npx @leclap/cli render template.json  # render it (`leclap diagnose` checks your
 
 Or drive it from an AI agent: the [`@leclap/mcp`](packages/leclap-mcp) server exposes the engine as MCP tools — sample discovery → customize → validate → render — with no LLM in the output path.
 
-The installed CLI and MCP expose all **32 showcase samples** (22 native, 10 Remotion), including creative
+The installed CLI and MCP expose all **35 showcase samples** (25 native, 10 Remotion), including creative
 direction and required clips, copy, fonts and assets. Exported descriptor JSON embeds referenced partials;
 supply your own media before rendering. Registered Remotion effects require the configured MCP
 Node/Chromium backend and, where indicated, a trusted operator catalog. Discovery itself needs neither

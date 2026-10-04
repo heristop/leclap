@@ -1,15 +1,14 @@
 import { z } from 'zod';
 import { easingError } from '../core/motion/easing';
 
-// ── v2 motion system schemas (docs/plans/motion-system-v2.md §2–3) ─────────────────────────────────
+// ── motion system schemas (docs/plans/motion-system-v2.md §2–3) ─────────────────────────────────
 //
 // Shapes only. The grammar of an easing string, token references and keyframe ordering are checked by
 // the motion rules in services/motion-validation.ts, which report precise paths and messages (a zod
-// regex would only say "invalid string"). Everything here requires `meta.motionVersion: 2` except the
-// four historical easing names.
+// regex would only say "invalid string").
 
 export const EASING_SPEC_DESCRIPTION =
-  'Easing: linear | ease-out | ease-in-out | ease-out-back (historical); with meta.motionVersion 2 also ' +
+  'Easing: linear | ease-out | ease-in-out | ease-out-back, ' +
   'ease | ease-in | ease-out-expo | ease-in-out-sine | ease-out-elastic | ease-out-bounce | … , ' +
   'cubic-bezier(x1,y1,x2,y2), spring(stiffness,damping[,mass[,velocity]]), steps(n[,start|end]), ' +
   'a $token from global.motion or the built-ins ($snappy, $gentle, $bouncy, $wobbly, $smooth, $juicy, $expo, ' +
@@ -91,7 +90,7 @@ export const MotionTokensSchema = z
       .describe('Named durations in seconds, referenced from keyframe times as "$name" or "+$name".'),
   })
   .strict()
-  .describe('Motion tokens: one design system for time, shared by every animated field (motionVersion 2).');
+  .describe('Motion tokens: one design system for time, shared by every animated field.');
 
 // ── animate: keyframe tracks ───────────────────────────────────────────────────
 
@@ -126,7 +125,7 @@ export const AnimateSchema = z
   })
   .strict()
   .describe(
-    'Keyframe tracks for a positioned drawtext (motionVersion 2). Each key eases into the next; a track ' +
+    'Keyframe tracks for a positioned drawtext. Each key eases into the next; a track ' +
       'overrides the same property from reveal/exit.'
   )
   .meta({ id: 'Animate' });

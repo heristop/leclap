@@ -1,4 +1,4 @@
-// The motion catalog: everything an agent needs to choose and configure v2 motion without reading
+// The motion catalog: everything an agent needs to choose and configure motion without reading
 // source. One data structure serves MCP (`get_motion_catalog`), the CLI and the template builder's
 // prompt-to-template flow, so they always agree with the engine.
 
@@ -11,7 +11,6 @@ import { CAMERA_PRESETS } from '../../schemas/camera.schemas';
 import { DESIGNED_TRANSITION_DESCRIPTIONS } from './transitions';
 
 const ART_DIRECTION = [
-  'Set meta.motionVersion: 2 to use anything in this catalog; omit it and the template keeps v1 motion.',
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
     '0.4 s + words / 3.5 s after the last unit lands.',
   'Pick a preset for the job: cascade/rise for headlines, impact for a single punch word, pop for playful ' +
@@ -37,7 +36,7 @@ const ART_DIRECTION = [
 ];
 
 const STARTER = {
-  meta: { name: 'Kinetic starter', motionVersion: 2 },
+  meta: { name: 'Kinetic starter' },
   global: { orientation: 'landscape', fps: 30, musicEnabled: false, seed: 1, motion: { energy: 1 } },
   sections: [
     {

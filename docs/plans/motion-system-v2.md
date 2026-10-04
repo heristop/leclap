@@ -1,6 +1,6 @@
 # Motion System v2: deterministic, expressive, native
 
-> Status: P0, P1 (branch `feat/motion-p0-p1`) and P2 kinetic typography (`feat/motion-p2-kinetic`) delivered; P3+ proposed · Owner: motion/engine · Scope: `ffmpeg-video-composer`, `leclap-creative-kit`, `leclap-mcp`,
+> Status: P0, P1 (branch `feat/motion-p0-p1`), P2 kinetic typography (`feat/motion-p2-kinetic`) and the camera/graphics/designed-transition effects (`feat/motion-effects`) delivered; `meta.motionVersion` removed (pre-release, no versioning needed); P3+ proposed · Owner: motion/engine · Scope: `ffmpeg-video-composer`, `leclap-creative-kit`, `leclap-mcp`,
 > `leclap-web`, `leclap-expo`, with `leclap-brand-motion` as the quality reference.
 
 ## 0. The brief
@@ -41,12 +41,12 @@ All later phases depend on this one, so it ships first.
 | #   | Rule                                                                                                                                                                                                                           | Enforcement                                                                                           |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
 | D1  | **Compile is pure.** `compile(template, assetsDigest, platformProfile) → filtergraph` with no clocks, no `Math.random`, no environment reads beyond the declared profile.                                                      | Lint rule banning `Date`, `Math.random`, `performance.now` under `src/editor/**`, `src/schemas/**`    |
-| D2  | **Frame-grid time.** Under v2 every section chain starts with a CFR `fps` conform, so `t` in each animated expression is an exact frame time and variable-frame-rate phone footage can't drift a keyframe.                     | `editor/presets/motion-v2-chain.ts`; the render tests assert the conform                              |
+| D2  | **Frame-grid time.** Every section chain starts with a CFR `fps` conform, so `t` in each animated expression is an exact frame time and variable-frame-rate phone footage can't drift a keyframe.                              | `editor/presets/motion-chain.ts`; the render tests assert the conform                                 |
 | D3  | **Seeded procedurality.** New `global.seed` (uint32, default `0`). Every procedural element derives `seed = hash32(global.seed, elementPath)` (FNV-1a). Shake paths, particle positions, scramble glyphs and grain all use it. | Schema: procedural effects reject a missing derived seed; `noise` always emits `all_seed=`            |
 | D4  | **Raw-filter hygiene.** User `filters[]` may not contain `random(`, `%{localtime`, `%{gmtime`, `time(` or `pts` text expansions in `drawtext`.                                                                                 | `TemplateValidator` error `nondeterministic_expression`, with an opt-out flag `allowNondeterministic` |
 | D5  | **Bit-exact muxing.** Add `-fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1` and fixed `-threads` for libx264 in the deterministic encoder tier.                                                       | Encoder tier `deterministic` in `encoding.ts`; this tier is the default for the CLI and MCP           |
-| D6  | **Versioned motion semantics.** New `meta.motionVersion` (default `1` = today's output). Presets, spring solver and easing tables are versioned, so a preset retune can never change an old render.                            | Golden filtergraph snapshots per `motionVersion`                                                      |
-| D7  | **Render manifest.** Each render emits `render.manifest.json` with template hash (canonical JSON), asset hashes, seed, motionVersion, engine version, FFmpeg build ID, filtergraph hash and output hash.                       | Extends existing MCP provenance and adds a `leclap verify manifest.json` command                      |
+| D6  | **No motion versioning (dropped).** The library is unreleased, so the motion system is simply the behaviour; there is no `meta.motionVersion`. Once published, a retune that changes output ships as a semver-major change.    | Golden filtergraph snapshots catch every output change                                                |
+| D7  | **Render manifest.** Each render emits `render.manifest.json` with template hash (canonical JSON), asset hashes, seed, engine version, FFmpeg build ID, filtergraph hash and output hash.                                      | Extends existing MCP provenance and adds a `leclap verify manifest.json` command                      |
 
 **Test pyramid for determinism**
 
@@ -325,8 +325,8 @@ all read the same source.
 | **P5** | Builder timeline/curve editor/scrub, Expo recipe UI, MCP catalog/preview/lint, optional device filter additions | Agent produces a lint-clean, recipe-based 30 s promo from a brief in ≤ 3 patch rounds            |
 | **P6** | **Hero proof:** rebuild the `LeClapShowcase` title + finale beats in pure template JSON                         | Side-by-side with Remotion original on the landing page; renders on an iPhone and a mid Android  |
 
-Each phase lands behind `motionVersion: 2` and needs no migration. Old templates keep rendering exactly as
-before.
+Each phase is additive: every new field is optional, so existing templates need no migration (golden
+filtergraphs record every output change).
 
 ---
 

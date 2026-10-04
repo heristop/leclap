@@ -67,13 +67,12 @@ describe('validator: nondeterministic_expression', () => {
 describe('schema: determinism fields', () => {
   const validator = new TemplateValidator();
 
-  it('accepts motionVersion 1|2 and a uint32 seed', () => {
-    const descriptor = { ...card([], { motionVersion: 2 }), global: { seed: 4294967295 } };
+  it('accepts a uint32 seed', () => {
+    const descriptor = { ...card([]), global: { seed: 4294967295 } };
     expect(validator.validateTemplate(descriptor).success).toBe(true);
   });
 
-  it('rejects an unknown motionVersion and an out-of-range seed', () => {
-    expect(validator.validateTemplate(card([], { motionVersion: 3 })).success).toBe(false);
+  it('rejects an out-of-range seed', () => {
     expect(validator.validateTemplate({ ...card([]), global: { seed: -1 } }).success).toBe(false);
     expect(validator.validateTemplate({ ...card([]), global: { seed: 1.5 } }).success).toBe(false);
   });

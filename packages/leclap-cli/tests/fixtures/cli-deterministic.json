@@ -1,5 +1,5 @@
 {
-  "meta": { "name": "cli-deterministic", "motionVersion": 2 },
+  "meta": { "name": "cli-deterministic" },
   "global": { "orientation": "landscape", "musicEnabled": false, "seed": 11 },
   "sections": [
     {

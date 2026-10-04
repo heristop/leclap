@@ -4,7 +4,7 @@
 
 import { canonicalJson } from './hash';
 import { sha256Hex } from './sha256';
-import { resolveMotionVersion, resolveSeed, type MotionVersion } from './contract';
+import { resolveSeed } from './contract';
 import { ENGINE_VERSION } from '../version';
 
 export const MANIFEST_SCHEMA_VERSION = 1;
@@ -24,7 +24,6 @@ export interface RenderManifest {
   deterministic: boolean;
   template: {
     sha256: string;
-    motionVersion: MotionVersion;
     seed: number;
     /** The canonical descriptor that was rendered, so `leclap verify --rerender` can render it again. */
     descriptor: unknown;
@@ -100,7 +99,7 @@ export function templateDigest(descriptor: unknown): string {
 }
 
 export function buildRenderManifest(input: ManifestInput): RenderManifest {
-  const descriptor = input.descriptor as Parameters<typeof resolveMotionVersion>[0];
+  const descriptor = input.descriptor as Parameters<typeof resolveSeed>[0];
 
   return {
     schemaVersion: MANIFEST_SCHEMA_VERSION,
@@ -109,7 +108,6 @@ export function buildRenderManifest(input: ManifestInput): RenderManifest {
     deterministic: input.deterministic,
     template: {
       sha256: templateDigest(input.descriptor),
-      motionVersion: resolveMotionVersion(descriptor),
       seed: resolveSeed(descriptor),
       descriptor: JSON.parse(canonicalJson(input.descriptor)) as unknown,
     },

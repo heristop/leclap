@@ -144,11 +144,11 @@ export const TransitionSchema = z
     type: z
       .union([z.enum(XFADE_TRANSITIONS), z.enum(DESIGNED_TRANSITIONS), z.literal('cut')])
       .describe(
-        'xfade transition name between this section and the next, "cut" for a hard cut, or (meta.motionVersion 2) ' +
+        'xfade transition name between this section and the next, "cut" for a hard cut, or ' +
           'a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris.'
       ),
     ease: EasingSpecSchema.optional().describe(
-      'Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.'
+      'Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot.'
     ),
     duration: z
       .number()

@@ -2,7 +2,7 @@
   "meta": {
     "name": "Web App Promo",
     "description": "A cinematic app launch: masked editorial type, an uncluttered 3D screen reveal and a confident closing invitation.",
-    "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation."
+    "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation. Motion: fly through the promise into the interface, push up to the invitation, underline the call to action."
   },
   "global": {
     "orientation": "landscape",
@@ -177,7 +177,11 @@
           "type": "scale",
           "value": "output"
         }
-      ]
+      ],
+      "transition": {
+        "type": "zoom-through",
+        "duration": 0.6
+      }
     },
     {
       "name": "video_1",
@@ -254,7 +258,12 @@
           "type": "scale",
           "value": "output"
         }
-      ]
+      ],
+      "transition": {
+        "type": "push-up",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
     },
     {
       "name": "outro",
@@ -337,6 +346,18 @@
         {
           "type": "scale",
           "value": "output"
+        }
+      ],
+      "graphics": [
+        {
+          "type": "underline",
+          "x": 460,
+          "y": 374,
+          "width": 360,
+          "thickness": 5,
+          "origin": "center",
+          "at": 0.6,
+          "color": "#FF8AAE"
         }
       ]
     }

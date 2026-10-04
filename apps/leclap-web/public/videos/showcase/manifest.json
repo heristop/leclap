@@ -272,6 +272,18 @@
       "bytes": 64153
     },
     {
+      "id": "camera-and-graphics",
+      "source": "examples/motion-design/camera-and-graphics.json",
+      "duration": 10.471995,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "284910a7eed23e4e7c3e6980a7c4f3a7ca10cd715537480f4d21ca84794be291",
+      "templateSha256": "25858fc533245a54cdaa083ace96e61c287099285ea2ff9caebf0a3f1366eec3",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 156926
+    },
+    {
       "id": "title-reveal",
       "source": "examples/llm-remotion-title/template.json",
       "duration": 12.041016,

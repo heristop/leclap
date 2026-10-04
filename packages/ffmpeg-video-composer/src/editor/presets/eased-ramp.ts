@@ -1,6 +1,6 @@
 // The eased 0→1 ramp every animated entrance, exit and overlay motion is built from. The four historical
-// easings keep their exact legacy strings (v1 output is pinned, see core/determinism/contract.ts); every
-// other curve (springs, cubic-bezier, the named set, points) goes through the v2 engine in
+// easings keep their compact closed-form strings; every other curve (springs, cubic-bezier, the named
+// set, points) goes through the curve engine in
 // core/motion/hermite.ts. Split out of text.ts, which re-exports easeRampExpr, for its line budget.
 
 import { isLegacyEasing, parseEasing, type EasingSpec } from '@/core/motion/easing';

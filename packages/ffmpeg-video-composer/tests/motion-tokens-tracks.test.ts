@@ -14,7 +14,7 @@ import { TemplateValidator } from '@/services/TemplateValidator';
 type Descriptor = Parameters<typeof resolveMotionDescriptor>[0] & Record<string, unknown>;
 
 function v2(global: Record<string, unknown>, sections: unknown[]): Descriptor {
-  return { meta: { motionVersion: 2 }, global, sections };
+  return { global, sections };
 }
 
 describe('motion tokens', () => {
@@ -81,12 +81,6 @@ describe('motion tokens', () => {
     ) as { sections: Array<Record<string, any>> };
 
     expect(resolved.sections[0].filters[0].animate.y.map((key: { t: unknown }) => key.t)).toEqual([0.5, '+0.6']);
-  });
-
-  it('never touches a motionVersion 1 descriptor', () => {
-    const v1 = { global: { motion: { energy: 0 } }, sections: [{ caption: { reveal: 'rise' } }] };
-
-    expect(resolveMotionDescriptor(v1)).toBe(v1);
   });
 });
 
@@ -190,18 +184,16 @@ describe('motion validation', () => {
 
   const text = { type: 'drawtext', values: { text: { en: 'Hi' }, x: 10, y: 10, fontsize: 40 } };
 
-  it('requires motionVersion 2 for v2 features and leaves historical easings alone', () => {
+  it('accepts historical names, springs, tracks and tokens', () => {
     expect(codes({ sections: [section([{ ...text, reveal: { type: 'rise', easing: 'ease-out' } }])] })).toEqual([]);
-    expect(codes({ sections: [section([{ ...text, reveal: { type: 'rise', easing: 'spring(300, 14)' } }])] })).toEqual([
-      'motion_v2_required',
-    ]);
-    expect(codes({ sections: [section([{ ...text, animate: { x: [{ v: 0 }] } }])] })).toEqual(['motion_v2_required']);
-    expect(codes({ global: { motion: { energy: 0.5 } }, sections: [section([])] })).toEqual(['motion_v2_required']);
+    expect(codes({ sections: [section([{ ...text, reveal: { type: 'rise', easing: 'spring(300, 14)' } }])] })).toEqual(
+      []
+    );
+    expect(codes({ sections: [section([{ ...text, animate: { x: [{ v: 0 }] } }])] })).toEqual([]);
   });
 
-  it('accepts a full v2 template', () => {
+  it('accepts a full motion template', () => {
     const descriptor = {
-      meta: { motionVersion: 2 },
       global: { motion: { energy: 0.8, curves: { brand: 'cubic-bezier(0.2, 0, 0, 1)' }, durations: { beat: 0.5 } } },
       sections: [
         section([
@@ -221,7 +213,7 @@ describe('motion validation', () => {
   });
 
   it('names unknown tokens, bad easings and bad tracks', () => {
-    const base = { meta: { motionVersion: 2 } };
+    const base = {};
 
     expect(codes({ ...base, sections: [section([{ ...text, reveal: { type: 'rise', easing: '$nope' } }])] })).toEqual([
       'unknown_motion_token',

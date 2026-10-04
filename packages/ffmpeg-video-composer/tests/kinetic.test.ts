@@ -204,9 +204,8 @@ describe('kinetic presets', () => {
 describe('kinetic validation', () => {
   const validator = new TemplateValidator();
 
-  function template(kinetic: unknown[], motionVersion?: number) {
+  function template(kinetic: unknown[]) {
     return {
-      meta: motionVersion ? { motionVersion } : {},
       sections: [
         { name: 's', type: 'color_background', options: { backgroundColor: '#000000', duration: 3 }, kinetic },
       ],
@@ -217,23 +216,20 @@ describe('kinetic validation', () => {
     return (validator.validateTemplate(descriptor).errors ?? []).map((error) => error.code);
   }
 
-  it('needs motionVersion 2', () => {
-    expect(codes(template([{ text: { en: 'Hi' }, preset: 'cascade' }]))).toEqual(['motion_v2_required']);
-    expect(codes(template([{ text: { en: 'Hi' }, preset: 'cascade' }], 2))).toEqual([]);
+  it('accepts a plain block', () => {
+    expect(codes(template([{ text: { en: 'Hi' }, preset: 'cascade' }]))).toEqual([]);
   });
 
   it('needs a bundled font for word/glyph units and counter numbers', () => {
-    expect(codes(template([{ text: { en: 'Hi' }, preset: 'cascade', font: 'Comic.ttf' }], 2))).toEqual([
+    expect(codes(template([{ text: { en: 'Hi' }, preset: 'cascade', font: 'Comic.ttf' }]))).toEqual([
       'kinetic_font_unmeasurable',
     ]);
-    expect(codes(template([{ text: { en: 'Hi' }, preset: 'cascade', font: 'Comic.ttf', unit: 'line' }], 2))).toEqual(
-      []
-    );
-    expect(codes(template([{ text: { en: '' }, preset: 'counter' }], 2))).toEqual(['invalid_kinetic']);
+    expect(codes(template([{ text: { en: 'Hi' }, preset: 'cascade', font: 'Comic.ttf', unit: 'line' }]))).toEqual([]);
+    expect(codes(template([{ text: { en: '' }, preset: 'counter' }]))).toEqual(['invalid_kinetic']);
   });
 
   it('rejects an unknown preset at the schema', () => {
-    expect(codes(template([{ text: { en: 'Hi' }, preset: 'explode' }], 2)).length).toBeGreaterThan(0);
+    expect(codes(template([{ text: { en: 'Hi' }, preset: 'explode' }])).length).toBeGreaterThan(0);
   });
 });
 

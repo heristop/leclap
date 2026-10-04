@@ -5,7 +5,7 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the
 
 An AI agent (Claude Desktop, Cursor, …) is the LLM; this server helps it **author a customized
 template with nice effects** from the schema, then validates and renders it **deterministically** to
-an mp4. The server includes the 32 showcase samples through the shared packaged catalog, with
+an mp4. The server includes the 35 showcase samples through the shared packaged catalog, with
 creative direction, descriptors and required inputs. It works without the app or private creative-kit
 at runtime. Remotion-assisted authoring is an optional path.
 The result is _agent-composable, deterministic, reproducible_ video — the opposite of generative
@@ -67,7 +67,7 @@ assets, effective preset font files (`source: "preset"`) and versioned effects. 
 supply clips by `userVideoPaths` and form values by `fields`, customize `global.variables`, then pass
 `template` to `validate_template` and `compose_video`. Referenced partials are embedded in the descriptor.
 
-The 22 native samples use FFmpeg; the 10 registered effect samples require `--allow-remotion`, Remotion
+The 25 native samples use FFmpeg; the 10 registered effect samples require `--allow-remotion`, Remotion
 peers and a trusted `--remotion-entry`. Effects with `customCatalog: true` also require the operator's
 `--effect-catalog` and the matching composition in that entry. Sample discovery does not enable execution,
 install a catalog or supply React source. Inspect `requirements.setup` and, after operator setup,
@@ -169,8 +169,8 @@ Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy; its `temp
 orientation and fps. Codec, quality-tier and FFmpeg segment-concurrency fields are library host
 settings, not arbitrary MCP tool arguments.
 
-Eight tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
-`validate_template`, `compose_video`, `patch_template` and `probe_media`. Opt-in adds
+Nine tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
+`get_motion_catalog`, `validate_template`, `compose_video`, `patch_template` and `probe_media`. Opt-in adds
 `get_effect_schema`, `render_preview` and `render_remotion_clip`. Patch availability does not bypass
 effect-backend validation.
 

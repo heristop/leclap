@@ -2,7 +2,7 @@
   "meta": {
     "name": "Square Promo",
     "description": "A bold editorial square campaign: contrasting panels, staggered lateral typography, a full-bleed product clip and a graphic closing invitation.",
-    "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use one brief light pass on the footage and opposing overshoot motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size."
+    "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use one brief light pass on the footage and opposing overshoot motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size. Motion: panels push up in sequence; corners frame the closing invitation."
   },
   "global": {
     "orientation": "square",
@@ -183,7 +183,12 @@
             "distance": 32
           }
         }
-      ]
+      ],
+      "transition": {
+        "type": "push-up",
+        "duration": 0.45,
+        "ease": "$snappy"
+      }
     },
     {
       "name": "video_1",
@@ -239,7 +244,12 @@
             "opacity": 0.14
           }
         }
-      ]
+      ],
+      "transition": {
+        "type": "push-up",
+        "duration": 0.45,
+        "ease": "$snappy"
+      }
     },
     {
       "name": "outro",
@@ -324,6 +334,16 @@
             "easing": "ease-out",
             "distance": 24
           }
+        }
+      ],
+      "graphics": [
+        {
+          "type": "corners",
+          "at": 0.5,
+          "inset": 40,
+          "length": 72,
+          "thickness": 6,
+          "color": "#ffffff"
         }
       ]
     }

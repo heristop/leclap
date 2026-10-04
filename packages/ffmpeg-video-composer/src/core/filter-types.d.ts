@@ -88,7 +88,7 @@ export interface Filter {
   reveal?: Reveal;
   // Animated exit (fade/slide out after a time) baked alongside the entrance onto the same drawtext.
   exit?: Exit;
-  // Keyframe tracks (motionVersion 2), lowered by core/motion/tracks.ts; override reveal/exit per property.
+  // Keyframe tracks, lowered by core/motion/tracks.ts; override reveal/exit per property.
   animate?: Animate;
 }
 

@@ -72,7 +72,7 @@ class FilterManager {
   // Animated entrance/exit: a drawtext with a `reveal` and/or `exit` gets alpha + kinetic x/y baked
   // from its base x/y (the same vocabulary as the caption/lowerThird sugar), so positioned text
   // overlays animate in and out. The exit is timed against the section duration.
-  // `animate` keyframe tracks (motionVersion 2) are applied last and override whatever reveal/exit baked
+  // `animate` keyframe tracks are applied last and override whatever reveal/exit baked
   // for the same property (core/motion/tracks.ts).
   private readonly bakeTextAnimation = (filter: Filter): Filter => {
     if (filter.type !== 'drawtext' || (!filter.reveal && !filter.exit && !filter.animate) || !filter.values) {

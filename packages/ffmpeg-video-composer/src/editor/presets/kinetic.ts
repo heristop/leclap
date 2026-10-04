@@ -210,7 +210,7 @@ export function kineticToFilters(block: KineticBlock, ctx: KineticContext): Filt
   ];
 }
 
-/** Every kinetic block of a section, through the sugar registry. Needs the v2 motion context. */
+/** Every kinetic block of a section, through the sugar registry. Needs the motion context. */
 export function kineticBlocksToFilters(blocks: KineticBlock[] | undefined, ctx: SugarContext): Filter[] {
   const motion = ctx.motion;
 

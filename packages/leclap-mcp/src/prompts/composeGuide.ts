@@ -60,7 +60,7 @@ function buildText(args: GuideArgs): string {
     '   a fresh descriptor for the goal. Supply your own media via userVideoPaths and copy via fields or',
     '   global.variables; replace authored asset references as needed. Store the brief in meta.creativeDirection:',
     '   audience, hierarchy, typography, palette, motion, pacing, avoidances and review criteria.',
-    '   For animated copy call get_motion_catalog and set meta.motionVersion: 2: section `kinetic` blocks give',
+    '   For animated copy, camera moves and designed transitions call get_motion_catalog: section `kinetic` blocks give',
     '   native per-word/per-glyph choreography (presets, springs, accents, exits) on every backend.',
     '3. Translate the direction into explicit sections, filters and effect props. Choose a dominant element',
     '   per scene and vary layouts according to purpose. Native samples use FFmpeg; registered effects need',

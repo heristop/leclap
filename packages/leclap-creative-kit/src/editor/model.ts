@@ -6,19 +6,18 @@ import type { TemplateDescriptor, Letterbox } from 'ffmpeg-video-composer/src/co
 // Re-export the core descriptor type so both apps can pin their stored-template shapes to the
 // exact descriptor buildDescriptor emits / toEditorState consumes — keeping the editor in lock-step.
 export type { TemplateDescriptor, Letterbox } from 'ffmpeg-video-composer/src/core/types.d.ts';
-import {
-  DEFAULT_TRANSITION_DURATION,
-  type GradeSchema,
-  type MotionEffectSchema,
-  type BackgroundLayerSchema,
-  type FramingGuideSchema,
-  type OverlayFitSchema,
-  type OverlayFlipSchema,
-  type RevealSchema,
-  type ExitSchema,
-  type TextEffectSchema,
-  type ChromaKeySchema,
-  type DuckingSchema,
+import type {
+  GradeSchema,
+  MotionEffectSchema,
+  BackgroundLayerSchema,
+  FramingGuideSchema,
+  OverlayFitSchema,
+  OverlayFlipSchema,
+  RevealSchema,
+  ExitSchema,
+  TextEffectSchema,
+  ChromaKeySchema,
+  DuckingSchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 // CaptureModeSchema is a value import (not type-only): ALL_CAPTURE_MODES reads .options off it at
 // runtime, so it can't join the `import type` group above it.
@@ -29,6 +28,10 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
+import type { EditorMotion, MotionBlocks } from './motion-passthrough';
+import type { DefaultTransition, SectionTransition } from './transition-types';
+export { DEFAULT_TRANSITION, type DefaultTransition, type SectionTransition } from './transition-types';
+export type { EditorMotion, MotionBlocks } from './motion-passthrough';
 import type {
   Orientation,
   GlobalTextOverlaySchema,
@@ -133,12 +136,6 @@ export interface TextOverlay extends VideoOverlaySlot {
   // geometry (a 6em underline below the text); an AccentBar object adds position/length/thickness/
   // align knobs. Omitted = no bar.
   accent?: string | AccentBar;
-}
-
-// A transition emitted after a visual section (maps to section.transition).
-export interface SectionTransition {
-  type: string;
-  duration?: number;
 }
 
 // Per-section audio fade: applied to the music track at the start / end of a section.
@@ -274,10 +271,11 @@ export interface WatermarkChoice {
   margin?: number;
 }
 
-export interface VisualAnimation {
+export interface VisualAnimation extends MotionBlocks {
   // Animated overlays composited over the section, in array order (later entries paint on top).
   // Author-set; empty/absent means none.
   animations?: AnimationOverlay[];
+  // kinetic / camera / graphics come from MotionBlocks (motion-passthrough.ts).
 }
 
 export type EditorSection =
@@ -389,16 +387,6 @@ export interface AudioMix {
 
 export const DEFAULT_AUDIO_MIX: AudioMix = { sourceVolume: 1, musicVolume: 0.5, ducking: false };
 
-// Default cross-section transition (maps to global.transition).
-export interface DefaultTransition {
-  type: string;
-  duration: number;
-}
-
-// The duration mirrors the ENGINE fallback (DEFAULT_TRANSITION_DURATION) so a descriptor that
-// leaves the duration unset re-hydrates — and re-emits — exactly what the engine renders.
-export const DEFAULT_TRANSITION: DefaultTransition = { type: 'cut', duration: DEFAULT_TRANSITION_DURATION };
-
 // Opacity used for a framing-guide silhouette when none is authored. Shared by the authoring
 // pickers (web + expo) and the live recording overlays so an unspecified guide renders exactly as
 // a freshly-added one. The guide is a recording aid only — never burned into the video.
@@ -406,6 +394,8 @@ export const DEFAULT_FRAMING_OPACITY = 0.45;
 
 export interface EditorState extends Pick<NonNullable<TemplateDescriptor['meta']>, 'creativeDirection'> {
   id: string;
+  // Motion settings (global.seed, global.motion); absent when the template sets none.
+  motion?: EditorMotion;
   name: string;
   description: string;
   orientation: Orientation;

@@ -9,8 +9,6 @@ import {
   type EditorState,
   type EditableTemplate,
   type SectionTransition,
-  type AudioMix,
-  type DefaultTransition,
   type Grade,
   type Letterbox,
   type MotionEffect,
@@ -27,6 +25,8 @@ import {
   type SectionFit,
   type AudioEffect,
 } from './model';
+import { audioFrom, colorsListFrom, defaultTransitionFrom, globalVariablesFrom } from './to-editor-global';
+import { editorMotionFrom, motionBlocksOf, type MotionBlocks } from './motion-passthrough';
 import { overlaysFromFilters, videoFilterStateFrom } from './overlay-parsing';
 import { pruneEmpty } from './prune';
 import { editorIdentityFrom } from './template-meta';
@@ -84,7 +84,7 @@ function captionFrom(s: Section): EditorCaption | undefined {
   }) as EditorCaption;
 }
 
-type VisualExtras = {
+type VisualExtras = MotionBlocks & {
   transitionAfter?: SectionTransition;
   caption?: EditorCaption;
   look?: string;
@@ -106,6 +106,7 @@ function visualExtrasFrom(s: Section): VisualExtras {
     ...(s.letterbox ? { letterbox: s.letterbox } : {}),
     ...(s.motion && s.motion.length > 0 ? { motion: s.motion } : {}),
     ...(animations.length > 0 ? { animations } : {}),
+    ...motionBlocksOf(s),
   };
 }
 
@@ -250,50 +251,6 @@ function isRenderableSection(s: NonNullable<TemplateDescriptor['sections']>[numb
   return s.type !== 'partial' && typeof s.name === 'string';
 }
 
-// Recover the template palette: prefer the schema's user-facing global.colorsList, falling back to
-// the engine slot (global.variables.colorsList) for descriptors authored before the palette editor.
-function colorsListFrom(global: TemplateDescriptor['global']): string[] {
-  if (global?.colorsList && global.colorsList.length > 0) return global.colorsList;
-
-  const engineSlot = global?.variables?.colorsList;
-
-  return Array.isArray(engineSlot) ? engineSlot : [];
-}
-
-// String entries of a descriptor's global.variables become editable author
-// rows; string[] entries (the colorsList palette) are skipped — the palette
-// hydrates into EditorState.colorsList instead (see colorsListFrom).
-function globalVariablesFrom(global: TemplateDescriptor['global']): EditorState['globalVariables'] {
-  return Object.entries(global?.variables ?? {})
-    .filter(([, val]) => typeof val === 'string')
-    .map(([name, value]) => ({ name, value: value as string }));
-}
-
-function audioFrom(global: TemplateDescriptor['global']): AudioMix {
-  const a = global?.audio;
-
-  return {
-    sourceVolume: a?.sourceVolume ?? DEFAULT_AUDIO_MIX.sourceVolume,
-    musicVolume: a?.musicVolume ?? DEFAULT_AUDIO_MIX.musicVolume,
-    ...(a?.normalize ? { normalize: a.normalize } : {}),
-    ducking: duckingFrom(a?.ducking),
-  };
-}
-
-// Recover the ducking union: a stored fine-tune object survives as-is; anything truthy else is `true`.
-function duckingFrom(ducking: unknown): AudioMix['ducking'] {
-  if (ducking && typeof ducking === 'object') return ducking;
-
-  return Boolean(ducking);
-}
-
-function defaultTransitionFrom(global: TemplateDescriptor['global']): DefaultTransition {
-  return {
-    type: global?.transition?.type ?? DEFAULT_TRANSITION.type,
-    duration: global?.transition?.duration ?? DEFAULT_TRANSITION.duration,
-  };
-}
-
 // Recover whole-video overlays from global.animations, carrying only explicit non-default options back
 // (loop/persistent default true; opacity defaults opaque; rotation defaults upright), like animationsFrom.
 function globalAnimationsFrom(global: TemplateDescriptor['global']): AnimationOverlay[] {
@@ -362,6 +319,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
   return {
     id: template.id,
     ...editorIdentityFrom(template),
+    ...(editorMotionFrom(template.descriptor.global) ? { motion: editorMotionFrom(template.descriptor.global) } : {}),
     orientation: template.orientation,
     sections: editorSectionsFrom(template.descriptor),
     globalVariables: globalVariablesFrom(global),

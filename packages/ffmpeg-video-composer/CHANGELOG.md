@@ -9,24 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Determinism contract. `meta.motionVersion` pins motion semantics (1 = historical output; 2 = the v2 motion
-  system), and `global.seed` roots every procedural effect. A deterministic encoder profile (bit-exact
-  muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on for v2
-  templates and controlled by `ProjectConfig.deterministic`. A render manifest is delivered through
+- Determinism contract. `global.seed` roots every procedural effect. A deterministic encoder profile
+  (bit-exact muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on
+  by default and `ProjectConfig.deterministic: false` opts out. A render manifest is delivered through
   `CompileReporter.onManifest`. Raw filters that read the wall clock or `random()` fail validation
   (`nondeterministic_expression`).
-- Motion system v2 (`meta.motionVersion: 2`): physical springs, cubic-bezier, the named curve set,
+- Motion system: physical springs, cubic-bezier, the named curve set,
   `steps()` and point curves, all lowered to piecewise polynomials in `t` within 0.1%. `global.motion`
   tokens (springs, curves, durations, energy) and built-ins mirror the app's motion curves. `animate`
   keyframe tracks (`x`, `y`, `opacity`, `scale`) on positioned `drawtext`. The energy dial scales every
-  travel distance. Under v2 each section chain is conformed to CFR and `noise` filters are seeded.
-- Kinetic typography (`sections[].kinetic`, motionVersion 2): 14 presets (cascade, rise, drop, slide, pop,
+  travel distance. Each section chain is conformed to CFR and `noise` filters are seeded.
+- Kinetic typography (`sections[].kinetic`): 14 presets (cascade, rise, drop, slide, pop,
   impact, tracking-in, typewriter, scramble, wave, highlight, counter, split, fade) laid out with real
   metrics of the bundled fonts (generated advance table) and animated per word, glyph or line as native
   `drawtext`. Accents, highlight markers, carets, seeded scramble/random order, exits, energy scaling, a
   shared baseline, and automatic wrapping and alignment. `motionCatalog()` exposes presets, defaults and
   art-direction rules for agents.
-- Effects (motionVersion 2): a section `camera` (push-in, pull-out, drift, orbit, handheld presets; zoom/x/y/
+- Effects: a section `camera` (push-in, pull-out, drift, orbit, handheld presets; zoom/x/y/
   rotate tracks; beat `hits`; seeded shake; over-scanned so edges never show), animated `graphics` (flash,
   bars, underline, frame, corners, wipe, panel; frame-exact boxes), and designed transitions (`push-*`,
   `swipe-*`, `zoom-through`, `iris`, eased or spring-driven) composed from per-frame filters on the xfade

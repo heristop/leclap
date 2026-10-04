@@ -6,12 +6,12 @@ import type { RenderManifest } from '@/core/determinism/manifest';
 import { testBuildDir } from './fixtures/build-dir';
 
 // The P0 exit criterion, on an asset-free template so it runs anywhere FFmpeg does: two renders of the
-// same v2 template are byte-identical, and the manifest proves it (template, graph and output digests).
+// same template are byte-identical, and the manifest proves it (template, graph and output digests).
 
 const buildDir = testBuildDir('determinism-render');
 
 const descriptor: TemplateDescriptor = {
-  meta: { name: 'determinism', motionVersion: 2 },
+  meta: { name: 'determinism' },
   global: { orientation: 'landscape', musicEnabled: false, seed: 7 },
   sections: [
     {
@@ -42,7 +42,7 @@ async function renderWithManifest(source: TemplateDescriptor): Promise<{ bytes: 
   return { bytes: fs.readFileSync(output as string), manifest: manifest as RenderManifest };
 }
 
-describe('deterministic render (motionVersion 2)', () => {
+describe('deterministic render', () => {
   it('renders byte-identical output twice and records it in the manifest', async () => {
     const first = await renderWithManifest(descriptor);
     const second = await renderWithManifest(descriptor);
@@ -52,12 +52,12 @@ describe('deterministic render (motionVersion 2)', () => {
     expect(second.manifest.graph.sha256).toBe(first.manifest.graph.sha256);
     expect(first.manifest).toMatchObject({
       deterministic: true,
-      template: { motionVersion: 2, seed: 7 },
+      template: { seed: 7 },
       engine: { name: 'ffmpeg-video-composer' },
     });
   }, 240000);
 
-  it('applies the v2 chain: CFR conform, seeded grain and bit-exact muxing', async () => {
+  it('applies the motion chain: CFR conform, seeded grain and bit-exact muxing', async () => {
     const { manifest } = await renderWithManifest(descriptor);
     const segment = manifest.graph.commands.find((command) => command.includes('card_output'));
 
@@ -74,16 +74,5 @@ describe('deterministic render (motionVersion 2)', () => {
 
     expect(seedOf(reseeded.manifest)).not.toBe(seedOf(base.manifest));
     expect(reseeded.manifest.template.sha256).not.toBe(base.manifest.template.sha256);
-  }, 240000);
-
-  it('keeps v1 templates on the historical command set', async () => {
-    const v1 = { ...descriptor, meta: { name: 'determinism' } } as TemplateDescriptor;
-    const { manifest } = await renderWithManifest(v1);
-    const commands = manifest.graph.commands.join('\n');
-
-    expect(manifest.deterministic).toBe(false);
-    expect(commands).not.toContain('bitexact');
-    expect(commands).not.toMatch(/[,"]fps=30,/);
-    expect(commands).not.toContain('all_seed');
   }, 240000);
 });

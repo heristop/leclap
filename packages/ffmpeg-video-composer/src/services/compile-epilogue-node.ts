@@ -70,7 +70,7 @@ async function emitRenderManifest(input: CompileEpilogueInput, output: string): 
       descriptor: input.templateDescriptor,
       config: input.projectConfig,
       commands: project.ffmpegCommands,
-      deterministic: resolveDeterministic(input.templateDescriptor, input.projectConfig.deterministic),
+      deterministic: resolveDeterministic(input.projectConfig.deterministic),
       output,
       ffmpegVersion: detection.version ?? null,
       tempDir: container.resolve<AbstractFilesystem>('filesystemAdapter').getTempDir(),

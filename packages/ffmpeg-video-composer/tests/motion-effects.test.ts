@@ -163,15 +163,10 @@ describe('effects validation', () => {
     ...extra,
   });
 
-  it('needs motionVersion 2 for camera, graphics and designed transitions', () => {
-    expect(codes({ sections: [section({ camera: { preset: 'push-in' } })] })).toEqual(['motion_v2_required']);
-    expect(codes({ sections: [section({ graphics: [{ type: 'flash' }] })] })).toEqual(['motion_v2_required']);
-    expect(codes({ sections: [section({ transition: { type: 'push-left' } }), section({ name: 't' })] })).toEqual([
-      'motion_v2_required',
-    ]);
+  it('accepts camera, graphics and designed transitions', () => {
+    expect(codes({ sections: [section({ graphics: [{ type: 'flash' }] })] })).toEqual([]);
     expect(
       codes({
-        meta: { motionVersion: 2 },
         sections: [
           section({ camera: { preset: 'push-in' }, transition: { type: 'push-left' } }),
           section({ name: 't' }),

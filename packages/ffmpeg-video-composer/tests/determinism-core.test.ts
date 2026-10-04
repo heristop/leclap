@@ -5,7 +5,6 @@ import {
   deriveSeed,
   fnv1a32,
   resolveDeterministic,
-  resolveMotionVersion,
   resolveSeed,
   seededRandom,
   sha256Hex,
@@ -64,19 +63,17 @@ describe('canonicalJson', () => {
 });
 
 describe('contract switches', () => {
-  it('defaults to the historical motion version and seed', () => {
-    expect(resolveMotionVersion(undefined)).toBe(1);
-    expect(resolveMotionVersion({ meta: { motionVersion: 2 } })).toBe(2);
+  it('defaults the seed to 0 and ignores invalid seeds', () => {
+    expect(resolveSeed(undefined)).toBe(0);
     expect(resolveSeed({ global: { seed: 99 } })).toBe(99);
     expect(resolveSeed({ global: { seed: -1 } })).toBe(0);
     expect(resolveSeed({ global: { seed: 1.5 } })).toBe(0);
   });
 
-  it('turns the deterministic profile on for v2 unless the host says otherwise', () => {
-    expect(resolveDeterministic({}, undefined)).toBe(false);
-    expect(resolveDeterministic({ meta: { motionVersion: 2 } }, undefined)).toBe(true);
-    expect(resolveDeterministic({ meta: { motionVersion: 2 } }, false)).toBe(false);
-    expect(resolveDeterministic({}, true)).toBe(true);
+  it('turns the deterministic profile on unless the host opts out', () => {
+    expect(resolveDeterministic(undefined)).toBe(true);
+    expect(resolveDeterministic(false)).toBe(false);
+    expect(resolveDeterministic(true)).toBe(true);
   });
 });
 

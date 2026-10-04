@@ -1577,7 +1577,7 @@
     "source": "packages/leclap-creative-kit/src/templates/web-app-promo.json",
     "orientation": "landscape",
     "backend": "native",
-    "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation.",
+    "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation. Motion: fly through the promise into the interface, push up to the invitation, underline the call to action.",
     "showcasePath": "/showcase?sample=web-app-promo",
     "preview": {
       "video": "/videos/showcase/web-app-promo.mp4",
@@ -1710,7 +1710,7 @@
       "meta": {
         "name": "Web App Promo",
         "description": "A cinematic app launch: masked editorial type, an uncluttered 3D screen reveal and a confident closing invitation.",
-        "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation."
+        "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation. Motion: fly through the promise into the interface, push up to the invitation, underline the call to action."
       },
       "global": {
         "orientation": "landscape",
@@ -1885,7 +1885,11 @@
               "type": "scale",
               "value": "output"
             }
-          ]
+          ],
+          "transition": {
+            "type": "zoom-through",
+            "duration": 0.6
+          }
         },
         {
           "name": "video_1",
@@ -1962,7 +1966,12 @@
               "type": "scale",
               "value": "output"
             }
-          ]
+          ],
+          "transition": {
+            "type": "push-up",
+            "duration": 0.5,
+            "ease": "$snappy"
+          }
         },
         {
           "name": "outro",
@@ -2046,6 +2055,18 @@
               "type": "scale",
               "value": "output"
             }
+          ],
+          "graphics": [
+            {
+              "type": "underline",
+              "x": 460,
+              "y": 374,
+              "width": 360,
+              "thickness": 5,
+              "origin": "center",
+              "at": 0.6,
+              "color": "#FF8AAE"
+            }
           ]
         }
       ]
@@ -2059,7 +2080,7 @@
     "source": "packages/leclap-creative-kit/src/templates/square-promo.json",
     "orientation": "square",
     "backend": "native",
-    "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use one brief light pass on the footage and opposing overshoot motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size.",
+    "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use one brief light pass on the footage and opposing overshoot motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size. Motion: panels push up in sequence; corners frame the closing invitation.",
     "showcasePath": "/showcase?sample=square-promo",
     "preview": {
       "video": "/videos/showcase/square-promo.mp4",
@@ -2182,7 +2203,7 @@
       "meta": {
         "name": "Square Promo",
         "description": "A bold editorial square campaign: contrasting panels, staggered lateral typography, a full-bleed product clip and a graphic closing invitation.",
-        "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use one brief light pass on the footage and opposing overshoot motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size."
+        "creativeDirection": "Audience: people scanning a square social campaign. Direction: a graphic editorial invitation, with contrasting lime and dark panels, staggered lateral typography and a full-bleed product clip. Alternate the dominant element between headline, footage and invitation; keep one focal point per scene. Use one brief light pass on the footage and opposing overshoot motion to make transitions punchy, with a settled hold before the next cut. Avoid reproducing the tutorial layout, identical cards, excess subheadings and text over the product focal point. Review the opening hierarchy, clip crop, text bounds and final invitation at feed size. Motion: panels push up in sequence; corners frame the closing invitation."
       },
       "global": {
         "orientation": "square",
@@ -2363,7 +2384,12 @@
                 "distance": 32
               }
             }
-          ]
+          ],
+          "transition": {
+            "type": "push-up",
+            "duration": 0.45,
+            "ease": "$snappy"
+          }
         },
         {
           "name": "video_1",
@@ -2419,7 +2445,12 @@
                 "opacity": 0.14
               }
             }
-          ]
+          ],
+          "transition": {
+            "type": "push-up",
+            "duration": 0.45,
+            "ease": "$snappy"
+          }
         },
         {
           "name": "outro",
@@ -2505,6 +2536,16 @@
                 "distance": 24
               }
             }
+          ],
+          "graphics": [
+            {
+              "type": "corners",
+              "at": 0.5,
+              "inset": 40,
+              "length": 72,
+              "thickness": 6,
+              "color": "#ffffff"
+            }
           ]
         }
       ]
@@ -2518,7 +2559,7 @@
     "source": "packages/leclap-creative-kit/src/templates/product-launch.json",
     "orientation": "portrait",
     "backend": "native",
-    "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity shine sweep on the product reveal and a small overshoot on the offer; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation.",
+    "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity shine sweep on the product reveal and a small overshoot on the offer; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation. Motion: fly through the intro into the product, then draw a rule under the price on a slow push-in.",
     "showcasePath": "/showcase?sample=product-launch",
     "preview": {
       "video": "/videos/showcase/product-launch.mp4",
@@ -2648,7 +2689,7 @@
       "meta": {
         "name": "Product Launch",
         "description": "A minimal vertical reveal: large centred product typography, a clean full-frame shot, and an offer-led closing with fast, staggered motion.",
-        "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity shine sweep on the product reveal and a small overshoot on the offer; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation."
+        "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity shine sweep on the product reveal and a small overshoot on the offer; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation. Motion: fly through the intro into the product, then draw a rule under the price on a slow push-in."
       },
       "global": {
         "orientation": "portrait",
@@ -2806,7 +2847,11 @@
                 "easing": "ease-out"
               }
             }
-          ]
+          ],
+          "transition": {
+            "type": "zoom-through",
+            "duration": 0.5
+          }
         },
         {
           "name": "video_1",
@@ -2945,7 +2990,23 @@
                 "easing": "ease-out"
               }
             }
-          ]
+          ],
+          "graphics": [
+            {
+              "type": "underline",
+              "x": 230,
+              "y": 548,
+              "width": 260,
+              "thickness": 6,
+              "origin": "center",
+              "at": 0.7,
+              "color": "#c8bc9c"
+            }
+          ],
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.05
+          }
         }
       ]
     }
@@ -2958,7 +3019,7 @@
     "source": "packages/leclap-creative-kit/src/templates/app-tutorial.json",
     "orientation": "square",
     "backend": "native",
-    "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Stagger the numbered instruction with short, restrained directional entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction.",
+    "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Stagger the numbered instruction with short, restrained directional entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction. Motion: calm pushes between steps and a rule that draws under the topic; no camera over the interface.",
     "showcasePath": "/showcase?sample=app-tutorial",
     "preview": {
       "video": "/videos/showcase/app-tutorial.mp4",
@@ -3070,7 +3131,7 @@
       "meta": {
         "name": "App Tutorial",
         "description": "A screen-first square lesson with numbered steps, calm mint typography and a letterboxed walkthrough.",
-        "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Stagger the numbered instruction with short, restrained directional entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction."
+        "creativeDirection": "Audience: a new user learning one interaction. Direction: calm, screen-first instruction in a square frame. Use pale mint surfaces and numbered steps; let the walkthrough carry the explanation. Keep caption hierarchy subordinate to the interface and preserve the recorded cursor and controls within the letterboxed screen. Stagger the numbered instruction with short, restrained directional entrances and enough time to understand each action. Avoid promotional camera moves, bouncing labels, tiny interface details and decorative interruptions. Review the step number, interaction visibility, caption placement, longest copy and final instruction. Motion: calm pushes between steps and a rule that draws under the topic; no camera over the interface."
       },
       "global": {
         "orientation": "square",
@@ -3251,6 +3312,22 @@
                 "easing": "ease-out"
               }
             }
+          ],
+          "transition": {
+            "type": "push-left",
+            "duration": 0.5,
+            "ease": "$smooth"
+          },
+          "graphics": [
+            {
+              "type": "underline",
+              "x": 64,
+              "y": 448,
+              "width": 300,
+              "thickness": 6,
+              "at": 0.6,
+              "color": "#436354"
+            }
           ]
         },
         {
@@ -3288,6 +3365,11 @@
               "easing": "ease-out",
               "distance": 24
             }
+          },
+          "transition": {
+            "type": "push-left",
+            "duration": 0.5,
+            "ease": "$smooth"
           }
         },
         {
@@ -3379,7 +3461,7 @@
     "source": "packages/leclap-creative-kit/src/templates/story-reel.json",
     "orientation": "portrait",
     "backend": "native",
-    "creativeDirection": "Audience: people watching a vertical three-chapter story. Direction: full-bleed footage throughout, with alternating caption anchors and clean rhythmic cuts. Use readable, high-contrast captions as punctuation rather than turning each chapter into a title card. Oppose entrance directions to distinguish chapters; let the footage remain dominant after the short reveal. Avoid a repeated lower-third band, continuous shake and cutting away before the message settles. Review each chapter crop, text against the actual footage, the joins and the last readable frame. Alternate the chapter indicator side and give each caption one small overshoot, then hold the footage without decorative overlays.",
+    "creativeDirection": "Audience: people watching a vertical three-chapter story. Direction: full-bleed footage throughout, with alternating caption anchors and clean rhythmic cuts. Use readable, high-contrast captions as punctuation rather than turning each chapter into a title card. Oppose entrance directions to distinguish chapters; let the footage remain dominant after the short reveal. Avoid a repeated lower-third band, continuous shake and cutting away before the message settles. Review each chapter crop, text against the actual footage, the joins and the last readable frame. Alternate the chapter indicator side and give each caption one small overshoot, then hold the footage without decorative overlays. Motion: chapters swipe in like stories.",
     "showcasePath": "/showcase?sample=story-reel",
     "preview": {
       "video": "/videos/showcase/story-reel.mp4",
@@ -3517,7 +3599,7 @@
       "meta": {
         "name": "Story Reel",
         "description": "A full-bleed three-chapter reel with alternating caption anchors, snappy opposing entrances and clean rhythmic cuts.",
-        "creativeDirection": "Audience: people watching a vertical three-chapter story. Direction: full-bleed footage throughout, with alternating caption anchors and clean rhythmic cuts. Use readable, high-contrast captions as punctuation rather than turning each chapter into a title card. Oppose entrance directions to distinguish chapters; let the footage remain dominant after the short reveal. Avoid a repeated lower-third band, continuous shake and cutting away before the message settles. Review each chapter crop, text against the actual footage, the joins and the last readable frame. Alternate the chapter indicator side and give each caption one small overshoot, then hold the footage without decorative overlays."
+        "creativeDirection": "Audience: people watching a vertical three-chapter story. Direction: full-bleed footage throughout, with alternating caption anchors and clean rhythmic cuts. Use readable, high-contrast captions as punctuation rather than turning each chapter into a title card. Oppose entrance directions to distinguish chapters; let the footage remain dominant after the short reveal. Avoid a repeated lower-third band, continuous shake and cutting away before the message settles. Review each chapter crop, text against the actual footage, the joins and the last readable frame. Alternate the chapter indicator side and give each caption one small overshoot, then hold the footage without decorative overlays. Motion: chapters swipe in like stories."
       },
       "global": {
         "orientation": "portrait",
@@ -3651,7 +3733,11 @@
                 "easing": "ease-out"
               }
             }
-          ]
+          ],
+          "transition": {
+            "type": "swipe-left",
+            "duration": 0.4
+          }
         },
         {
           "name": "video_2",
@@ -3725,7 +3811,11 @@
                 "easing": "ease-out"
               }
             }
-          ]
+          ],
+          "transition": {
+            "type": "swipe-left",
+            "duration": 0.4
+          }
         },
         {
           "name": "video_3",
@@ -4063,8 +4153,9 @@
         "allowedMusic": ["future-bass-energy", "upbeat-electronic", "lofi-hip-hop", "party-dance", "indie-rock-dreamy"],
         "allowUploadMusic": true,
         "transition": {
-          "type": "fade",
-          "duration": 0.2
+          "type": "push-left",
+          "duration": 0.35,
+          "ease": "$snappy"
         },
         "audio": {
           "sourceVolume": 1,
@@ -4083,10 +4174,6 @@
         {
           "name": "intro",
           "type": "color_background",
-          "transition": {
-            "type": "fade",
-            "duration": 0.4
-          },
           "titleCard": {
             "kicker": {
               "en": "FAST & CURIOUS"
@@ -4107,6 +4194,10 @@
           "options": {
             "backgroundColor": "#141416",
             "duration": 3.5
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.06
           }
         },
         {
@@ -4391,6 +4482,10 @@
           "options": {
             "backgroundColor": "#141416",
             "duration": 4
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.06
           }
         },
         {
@@ -4835,8 +4930,8 @@
           "name": "intro",
           "type": "color_background",
           "transition": {
-            "type": "fade",
-            "duration": 0.6
+            "type": "zoom-through",
+            "duration": 0.5
           },
           "options": {
             "backgroundColor": "#0d1b2a",
@@ -4955,8 +5050,8 @@
           "name": "question",
           "type": "color_background",
           "transition": {
-            "type": "slideleft",
-            "duration": 0.8
+            "type": "swipe-left",
+            "duration": 0.5
           },
           "titleCard": {
             "kicker": {
@@ -5101,6 +5196,16 @@
               "values": {
                 "color": "#0d1b2a"
               }
+            }
+          ],
+          "graphics": [
+            {
+              "type": "corners",
+              "at": 0.4,
+              "inset": 40,
+              "length": 64,
+              "thickness": 4,
+              "color": "#F5F3F7@0.8"
             }
           ]
         },
@@ -5374,6 +5479,15 @@
                 "st": "{{ transitionStartTime }}",
                 "color": "#000000"
               }
+            }
+          ],
+          "graphics": [
+            {
+              "type": "frame",
+              "at": 0.3,
+              "inset": 36,
+              "thickness": 3,
+              "color": "#F5F3F7@0.75"
             }
           ]
         },
@@ -5666,8 +5780,9 @@
           "name": "intro",
           "type": "color_background",
           "transition": {
-            "type": "wipeleft",
-            "duration": 0.45
+            "type": "push-left",
+            "duration": 0.5,
+            "ease": "$snappy"
           },
           "titleCard": {
             "kicker": {
@@ -5701,6 +5816,10 @@
                 }
               }
             ]
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.06
           }
         },
         {
@@ -5976,8 +6095,9 @@
           "name": "intro",
           "type": "color_background",
           "transition": {
-            "type": "wipeleft",
-            "duration": 0.45
+            "type": "push-left",
+            "duration": 0.5,
+            "ease": "$snappy"
           },
           "titleCard": {
             "kicker": {
@@ -6011,6 +6131,10 @@
                 }
               }
             ]
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.06
           }
         },
         {
@@ -6959,7 +7083,6 @@
       "meta": {
         "name": "Kinetic type",
         "description": "Motion system v2 kinetic typography: every preset, natively, per word and per glyph.",
-        "motionVersion": 2,
         "creativeDirection": "Audience: people deciding whether a tool feels premium. Direction: Apple-keynote confidence with a juicy edge. One idea per beat, copy as the hero, ink canvas, white Bebas Neue, lavender marker, pastel-yellow accents. Motion is physical (springs) and never decorative: every entrance lands before the next begins, every beat holds long enough to read. Review: no unit leaves the title-safe area at its overshoot peak, accent words read first, and the stat lands on its final value before it holds."
       },
       "global": {
@@ -7210,7 +7333,6 @@
       "meta": {
         "name": "Spring kinetics",
         "description": "Motion system v2 study: springs, brand curves, motion tokens, keyframe tracks and the energy dial.",
-        "motionVersion": 2,
         "creativeDirection": "Audience: people who judge motion by feel. Direction: physical, confident, never floaty. The headline lands on a spring and its scale settles a beat later; the support line follows on the brand's juicy curve; the counterpoint slides in on expo and leaves on smooth. Ink canvas, white Bebas Neue, lavender and pink accents. Review: overshoot stays inside the title-safe area, every word is settled for at least half a second before it leaves, and the final hold reads cleanly."
       },
       "global": {
@@ -7435,6 +7557,241 @@
                 "distance": 120,
                 "easing": "ease-in-cubic"
               }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "camera-and-graphics",
+    "title": "Camera and graphics",
+    "description": "Designed transitions, a virtual camera with hits and shake, and graphics that animate on a curve.",
+    "category": "typography",
+    "source": "examples/motion-design/camera-and-graphics.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: creators who want a trailer feel from JSON alone. Direction: each beat has one camera idea and one graphic idea. A punch beat (impact type, camera hits, a flash on the downbeat, viewfinder corners), a slow dolly with a tracing frame and an underline, a cinema beat with bars and a handheld drift, a colour wipe that turns the page, and a calm close. Transitions are designed, not stock: push on a spring, zoom-through, iris, swipe. Review: no edge ever shows during camera moves, flashes never exceed three per second, text stays readable at every hit, every transition settles before the next beat's first entrance.",
+    "showcasePath": "/showcase?sample=camera-and-graphics",
+    "preview": {
+      "video": "/videos/showcase/camera-and-graphics.mp4",
+      "poster": "/videos/showcase/camera-and-graphics.webp",
+      "template": "/videos/showcase/camera-and-graphics.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Camera and graphics",
+        "description": "Motion system v2 effects: designed transitions, a virtual camera with hits and shake, and animated graphics.",
+        "creativeDirection": "Audience: creators who want a trailer feel from JSON alone. Direction: each beat has one camera idea and one graphic idea. A punch beat (impact type, camera hits, a flash on the downbeat, viewfinder corners), a slow dolly with a tracing frame and an underline, a cinema beat with bars and a handheld drift, a colour wipe that turns the page, and a calm close. Transitions are designed, not stock: push on a spring, zoom-through, iris, swipe. Review: no edge ever shows during camera moves, flashes never exceed three per second, text stays readable at every hit, every transition settles before the next beat's first entrance."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 5,
+        "motion": {
+          "energy": 1
+        }
+      },
+      "sections": [
+        {
+          "name": "punch",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 2.4
+          },
+          "camera": {
+            "hits": [
+              0.3,
+              {
+                "at": 1.2,
+                "strength": 0.06
+              }
+            ]
+          },
+          "graphics": [
+            {
+              "type": "flash",
+              "at": 0.3,
+              "duration": 0.25
+            },
+            {
+              "type": "corners",
+              "at": 0.5,
+              "color": "#FF8AAE"
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "DROP."
+              },
+              "preset": "impact",
+              "size": 260,
+              "delay": 0.2,
+              "color": "#F5F3F7"
+            }
+          ],
+          "transition": {
+            "type": "push-left",
+            "duration": 0.6,
+            "ease": "$snappy"
+          }
+        },
+        {
+          "name": "dolly",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": 2.8
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.14
+          },
+          "graphics": [
+            {
+              "type": "frame",
+              "at": 0.1,
+              "inset": 40
+            },
+            {
+              "type": "underline",
+              "at": 0.9,
+              "x": 400,
+              "y": 420,
+              "width": 480,
+              "origin": "center",
+              "color": "#FFF685"
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "Slow is smooth."
+              },
+              "preset": "rise",
+              "size": 110,
+              "y": 280,
+              "delay": 0.3
+            }
+          ],
+          "transition": {
+            "type": "zoom-through",
+            "duration": 0.7
+          }
+        },
+        {
+          "name": "cinema",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#2A2238",
+            "duration": 2.8
+          },
+          "camera": {
+            "preset": "drift-left",
+            "amount": 0.1,
+            "shake": {
+              "amplitude": 4,
+              "frequency": 0.6,
+              "rotation": 0.4
+            }
+          },
+          "graphics": [
+            {
+              "type": "bars",
+              "aspect": 2.39
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "WIDESCREEN"
+              },
+              "preset": "tracking-in",
+              "size": 150,
+              "delay": 0.4
+            }
+          ],
+          "transition": {
+            "type": "iris",
+            "duration": 0.7
+          }
+        },
+        {
+          "name": "page",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 2.6
+          },
+          "graphics": [
+            {
+              "type": "panel",
+              "at": 0.2,
+              "x": 0,
+              "y": 250,
+              "width": 760,
+              "height": 190,
+              "from": "left"
+            },
+            {
+              "type": "wipe",
+              "at": 1.7,
+              "duration": 0.8,
+              "color": "#FF8AAE",
+              "direction": "left"
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "Turn the page."
+              },
+              "preset": "cascade",
+              "size": 96,
+              "align": "left",
+              "x": 80,
+              "y": 290,
+              "delay": 0.45
+            }
+          ],
+          "transition": {
+            "type": "swipe-left",
+            "duration": 0.6
+          }
+        },
+        {
+          "name": "close",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 2.4
+          },
+          "camera": {
+            "preset": "pull-out",
+            "amount": 0.08
+          },
+          "kinetic": [
+            {
+              "text": {
+                "en": "Same JSON. Every screen."
+              },
+              "preset": "fade",
+              "size": 84,
+              "delay": 0.3
             }
           ]
         }

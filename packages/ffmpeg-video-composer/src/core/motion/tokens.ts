@@ -1,10 +1,9 @@
-// Motion tokens and the energy dial (docs/plans/motion-system-v2.md §2). A motionVersion 2 descriptor is
-// resolved once, before any lowering: every `$token` becomes its concrete value and every travel distance
+// Motion tokens and the energy dial (docs/plans/motion-system-v2.md §2). The descriptor is resolved once,
+// before any lowering: every `$token` becomes its concrete value and every travel distance
 // is scaled by `global.motion.energy`, so the presets downstream only ever see plain specs and numbers.
 
 import type { EasingSpec } from './easing';
 import type { SpringParams } from './curves';
-import { resolveMotionVersion } from '../determinism/contract';
 
 export interface MotionTokenSet {
   springs?: Record<string, SpringParams>;
@@ -158,15 +157,13 @@ function resolveNode(value: unknown, tokens: ResolvedTokens, key: string): unkno
 }
 
 /**
- * The descriptor with every motion token resolved and every travel scaled by energy. motionVersion 1
- * descriptors are returned as-is (their semantics are pinned), as is everything outside `sections` and
- * `global` (meta, partial definitions: partials are expanded into sections before this runs).
+ * The descriptor with every motion token resolved and every travel scaled by energy. Everything outside
+ * `sections` and `global` is returned as-is (meta, partial definitions: partials are expanded into sections
+ * before this runs).
  */
 export function resolveMotionDescriptor<T extends { meta?: unknown; global?: unknown; sections?: unknown }>(
   descriptor: T
 ): T {
-  if (resolveMotionVersion(descriptor as Parameters<typeof resolveMotionVersion>[0]) < 2) return descriptor;
-
   const tokens = resolveTokens((descriptor.global as { motion?: MotionTokenSet } | undefined)?.motion);
 
   return {

@@ -68,8 +68,8 @@
       "name": "intro",
       "type": "color_background",
       "transition": {
-        "type": "fade",
-        "duration": 0.6
+        "type": "zoom-through",
+        "duration": 0.5
       },
       "options": {
         "backgroundColor": "#0d1b2a",
@@ -188,8 +188,8 @@
       "name": "question",
       "type": "color_background",
       "transition": {
-        "type": "slideleft",
-        "duration": 0.8
+        "type": "swipe-left",
+        "duration": 0.5
       },
       "titleCard": {
         "kicker": {
@@ -334,6 +334,16 @@
           "values": {
             "color": "#0d1b2a"
           }
+        }
+      ],
+      "graphics": [
+        {
+          "type": "corners",
+          "at": 0.4,
+          "inset": 40,
+          "length": 64,
+          "thickness": 4,
+          "color": "#F5F3F7@0.8"
         }
       ]
     },

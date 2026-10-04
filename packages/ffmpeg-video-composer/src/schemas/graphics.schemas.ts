@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { EasingSpecSchema } from './motion.schemas';
 
-// ── animated graphics (docs/plans/motion-system-v2.md §4.4, motionVersion 2) ──────────────────────
+// ── animated graphics (docs/plans/motion-system-v2.md §4.4) ──────────────────────
 //
 // Editorial shapes and light hits that animate in on a curve: flash, bars, underline, frame, corners,
 // wipe, panel. FFmpeg evaluates drawbox geometry once per filter, so each animated frame is its own box
@@ -98,6 +98,6 @@ export const GraphicSchema = z
 export const GraphicsSchema = z
   .array(GraphicSchema)
   .max(24)
-  .describe('Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel.');
+  .describe('Animated graphics: flash, bars, underline, frame, corners, wipe, panel.');
 
 export type Graphic = z.infer<typeof GraphicSchema>;

@@ -1,8 +1,8 @@
 import type { Filter } from '@/core/types';
 import { deriveSeed } from '@/core/determinism/hash';
-import { resolveMotionVersion, resolveSeed } from '@/core/determinism/contract';
+import { resolveSeed } from '@/core/determinism/contract';
 
-// D3: under motionVersion 2 every `noise` filter (grain grades, the glitch look, authored grain) gets an
+// D3: every `noise` filter (grain grades, the glitch look, authored grain) gets an
 // explicit `all_seed` derived from `global.seed` and the filter's own path. FFmpeg's built-in default
 // seed is a constant, so without this every grain layer in a film would show the identical pattern, and
 // a new seed could not reshuffle it.
@@ -23,37 +23,35 @@ export function seedNoiseFilters(filters: Filter[], globalSeed: number, sectionN
 }
 
 interface ChainSource {
-  meta?: { motionVersion?: number } | null;
   global?: { seed?: number } | null;
 }
 
 /**
- * The section chain under motionVersion 2: a leading CFR `fps` conform, so every frame sits on the
+ * The section chain: a leading CFR `fps` conform, so every frame sits on the
  * output grid and `t` in an animated expression is always an exact frame time (variable-frame-rate
- * phone footage can't shift a keyframe by a frame), and seeded `noise`. Version 1 chains are returned
- * untouched (historical output).
+ * phone footage can't shift a keyframe by a frame), and seeded `noise`.
  */
-export function conformMotionV2Chain(
+export function conformMotionChain(
   filters: Filter[],
   descriptor: ChainSource,
   fps: number,
   sectionName: string
 ): Filter[] {
-  if (resolveMotionVersion(descriptor) < 2) return filters;
+  // A chain that already opens on the same conform (e.g. a background that sets its own rate) keeps one.
+  const conformed = filters.at(0)?.type === 'fps' && Number(filters.at(0)?.value) === fps;
+  const conform: Filter[] = conformed ? [] : [{ type: 'fps', value: fps }];
 
-  return [{ type: 'fps', value: fps }, ...seedNoiseFilters(filters, resolveSeed(descriptor), sectionName)];
+  return [...conform, ...seedNoiseFilters(filters, resolveSeed(descriptor), sectionName)];
 }
 
 /**
- * The v2 motion inputs a section's sugar needs (kinetic typography): the energy dial and per-element
- * seeds derived from `global.seed` and the section name. Undefined for v1 descriptors.
+ * The motion inputs a section's sugar needs (kinetic typography): the energy dial and per-element
+ * seeds derived from `global.seed` and the section name.
  */
 export function motionSugarContext(
   descriptor: ChainSource & { global?: { motion?: { energy?: number } } | null },
   sectionName: string
-): { energy: number; seedFor: (path: string) => number } | undefined {
-  if (resolveMotionVersion(descriptor) < 2) return undefined;
-
+): { energy: number; seedFor: (path: string) => number } {
   const seed = resolveSeed(descriptor);
 
   return {

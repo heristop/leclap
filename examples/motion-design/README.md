@@ -29,7 +29,7 @@ The underlying people, locations and physical props are source footage. LeClap c
 
 ## Spring kinetics (motion system v2)
 
-[`spring-kinetics.json`](./spring-kinetics.json) is a two-scene study of `meta.motionVersion: 2`. The headline lands on an authored `$land` spring while its `scale` track settles on `$bouncy`. The support line slides in on `$snappy` with no duration authored, so the spring's own settle time sets it. The counterpoint enters on the app's `$expo` curve and leaves with `ease-in-back` anticipation. `global.motion` defines the tokens and the energy dial, and `global.seed` fixes the grain. It is asset-free (bundled Bebas Neue) and renders byte-identically on a given platform:
+[`spring-kinetics.json`](./spring-kinetics.json) is a two-scene study of the motion system. The headline lands on an authored `$land` spring while its `scale` track settles on `$bouncy`. The support line slides in on `$snappy` with no duration authored, so the spring's own settle time sets it. The counterpoint enters on the app's `$expo` curve and leaves with `ease-in-back` anticipation. `global.motion` defines the tokens and the energy dial, and `global.seed` fixes the grain. It is asset-free (bundled Bebas Neue) and renders byte-identically on a given platform:
 
 ```bash
 leclap render examples/motion-design/spring-kinetics.json \

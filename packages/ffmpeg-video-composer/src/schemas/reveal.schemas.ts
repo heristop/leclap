@@ -23,7 +23,7 @@ export const RevealObjectSchema = z
     duration: z.number().positive().optional().describe('Seconds the entrance takes (default 0.6).'),
     distance: z.number().positive().optional().describe('Pixels the text travels for rise/slide (default 60).'),
     easing: EasingSpecSchema.optional().describe(
-      'Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).'
+      'Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Also springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).'
     ),
   })
   .strict()
@@ -39,7 +39,7 @@ export const ExitObjectSchema = z
   .object({
     type: z.enum(REVEAL_TYPES).describe('Exit style: none, fade, rise (up/out), slide-left, slide-right.'),
     easing: EasingSpecSchema.optional().describe(
-      'Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.'
+      'Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. Also any easing spec or $token.'
     ),
     after: z
       .number()

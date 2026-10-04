@@ -722,9 +722,9 @@ describe('SegmentBuilder structured-sugar injection', () => {
     await builder.buildFilters();
 
     const types = (segment.filtersList as string[]).map((s) => s.split('=')[0]);
-    // The authored filter, then the always-on Rec.709 colour-normalisation tag — but no sugar filters
-    // (no drawbox, no zoompan, etc.). setparams is colour metadata, not structured sugar.
-    expect(types).toEqual(['hflip', 'setparams']);
+    // The CFR frame-grid conform, the authored filter, then the always-on Rec.709 colour-normalisation
+    // tag — but no sugar filters (no drawbox, no zoompan, etc.). Neither fps nor setparams is sugar.
+    expect(types).toEqual(['fps', 'hflip', 'setparams']);
   });
 });
 

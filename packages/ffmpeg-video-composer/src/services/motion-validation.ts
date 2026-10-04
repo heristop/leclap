@@ -1,20 +1,16 @@
-// Descriptor rules for the v2 motion system (docs/plans/motion-system-v2.md §2–3):
+// Descriptor rules for the motion system (docs/plans/motion-system-v2.md §2–3):
 //
-// - motion_v2_required: motion tokens, `animate` tracks and easings beyond the four historical names
-//   need `meta.motionVersion: 2`, so a v1 template's output stays pinned.
 // - invalid_motion_token / unknown_motion_token / invalid_easing: token definitions and references.
 // - invalid_keyframes: key times out of order, a relative value on a non-positional track, a scale track
 //   without a numeric fontsize, or tracks on something other than a drawtext.
 
 import type { TemplateDescriptor } from '../schemas/template.schemas';
-import { resolveMotionVersion } from '@/core/determinism/contract';
-import { EasingError, easingError, isLegacyEasing, validSpring, type EasingSpec } from '@/core/motion/easing';
+import { EasingError, easingError, validSpring, type EasingSpec } from '@/core/motion/easing';
 import { resolveEasingRef, resolveTimeRef, resolveTokens, type ResolvedTokens } from '@/core/motion/tokens';
 import { keyTimesError, type TrackKey } from '@/core/motion/tracks';
 import { FONT_ADVANCES } from '@/core/font-advances.generated';
 import { findFont } from '@/core/fonts';
 import { KINETIC_PRESET_DEFAULTS } from '@/core/kinetic/presets';
-import { isDesignedTransition } from '@/core/motion/transitions';
 
 // Structurally the validator's ValidationError (declared here so the rules module can import this one
 // without a cycle).
@@ -59,38 +55,6 @@ function motionUses(template: TemplateDescriptor): Use[] {
   collect(template.sections, 'sections', uses);
 
   return uses;
-}
-
-const V2_SECTION_FIELDS = ['kinetic', 'camera', 'graphics'] as const;
-
-// Section fields that only exist in the v2 motion system, plus a designed transition.
-function v2SectionFields(section: NonNullable<TemplateDescriptor['sections']>[number], path: string): string[] {
-  const record = section as Record<string, unknown>;
-  const fields = V2_SECTION_FIELDS.filter((field) => record[field] !== undefined).map((field) => `${path}.${field}`);
-  const transition = record.transition as { type?: string } | undefined;
-
-  return transition?.type && isDesignedTransition(transition.type) ? [...fields, `${path}.transition`] : fields;
-}
-
-function v2Required(template: TemplateDescriptor, uses: Use[]): ValidationError[] {
-  const offending = uses.filter((use) => use.kind === 'animate' || !isLegacyEasing(use.value)).map((use) => use.path);
-
-  for (const [index, section] of (template.sections ?? []).entries()) {
-    offending.push(...v2SectionFields(section, `sections[${index}]`));
-  }
-
-  if (template.global?.transition && isDesignedTransition(template.global.transition.type)) {
-    offending.push('global.transition');
-  }
-
-  if (template.global?.motion) offending.unshift('global.motion');
-
-  return offending.map((path) => ({
-    path,
-    message:
-      'v2 motion (tokens, animate tracks, springs, curves beyond the historical four) needs meta.motionVersion: 2',
-    code: 'motion_v2_required',
-  }));
 }
 
 type MotionTokensInput = NonNullable<TemplateDescriptor['global']>['motion'];
@@ -210,8 +174,6 @@ function kineticErrors(template: TemplateDescriptor): ValidationError[] {
 
 export function validateMotionSystem(template: TemplateDescriptor): ValidationError[] {
   const uses = motionUses(template);
-
-  if (resolveMotionVersion(template) < 2) return v2Required(template, uses);
 
   const tokens = resolveTokens(template.global?.motion);
   const easingErrors = uses.filter((use) => use.kind === 'easing').map((use) => easingUseError(use, tokens));

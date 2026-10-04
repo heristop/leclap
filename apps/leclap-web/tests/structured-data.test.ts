@@ -107,7 +107,7 @@ describe('llms.txt', () => {
   });
 
   it('lists exactly every MCP tool, including health and opt-in tools', () => {
-    const list = llmsTxt.split('\n').find((line) => line.startsWith('Eight tools are always registered:'));
+    const list = llmsTxt.split('\n').find((line) => line.startsWith('Nine tools are always registered:'));
     expect(list, 'the MCP tool list is missing').toBeDefined();
     const listed = [...(list ?? '').matchAll(/`([a-z][a-z0-9_]*[a-z0-9])`/g)].map(([, name]) => name).sort();
     expect(listed).toEqual(REGISTERED_TOOLS);

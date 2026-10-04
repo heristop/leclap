@@ -16,6 +16,7 @@ import type {
   AudioEffect,
   WatermarkChoice,
 } from './model';
+import { motionBlocksOf, type MotionBlocks } from './motion-passthrough';
 import { pruneEmpty } from './prune';
 
 // Default authoring locale for Translation fields the editor emits (section descriptions,
@@ -177,16 +178,18 @@ export function overlayInputsFrom(section: {
   ];
 }
 
-export function visualExtras(section: {
-  transitionAfter?: SectionTransition;
-  caption?: EditorCaption;
-  look?: string;
-  grade?: Grade;
-  letterbox?: Letterbox;
-  motion?: MotionEffect[];
-  chromaKey?: ChromaKey;
-  animations?: AnimationOverlay[];
-}): Partial<Section> {
+export function visualExtras(
+  section: {
+    transitionAfter?: SectionTransition;
+    caption?: EditorCaption;
+    look?: string;
+    grade?: Grade;
+    letterbox?: Letterbox;
+    motion?: MotionEffect[];
+    chromaKey?: ChromaKey;
+    animations?: AnimationOverlay[];
+  } & MotionBlocks
+): Partial<Section> {
   const caption = captionDescriptorFrom(section.caption);
   const animationInputs = animationInputsFrom(section.animations);
 
@@ -199,6 +202,7 @@ export function visualExtras(section: {
     ...(section.motion && section.motion.length > 0 ? { motion: section.motion } : {}),
     ...(section.chromaKey ? { chromaKey: section.chromaKey } : {}),
     ...(animationInputs.length > 0 ? { inputs: animationInputs } : {}),
+    ...motionBlocksOf(section),
   };
 }
 

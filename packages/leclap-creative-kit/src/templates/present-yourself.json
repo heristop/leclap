@@ -54,8 +54,9 @@
       "name": "intro",
       "type": "color_background",
       "transition": {
-        "type": "wipeleft",
-        "duration": 0.45
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
       },
       "titleCard": {
         "kicker": {
@@ -89,6 +90,10 @@
             }
           }
         ]
+      },
+      "camera": {
+        "preset": "push-in",
+        "amount": 0.06
       }
     },
     {

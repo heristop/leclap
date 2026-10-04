@@ -19,23 +19,19 @@ export function resolveBuildVideoConfig(
 
 /**
  * Routes every FFmpeg command of the build through the determinism tap: the deterministic encoder
- * profile when the template or host asks for it (core/determinism/contract.ts), and a record on
+ * profile unless the host opts out (core/determinism/contract.ts), and a record on
  * `project.ffmpegCommands` for the render manifest. Returns the restore function.
  */
-export function recordBuildCommands(
-  adapter: AbstractFFmpeg,
-  project: Project,
-  descriptor: TemplateDescriptor
-): () => void {
+export function recordBuildCommands(adapter: AbstractFFmpeg, project: Project): () => void {
   return tapFFmpegCommands(adapter, {
-    deterministic: resolveDeterministic(descriptor, project.config.deterministic),
+    deterministic: resolveDeterministic(project.config.deterministic),
     onCommand: (command) => project.ffmpegCommands.push(command),
   });
 }
 
 /**
- * motionVersion 2 descriptors with every `$token` resolved and travel scaled by `global.motion.energy`
- * (core/motion/tokens.ts); v1 descriptors pass through untouched.
+ * The descriptor with every `$token` resolved and travel scaled by `global.motion.energy`
+ * (core/motion/tokens.ts).
  */
 export function prepareMotion<T extends { meta?: unknown; global?: unknown; sections?: unknown }>(descriptor: T): T {
   return resolveMotionDescriptor(descriptor);

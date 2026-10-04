@@ -38,6 +38,19 @@ const ON_DEVICE_FILTERS =
 
 const BUNDLED_FONTS = 'BebasNeue, Oswald, PlayfairDisplay, Pacifico, Rubik, RobotoMono';
 
+// Pacing rules a motion director applies; validate_template's `motionWarnings` checks most of them.
+const MOTION_RULES = [
+  'Motion rules (get_motion_catalog has the genre doctrine, blueprints and a verb per preset):',
+  '  - One primary transition plus 1–2 accents for key moments; cut between beats of the same idea.',
+  '  - The transition is the exit: no element exit in the last 0.3 s before a non-cut boundary.',
+  "  - Don't start at 0: offset each section's first text entrance 0.1–0.3 s after the cut.",
+  '  - Vary eases by role (spring hero, smooth support, linear draws); never one curve for every element.',
+  '  - Vary tempo: the slowest beat runs at least 3× the fastest; no beat sits still for 2.5 s or more.',
+  '  - Every element has a verb (SLAMS, TYPES, DRAWS, LEANS IN); two of the same verb in one beat compete.',
+  '  - Product launches reveal sequentially through the back half of a beat, on smooth curves, no overshoot.',
+  '  - Pin the intent with section `assert` (visibleBy, before, inFrame, keepsMoving) and fix motionWarnings.',
+];
+
 function buildText(args: GuideArgs): string {
   const goal = args.goal?.trim() ? args.goal.trim() : 'the video the user describes';
   const orientation =
@@ -67,10 +80,13 @@ function buildText(args: GuideArgs): string {
     '   allowRemotion, Remotion peers and a trusted configured entry. customCatalog:true effects also need an',
     '   operator effect catalog and matching composition; exported JSON supplies no executable source.',
     '4. Inspect the exact registered ID/version with get_effect_schema before editing props. Call',
-    '   validate_template (no render) and fix issues + confirm required clips/fields before composition.',
+    '   validate_template (no render) and fix issues + confirm required clips/fields before composition;',
+    '   read its geometry and motionWarnings findings and apply their hints.',
     '5. For registered scenes inspect render_preview at entrance, settling and ending. For native scenes',
     '   compose_video, extract review frames and inspect against the brief. Fix collisions, crop, copy,',
     '   contrast and pacing before the final compose_video export.',
+    '',
+    ...MOTION_RULES,
     '',
     'Premium animated intro (bring your own Remotion): if you have a Remotion project, call',
     'render_remotion_clip with its entry + a compositionId (+ optional inputProps) for motion graphics the',

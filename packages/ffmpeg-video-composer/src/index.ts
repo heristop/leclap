@@ -300,6 +300,7 @@ export {
   type ValidationError,
   type GeometryWarning,
   type FontLoader,
+  type MotionWarning,
 } from './services/TemplateValidator';
 // From the loader module, not the geometry barrel. The barrel statically imports font-metrics, the
 // colour math, caption-layout, text-boxes and the rules, so re-exporting through it pulled that whole
@@ -358,5 +359,13 @@ export { ENGINE_VERSION } from './core/version';
 // Node entry only: digest a rendered file for `leclap verify`.
 export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
+export {
+  motionTimeline,
+  type MotionBox,
+  type MotionEvent,
+  type MotionKind,
+  type MotionTimeline,
+  type SectionTimeline,
+} from './core/motion/timeline';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';

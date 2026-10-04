@@ -31,7 +31,8 @@ export interface KineticContext extends KineticFrame {
   text: string;
 }
 
-function layoutWithin(settings: ResolvedKinetic, text: string): { layout: Layout; unit: KineticUnit } | null {
+/** The block's layout, stepping up to coarser units until it fits MAX_KINETIC_UNITS; null when unmeasurable. */
+export function layoutWithin(settings: ResolvedKinetic, text: string): { layout: Layout; unit: KineticUnit } | null {
   let unit = settings.unit;
 
   for (;;) {

@@ -54,4 +54,15 @@ describe('compose-video prompt', () => {
     expect(text).toContain('project_video');
     expect(text).toContain('userVideoPaths');
   });
+
+  it('primes the motion pacing rules checked by validate_template', () => {
+    const result = captureHandler()({ goal: 'a launch film' }) as { messages: { content: { text: string } }[] };
+    const text = result.messages[0].content.text;
+
+    expect(text).toContain('One primary transition plus 1–2 accents');
+    expect(text).toContain('The transition is the exit');
+    expect(text).toContain("Don't start at 0");
+    expect(text).toContain('at least 3× the fastest');
+    expect(text).toContain('motionWarnings');
+  });
 });

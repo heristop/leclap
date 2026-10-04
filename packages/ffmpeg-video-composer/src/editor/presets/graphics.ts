@@ -8,14 +8,14 @@ import { parseEasing, type EasingSpec } from '@/core/motion/easing';
 import { fmt } from '@/core/motion/hermite';
 import type { SugarContext } from './sugar-context';
 
-interface Rect {
+export interface Rect {
   x: number;
   y: number;
   w: number;
   h: number;
 }
 
-interface Frame {
+export interface Frame {
   width: number;
   height: number;
   fps: number;
@@ -209,6 +209,25 @@ function spec(g: Graphic, frame: Frame): Spec {
   const build = SPECS[g.type] as (g: Graphic, frame: Frame, base: Base) => Spec;
 
   return build(g, frame, { ease: g.ease ?? EXPO, above: g.above ?? false, holds: true });
+}
+
+/** Timing and resting footprint of one graphic, for the motion timeline (no filters are built). */
+export function graphicTiming(
+  g: Graphic,
+  frame: Frame
+): { duration: number; ease: EasingSpec; holds: boolean; bbox: Rect | null } {
+  const s = spec(g, frame);
+  const rects = s.holds ? s.rects(1) : [{ x: 0, y: 0, w: frame.width, h: frame.height }];
+  const shown = rects.filter((r) => r.w >= 1 && r.h >= 1);
+
+  if (shown.length === 0) return { duration: s.duration, ease: s.ease, holds: s.holds, bbox: null };
+
+  const x = Math.min(...shown.map((r) => r.x));
+  const y = Math.min(...shown.map((r) => r.y));
+  const w = Math.max(...shown.map((r) => r.x + r.w)) - x;
+  const h = Math.max(...shown.map((r) => r.y + r.h)) - y;
+
+  return { duration: s.duration, ease: s.ease, holds: s.holds, bbox: { x, y, w, h } };
 }
 
 function boxes(rects: Rect[], color: string, enable: string): Filter[] {

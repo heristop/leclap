@@ -16,6 +16,7 @@ import type { McpConfig } from '../config.js';
 import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { runGeometryCheck } from '../compose/renderRunner.js';
 import { validateTemplate } from '../compose/validation.js';
+import { motionNote, motionWarnings, motionWarningsSchema } from './motionWarnings.js';
 
 const inputSchema = z.object({
   template: z.record(z.string(), z.unknown()),
@@ -47,6 +48,7 @@ const outputSchema = z.object({
         'be too small, lack contrast, or sit over footage with no box/outline/shadow — one line per finding ' +
         'saying what to change, present only when there is something to fix; check this before rendering.'
     ),
+  motionWarnings: motionWarningsSchema,
   // Present only when `render: true` was asked for.
   render: z
     .object({ measured: z.number(), seconds: z.number(), unavailable: z.string().optional() })
@@ -271,6 +273,7 @@ async function summary(
   const { geometry, render } = hasEffects
     ? await effectFindings(descriptor, authored, request)
     : await findings(descriptor, authored, request);
+  const motion = motionWarnings(authored);
   const needs = [
     clips.length > 0 ? `clips: ${clips.join(', ')}` : 'no clips',
     fields.length > 0 ? `fields: ${fields.join(', ')}` : 'no fields',
@@ -280,7 +283,7 @@ async function summary(
     content: [
       {
         type: 'text' as const,
-        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${renderNote(render)}${geometryNote(geometry)}`,
+        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${renderNote(render)}${geometryNote(geometry)}${motionNote(motion)}`,
       },
     ],
     structuredContent: {
@@ -292,6 +295,7 @@ async function summary(
       requiredClips: clips,
       formFields: fields,
       geometry,
+      motionWarnings: motion,
       render,
     },
   };
@@ -325,7 +329,9 @@ export function registerValidateTemplate(server: McpServer, config: RenderConfig
         'project_video clip sections and the form fields. Use this to iterate on a descriptor in ' +
         'milliseconds before the slower compose_video render. Also catches, render-free, text that ' +
         'runs off the frame or out of title-safe, collides with other text, sits under a band, is too ' +
-        'small, lacks contrast, or sits over footage with no box/outline/shadow — see the `geometry` field. ' +
+        'small, lacks contrast, or sits over footage with no box/outline/shadow — see the `geometry` field — and ' +
+        'flags motion pacing (monotonous eases, front-loaded beats, dead air, flat tempo) in `motionWarnings`; ' +
+        'section `assert` entries that fail are errors. ' +
         'Pass `render: true` to also render the text-bearing sections and measure contrast from real pixels ' +
         '(seconds; settles text over images, grades and looks).',
       inputSchema,

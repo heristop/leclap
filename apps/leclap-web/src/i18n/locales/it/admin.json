@@ -1053,5 +1053,55 @@
     "notes": "Note di scena",
     "notesHint": "Note private per i collaboratori — mai mostrate nel video.",
     "notesPlaceholder": "es. Sostituire questo clip dopo il lancio…"
+  },
+  "styleReference": {
+    "label": "Ispirati a un riferimento",
+    "hint": "Carica un’immagine e, se vuoi, una breve clip. Palette, texture e ritmo diventano un tema; soggetti, loghi e testi non vengono mai copiati.",
+    "image": "Immagine di riferimento",
+    "clip": "Clip di riferimento (facoltativa)",
+    "remove": "Rimuovi {{name}}",
+    "analyse": "Analizza riferimento",
+    "analysing": "Lettura di palette, texture e ritmo…",
+    "error": "Impossibile analizzare questo riferimento: {{message}}",
+    "roles": {
+      "bg": "Sfondo",
+      "fg": "Testo",
+      "muted": "Attenuato",
+      "surface": "Superficie",
+      "brand": "Brand",
+      "accent": "Accento",
+      "accent2": "Accento 2"
+    },
+    "source": {
+      "extracted": "dal riferimento",
+      "adjusted": "regolato per il contrasto",
+      "derived": "derivato"
+    },
+    "contrast": {
+      "aa": "AA {{ratio}}:1",
+      "aaLarge": "AA grande {{ratio}}:1",
+      "fail": "Basso {{ratio}}:1"
+    },
+    "level": {
+      "aa": "conforme WCAG AA",
+      "aaLarge": "conforme AA solo per testo grande",
+      "fail": "sotto WCAG AA"
+    },
+    "contrastLabel": "Contrasto sullo sfondo {{ratio}} a 1, {{level}}",
+    "swatches": "Colori del tema derivato",
+    "pacing": "Inquadrature di {{avgShot}} s · {{cpm}} tagli/min · energia {{energy}}",
+    "texture": {
+      "grain": "grana ≈ {{grain}}",
+      "none": "pulito, senza grana"
+    },
+    "genre": "genere suggerito: {{genre}}",
+    "confidence": "affidabilità {{value}}%",
+    "apply": "Applica come tema",
+    "applied": "Tema applicato a global.theme. Annulla lo ripristina.",
+    "current": {
+      "named": "Tema attuale: {{name}}",
+      "custom": "Tema attuale: personalizzato",
+      "none": "Tema attuale: LeClap (predefinito)"
+    }
   }
 }

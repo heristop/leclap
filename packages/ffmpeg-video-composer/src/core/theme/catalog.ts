@@ -27,6 +27,9 @@ const USAGE = [
   'theme.motion fills global.motion when unset: energy, the $theme easing token and the $beat duration token.',
   `One accent per idea: put $color.accent on at most ${MAX_ACCENT_ELEMENTS} elements per section; use ` +
     '$color.fg, $color.muted and $color.brand for the rest.',
+  'To match a reference image or clip, derive a theme object from its palette, texture and pacing (MCP ' +
+    'extract_style, CLI `leclap style`) and set it as global.theme. Only palette and pacing carry over: never ' +
+    'copy the reference’s subjects, logos or text.',
 ];
 
 export function themeCatalog(): ThemeCatalog {

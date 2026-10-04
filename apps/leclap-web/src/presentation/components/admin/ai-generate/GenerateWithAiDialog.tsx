@@ -4,7 +4,7 @@
 // Lazy-loaded by the shell, so the prompt material (schema, samples, catalog) loads only on open.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Orientation } from '@/application/usecases/ai-template/system-prompt';
+import type { GenerationHints, Orientation } from '@/application/usecases/ai-template/system-prompt';
 import { findProvider } from '@/infrastructure/ai/registry';
 import { JEV_KEY_ID } from '@/infrastructure/ai/typesafe-jev';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
@@ -15,6 +15,7 @@ import { DialogFooterActions } from './DialogFooterActions';
 import { GenerationStatus } from './GenerationStatus';
 import { JevPanel } from './JevPanel';
 import { ProviderSettings } from './ProviderSettings';
+import { ReferenceStyleSection } from './ReferenceStyleSection';
 import { ResultCard } from './ResultCard';
 import { generatedToEditorState, needsReplaceConfirmation } from './load-generated';
 import { effectiveHints, preferredSamples, routeChips, type RouteChip, type RouteOverrides } from './route-decisions';
@@ -27,6 +28,16 @@ export interface GenerateWithAiDialogProps {
   // The current draft has edits (Undo is available): replacing it asks first.
   hasUnsavedWork: boolean;
   onLoad: (state: EditorState) => void;
+}
+
+// An attached reference style sets the theme itself, so a routed built-in theme hint would contradict it.
+function withoutThemeHint(hints: GenerationHints, referenceStyle: string | null): GenerationHints {
+  if (!referenceStyle) return hints;
+
+  const rest = { ...hints };
+  delete rest.theme;
+
+  return rest;
 }
 
 function useBriefState() {
@@ -68,6 +79,8 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
   const { key } = useApiKey(form.provider.id);
   const jev = useApiKey(JEV_KEY_ID);
   const [pending, setPending] = useState<EditorState | null>(null);
+  // Binding style rules from "Match a reference", or null when no reference is attached.
+  const [referenceStyle, setReferenceStyle] = useState<string | null>(null);
   const chips = run.route.kind === 'ready' ? routeChips(run.route.route, form.overrides) : [];
   const running = isRunning(run.status) || run.route.kind === 'routing';
   const userHints = {
@@ -100,8 +113,9 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
       model: form.model.trim() || form.provider.defaultModel,
       apiKey: key,
       brief: form.brief,
-      hints: effectiveHints(routed, userHints),
+      hints: withoutThemeHint(effectiveHints(routed, userHints), referenceStyle),
       preferSampleIds: preferredSamples(routed),
+      ...(referenceStyle ? { referenceStyle } : {}),
     });
   };
 
@@ -141,6 +155,16 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
               run.analyse(form.brief, jev.key).catch(() => {});
             }}
             onStartFromMatch={load}
+            disabled={running}
+          />
+          <ReferenceStyleSection
+            attached={referenceStyle !== null}
+            onAttach={(style) => {
+              setReferenceStyle(style.promptRules);
+            }}
+            onDetach={() => {
+              setReferenceStyle(null);
+            }}
             disabled={running}
           />
           <ProviderSettings

@@ -140,5 +140,12 @@
     "http": "{{provider}} hat einen Fehler gemeldet. Versuch es erneut.",
     "invalid": "Das Modell hat nach {{rounds}} Versuchen keine gültige Vorlage erzeugt. Versuch ein einfacheres oder genaueres Briefing.",
     "unknown": "Etwas ist schiefgelaufen. Versuch es erneut."
+  },
+  "reference": {
+    "label": "Referenz übernehmen",
+    "hint": "Optional: einen Referenz-Look anhängen. Die Generierung folgt dann verbindlich seiner Palette und seinem Tempo.",
+    "use": "Als Styleguide verwenden",
+    "attached": "Styleguide angehängt: die generierte Vorlage folgt dieser Palette und diesem Tempo.",
+    "detach": "Styleguide entfernen"
   }
 }

@@ -1052,5 +1052,55 @@
     "notes": "Szenennotizen",
     "notesHint": "Private Notizen für Mitwirkende — erscheinen nie im Video.",
     "notesPlaceholder": "z. B. Diesen Clip nach dem Launch austauschen…"
+  },
+  "styleReference": {
+    "label": "Referenz übernehmen",
+    "hint": "Lade ein Bild und optional einen kurzen Clip hoch. Palette, Textur und Tempo werden zum Theme; Motive, Logos und Text werden nie kopiert.",
+    "image": "Referenzbild",
+    "clip": "Referenzclip (optional)",
+    "remove": "{{name}} entfernen",
+    "analyse": "Referenz analysieren",
+    "analysing": "Palette, Textur und Tempo werden gelesen…",
+    "error": "Diese Referenz konnte nicht analysiert werden: {{message}}",
+    "roles": {
+      "bg": "Hintergrund",
+      "fg": "Text",
+      "muted": "Gedämpft",
+      "surface": "Fläche",
+      "brand": "Marke",
+      "accent": "Akzent",
+      "accent2": "Akzent 2"
+    },
+    "source": {
+      "extracted": "aus der Referenz",
+      "adjusted": "für Kontrast angepasst",
+      "derived": "abgeleitet"
+    },
+    "contrast": {
+      "aa": "AA {{ratio}}:1",
+      "aaLarge": "AA groß {{ratio}}:1",
+      "fail": "Niedrig {{ratio}}:1"
+    },
+    "level": {
+      "aa": "erfüllt WCAG AA",
+      "aaLarge": "erfüllt AA nur für großen Text",
+      "fail": "unter WCAG AA"
+    },
+    "contrastLabel": "Kontrast zum Hintergrund {{ratio}} zu 1, {{level}}",
+    "swatches": "Abgeleitete Theme-Farben",
+    "pacing": "Einstellungen von {{avgShot}} s · {{cpm}} Schnitte/min · Energie {{energy}}",
+    "texture": {
+      "grain": "Filmkorn ≈ {{grain}}",
+      "none": "sauber, kein Korn"
+    },
+    "genre": "vorgeschlagenes Genre: {{genre}}",
+    "confidence": "Konfidenz {{value}} %",
+    "apply": "Als Theme anwenden",
+    "applied": "Theme auf global.theme angewendet. Rückgängig macht es ungeschehen.",
+    "current": {
+      "named": "Aktuelles Theme: {{name}}",
+      "custom": "Aktuelles Theme: eigenes",
+      "none": "Aktuelles Theme: LeClap (Standard)"
+    }
   }
 }

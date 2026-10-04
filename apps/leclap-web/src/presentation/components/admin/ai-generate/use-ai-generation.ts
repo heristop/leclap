@@ -23,6 +23,8 @@ export interface GenerateArgs {
   brief: string;
   hints: GenerationHints;
   preferSampleIds: string[];
+  // Binding keep / avoid rules from an analysed reference ("Match a reference").
+  referenceStyle?: string;
 }
 
 function abort(ref: { current: AbortController | null }): AbortController {
@@ -52,7 +54,7 @@ export function useAiGeneration() {
     dispatch({ type: 'start' });
 
     try {
-      const prompt = promptFor(args.brief, args.hints, args.preferSampleIds);
+      const prompt = promptFor(args.brief, args.hints, args.preferSampleIds, args.referenceStyle);
       const result = await generateTemplate({
         provider: args.provider,
         model: args.model,

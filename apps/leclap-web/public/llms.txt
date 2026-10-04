@@ -66,7 +66,7 @@ Add the MCP server to any MCP-capable client:
 { "mcpServers": { "leclap": { "command": "npx", "args": ["-y", "@leclap/mcp"] } } }
 ```
 
-Nine tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`, `get_motion_catalog`, `validate_template`, `patch_template`, `compose_video`, `probe_media`. Opting into Remotion adds `get_effect_schema`, `render_preview` and `render_remotion_clip`. No LLM sits in the output path: the agent authors JSON and the engine renders it.
+Ten tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`, `get_motion_catalog`, `validate_template`, `patch_template`, `compose_video`, `probe_media`, `extract_style`. Opting into Remotion adds `get_effect_schema`, `render_preview` and `render_remotion_clip`. No LLM sits in the output path: the agent authors JSON and the engine renders it.
 
 Registered JSON effects can use trusted, operator-configured Remotion components on Node.js. Inspect the effect schema, preview selected frames, and patch props with a revision guard before composing. Remotion rendering requires operator opt-in; JSON cannot select executable source. Generated effects become video clips before the cross-platform FFmpeg engine runs.
 

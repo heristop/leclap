@@ -140,5 +140,12 @@
     "http": "{{provider}} ha restituito un errore. Riprova.",
     "invalid": "Il modello non ha prodotto un modello valido dopo {{rounds}} tentativi. Prova un brief più semplice o più preciso.",
     "unknown": "Qualcosa è andato storto. Riprova."
+  },
+  "reference": {
+    "label": "Ispirati a un riferimento",
+    "hint": "Facoltativo: allega uno stile di riferimento. La generazione seguirà palette e ritmo come regole vincolanti.",
+    "use": "Usa come guida di stile",
+    "attached": "Guida di stile allegata: il template generato segue questa palette e questo ritmo.",
+    "detach": "Rimuovi guida di stile"
   }
 }

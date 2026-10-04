@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
 import { compactSchema, fitSchema } from './schema-digest';
 import { generationContext, promptFor } from './generation-context';
-import { buildSystemPrompt, buildUserBrief, DEFAULT_PROMPT_BUDGET } from './system-prompt';
+import { buildSystemPrompt, buildUserBrief, DEFAULT_PROMPT_BUDGET, REFERENCE_STYLE_HEADING } from './system-prompt';
 
 describe('schema digest', () => {
   it('shrinks the engine schema by an order of magnitude and stays valid JSON', () => {
@@ -108,5 +108,23 @@ describe('buildUserBrief', () => {
 
   it('omits the "none" platform', () => {
     expect(buildUserBrief('x', { platform: 'none' })).not.toContain('platform');
+  });
+});
+
+describe('reference style guide', () => {
+  const rules = 'Set global.theme to exactly: {"extends":"leclap","colors":{"bg":"#101830"}}\nAvoid:\n- Film grain';
+
+  it('adds the reference rules as a binding block', () => {
+    const built = promptFor('a launch video', {}, [], rules);
+
+    expect(built.system).toContain(REFERENCE_STYLE_HEADING);
+    expect(built.system).toContain('"bg":"#101830"');
+    expect(built.system).toContain('never reproduce its subjects, logos or text');
+    expect(built.system.length).toBeLessThanOrEqual(DEFAULT_PROMPT_BUDGET);
+  });
+
+  it('leaves the prompt unchanged without a reference', () => {
+    expect(promptFor('a launch video', {}, [], '   ').system).toBe(promptFor('a launch video', {}).system);
+    expect(promptFor('a launch video', {}).system).not.toContain(REFERENCE_STYLE_HEADING);
   });
 });

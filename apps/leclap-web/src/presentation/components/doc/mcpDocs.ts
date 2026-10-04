@@ -131,6 +131,13 @@ export const mcpDoc: McpDoc = {
       when: 'Use to check a user-supplied clip before composing. The path must resolve inside the media dir.',
     },
     {
+      name: 'extract_style',
+      args: 'path, seed?',
+      purpose:
+        'Derives a global.theme object and a style guide from a reference image or clip: palette roles with area shares and WCAG contrast, grain texture, and for clips the average shot length, cuts per minute, motion energy and a suggested genre.',
+      when: 'Use to match a reference look. Palette and pacing only: subjects, logos and text are never copied. The path must resolve inside the media dir.',
+    },
+    {
       name: 'render_remotion_clip',
       args: 'compositionId, entry?, serveUrl?, inputProps?, outputName?',
       purpose:

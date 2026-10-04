@@ -289,6 +289,26 @@ describe('Build Output', () => {
       console.log(`  browser.js size: ${sizeInKB.toFixed(2)} KB`);
     });
 
+    // The size a page actually loads before its first compile: browser.js plus every chunk it imports
+    // statically (lazy `import()` chunks are fetched later). Guards the shared chunk from regrowing.
+    it('browser entry eager load (browser.js + static chunks) should be under 600KB', async () => {
+      const seen = new Set<string>();
+      const walk = async (file: string): Promise<number> => {
+        if (seen.has(file)) return 0;
+
+        seen.add(file);
+        const code = await readFile(path.join(DIST_DIR, file), 'utf-8');
+        const imports = [...code.matchAll(/(?:^|\n)\s*(?:import|export)\s[^;]*?from\s*["']\.\/([^"']+)["']/g)];
+        const sizes = await Promise.all(imports.map((match) => walk(match[1])));
+
+        return (await stat(path.join(DIST_DIR, file))).size + sizes.reduce((a, b) => a + b, 0);
+      };
+      const total = await walk('browser.js');
+
+      expect(total).toBeLessThan(600 * 1024);
+      console.log(`  browser eager load: ${(total / 1024).toFixed(2)} KB across ${seen.size} files`);
+    });
+
     it('sourcemaps should exist and be reasonable size', async () => {
       const indexMapStats = await stat(path.join(DIST_DIR, 'index.js.map'));
       const browserMapStats = await stat(path.join(DIST_DIR, 'browser.js.map'));

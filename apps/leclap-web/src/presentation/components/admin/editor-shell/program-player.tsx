@@ -5,6 +5,7 @@
 //     transform, transition blend styles, all written straight to refs — zero re-renders per frame.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { EditorState } from '../templateEditorModel';
+import { editableExit, editableReveal } from './overlay-timing';
 import { sceneClockAt, transitionAt, kenburnsTransformAt, type Segment } from './program-timeline.logic';
 import { overlayVisibilityAt, type OverlayVisibility } from './overlay-visibility.logic';
 import { imageVisibilityAt, layerVisibilityAt } from './element-visibility.logic';
@@ -57,7 +58,10 @@ function paintScene(
 
     if (!el) continue;
 
-    writeVisibility(el, overlayVisibilityAt(overlay.reveal, overlay.exit, localT, duration));
+    writeVisibility(
+      el,
+      overlayVisibilityAt(editableReveal(overlay.reveal), editableExit(overlay.exit), localT, duration)
+    );
   }
 
   // Still-image / shape overlays: show window + `motion` entrance (element-visibility.logic).

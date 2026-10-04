@@ -8,6 +8,7 @@ import { collectMotionWarnings, type MotionWarning } from './motion-lint';
 import { emojiAdvisories } from './emoji-advisories';
 import { subtitleAdvisories } from './subtitles-advisories';
 import { footageAdvisories } from './footage-advisories';
+import { beatGridAdvisories } from './beats-advisory';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -97,7 +98,7 @@ export class TemplateValidator extends BaseTemplateValidator {
   // The theme advisories (one accent per idea, palette drift), the emoji advisories (missing bundled image,
   // per-section cap, strip mode), the subtitle advisories (split, shrunk, past the end) and the footage
   // advisories (extreme ramp speeds, ignored focus, blur fit under overlays, a clip range shorter than the
-  // section) ride along, so every surface that shows pacing feedback shows them.
+  // section) and the low-confidence beat grid advisory (beats-advisory.ts) ride along, so every surface that shows pacing feedback shows them.
   getMotionWarnings(template: unknown): MotionWarning[] {
     return [
       ...collectMotionWarnings(template),
@@ -106,6 +107,7 @@ export class TemplateValidator extends BaseTemplateValidator {
       ...emojiAdvisories(template),
       ...subtitleAdvisories(template),
       ...footageAdvisories(template),
+      ...beatGridAdvisories(template),
     ];
   }
 }

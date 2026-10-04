@@ -61,8 +61,8 @@ function transitionPairError(
   const durationA = sectionA.options?.duration;
   const durationB = sectionB.options?.duration;
 
-  // Skip when either adjacent duration is undeclared
-  if (durationA === undefined || durationB === undefined) {
+  // Skip when either adjacent duration is undeclared (or still in beats: the grid awaits the analysis)
+  if (typeof durationA !== 'number' || typeof durationB !== 'number') {
     return null;
   }
 

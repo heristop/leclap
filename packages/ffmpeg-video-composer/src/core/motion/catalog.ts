@@ -188,8 +188,31 @@ const TIMING = {
     'Entrances read as on the beat when they lead it by 0.04–0.19 s: "beat:12 - 0.1".',
     'Chain beats with references ("headline.end + 0.15") rather than adding seconds by hand.',
     'beat/bar need global.beats ({ bpm, offset?, beatsPerBar? } or { times }) and every earlier section to declare options.duration.',
+    'Section lengths can sit on the grid: options.duration { beats: 8 } or { bars: 2 } (needs a bpm on global.beats).',
   ],
-  errors: ['unknown_time_ref', 'circular_time_ref', 'unresolvable_time_ref', 'negative_time', 'duplicate_time_id'],
+  /** Where global.beats comes from: a measurement of the music, never a guess. */
+  analysis: {
+    measure:
+      'Measure the music with `leclap beats <audio> --json` or the analyze_music MCP tool: bpm, offset (beat 1 = ' +
+      'first downbeat), beatsPerBar, times, confidence, usable and cues { build?, drop?, end }. Paste ' +
+      '{ bpm, offset, beatsPerBar } into global.beats and the drop into the cues of the section playing then.',
+    compileTime:
+      'global.beats { analyze: "music" } measures the template music track when compiling on Node; the browser ' +
+      'and on-device engines reject it with beats_analysis_unavailable, so precompute the grid for them.',
+    lowConfidence:
+      'usable: false (calm, ambient, rubato music; confidence under 3) raises beat_grid_low_confidence: pace by ' +
+      'phrases and section lengths in seconds, time entrances to the words, and keep cuts off the beat grid.',
+    cues: 'cue:drop lands on the largest energy rise; cue:build where the rise before it starts; hit the drop.',
+  },
+  errors: [
+    'unknown_time_ref',
+    'circular_time_ref',
+    'unresolvable_time_ref',
+    'negative_time',
+    'duplicate_time_id',
+    'beat_duration_needs_bpm',
+    'beats_analysis_unavailable',
+  ],
 };
 
 const BASIC_TRANSITIONS: Record<string, string> = {

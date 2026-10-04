@@ -33,6 +33,10 @@
       "types": "./src/sfx.ts",
       "default": "./src/sfx.ts"
     },
+    "./music-beats": {
+      "types": "./src/music-beats.ts",
+      "default": "./src/music-beats.ts"
+    },
     "./*.json": {
       "default": "./src/templates/*.json"
     },
@@ -52,7 +56,8 @@
     "test": "vp test run",
     "gen:templates": "node scripts/gen-templates.ts",
     "gen:partials": "node scripts/gen-partials.ts",
-    "gen:sfx": "node scripts/gen-sfx.ts"
+    "gen:sfx": "node scripts/gen-sfx.ts",
+    "gen:music-beats": "node scripts/analyze-music-library.ts"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

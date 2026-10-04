@@ -384,4 +384,6 @@ export {
   type SectionTimeline,
 } from './core/motion/timeline';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
+// Music analysis: the platform-neutral analyzer, and (Node only) decoding a file with FFmpeg first.
+export * from './music-analysis-node';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';

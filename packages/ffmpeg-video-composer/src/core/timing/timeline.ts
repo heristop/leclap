@@ -6,8 +6,29 @@ import { DEFAULT_TRANSITION_DURATION } from '../../schemas/effects.schemas';
 import DefaultConfig from '../default.config';
 import { footagePlan, hasFootageEdits, type FootageOptions } from '../footage/plan';
 
+/** What an analysis adds to a grid: its confidence, and whether the pulse is reliable enough to cut on. */
+interface AnalysisMarks {
+  confidence?: number;
+  usable?: boolean;
+}
+
 /** A tempo grid (`bpm`, first beat at `offset`) or explicit beat times from an analysis, in video seconds. */
-export type Beats = { bpm: number; offset?: number; beatsPerBar?: number } | { times: number[]; beatsPerBar?: number };
+export type Beats =
+  | ({ bpm: number; offset?: number; beatsPerBar?: number } & AnalysisMarks)
+  | ({ times: number[]; beatsPerBar?: number } & AnalysisMarks);
+
+/** A request to measure the grid from the template's music track at compile time (Node only). */
+export interface BeatsAnalysisRequest {
+  analyze: 'music';
+  beatsPerBar?: number;
+}
+
+/** `global.beats` as authored: a grid, or a request to analyze the music. */
+export type BeatsSpec = Beats | BeatsAnalysisRequest;
+
+export function isAnalysisRequest(beats: unknown): beats is BeatsAnalysisRequest {
+  return typeof beats === 'object' && beats !== null && (beats as { analyze?: unknown }).analyze === 'music';
+}
 
 interface TimelineTransition {
   type: string;
@@ -16,7 +37,8 @@ interface TimelineTransition {
 
 export interface TimelineSection {
   type: string;
-  options?: FootageOptions;
+  // `duration` may still be an unresolved `{ beats }` / `{ bars }` length (core/timing/durations.ts).
+  options?: Omit<FootageOptions, 'duration'> & { duration?: unknown };
   transition?: TimelineTransition;
 }
 
@@ -54,15 +76,20 @@ function editedLength(options: FootageOptions): number | undefined {
 export function knownDuration(section: TimelineSection): number | undefined {
   if (section.type === 'project_video') return undefined;
 
-  const declared = section.options?.duration;
+  const raw = section.options?.duration;
 
-  if (section.type !== 'video' || !hasFootageEdits(section.options)) return declared;
+  // A `{ beats }` / `{ bars }` length is only a number once core/timing/durations.ts resolved it.
+  if (raw !== undefined && typeof raw !== 'number') return undefined;
 
-  const edited = editedLength(section.options ?? {});
+  const options: FootageOptions = { ...section.options, duration: raw };
 
-  if (edited === undefined) return declared;
+  if (section.type !== 'video' || !hasFootageEdits(options)) return raw;
 
-  return declared === undefined ? edited : Math.min(declared, edited);
+  const edited = editedLength(options);
+
+  if (edited === undefined) return raw;
+
+  return raw === undefined ? edited : Math.min(raw, edited);
 }
 
 // How far the boundary after `previous` pulls the next section back: a transition overlaps both clips.

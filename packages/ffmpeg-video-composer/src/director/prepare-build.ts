@@ -3,6 +3,7 @@ import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import { resolveTimeRefs, type TimingOptions } from '@/core/timing/resolve';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type Project from '../core/models/Project';
+import type Template from '../core/models/Template';
 import { tapFFmpegCommands } from '@/core/determinism/command-tap';
 import { resolveDeterministic } from '@/core/determinism/contract';
 import { resolveFps, resolveOrientationScale } from './resolve-video-config';
@@ -10,9 +11,14 @@ import { resolveMotionDescriptor } from '@/core/motion/tokens';
 import { effectiveOrientation } from '@/core/platforms';
 import { resolveThemeDescriptor } from '@/core/theme/resolve';
 import { expandAutoSfx } from '@/core/audio/auto-sfx';
+import { assertEffectsResolved, expandPartialsSafe } from '@/core/partials';
+import type AbstractLogger from '../platform/logging/AbstractLogger';
+import { analyzeTemplateMusic } from './beats-analysis';
 
 export { discardOutput, publishOutput, resolveOutputPaths } from './output-staging';
 export { qcExpectations } from './qc-expectations';
+export { awaitsBeatsAnalysis } from './beats-analysis';
+export type { TimingOptions } from '@/core/timing/resolve';
 
 // Per-build preparation the director runs once per compile, kept out of TemplateDirector for its line
 // and dependency budgets.
@@ -23,7 +29,7 @@ export { qcExpectations } from './qc-expectations';
  */
 export function resolveBuildVideoConfig(
   videoConfig: VideoConfig | undefined,
-  descriptor: TemplateDescriptor
+  descriptor: Pick<TemplateDescriptor, 'global'>
 ): VideoConfig | undefined {
   return resolveFps(
     resolveOrientationScale(videoConfig, effectiveOrientation(descriptor.global)),
@@ -42,6 +48,30 @@ export function recordBuildCommands(adapter: AbstractFFmpeg, project: Project): 
     onCommand: (command) => project.ffmpegCommands.push(command),
     intercept: project.commandInterceptor,
   });
+}
+
+/**
+ * The descriptor a build compiles. Deep-cloned: section.filters are mutated in place during builds
+ * (sugar/scale prepend preset filters), so compiling the same descriptor twice would double-apply them
+ * (Ken Burns twice, contrast squared). Then `{ type:'partial', ref }` sections are expanded into real
+ * sections, the single point where the descriptor used for compilation is set: callers pass the raw
+ * descriptor (Node `compile` never validates; the browser path validates into the template but the
+ * director overwrites it), so without this every partial — logo bumper, flash-card — is dropped
+ * downstream by the rendering-type filter. Idempotent: re-expanding an expanded descriptor is a no-op.
+ */
+export function expandForBuild(
+  descriptor: TemplateDescriptor,
+  logger: AbstractLogger
+): ReturnType<typeof assertEffectsResolved> {
+  const cloned = structuredClone(descriptor);
+  const expansion = expandPartialsSafe(cloned);
+
+  if (!expansion.ok) {
+    // Unknown ref: keep the clone (the stray partial is skipped by compileVideoSegments, as before).
+    logger.warn(`[Director] partial expansion failed: ${expansion.error.message}`);
+  }
+
+  return assertEffectsResolved(expansion.ok ? expansion.data : cloned);
 }
 
 /** What the time-reference pass needs from the build: output frame, fps, locale and form fields. */
@@ -76,6 +106,32 @@ export function prepareMotion<T extends { meta?: unknown; global?: unknown; sect
   }
 
   return expandAutoSfx(resolved, timing);
+}
+
+/**
+ * prepareMotion for a template whose `global.beats` awaited a music analysis: the music track (already
+ * resolved to a local file) is measured first (director/beats-analysis.ts), then the template's
+ * descriptor is replaced by the prepared one.
+ */
+export async function prepareMeasuredMotion(
+  template: Template,
+  project: Project,
+  timing: TimingOptions
+): Promise<void> {
+  const measured = await analyzeTemplateMusic(template.descriptor, project.buildInfos.musicPath);
+
+  template.descriptor = prepareMotion(measured, timing);
+}
+
+/** Logs which sections the host bound recorded clips to. */
+export function logVideoPaths(config: ProjectConfig, logger: AbstractLogger): void {
+  const paths = config.userVideoPaths;
+
+  logger.info(
+    paths
+      ? `TemplateDirector received userVideoPaths for sections: ${Object.keys(paths).join(', ')}`
+      : 'TemplateDirector: No userVideoPaths provided in config'
+  );
 }
 
 type BoundaryTransition = ProjectBuildInfos['transitions'][number];

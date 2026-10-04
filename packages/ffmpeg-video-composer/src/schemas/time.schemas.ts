@@ -43,13 +43,32 @@ export const ElementIdSchema = TimeNameSchema.describe(
   'Id other time fields in this section reference as "<id>.start" / "<id>.end". Unique within the section.'
 );
 
+const BeatsPerBarSchema = z.number().int().min(1).max(16).optional().describe('Beats per bar (default 4).');
+
+// What an analysis (`leclap beats`, the analyze_music MCP tool, or the Node compile) reports with its grid.
+const AnalysisMarks = {
+  confidence: z
+    .number()
+    .min(0)
+    .optional()
+    .describe('Confidence of an analysed grid: z-score of its tempo peak; 3 or more is a clear pulse.'),
+  usable: z
+    .boolean()
+    .optional()
+    .describe(
+      'From an analysis: false when the music has no reliable pulse (calm, ambient). Validation then warns ' +
+        'beat_grid_low_confidence: pace such a track by phrases and section lengths, not beats.'
+    ),
+};
+
 export const BeatsSchema = z
   .union([
     z
       .object({
         bpm: z.number().min(20).max(400).describe('Tempo in beats per minute.'),
         offset: z.number().min(0).optional().describe('Video time of beat 1 in seconds (default 0).'),
-        beatsPerBar: z.number().int().min(1).max(16).optional().describe('Beats per bar (default 4).'),
+        beatsPerBar: BeatsPerBarSchema,
+        ...AnalysisMarks,
       })
       .strict(),
     z
@@ -60,15 +79,39 @@ export const BeatsSchema = z
           .max(4096)
           .refine((times) => times.every((time, i) => i === 0 || time > times[i - 1]), 'beat times must ascend')
           .describe('Beat times in video seconds, ascending (from an analysis of the music).'),
-        beatsPerBar: z.number().int().min(1).max(16).optional().describe('Beats per bar (default 4).'),
+        beatsPerBar: BeatsPerBarSchema,
+        ...AnalysisMarks,
+      })
+      .strict(),
+    z
+      .object({
+        analyze: z
+          .literal('music')
+          .describe(
+            'Measure the grid from the template music track at compile time (Node only; the browser and ' +
+              'on-device engines report beats_analysis_unavailable: precompute with `leclap beats` or analyze_music).'
+          ),
+        beatsPerBar: BeatsPerBarSchema,
       })
       .strict(),
   ])
   .describe(
-    'The beat grid of the whole video, for "beat:n" / "bar:n" time references: { bpm, offset?, beatsPerBar? } ' +
-      'or explicit { times } from a music analysis. Beats are 1-based and counted from the start of the video.'
+    'The beat grid of the whole video, for "beat:n" / "bar:n" time references and section lengths in beats: ' +
+      '{ bpm, offset?, beatsPerBar? }, explicit { times } from a music analysis, or { analyze: "music" } to ' +
+      'measure the music track when compiling on Node. Beats are 1-based and counted from the start of the video.'
   )
   .meta({ id: 'Beats' });
+
+export const BeatDurationSchema = z
+  .union([
+    z.object({ beats: z.number().positive().describe('Section length in beats of global.beats.') }).strict(),
+    z.object({ bars: z.number().positive().describe('Section length in bars of global.beats.') }).strict(),
+  ])
+  .describe(
+    'A section length counted on the beat grid: { beats: 8 } or { bars: 2 }. Needs global.beats with a bpm ' +
+      '(or { analyze: "music" } on Node); resolved to seconds before any time reference.'
+  )
+  .meta({ id: 'BeatDuration' });
 
 export const CuesSchema = z
   .record(TimeNameSchema, z.number().min(0))

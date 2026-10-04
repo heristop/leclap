@@ -193,7 +193,8 @@ interface SectionInput {
 
 function sectionTimeline(input: SectionInput, base: Omit<ElementFrame, 'duration' | 'prefix'>): SectionTimeline {
   const { section, index, outgoing, incoming } = input;
-  const declared = section.options?.duration;
+  // A length still in beats (the grid awaits the music analysis) counts as unknown.
+  const declared = typeof section.options?.duration === 'number' ? section.options.duration : undefined;
   const duration = declared ?? ASSUMED_SECTION_DURATION;
   const frame: ElementFrame = { ...base, duration, prefix: `sections[${index}]` };
   const events = [
@@ -220,9 +221,9 @@ function sectionTimeline(input: SectionInput, base: Omit<ElementFrame, 'duration
 
 /** Every animated element of every rendering section, on section-local seconds. */
 export function motionTimeline(descriptor: unknown): MotionTimeline {
-  const resolved = resolveTimeRefs(
-    resolveMotionDescriptor(descriptor as LooseDescriptor & { meta?: unknown })
-  ).descriptor;
+  const resolved = resolveTimeRefs(resolveMotionDescriptor(descriptor as LooseDescriptor & { meta?: unknown }), {
+    deferBeatsAnalysis: true,
+  }).descriptor;
   const global = resolved.global;
   const size = frameSize(global?.orientation);
   const base = { ...size, fps: global?.fps ?? DefaultConfig.FPS, energy: global?.motion?.energy ?? 1 };

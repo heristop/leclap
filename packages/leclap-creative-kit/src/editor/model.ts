@@ -29,10 +29,12 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { AudioMixPassthrough, ClipAudioPassthrough, EditorMotion, MotionBlocks } from './motion-passthrough';
+import type { AudioMixPassthrough, EditorMeta, EditorMotion, MotionBlocks } from './motion-passthrough';
 import type { DefaultTransition, SectionTransition } from './transition-types';
 export { DEFAULT_TRANSITION, type DefaultTransition, type SectionTransition } from './transition-types';
 export type { EditorMotion, MotionBlocks } from './motion-passthrough';
+import type { VisualAudio } from './visual-audio';
+export type { AudioEffect, AudioFadeSide, SectionAudioFade, VisualAudio } from './visual-audio';
 import type {
   Orientation,
   GlobalTextOverlaySchema,
@@ -87,12 +89,6 @@ export type CaptureMode = z.infer<typeof CaptureModeSchema>;
 // Every capture mode, in display order — the recorder default when a template doesn't restrict them.
 export const ALL_CAPTURE_MODES: readonly CaptureMode[] = CaptureModeSchema.options;
 
-// Voice effect applied to the section's own audio (descriptor options.audioEffect): echo (aecho),
-// telephone (band-pass), or muffled (low-pass). Hand-modeled rather than schema-inferred (like
-// SectionFit below) since SectionOptionsSchema keeps every option flattened on one object with no
-// standalone exported enum to `z.infer` from.
-export type AudioEffect = 'echo' | 'telephone' | 'muffled';
-
 // How a section's SOURCE footage maps into the output frame (descriptor options.forceAspectRatio /
 // forceOriginalAspectRatio, lowered by SegmentBuilder.prependScaleFilters — scale/crop/pad only,
 // LGPL-safe). 'cover' (default, omitted) fills the frame and centre-crops the overflow; 'letterbox'
@@ -140,25 +136,6 @@ export interface TextOverlay extends VideoOverlaySlot {
   // geometry (a 6em underline below the text); an AccentBar object adds position/length/thickness/
   // align knobs. Omitted = no bar.
   accent?: string | AccentBar;
-}
-
-// Per-section audio fade: applied to the music track at the start / end of a section.
-export interface AudioFadeSide {
-  duration: number;
-  curve?: string;
-}
-
-export interface SectionAudioFade {
-  in?: AudioFadeSide;
-  out?: AudioFadeSide;
-}
-
-// Visual-section audio extras: per-section music-volume override, fade-in/out, and voice effect.
-// Co-located with look/grade/motion because they all ride on visual sections only.
-export interface VisualAudio extends ClipAudioPassthrough {
-  musicVolume?: number;
-  audioFade?: SectionAudioFade;
-  audioEffect?: AudioEffect;
 }
 
 // Per-section playback tempo (descriptor options.speed, engine FormatterManager). NOTE the descriptor
@@ -399,7 +376,7 @@ export const DEFAULT_AUDIO_MIX: AudioMix = { sourceVolume: 1, musicVolume: 0.5, 
 // a freshly-added one. The guide is a recording aid only — never burned into the video.
 export const DEFAULT_FRAMING_OPACITY = 0.45;
 
-export interface EditorState extends Pick<NonNullable<TemplateDescriptor['meta']>, 'creativeDirection'> {
+export interface EditorState extends EditorMeta {
   id: string;
   // Motion settings (global.seed, global.motion); absent when the template sets none.
   motion?: EditorMotion;

@@ -17,6 +17,7 @@ import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas
 import { InputSchema, FieldSchema } from './section-media.schemas';
 import { MOTION_SECTION_FIELDS } from './motion-section.schemas';
 import { CLIP_AUDIO_OPTION_FIELDS } from './audio.schemas';
+import { META_INTENT_FIELDS, SECTION_INTENT_FIELDS } from './section-intent.schemas';
 
 export {
   CAPTION_STYLES,
@@ -136,6 +137,7 @@ export const BaseSectionSchema = z
     caption: CaptionSchema.optional().describe('Styled on-screen caption rendered as a drawtext filter.'),
     lowerThird: LowerThirdSchema.optional().describe('Title/subtitle band composited over the section clip.'),
     ...MOTION_SECTION_FIELDS,
+    ...SECTION_INTENT_FIELDS,
     look: z
       .enum(LOOK_PRESETS)
       .optional()
@@ -291,6 +293,7 @@ export const TemplateMetaSchema = z
           'avoidances and review criteria. Guides humans/agents; never interpreted or executed by the renderer. ' +
           'Implement the direction explicitly in sections, filters and effect props.'
       ),
+    ...META_INTENT_FIELDS,
     allowNondeterministic: z
       .boolean()
       .optional()

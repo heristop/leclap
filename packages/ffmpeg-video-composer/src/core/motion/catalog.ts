@@ -21,6 +21,7 @@ import {
 } from './catalog-guides';
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+import { motionRolesCatalog, type MotionRolesCatalog } from './catalog-roles';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
@@ -123,6 +124,8 @@ export interface MotionCatalog {
   /** `lowerThird.style` presets; `band` is the default look (no style). */
   lowerThirds: Record<string, Guided<{ description: string }>>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
+  /** Motion roles (micro, panel, camera, headline, accent, mascot): defaults, guidance and rules. */
+  roles: MotionRolesCatalog;
   /** Delivery platforms for `global.platform`: orientation, safe zones, max duration, loudness. */
   platforms: PlatformCatalogEntry[];
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
@@ -277,6 +280,7 @@ export function motionCatalog(): MotionCatalog {
     graphics: guided(GRAPHICS, GRAPHIC_GUIDES),
     lowerThirds: guided(LOWER_THIRDS, LOWER_THIRD_GUIDES),
     tokens: BUILTIN_MOTION_TOKENS,
+    roles: motionRolesCatalog(),
     platforms: platformCatalog(),
     themes: themeCatalog(),
     captions: captionCatalog(),

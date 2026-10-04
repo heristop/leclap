@@ -37,6 +37,12 @@ const GUIDE = [
     'split when it still overflows, held for `minDuration`, and kept inside the global.platform safe zones. ' +
     '`crown` ("auto" or a phrase) enlarges the one payoff line. validate_template reports caption_split / ' +
     'caption_shrunk / subtitle_past_end in motionWarnings. The caption sugar also accepts wrap ("balanced") and fit.',
+  'Motion roles: tag elements with `role` (micro, panel, camera, headline, accent, mascot) on kinetic blocks, ' +
+    'graphics, drawtext filters, titleCard, lowerThird and camera instead of hand-picking eases; the role fills ' +
+    'the ease (and duration) the element leaves unset, global.motion.roles overrides a role, and `$role.<name>` ' +
+    'works as an ease or keyframe-duration token. Give each section a one-sentence `purpose` and a narrative ' +
+    '`role` (hook, problem, product-intro, reveal, proof, cta, outro, bridge): metadata, never rendered; ' +
+    'meta.brief or meta.requirePurpose makes validate_template warn section_without_purpose.',
   'Delivery platforms: set global.platform (tiktok, reels/ig, shorts/yt-shorts, youtube, x/twitter, linkedin, ' +
     'facebook, square-feed) when the video has a destination. It defaults the orientation (portrait for ' +
     'tiktok/reels/shorts), lifts the default caption above the app UI, aims loudnorm at the platform loudness, ' +

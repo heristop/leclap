@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { EasingSpecSchema } from './motion.schemas';
+import { EasingSpecSchema, MotionRoleSchema } from './motion.schemas';
 import { ElementIdSchema, timeValue } from './time.schemas';
 import { TranslationSchema } from './global.schemas';
 
@@ -17,6 +17,7 @@ const timing = {
     .describe('When it animates in: seconds from the section start (default 0) or a time reference ("beat:8").'),
   duration: z.number().positive().max(3).optional().describe('Seconds the animation takes (default per type).'),
   ease: EasingSpecSchema.optional().describe('Curve of the animation (default per type, e.g. $expo).'),
+  role: MotionRoleSchema.optional(),
   until: timeValue(z.number().min(0))
     .optional()
     .describe('When it disappears: seconds or a time reference ("end - 0.3"); default: holds to the cut.'),

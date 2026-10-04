@@ -6,6 +6,7 @@ import { motionTimeline } from '@/core/motion/timeline';
 import { longestStill, type MotionEvent, type SectionTimeline } from '@/core/motion/timeline-model';
 import { expandPartialsSafe } from '@/core/partials';
 import { skippedAssertions } from './motion-assertions';
+import { roleWarnings } from './motion-roles-lint';
 
 export interface MotionWarning {
   path: string;
@@ -231,6 +232,7 @@ export function collectMotionWarnings(template: unknown): MotionWarning[] {
       ...transitionMonotony(timeline.sections),
       ...tempoFlat(timeline.sections),
       ...skippedAssertions(expansion.data, timeline),
+      ...roleWarnings(expansion.data, timeline),
     ];
   } catch {
     return [];

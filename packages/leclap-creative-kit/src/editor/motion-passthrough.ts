@@ -12,10 +12,17 @@ import type { Theme } from 'ffmpeg-video-composer/src/schemas/theme.schemas.ts';
 import type { Subtitles } from 'ffmpeg-video-composer/src/schemas/subtitles.schemas.ts';
 import type { AutomationKeyInput, SfxCue } from 'ffmpeg-video-composer/src/schemas/audio.schemas.ts';
 import type { VoicePreset } from 'ffmpeg-video-composer/src/core/audio/voice-presets.ts';
+import type { SectionRole } from 'ffmpeg-video-composer/src/schemas/section-intent.schemas.ts';
 
 export type MotionEase = EasingSpecInput;
 
-/** Per-section motion blocks. */
+/** Template meta the editor carries verbatim (creative direction, brief, purpose requirement). */
+export type EditorMeta = Pick<
+  NonNullable<TemplateDescriptor['meta']>,
+  'creativeDirection' | 'brief' | 'requirePurpose'
+>;
+
+/** Per-section motion blocks, plus the section intent (purpose, narrative role): never rendered, carried through. */
 export interface MotionBlocks {
   kinetic?: KineticBlock[];
   camera?: Camera;
@@ -24,6 +31,10 @@ export interface MotionBlocks {
   subtitles?: Subtitles;
   /** Section sound effects, carried verbatim. */
   sfx?: SfxCue[];
+  /** Why the section exists (authoring metadata). */
+  purpose?: string;
+  /** Narrative role: hook, problem, product-intro, reveal, proof, cta, outro, bridge. */
+  role?: SectionRole;
 }
 
 /** Template-wide motion settings. */
@@ -54,6 +65,8 @@ export function motionBlocksOf(source: MotionBlocks): MotionBlocks {
     ...(source.graphics ? { graphics: source.graphics } : {}),
     ...(source.subtitles ? { subtitles: source.subtitles } : {}),
     ...(source.sfx ? { sfx: source.sfx } : {}),
+    ...(source.purpose?.trim() ? { purpose: source.purpose.trim() } : {}),
+    ...(source.role ? { role: source.role } : {}),
   };
 }
 

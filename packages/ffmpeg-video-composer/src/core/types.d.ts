@@ -29,6 +29,7 @@ import type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
 export type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
 import type { VoicePreset } from './audio/voice-presets';
 import type { Beats } from './timing/timeline';
+import type { SectionRole } from '../schemas/section-intent.schemas';
 export type { Beats } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
@@ -130,6 +131,10 @@ interface TemplateMeta {
   name?: string;
   description?: string;
   creativeDirection?: string;
+  /** The production brief (one-liner or path); opts into the section_without_purpose advisory. */
+  brief?: string;
+  /** Ask every rendering section for a `purpose` (advisory). */
+  requirePurpose?: boolean;
   /** Skip the nondeterministic_expression validation (wall clock / unseeded random in raw filters). */
   allowNondeterministic?: boolean;
 }
@@ -283,6 +288,10 @@ export interface Section {
   letterbox?: Letterbox;
   motion?: MotionEffect[];
   chromaKey?: ChromaKey;
+  /** Why the section exists; authoring metadata, never rendered. */
+  purpose?: string;
+  /** Narrative role (hook, problem, product-intro, reveal, proof, cta, outro, bridge); never rendered. */
+  role?: SectionRole;
 }
 
 export interface PartialSection {

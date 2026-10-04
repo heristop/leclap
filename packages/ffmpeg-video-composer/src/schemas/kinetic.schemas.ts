@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TranslationSchema } from './global.schemas';
 import { TextEffectSchema } from './effects.schemas';
-import { EasingSpecSchema } from './motion.schemas';
+import { EasingSpecSchema, MotionRoleSchema } from './motion.schemas';
 import { ElementIdSchema, timeValue } from './time.schemas';
 
 // ── kinetic typography (docs/plans/motion-system-v2.md §4.1) ──────────────────────
@@ -96,6 +96,7 @@ export const KineticBlockSchema = z
       .optional()
       .describe('Seconds each unit takes to arrive. Omit with a spring ease to let physics decide.'),
     ease: EasingSpecSchema.optional().describe('Arrival curve (default per preset, e.g. $snappy, $bouncy, $expo).'),
+    role: MotionRoleSchema.optional(),
     distance: z
       .number()
       .min(0)

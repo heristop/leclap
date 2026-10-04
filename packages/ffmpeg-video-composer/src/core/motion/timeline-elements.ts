@@ -5,7 +5,7 @@ import type { KineticBlock } from '../../schemas/kinetic.schemas';
 import type { Graphic } from '../../schemas/graphics.schemas';
 import { blockTop, resolveExit, resolveKinetic, staggerRanks, type KineticFrame } from '../kinetic/resolve';
 import { codePoints, type Layout, type LayoutPiece } from '../kinetic/layout';
-import { layoutWithin } from '../../editor/presets/kinetic';
+import { layoutWithin } from '../kinetic/fit';
 import { graphicTiming } from '../../editor/presets/graphics';
 import {
   authoredId,
@@ -15,6 +15,7 @@ import {
   type ElementFrame,
   type MotionBox,
   type MotionEvent,
+  timeOf,
 } from './timeline-model';
 
 /** Graphics that are light hits or in-scene page turns rather than elements entering. */
@@ -127,11 +128,11 @@ export function kineticEvents(block: KineticBlock, index: number, frame: Element
 /** The animation of one graphic: when it draws on, on which curve, and how long it stays. */
 export function graphicEvent(graphic: Graphic, index: number, frame: ElementFrame): MotionEvent {
   const timing = graphicTiming(graphic, frame);
-  const at = graphic.at ?? 0;
+  const at = timeOf(graphic.at);
   const end = at + timing.duration;
   const element = `graphics[${index}]`;
   const id = authoredId(graphic);
-  const until = timing.holds ? (graphic.until ?? frame.duration) : end;
+  const until = timing.holds ? timeOf(graphic.until, frame.duration) : end;
   const bbox = timing.bbox
     ? { x: round(timing.bbox.x), y: round(timing.bbox.y), width: round(timing.bbox.w), height: round(timing.bbox.h) }
     : undefined;

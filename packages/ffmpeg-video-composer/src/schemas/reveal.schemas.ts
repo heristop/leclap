@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EasingSpecSchema } from './motion.schemas';
+import { timeValue } from './time.schemas';
 
 // ── reveal / exit (animated text entrance + exit) ────────────────────────────────
 //
@@ -54,4 +55,28 @@ export const ExitObjectSchema = z
 
 export const ExitSchema = z
   .union([z.enum(REVEAL_TYPES), ExitObjectSchema])
+  .describe('Animated text exit: a bare type ("fade") or an object with timing overrides.');
+
+// A positioned drawtext filter's reveal/exit: the same vocabulary, with time references on `delay` and
+// `after` ("title.end + 0.2", "beat:8 - 0.1"), resolved to seconds before lowering.
+export const TimedRevealSchema = z
+  .union([
+    z.enum(REVEAL_TYPES),
+    RevealObjectSchema.extend({
+      delay: timeValue(z.number().min(0))
+        .optional()
+        .describe('When the entrance starts: seconds (default 0.3) or a time reference ("title.end + 0.2").'),
+    }),
+  ])
+  .describe('Animated text entrance: a bare type ("rise") or an object with timing overrides.');
+
+export const TimedExitSchema = z
+  .union([
+    z.enum(REVEAL_TYPES),
+    ExitObjectSchema.extend({
+      after: timeValue(z.number().min(0))
+        .optional()
+        .describe('When the exit begins: seconds or a time reference ("end - 0.6"); default: ends with the section.'),
+    }),
+  ])
   .describe('Animated text exit: a bare type ("fade") or an object with timing overrides.');

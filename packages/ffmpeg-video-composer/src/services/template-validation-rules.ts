@@ -8,6 +8,7 @@ import { validateAssertions } from './motion-assertions';
 import { validateGlyphCoverage } from './glyph-coverage';
 import { nearest } from './validation/suggest';
 import type { ValidationError } from './validation/types';
+import { validateTimeRefs } from './time-ref-validation';
 
 export type { ValidationError, ValidationFindingKind } from './validation/types';
 
@@ -279,5 +280,6 @@ export function validateDescriptorRules(template: TemplateDescriptor): Validatio
     ...validateTheme(template),
     ...validateAssertions(template),
     ...validateGlyphCoverage(template),
+    ...validateTimeRefs(template),
   ];
 }

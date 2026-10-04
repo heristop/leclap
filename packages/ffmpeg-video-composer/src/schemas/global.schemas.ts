@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { MAX_SEED } from '../core/determinism/contract';
 import { MotionTokensSchema } from './motion.schemas';
 import { ThemeSchema } from './theme.schemas';
+import { BeatsSchema } from './time.schemas';
 import {
   TransitionSchema,
   GlobalAudioSchema,
@@ -214,6 +215,7 @@ export const GlobalConfigSchema = z
       ),
     motion: MotionTokensSchema.optional(),
     theme: ThemeSchema.optional(),
+    beats: BeatsSchema.optional(),
     fps: z
       .number()
       .int()

@@ -8,6 +8,7 @@ import type { Graphic } from '../../schemas/graphics.schemas';
 import DefaultConfig from '../default.config';
 import { DEFAULT_TRANSITION_DURATION } from '../../schemas/effects.schemas';
 import { resolveMotionDescriptor } from './tokens';
+import { resolveTimeRefs } from '../timing/resolve';
 import { resolveKeyTimes } from './tracks';
 import { DEFAULT_TRANSITION_EASE, isDesignedTransition } from './transitions';
 import { graphicEvent, kineticEvents } from './timeline-elements';
@@ -19,6 +20,7 @@ import {
   type MotionEvent,
   type MotionTimeline,
   type SectionTimeline,
+  timeOf,
 } from './timeline-model';
 
 export type { MotionBox, MotionEvent, MotionKind, MotionTimeline, SectionTimeline } from './timeline-model';
@@ -88,7 +90,7 @@ function cameraEvent(element: string, frame: ElementFrame, window: Partial<Motio
 function presetMove(camera: Camera, frame: ElementFrame): MotionEvent[] {
   if (!camera.preset || camera.preset === 'none' || camera.preset === 'handheld') return [];
 
-  const start = camera.delay ?? 0;
+  const start = timeOf(camera.delay);
   const end = start + (camera.duration ?? Math.max(0.1, frame.duration - start));
 
   return [
@@ -113,8 +115,8 @@ function trackMoves(camera: Camera, frame: ElementFrame): MotionEvent[] {
 
 function hitMoves(camera: Camera, frame: ElementFrame): MotionEvent[] {
   return (camera.hits ?? []).map((hit, index) => {
-    const at = typeof hit === 'number' ? hit : hit.at;
-    const decay = typeof hit === 'number' ? HIT_DECAY : (hit.decay ?? HIT_DECAY);
+    const at = typeof hit === 'object' ? timeOf(hit.at) : timeOf(hit);
+    const decay = typeof hit === 'object' ? (hit.decay ?? HIT_DECAY) : HIT_DECAY;
 
     return cameraEvent(`camera.hits[${index}]`, frame, {
       start: round(at),
@@ -214,7 +216,9 @@ function sectionTimeline(input: SectionInput, base: Omit<ElementFrame, 'duration
 
 /** Every animated element of every rendering section, on section-local seconds. */
 export function motionTimeline(descriptor: unknown): MotionTimeline {
-  const resolved = resolveMotionDescriptor(descriptor as LooseDescriptor & { meta?: unknown });
+  const resolved = resolveTimeRefs(
+    resolveMotionDescriptor(descriptor as LooseDescriptor & { meta?: unknown })
+  ).descriptor;
   const global = resolved.global;
   const size = frameSize(global?.orientation);
   const base = { ...size, fps: global?.fps ?? DefaultConfig.FPS, energy: global?.motion?.energy ?? 1 };

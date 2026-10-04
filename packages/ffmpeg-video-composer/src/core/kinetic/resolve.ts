@@ -5,6 +5,7 @@ import type { KineticBlock, KineticExit } from '../../schemas/kinetic.schemas';
 import { isLegacyEasing, parseEasing, type EasingSpec } from '../motion/easing';
 import { seededRandom } from '../determinism/hash';
 import { findFont } from '../fonts';
+import { seconds } from '../timing/seconds';
 import { KINETIC_PRESET_DEFAULTS } from './presets';
 import type { KineticAlign, KineticUnit, LayoutPiece } from './layout';
 
@@ -103,7 +104,7 @@ export function resolveKinetic(block: KineticBlock, frame: KineticFrame): Resolv
     ...type,
     preset: block.preset,
     unit,
-    delay: block.delay ?? 0.2,
+    delay: seconds(block.delay) ?? 0.2,
     stagger: block.stagger ?? preset.stagger[unit],
     duration: unitDuration(block.duration, ease, preset.duration),
     ease,
@@ -167,7 +168,7 @@ export function resolveExit(
 
   return {
     preset: authored.preset,
-    at: authored.at ?? Math.max(0, frame.duration - duration - maxRank * stagger - 1 / frame.fps),
+    at: seconds(authored.at) ?? Math.max(0, frame.duration - duration - maxRank * stagger - 1 / frame.fps),
     duration,
     stagger,
     ease: authored.ease ?? 'ease-in-cubic',

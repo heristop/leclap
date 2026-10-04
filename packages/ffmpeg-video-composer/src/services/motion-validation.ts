@@ -11,6 +11,8 @@ import { keyTimesError, type TrackKey } from '@/core/motion/tracks';
 import { FONT_ADVANCES } from '@/core/font-advances.generated';
 import { findFont } from '@/core/fonts';
 import { KINETIC_PRESET_DEFAULTS } from '@/core/kinetic/presets';
+import { parseTimeRef } from '@/core/timing/grammar';
+import { resolveTimeRefs } from '@/core/timing/resolve';
 
 import { withEasingHint } from './validation/easing-hint';
 import { nearest } from './validation/suggest';
@@ -123,9 +125,13 @@ function trackError(
   tokens: ResolvedTokens
 ): string | null {
   const resolved = keys.map((key) => ({ ...key, t: resolveTimeRef(key.t, tokens) }));
+
+  // A time reference left unresolved is reported by the time-reference rules.
+  if (resolved.some((key) => typeof key.t === 'string' && parseTimeRef(key.t))) return null;
+
   const badTime = resolved.find((key) => typeof key.t === 'string' && !/^\+?\d+(?:\.\d+)?$/.test(key.t));
 
-  if (badTime) return `time "${String(badTime.t)}" is not seconds, "+seconds" or a duration token`;
+  if (badTime) return `time "${String(badTime.t)}" is not seconds, "+seconds", a duration token or a time reference`;
 
   if ((axis === 'opacity' || axis === 'scale') && keys.some((key) => typeof key.v === 'string')) {
     return `${axis} keys take plain numbers, not relative offsets`;
@@ -193,7 +199,8 @@ function kineticErrors(template: TemplateDescriptor): ValidationError[] {
 }
 
 export function validateMotionSystem(template: TemplateDescriptor): ValidationError[] {
-  const uses = motionUses(template);
+  // Keyframe times may be time references: check the tracks as they will lower, in seconds.
+  const uses = motionUses(resolveTimeRefs(template).descriptor);
 
   const tokens = resolveTokens(template.global?.motion);
   const easingErrors = uses.filter((use) => use.kind === 'easing').map((use) => easingUseError(use, tokens));

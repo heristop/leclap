@@ -18,6 +18,7 @@ import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
 export type { BlueprintRole, MotionBlueprint } from './catalog-blueprints';
+import { TIME_REF_SYNTAX } from '../timing/grammar';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -64,14 +65,20 @@ const STARTER = {
       camera: { preset: 'push-in', amount: 0.08, hits: [0.6] },
       graphics: [{ type: 'flash', at: 0.6, duration: 0.25 }],
       kinetic: [
-        { text: { en: 'Make every word land.' }, preset: 'cascade', accent: { words: 'last' }, exit: 'cascade' },
+        {
+          id: 'headline',
+          text: { en: 'Make every word land.' },
+          preset: 'cascade',
+          accent: { words: 'last' },
+          exit: 'cascade',
+        },
         {
           text: { en: 'Physics, not keyframes' },
           preset: 'highlight',
           font: 'oswald',
           size: 46,
           y: 'bottom',
-          delay: 0.7,
+          delay: 'headline.end + 0.1',
         },
       ],
     },
@@ -104,8 +111,53 @@ export interface MotionCatalog {
   platforms: PlatformCatalogEntry[];
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
   themes: ThemeCatalog;
+  timing: typeof TIMING;
   starter: typeof STARTER;
 }
+
+// Time references: name the moment instead of computing it. Resolved to seconds at compile time.
+const TIMING = {
+  fields: [
+    'kinetic[].delay',
+    'kinetic[].exit.at',
+    'graphics[].at',
+    'graphics[].until',
+    'camera.delay',
+    'camera.hits[] / hits[].at',
+    'camera.zoom|x|y|rotate[].t',
+    'filters[].reveal.delay (drawtext)',
+    'filters[].exit.after (drawtext)',
+    'filters[].animate.*[].t',
+  ],
+  grammar: TIME_REF_SYNTAX,
+  bases: {
+    '<id>.start': 'When the element with that id (kinetic block, graphic, drawtext filter) in this section starts.',
+    '<id>.end':
+      'When its entrance has landed: kinetic = last unit arrived; graphic = at + duration; drawtext = reveal delay + duration.',
+    '<n>%': 'A fraction of the section duration (needs a known duration).',
+    end: 'The section end.',
+    'beat:<n>': 'The n-th beat of global.beats (1-based, counted on the whole video), as section time.',
+    'bar:<n>': 'The downbeat of bar n of global.beats.',
+    'cue:<name>': 'A named point in this section, from sections[].cues.',
+  },
+  examples: [
+    '"title.end + 0.2"',
+    '"title.start - 0.1"',
+    '"50%"',
+    '"end - 0.5"',
+    '"beat:12"',
+    '"bar:3 - 0.1"',
+    '"cue:drop - 0.1"',
+  ],
+  rules: [
+    'Give an element an id only when something references it; ids are unique within a section.',
+    'Hits (camera hits, flash graphics) land exactly on the beat: "beat:12".',
+    'Entrances read as on the beat when they lead it by 0.04–0.19 s: "beat:12 - 0.1".',
+    'Chain beats with references ("headline.end + 0.15") rather than adding seconds by hand.',
+    'beat/bar need global.beats ({ bpm, offset?, beatsPerBar? } or { times }) and every earlier section to declare options.duration.',
+  ],
+  errors: ['unknown_time_ref', 'circular_time_ref', 'unresolvable_time_ref', 'negative_time', 'duplicate_time_id'],
+};
 
 const BASIC_TRANSITIONS: Record<string, string> = {
   cut: 'A hard cut: free to render, lands on the beat.',
@@ -175,6 +227,7 @@ export function motionCatalog(): MotionCatalog {
     tokens: BUILTIN_MOTION_TOKENS,
     platforms: platformCatalog(),
     themes: themeCatalog(),
+    timing: TIMING,
     starter: STARTER,
   };
 }

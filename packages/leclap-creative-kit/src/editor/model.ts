@@ -19,6 +19,7 @@ import type {
   ChromaKeySchema,
   DuckingSchema,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
+import type { TimedRevealSchema, TimedExitSchema } from 'ffmpeg-video-composer/src/schemas/reveal.schemas.ts';
 // CaptureModeSchema is a value import (not type-only): ALL_CAPTURE_MODES reads .options off it at
 // runtime, so it can't join the `import type` group above it.
 import {
@@ -59,6 +60,9 @@ export type CaptionAlign = NonNullable<DescriptorCaption['align']>;
 // shape and build/import is a pass-through (the same approach as Grade/MotionEffect above).
 export type Reveal = z.infer<typeof RevealSchema>;
 export type Exit = z.infer<typeof ExitSchema>;
+// Drawtext overlays also accept time references ("title.end + 0.2") in reveal.delay / exit.after.
+export type OverlayReveal = z.infer<typeof TimedRevealSchema>;
+export type OverlayExit = z.infer<typeof TimedExitSchema>;
 export type TextEffect = z.infer<typeof TextEffectSchema>;
 export type ChromaKey = z.infer<typeof ChromaKeySchema>;
 // How an overlay maps into its "w:h" scale box: stretch (default, may distort) / contain / cover.
@@ -124,10 +128,10 @@ export interface TextOverlay extends VideoOverlaySlot {
   // option, which FilterManager.bakeTextAnimation overwrites with the reveal/exit expression.
   textOpacity?: number;
   // Animated entrance (rise/slide/fade); the engine bakes it onto the drawtext at compile.
-  reveal?: Reveal;
+  reveal?: OverlayReveal;
   // Animated exit (rise/slide/fade out) after a delay, timed against the section duration; the engine
   // bakes it alongside the entrance at compile.
-  exit?: Exit;
+  exit?: OverlayExit;
   // Drop shadow / outline for legibility over busy footage; lowered to drawtext
   // shadowx/shadowy/shadowcolor + borderw/bordercolor keys (see overlayFilters).
   effect?: TextEffect;

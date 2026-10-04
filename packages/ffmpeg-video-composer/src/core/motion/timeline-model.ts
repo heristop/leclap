@@ -104,6 +104,15 @@ export function authoredId(element: unknown): string | undefined {
   return typeof id === 'string' && id !== '' ? id : undefined;
 }
 
+/**
+ * A time field as seconds for the timeline. The timeline runs on the time-resolved descriptor, so a string
+ * here is a reference the pass could not resolve (reported by validation); it falls back instead of throwing,
+ * because pacing feedback is advisory.
+ */
+export function timeOf(value: number | string | undefined, fallback = 0): number {
+  return typeof value === 'number' ? value : fallback;
+}
+
 export function round(value: number): number {
   return Math.round(value * 1000) / 1000;
 }

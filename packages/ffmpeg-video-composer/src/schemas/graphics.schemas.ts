@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { EasingSpecSchema } from './motion.schemas';
+import { ElementIdSchema, timeValue } from './time.schemas';
 
 // ── animated graphics (docs/plans/motion-system-v2.md §4.4) ──────────────────────
 //
@@ -8,10 +9,15 @@ import { EasingSpecSchema } from './motion.schemas';
 // behind an `enable` window: frame-exact, deterministic, and on every backend.
 
 const timing = {
-  at: z.number().min(0).optional().describe('Seconds from the section start when it animates in (default 0).'),
+  id: ElementIdSchema.optional(),
+  at: timeValue(z.number().min(0))
+    .optional()
+    .describe('When it animates in: seconds from the section start (default 0) or a time reference ("beat:8").'),
   duration: z.number().positive().max(3).optional().describe('Seconds the animation takes (default per type).'),
   ease: EasingSpecSchema.optional().describe('Curve of the animation (default per type, e.g. $expo).'),
-  until: z.number().min(0).optional().describe('Seconds when it disappears (default: holds to the cut).'),
+  until: timeValue(z.number().min(0))
+    .optional()
+    .describe('When it disappears: seconds or a time reference ("end - 0.3"); default: holds to the cut.'),
   color: z.string().optional().describe('Colour, "#rrggbb" or "#rrggbb@alpha" (default per type).'),
   above: z.boolean().optional().describe('Draw above text (default: true for flash and wipe, false otherwise).'),
 };

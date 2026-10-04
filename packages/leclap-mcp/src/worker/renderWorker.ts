@@ -14,6 +14,7 @@ import {
 
 import { isGeometryJob, runGeometryJob, type GeometryJob, type GeometryJobResult } from './geometry-job.js';
 import { createProgressReporter, type ProgressMessage } from './progress-reporter.js';
+import { isSnapshotJob, runSnapshotJob, type SnapshotJob, type SnapshotJobResult } from './snapshot-job.js';
 
 // Job sent from the parent over the IPC channel. The parent never reads this process's
 // stdout/stderr for the result — that fd is polluted by the core's console.log/pino — so the
@@ -32,7 +33,7 @@ type WorkerResult =
 // so the parent sees only 'exit' and reports a successful render as a failure. Exit ONLY from the
 // send callback (fired once the channel has accepted the message); fall back to a plain exit when
 // there is no IPC channel (worker run standalone).
-function sendAndExit(message: WorkerResult | GeometryJobResult): void {
+function sendAndExit(message: WorkerResult | GeometryJobResult | SnapshotJobResult): void {
   if (!process.send) {
     process.exit(0);
   }
@@ -82,9 +83,15 @@ async function resolveResult(job: RenderJob): Promise<WorkerResult> {
   }
 }
 
-async function handleMessage(job: RenderJob | GeometryJob): Promise<void> {
+async function handleMessage(job: RenderJob | GeometryJob | SnapshotJob): Promise<void> {
   if (isGeometryJob(job)) {
     sendAndExit(await runGeometryJob(job));
+
+    return;
+  }
+
+  if (isSnapshotJob(job)) {
+    sendAndExit(await runSnapshotJob(job));
 
     return;
   }
@@ -92,6 +99,6 @@ async function handleMessage(job: RenderJob | GeometryJob): Promise<void> {
   sendAndExit(await resolveResult(job));
 }
 
-process.on('message', (job: RenderJob | GeometryJob) => {
+process.on('message', (job: RenderJob | GeometryJob | SnapshotJob) => {
   handleMessage(job).catch(() => process.exit(1));
 });

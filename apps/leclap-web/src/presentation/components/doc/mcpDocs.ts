@@ -84,10 +84,23 @@ export const mcpDoc: McpDoc = {
     },
     {
       name: 'get_motion_catalog',
-      args: 'no arguments',
+      args: 'query?, kind?',
       purpose:
-        'Returns the motion catalog: kinetic presets, camera moves, graphics, designed transitions, the easing and time-reference grammar, motion tokens, themes, delivery platforms, genre doctrine and validated scene blueprints.',
-      when: 'Use before authoring animated copy, camera moves, graphics or designed transitions.',
+        'Returns the motion catalog: kinetic presets, camera moves, graphics, designed transitions, the easing and time-reference grammar, motion tokens, themes, delivery platforms, genre doctrine and validated scene blueprints. With a query, returns ranked matches instead (optionally one kind).',
+      when: 'Use before authoring animated copy, camera moves, graphics or designed transitions. An empty search carries a gap: report it with report_catalog_gap.',
+    },
+    {
+      name: 'report_catalog_gap',
+      args: 'query, wanted',
+      purpose: 'Appends what the catalog could not answer to a JSONL log under the output dir.',
+      when: 'Use when get_motion_catalog returns a gap for a need.',
+    },
+    {
+      name: 'get_timeline',
+      args: 'template, format?',
+      purpose:
+        'Returns the timeline on whole-video seconds, render-free: sections with absolute start/end, every motion event, the beat grid and cues.',
+      when: 'Use to pick render_frames moments and to align hits with beats.',
     },
     {
       name: 'validate_template',
@@ -123,6 +136,13 @@ export const mcpDoc: McpDoc = {
       purpose:
         'Validates then renders an inline descriptor. Returns outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec and renderId, plus a resource_link to the mp4. Effect templates also report effectProvenance and effectCache.',
       when: 'Use after validation succeeds and every project_video section has a clip in userVideoPaths.',
+    },
+    {
+      name: 'render_frames',
+      args: 'template, at?, atTransitions?, perSection?, sheet?, safe?, zoom?, variants?, looks?, fields?, userVideoPaths?, locale?, format?',
+      purpose:
+        'Renders a native template (through the section cache) and returns still frames as PNG image content plus their paths: chosen moments, both sides of every cut, each settled section; contact sheets, platform safe-zone shading, crops, variant and LOOK comparison grids.',
+      when: 'Use after validate_template to look at the result and check safe zones before the final compose_video.',
     },
     {
       name: 'probe_media',
@@ -228,6 +248,14 @@ export const mcpDoc: McpDoc = {
       fallback: '536870912 (512 MiB)',
       detail:
         'Artifact cache under <media-dir>/.leclap-effects/cache-v1, with at most 256 entries. Zero disables lookup/publication; invalid values use the default.',
+    },
+    {
+      label: 'Catalog gap log',
+      flag: '--catalog-gap-log',
+      env: 'LECLAP_MCP_CATALOG_GAP_LOG',
+      fallback: 'catalog-gaps.jsonl',
+      detail:
+        'JSONL file report_catalog_gap appends to, relative to the output dir. Paths that resolve outside the output dir are refused.',
     },
   ],
   // Mirrors the one-click editor deep-links in docMarkdown.ts, which install via npx. Env values are

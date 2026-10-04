@@ -4,7 +4,6 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { loadCustomEffectCatalog } from './effects/custom-effect-catalog.js';
 import type { McpConfig } from './config.js';
 import { registerGetTemplateSchema } from './tools/getTemplateSchema.js';
-import { registerGetMotionCatalog } from './tools/getMotionCatalog.js';
 import { registerCompose } from './tools/composeVideo.js';
 import { registerProbe } from './tools/probeMedia.js';
 import { registerExtractStyle } from './tools/extractStyle.js';
@@ -18,6 +17,7 @@ import { registerPatchTemplate } from './tools/patchTemplate.js';
 import { validateEffects } from './effects/title-registry.js';
 import { registerSamples } from './tools/samples.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
+import { registerInspectTools } from './tools/inspectTools.js';
 
 // Each tool group is registered by a small `registerXxx(server, config)` function, called from
 // `createServer`. The surface is authoring-only: schema, validate, compose, probe, the Remotion
@@ -76,9 +76,9 @@ export function createServer(input: McpConfig): McpServer {
   registerPing(server, config);
   registerSamples(server);
   registerGetTemplateSchema(server);
-  registerGetMotionCatalog(server);
   registerValidateTemplate(server, config);
   registerCompose(server, config);
+  registerInspectTools(server, config);
 
   if (config.allowRemotion) {
     registerGetEffectSchema(server, config);

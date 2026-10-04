@@ -11,3 +11,5 @@ export { mediaTraits, type ProbeVideoStream } from './core/footage/media-traits'
 export * from './platform/ffmpeg/capability-exports-node';
 // Partial expansion with its advisories (partial_compressed) and structured failures.
 export { expandPartialsReport, PartialError, type PartialFinding } from './core/partials';
+// Frame snapshots, comparisons, the whole-video timeline and catalog search (services/snapshot-api-node.ts).
+export * from './services/snapshot-api-node';

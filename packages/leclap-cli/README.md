@@ -25,6 +25,9 @@ leclap samples show <id>  # inspect direction and requirements (also --json)
 leclap samples export <id> # raw descriptor JSON to stdout (or --output <new-file>)
 leclap verify <manifest>  # check a video against its render manifest (--rerender to re-render and compare)
 leclap style <reference>  # derive a theme + style guide from an image or clip (--json, --out style-guide.md)
+leclap snapshot <template> # render and save still frames (PNG) of chosen moments, contact sheets
+leclap compare <a> <b>    # the same moment of several templates in one labelled grid
+leclap timeline <template> # sections, motion events, beats and cues on video seconds (--json)
 leclap diagnose           # check your FFmpeg setup and what it can render (--json for the report)
 leclap --help             # usage (per-command help with `leclap <command> --help`)
 leclap --version
@@ -147,6 +150,31 @@ with first — a build without libfreetype has no `drawtext` — and without one
 render-free findings and says why it skipped. Text over a user recording (`project_video`) is not
 measured — the recording does not exist yet — and over template footage one frame is only one
 frame, so that finding keeps the render-free one beside it.
+
+## `snapshot` — look at the result
+
+`snapshot` renders a template (through the per-section cache, so a second look costs a copy, not an
+encode) and saves still frames as PNGs. Moments are seconds or time references read on the whole
+video: a section edge (`intro.end`), an element id (`title.end + 0.2`), `50%`, `end`, `beat:8`, `bar:2`,
+`cue:drop`.
+
+```bash
+leclap snapshot template.json --at 1.5,intro.end      # explicit moments (comma-separated or repeated)
+leclap snapshot template.json --at-transitions        # each cut, 0.1 s before and 0.2 s after
+leclap snapshot template.json --per-section           # each section once its entrances have landed (default)
+leclap snapshot template.json --at-transitions --sheet 3x2 --safe tiktok --out frames/
+leclap snapshot template.json --at 4 --zoom 0.5,0,0.5,0.5   # crop x,y,w,h (fractions, or pixels)
+leclap snapshot template.json --at 2 --looks          # the section at 2 s, once per LOOK preset, in one grid
+leclap compare a.json b.json --at 3                   # the same moment of each template, labelled
+leclap timeline template.json --json                  # where everything sits, without rendering
+leclap snapshot template.json --format portrait       # one format of a template with `formats` (default: its own)
+```
+
+`--sheet COLSxROWS` tiles the frames into labelled contact sheets (time and section on each tile);
+`--safe <platform>` shades that platform's UI zones in translucent red, so text hiding under the
+caption block or the action buttons is obvious. `--cache <dir>` names the section cache (default: a
+shared temp directory); `--json` prints every frame's path, time, section and size. Frames land in
+`./frames` unless `--out` says otherwise.
 
 ## `style` — match a reference look
 

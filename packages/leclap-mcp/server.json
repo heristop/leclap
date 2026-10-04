@@ -76,6 +76,13 @@
           "format": "filepath",
           "isRequired": false,
           "isSecret": false
+        },
+        {
+          "name": "LECLAP_MCP_CATALOG_GAP_LOG",
+          "description": "JSONL log report_catalog_gap appends to, relative to and always under the output dir. Defaults to catalog-gaps.jsonl.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
         }
       ]
     }
@@ -102,7 +109,15 @@
           },
           {
             "name": "get_motion_catalog",
-            "description": "Return the motion catalog: kinetic presets, camera moves, graphics, designed transitions, easing grammar, motion tokens, themes, delivery platforms and art-direction rules."
+            "description": "Return the motion catalog: kinetic presets, camera moves, graphics, designed transitions, easing grammar, motion tokens, themes, delivery platforms and art-direction rules, or ranked matches for a query."
+          },
+          {
+            "name": "report_catalog_gap",
+            "description": "Record a motion need the catalog could not answer to a JSONL log under the output dir."
+          },
+          {
+            "name": "get_timeline",
+            "description": "Return the template timeline on video seconds: sections, motion events, beats and cues, without rendering."
           },
           {
             "name": "validate_template",
@@ -111,6 +126,10 @@
           {
             "name": "compose_video",
             "description": "Render a template to an MP4 with FFmpeg and return the output path."
+          },
+          {
+            "name": "render_frames",
+            "description": "Render a native template and return still frames as PNG images: chosen moments, cuts, contact sheets, safe zones, comparisons."
           },
           {
             "name": "probe_media",
@@ -146,7 +165,7 @@
           }
         ],
         "prompts": ["compose-video"],
-        "notes": "Twelve tools are always registered. get_effect_schema, render_preview and render_remotion_clip require the Remotion opt-in. Registered JSON effects use operator-configured trusted source and require a configured backend for validation, patching and rendering; callers cannot select executable source through effect JSON. patch_template remains registered when Remotion is disabled."
+        "notes": "Fifteen tools are always registered. get_effect_schema, render_preview and render_remotion_clip require the Remotion opt-in. Registered JSON effects use operator-configured trusted source and require a configured backend for validation, patching and rendering; callers cannot select executable source through effect JSON. patch_template remains registered when Remotion is disabled."
       }
     }
   }

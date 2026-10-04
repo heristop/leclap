@@ -10,6 +10,9 @@ export const KNOWN_COMMANDS = [
   'style',
   'studio',
   'beats',
+  'snapshot',
+  'compare',
+  'timeline',
 ] as const;
 
 // Pure preprocess applied to process.argv before handing off to the command router. Bare paths /

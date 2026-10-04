@@ -1,6 +1,6 @@
 # Motion System v2: deterministic, expressive, native
 
-> Status: proposal · Owner: motion/engine · Scope: `ffmpeg-video-composer`, `leclap-creative-kit`, `leclap-mcp`,
+> Status: P0 and P1 delivered (branch `feat/motion-p0-p1`); P2–P6 proposed · Owner: motion/engine · Scope: `ffmpeg-video-composer`, `leclap-creative-kit`, `leclap-mcp`,
 > `leclap-web`, `leclap-expo`, with `leclap-brand-motion` as the quality reference.
 
 ## 0. The brief
@@ -41,7 +41,7 @@ All later phases depend on this one, so it ships first.
 | #   | Rule                                                                                                                                                                                                                           | Enforcement                                                                                           |
 | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
 | D1  | **Compile is pure.** `compile(template, assetsDigest, platformProfile) → filtergraph` with no clocks, no `Math.random`, no environment reads beyond the declared profile.                                                      | Lint rule banning `Date`, `Math.random`, `performance.now` under `src/editor/**`, `src/schemas/**`    |
-| D2  | **Frame-indexed time.** Animated expressions use `n/FPS` (a compile-time constant), not `t`, after a forced CFR `fps` stage. VFR phone footage can no longer drift a keyframe.                                                 | All motion lowering goes through one `timeExpr()` helper; snapshot tests assert no bare `t`           |
+| D2  | **Frame-grid time.** Under v2 every section chain starts with a CFR `fps` conform, so `t` in each animated expression is an exact frame time and variable-frame-rate phone footage can't drift a keyframe.                     | `editor/presets/motion-v2-chain.ts`; the render tests assert the conform                              |
 | D3  | **Seeded procedurality.** New `global.seed` (uint32, default `0`). Every procedural element derives `seed = hash32(global.seed, elementPath)` (FNV-1a). Shake paths, particle positions, scramble glyphs and grain all use it. | Schema: procedural effects reject a missing derived seed; `noise` always emits `all_seed=`            |
 | D4  | **Raw-filter hygiene.** User `filters[]` may not contain `random(`, `%{localtime`, `%{gmtime`, `time(` or `pts` text expansions in `drawtext`.                                                                                 | `TemplateValidator` error `nondeterministic_expression`, with an opt-out flag `allowNondeterministic` |
 | D5  | **Bit-exact muxing.** Add `-fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1` and fixed `-threads` for libx264 in the deterministic encoder tier.                                                       | Encoder tier `deterministic` in `encoding.ts`; this tier is the default for the CLI and MCP           |

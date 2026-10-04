@@ -10,7 +10,7 @@ import { applyReveal, applyTextEffect, hasText, staggered, type RevealInput, typ
 import { lowerThirdToFilters, type LowerThird, type LowerThirdContext } from './text-blocks';
 import { parseScale, round } from './text-blocks-helpers';
 import { boxes, sampleSteps, windowExpr, type Rect } from './graphics-spec';
-import { roundedBands } from './rounded-panel';
+import { roundedBands } from './rounded-bands';
 import { LOWER_THIRD_STYLE_REVEALS, type LowerThirdStyle } from '../../schemas/text.schemas';
 
 const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';

@@ -1,39 +1,21 @@
 import type { Filter, Section, TemplateDescriptorGlobal } from '@/core/types';
 import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letterboxToFilters } from './looks';
-import { captionToFilters } from './captions';
-import { titleCardToFilters, globalTextOverlayToFilters } from './text-blocks';
-import { lowerThirdFilters } from './lower-third-styles';
-import { kineticBlocksToFilters } from './kinetic';
+import { globalTextOverlayToFilters } from './text-blocks';
 import { sectionLayoutFilters } from './layout';
-import { subtitlesToFilters } from './subtitles';
 import { cameraBackground } from './camera';
-import { freezeFlashFilters, graphicsToFilters } from './graphics';
+import { OVERLAY_SUGAR_COMPILERS, type SugarCompiler, type SugarLayer } from './overlay-sugars';
 
 export type { SugarContext, KineticSugarContext } from './sugar-context';
+export type { SugarCompiler, SugarLayer } from './overlay-sugars';
 export { compositingContext, createExtraInputs } from './compositing';
 // Emoji leave the lowered text right after the sugar compiles (editor/emoji); re-exported so the builder
 // stages both from one place.
 export { createEmojiPlan, type EmojiPlan } from '../emoji/EmojiPlan';
 import type { SugarContext } from './sugar-context';
 
-// Where a sugar's filters sit relative to an animation/gradient overlay graph:
-// - 'background' bakes into the video before overlays (colour grade, motion, layers).
-// - 'overlay' draws on top of the composited frame (text: caption, titleCard, lowerThird) so it is
-//   visible above an animation overlay rather than buried under it.
-export type SugarLayer = 'background' | 'overlay';
-
-// A single structured-sugar field (look/grade/motion/caption/…) and how it lowers to raw filters.
-// `order` fixes its position in the section's filter chain; lower runs first. Registering a new
-// sugar is one entry here — SegmentBuilder reads the registry rather than hardcoding the set/order.
-export type SugarCompiler = {
-  key: string;
-  order: number;
-  layer: SugarLayer;
-  compile: (section: Section, ctx: SugarContext) => Filter[];
-};
-
-// Order preserves the previous hardcoded chain: layers → motion → grade → look → letterbox → caption.
-export const SUGAR_COMPILERS: SugarCompiler[] = [
+// The background sugars bake into the video before overlays. The overlay sugars (caption onward) live in
+// overlay-sugars.ts so validation can lower them without loading these.
+const BACKGROUND_SUGAR_COMPILERS: SugarCompiler[] = [
   {
     // Split screen / before-after: composes the frame first, so everything below grades the whole.
     key: 'layout',
@@ -77,58 +59,10 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     layer: 'background',
     compile: (section, ctx) => letterboxToFilters(section.letterbox, ctx),
   },
-  {
-    key: 'caption',
-    order: 50,
-    layer: 'overlay',
-    compile: (section, ctx) => captionToFilters(section.caption, ctx),
-  },
-  {
-    key: 'titleCard',
-    order: 55,
-    layer: 'overlay',
-    compile: (section, ctx) =>
-      titleCardToFilters(section.titleCard, { scale: ctx.scale, backgroundColor: section.options?.backgroundColor }),
-  },
-  {
-    key: 'lowerThird',
-    order: 58,
-    layer: 'overlay',
-    compile: (section, ctx) =>
-      lowerThirdFilters(section.lowerThird, { scale: ctx.scale, fps: ctx.fps, resolveText: ctx.motion?.resolveText }),
-  },
-  {
-    key: 'graphics',
-    order: 52,
-    layer: 'overlay',
-    compile: (section, ctx) => graphicsToFilters(section, ctx, false),
-  },
-  {
-    key: 'kinetic',
-    order: 60,
-    layer: 'overlay',
-    compile: (section, ctx) => kineticBlocksToFilters(section.kinetic, ctx),
-  },
-  {
-    key: 'subtitles',
-    order: 65,
-    layer: 'overlay',
-    compile: (section, ctx) => subtitlesToFilters(section.subtitles, ctx),
-  },
-  {
-    key: 'graphics-above',
-    order: 70,
-    layer: 'overlay',
-    compile: (section, ctx) => graphicsToFilters(section, ctx, true),
-  },
-  {
-    // A freeze frame's optional flash hit (options.freeze[].flash), on top of everything like a flash graphic.
-    key: 'freeze-flash',
-    order: 75,
-    layer: 'overlay',
-    compile: (section, ctx) => freezeFlashFilters(section, ctx),
-  },
 ];
+
+// Order preserves the previous hardcoded chain: layers → motion → grade → look → letterbox → caption.
+export const SUGAR_COMPILERS: SugarCompiler[] = [...BACKGROUND_SUGAR_COMPILERS, ...OVERLAY_SUGAR_COMPILERS];
 
 /**
  * Lowers the section's structured-sugar fields into raw filters, split by layer and sorted by each

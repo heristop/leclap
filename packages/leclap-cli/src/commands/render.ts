@@ -10,12 +10,14 @@ import {
   FFmpegAvailability,
   type CompileReporter,
   type ProjectConfig,
+  type RenderManifest,
 } from 'ffmpeg-video-composer';
 import { setEngineLogLevel } from '../log.js';
 import { LiveRenderer } from '../render-progress.js';
 import { buildProjectConfig, collectRepeated, withOrientation, type RenderFlags } from '../render-args.js';
 import { summaryLine, safeSize } from '../render-format.js';
 import { watchPaths } from '../watch.js';
+import { finalizeOutput, writeManifest } from '../render-manifest.js';
 import { fail, hint } from '../ui.js';
 import { compileFailure, errorMessage, printErrorHints } from '../render-errors.js';
 import { wordmark, statusRow, ok, bad, dot } from '../theme.js';
@@ -31,6 +33,8 @@ interface RenderOptions {
   json: boolean;
   verbose: boolean;
   watch: boolean;
+  /** `--manifest`: write `<output>.manifest.json` next to the video. */
+  manifest: boolean;
 }
 
 // Every value of a repeatable flag. They come from raw argv, because citty keeps only the last value
@@ -63,32 +67,26 @@ async function ensureTemplateExists(templatePath: string, json: boolean): Promis
   }
 }
 
-// Copy the engine's `build/output.mp4` to the user's `--output` path (engine output naming is fixed;
-// per-render placement is the CLI's concern). Returns the path the summary should report.
-async function finalizeOutput(result: string, outputAbs: string | undefined): Promise<string> {
-  if (!outputAbs) return result;
-
-  await fs.mkdir(path.dirname(outputAbs), { recursive: true });
-  await fs.copyFile(result, outputAbs);
-
-  return outputAbs;
-}
-
 // Re-load the template (so watch picks up edits), compile, and place the output. Throws on failure,
 // with the engine's own cause (e.g. which section failed) when it reported one.
 async function compileOnce(opts: RenderOptions, reporter?: CompileReporter): Promise<string> {
   const template = withOrientation(await loadConfig(opts.templatePath), opts.orientation);
-  const failure: { error?: Error } = {};
+  const captured: { error?: Error; manifest?: RenderManifest } = {};
   const result = await compile(opts.projectConfig, template, {
     ...reporter,
     onError: (error) => {
-      failure.error = error;
+      captured.error = error;
     },
+    ...(opts.manifest && { onManifest: (manifest: RenderManifest) => (captured.manifest = manifest) }),
   });
 
-  if (!result) throw compileFailure(failure.error);
+  if (!result) throw compileFailure(captured.error);
 
-  return finalizeOutput(result, opts.outputAbs);
+  const output = await finalizeOutput(result, opts.outputAbs);
+
+  if (captured.manifest) writeManifest(output, captured.manifest);
+
+  return output;
 }
 
 export const render = defineCommand({
@@ -106,6 +104,16 @@ export const render = defineCommand({
     quiet: { type: 'boolean', alias: 'q', description: 'Print only the final result', default: false },
     json: { type: 'boolean', description: 'Emit a machine-readable JSON result', default: false },
     verbose: { type: 'boolean', description: 'Stream the underlying engine logs', default: false },
+    manifest: {
+      type: 'boolean',
+      description: 'Write <output>.manifest.json (digests for leclap verify)',
+      default: false,
+    },
+    deterministic: {
+      type: 'boolean',
+      description: 'Bit-exact muxing + pinned encoder threads (--no-deterministic to disable)',
+      default: true,
+    },
   },
   async run({ args, rawArgs }) {
     const json = args.json;
@@ -126,9 +134,11 @@ export const render = defineCommand({
       orientation: args.orientation,
       assets: args.assets,
       build: args.build,
+      deterministic: args.deterministic,
     };
 
-    const opts = buildOptions(args.template, flags, { quiet, json, verbose, watch: args.watch, output: args.output });
+    const mode = { quiet, json, verbose, watch: args.watch, output: args.output, manifest: args.manifest };
+    const opts = buildOptions(args.template, flags, mode);
 
     await fs.mkdir(opts.projectConfig.buildDir, { recursive: true });
 
@@ -142,6 +152,7 @@ interface ModeFlags {
   verbose: boolean;
   watch: boolean;
   output?: string;
+  manifest: boolean;
 }
 
 // Assemble RenderOptions; surfaces a bad `--field`/`--video` value as a clean error + exit.
@@ -156,6 +167,7 @@ function buildOptions(templatePath: string, flags: RenderFlags, mode: ModeFlags)
       json: mode.json,
       verbose: mode.verbose,
       watch: mode.watch,
+      manifest: mode.manifest,
     };
   } catch (error) {
     return emitError(errorMessage(error), mode.json);

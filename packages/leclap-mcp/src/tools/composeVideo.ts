@@ -161,6 +161,9 @@ async function buildProjectConfig(
     userVideoPaths,
     fields: args.fields,
     currentLocale: args.locale,
+    // Agent renders are evidence: the same descriptor must yield the same bytes (bit-exact muxing,
+    // pinned encoder threads; see the engine's core/determinism/command-tap.ts).
+    deterministic: true,
   };
 }
 

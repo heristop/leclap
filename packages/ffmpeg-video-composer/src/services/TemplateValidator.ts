@@ -5,14 +5,7 @@ import {
   type TemplateDescriptor,
   type Section,
 } from '../schemas/template.schemas';
-import {
-  validateTransitions,
-  validateMotion,
-  validateGlobalAnimations,
-  validateGlobalWatermark,
-  validateFonts,
-  type ValidationError,
-} from './template-validation-rules';
+import { validateDescriptorRules, type ValidationError } from './template-validation-rules';
 import { expandPartialsSafe } from '@/core/partials';
 import type { GeometryWarning, FontLoader } from './geometry';
 
@@ -244,14 +237,7 @@ export class TemplateValidator {
   // Runs every descriptor-level rule (beyond the zod schema itself) and merges their errors. Extracted
   // out of validateParsed to keep that function under the statement-count lint budget.
   private collectDescriptorErrors(template: TemplateDescriptor): ValidationError[] {
-    return [
-      ...this.validateSectionReferences(template),
-      ...validateTransitions(template),
-      ...validateMotion(template),
-      ...validateGlobalAnimations(template),
-      ...validateGlobalWatermark(template),
-      ...validateFonts(template),
-    ];
+    return [...this.validateSectionReferences(template), ...validateDescriptorRules(template)];
   }
 
   validateSection(sectionData: unknown): ValidationResult {

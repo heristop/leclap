@@ -13,6 +13,7 @@ export type {
 } from './descriptor-text';
 import type { Reveal, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 import type { FontInput } from './fonts';
+import type { RenderManifest } from './determinism/manifest';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -34,6 +35,10 @@ export type CompileReporter = {
   onLog?: (line: { level: 'debug' | 'info' | 'warn' | 'error'; message: string }) => void;
   // Called once with the cause when compile() resolves null — e.g. a SectionError naming the section.
   onError?: (error: Error) => void;
+  // Node only. When set, compile() builds the render manifest (template/graph/asset/output digests, see
+  // core/determinism/manifest.ts) after a successful render and hands it here. Hashing costs one read of
+  // the output and inputs, so it only runs when a host asks for it.
+  onManifest?: (manifest: RenderManifest) => void;
 };
 export type ProjectConfig = {
   buildDir?: string;
@@ -52,6 +57,9 @@ export type ProjectConfig = {
   // Named render-quality tier resolved by core/encoding.ts (default 'standard'). Encoder numbers
   // (crf/preset/bitrate) stay an app concern — templates never carry them.
   qualityTier?: 'draft' | 'standard' | 'high';
+  // Deterministic encoder profile (bit-exact muxing, fixed libx264 threads), applied to every FFmpeg
+  // command of the build. Default: on for `meta.motionVersion: 2` templates, off otherwise.
+  deterministic?: boolean;
 };
 
 export type MusicConfig = {
@@ -96,11 +104,17 @@ interface TemplateMeta {
   name?: string;
   description?: string;
   creativeDirection?: string;
+  /** Motion semantics pin: 1 (default) = historical output, 2 = the v2 motion system. */
+  motionVersion?: 1 | 2;
+  /** Skip the nondeterministic_expression validation (wall clock / unseeded random in raw filters). */
+  allowNondeterministic?: boolean;
 }
 
 export interface TemplateDescriptorGlobal {
   variables?: Variables;
   orientation?: string;
+  /** Root seed (uint32) for procedural effects; each element derives hash(seed, path). Default 0. */
+  seed?: number;
   fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;

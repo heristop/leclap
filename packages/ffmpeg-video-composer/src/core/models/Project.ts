@@ -23,6 +23,9 @@ class Project {
   public finalVideo = '';
   public progress = 0;
   public errors: string[] = [];
+  // Every FFmpeg command the current build ran (after the deterministic profile), for the render
+  // manifest. Filled by director/prepare-build.ts, cleared with the rest of the build state.
+  public ffmpegCommands: string[] = [];
 
   constructor() {
     this.init();
@@ -65,6 +68,7 @@ class Project {
     // loadMusic leaves musicPath untouched when no track resolves, and it may still hold the last build's loop copy.
     bi.musicPath = '';
     this.errors.length = 0;
+    this.ffmpegCommands.length = 0;
     this.finalVideo = '';
   };
 

@@ -13,7 +13,7 @@ import { fetchSectionInfos, segmentOutputPath } from './section-infos';
 import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
-import { resolveOrientationScale, resolveFps } from './resolve-video-config';
+import { recordBuildCommands, resolveBuildVideoConfig } from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import { expandPartialsSafe, assertEffectsResolved } from '@/core/partials';
@@ -113,8 +113,11 @@ class TemplateDirector {
     this.filesystemAdapter.setAssetsDir(this.project.config.assetsDir ?? 'assets');
 
     this.project.applyDefault();
-    this.applyOrientationToScale();
-    this.applyFpsToConfig();
+    // Resolve orientation + fps ONCE, here — the single point where the descriptor and the project config meet.
+    this.project.config.videoConfig = resolveBuildVideoConfig(
+      this.project.config.videoConfig,
+      this.template.descriptor
+    );
 
     const paths = this.project.config.userVideoPaths;
     this.logger.info(
@@ -126,22 +129,10 @@ class TemplateDirector {
     return this;
   };
 
-  // Resolve orientation + fps ONCE, here — the single point where the descriptor and the project
-  // config meet. Pure resolution lives in resolve-video-config (line-budget + testability); replaces
-  // the old per-SegmentBuilder orientation swap, which mutated the shared config per segment and
-  // alternated orientation across them.
-  private readonly applyOrientationToScale = (): void => {
-    this.project.config.videoConfig = resolveOrientationScale(
-      this.project.config.videoConfig,
-      this.template.descriptor.global?.orientation
-    );
-  };
-
-  private readonly applyFpsToConfig = (): void => {
-    this.project.config.videoConfig = resolveFps(this.project.config.videoConfig, this.template.descriptor.global?.fps);
-  };
-
   construct = async (): Promise<string | null> => {
+    // Deterministic encoder profile + command record for the render manifest (director/prepare-build.ts).
+    const restoreAdapter = recordBuildCommands(this.ffmpegAdapter, this.project, this.template.descriptor);
+
     try {
       await getPerfTimer().span('director:init', () => this.init());
 
@@ -155,6 +146,7 @@ class TemplateDirector {
 
       return null;
     } finally {
+      restoreAdapter();
       // The browser / React Native event manager hands every compile the SAME emitter, so drop this
       // director's listener once its build settles — otherwise each render leaks the director through it.
       this.emitter.off?.('task-cancelled', this.onTaskCancelled);

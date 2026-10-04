@@ -1,6 +1,7 @@
 import { findFont, isFontRef, type FontInput } from '@/core/fonts';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
+import { findNondeterministicExpressions } from '@/core/determinism/hygiene';
 
 export interface ValidationError {
   path: string;
@@ -212,4 +213,28 @@ export function validateMotion(template: TemplateDescriptor): ValidationError[] 
   }
 
   return errors;
+}
+
+// nondeterministic_expression: a raw filter reads the wall clock or an unseeded random stream, so the
+// same template would render different frames on every run (docs/plans/motion-system-v2.md, D4).
+export function validateDeterminism(template: TemplateDescriptor): ValidationError[] {
+  if (template.meta?.allowNondeterministic) return [];
+
+  return findNondeterministicExpressions(template).map(({ path, token }) => ({
+    path,
+    message: `"${token}" makes the render nondeterministic (wall clock or unseeded random); use global.seed-driven presets, or set meta.allowNondeterministic`,
+    code: 'nondeterministic_expression',
+  }));
+}
+
+/** Every descriptor-level rule beyond the zod schema, in reporting order. */
+export function validateDescriptorRules(template: TemplateDescriptor): ValidationError[] {
+  return [
+    ...validateTransitions(template),
+    ...validateMotion(template),
+    ...validateGlobalAnimations(template),
+    ...validateGlobalWatermark(template),
+    ...validateFonts(template),
+    ...validateDeterminism(template),
+  ];
 }

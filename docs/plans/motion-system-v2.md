@@ -38,24 +38,24 @@ compares it side by side with the Remotion original.
 
 All later phases depend on this one, so it ships first.
 
-| #   | Rule                                                                                                                                                                                                  | Enforcement                                                                                      |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| D1  | **Compile is pure.** `compile(template, assetsDigest, platformProfile) → filtergraph` with no clocks, no `Math.random`, no environment reads beyond the declared profile.                                | Lint rule banning `Date`, `Math.random`, `performance.now` under `src/editor/**`, `src/schemas/**` |
-| D2  | **Frame-indexed time.** Animated expressions use `n/FPS` (a compile-time constant), not `t`, after a forced CFR `fps` stage. VFR phone footage can no longer drift a keyframe.                                 | All motion lowering goes through one `timeExpr()` helper; snapshot tests assert no bare `t`        |
-| D3  | **Seeded procedurality.** New `global.seed` (uint32, default `0`). Every procedural element derives `seed = hash32(global.seed, elementPath)` (FNV-1a). Shake paths, particle positions, scramble glyphs and grain all use it. | Schema: procedural effects reject a missing derived seed; `noise` always emits `all_seed=`      |
-| D4  | **Raw-filter hygiene.** User `filters[]` may not contain `random(`, `%{localtime`, `%{gmtime`, `time(` or `pts` text expansions in `drawtext`.                                                                   | `TemplateValidator` error `nondeterministic_expression`, with an opt-out flag `allowNondeterministic` |
-| D5  | **Bit-exact muxing.** Add `-fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1` and fixed `-threads` for libx264 in the deterministic encoder tier.                             | Encoder tier `deterministic` in `encoding.ts`; this tier is the default for the CLI and MCP      |
-| D6  | **Versioned motion semantics.** New `meta.motionVersion` (default `1` = today's output). Presets, spring solver and easing tables are versioned, so a preset retune can never change an old render. | Golden filtergraph snapshots per `motionVersion`                                                  |
-| D7  | **Render manifest.** Each render emits `render.manifest.json` with template hash (canonical JSON), asset hashes, seed, motionVersion, engine version, FFmpeg build ID, filtergraph hash and output hash. | Extends existing MCP provenance and adds a `leclap verify manifest.json` command                  |
+| #   | Rule                                                                                                                                                                                                                           | Enforcement                                                                                           |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| D1  | **Compile is pure.** `compile(template, assetsDigest, platformProfile) → filtergraph` with no clocks, no `Math.random`, no environment reads beyond the declared profile.                                                      | Lint rule banning `Date`, `Math.random`, `performance.now` under `src/editor/**`, `src/schemas/**`    |
+| D2  | **Frame-indexed time.** Animated expressions use `n/FPS` (a compile-time constant), not `t`, after a forced CFR `fps` stage. VFR phone footage can no longer drift a keyframe.                                                 | All motion lowering goes through one `timeExpr()` helper; snapshot tests assert no bare `t`           |
+| D3  | **Seeded procedurality.** New `global.seed` (uint32, default `0`). Every procedural element derives `seed = hash32(global.seed, elementPath)` (FNV-1a). Shake paths, particle positions, scramble glyphs and grain all use it. | Schema: procedural effects reject a missing derived seed; `noise` always emits `all_seed=`            |
+| D4  | **Raw-filter hygiene.** User `filters[]` may not contain `random(`, `%{localtime`, `%{gmtime`, `time(` or `pts` text expansions in `drawtext`.                                                                                 | `TemplateValidator` error `nondeterministic_expression`, with an opt-out flag `allowNondeterministic` |
+| D5  | **Bit-exact muxing.** Add `-fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1` and fixed `-threads` for libx264 in the deterministic encoder tier.                                                       | Encoder tier `deterministic` in `encoding.ts`; this tier is the default for the CLI and MCP           |
+| D6  | **Versioned motion semantics.** New `meta.motionVersion` (default `1` = today's output). Presets, spring solver and easing tables are versioned, so a preset retune can never change an old render.                            | Golden filtergraph snapshots per `motionVersion`                                                      |
+| D7  | **Render manifest.** Each render emits `render.manifest.json` with template hash (canonical JSON), asset hashes, seed, motionVersion, engine version, FFmpeg build ID, filtergraph hash and output hash.                       | Extends existing MCP provenance and adds a `leclap verify manifest.json` command                      |
 
 **Test pyramid for determinism**
 
-- *Filtergraph goldens* (platform-independent): snapshot the compiled graph for every kit template and every
+- _Filtergraph goldens_ (platform-independent): snapshot the compiled graph for every kit template and every
   motion preset. These are fast, run on every PR and catch 90% of regressions.
-- *Frame goldens* (per platform): decode frames at semantic timestamps (entrance start, peak overshoot,
+- _Frame goldens_ (per platform): decode frames at semantic timestamps (entrance start, peak overshoot,
   settle, exit) and compare with an SSIM threshold of 0.995 per platform profile (`node-x264`, `wasm`,
   `android-openh264`, `ios-vt`).
-- *Twice-render check*: render each kit template twice in CI on Node and assert byte-identical MP4 under D5.
+- _Twice-render check_: render each kit template twice in CI on Node and assert byte-identical MP4 under D5.
 
 **Payoff:** time is a pure input, so any frame renders independently (`-ss` + one frame). That gives instant
 scrubbing in the builder and agent previews of native sections at the cost of a single frame (§7).
@@ -93,13 +93,13 @@ alike.
 
 ### 2.1 Easing engine (all compile-time, all pure expressions)
 
-| Curve                       | Lowering                                                                                                                                               |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Existing 4 + `ease-in`, `ease-in-out-cubic`, `ease-out-expo`, `ease-out-quart`, `ease-in-out-sine`, `ease-out-circ` | Closed form in FFmpeg expression grammar (`pow`, `exp`, `sin`, `sqrt`).                    |
-| `spring(k, c, m, v0)`       | Analytical damped harmonic oscillator. The solver picks under-, critically- or over-damped form at compile time and emits `1-exp(-ζω·τ)·(cos(ωd·τ)+…)`. The settle time (`|x-1| < 0.001`) becomes the derived duration. |
-| `cubic-bezier(x1,y1,x2,y2)` | Solved at compile time with Newton–Raphson plus bisection fallback. The curve is sampled into a 16-segment piecewise **cubic Hermite** emitted as nested `if(lt(p,…))`, with max error < 0.002. |
-| `steps(n, start|end)`       | `floor(p*n)/n`, for stop-motion and typewriter beats.                                                                                                    |
-| `keyframed`                 | Arbitrary user curve (`[[0,0],[0.4,1.08],[1,1]]`) → monotone cubic interpolation, same Hermite emitter.                                                  |
+| Curve                                                                                                               | Lowering                                                                                                                                                                                        |
+| ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Existing 4 + `ease-in`, `ease-in-out-cubic`, `ease-out-expo`, `ease-out-quart`, `ease-in-out-sine`, `ease-out-circ` | Closed form in FFmpeg expression grammar (`pow`, `exp`, `sin`, `sqrt`).                                                                                                                         |
+| `spring(k, c, m, v0)`                                                                                               | Analytical damped harmonic oscillator. The solver picks under-, critically- or over-damped form at compile time and emits `1-exp(-ζω·τ)·(cos(ωd·τ)+…)`. The settle time (`                      | x-1                                                   | < 0.001`) becomes the derived duration. |
+| `cubic-bezier(x1,y1,x2,y2)`                                                                                         | Solved at compile time with Newton–Raphson plus bisection fallback. The curve is sampled into a 16-segment piecewise **cubic Hermite** emitted as nested `if(lt(p,…))`, with max error < 0.002. |
+| `steps(n, start                                                                                                     | end)`                                                                                                                                                                                           | `floor(p*n)/n`, for stop-motion and typewriter beats. |
+| `keyframed`                                                                                                         | Arbitrary user curve (`[[0,0],[0.4,1.08],[1,1]]`) → monotone cubic interpolation, same Hermite emitter.                                                                                         |
 
 Guardrails: expression length budget per filter (FFmpeg's parser handles roughly 10 k chars comfortably; we
 cap at 4 k and fold shared sub-terms into `st()/ld()` registers). Overshoot is clamped so the element's
@@ -122,13 +122,13 @@ so legacy output is unchanged under `motionVersion: 1`.
 }
 ```
 
-| Target                            | Animatable properties (→ FFmpeg)                                                                                                   |
-| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Text (`drawtext`)                 | `x`, `y`, `opacity` (alpha), `scale` (fontsize expr), `tracking` (per-glyph x when split), `color` (2-stop via split layers), `borderw` |
-| Overlay (`inputs[]`, layers)      | `x`, `y`, `opacity` (via `colorchannelmixer` + `enable` windows or pre-baked alpha), `scale` (per-frame `scale` with `eval=frame`), `rotation` (`rotate` with `a=` expr) |
-| Shapes (`drawbox`, new §4.4)      | `x`, `y`, `w`, `h`, `opacity`, `thickness`                                                                                          |
-| Camera (§4.2)                     | `zoom`, `panX`, `panY`, `rotate`, `shake`                                                                                           |
-| Look (§4.5)                       | `vignette.angle`, `grade.brightness` (via `eq` eval=frame on Node, `lutyuv` approximation on device), `grain`                       |
+| Target                       | Animatable properties (→ FFmpeg)                                                                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Text (`drawtext`)            | `x`, `y`, `opacity` (alpha), `scale` (fontsize expr), `tracking` (per-glyph x when split), `color` (2-stop via split layers), `borderw`                                  |
+| Overlay (`inputs[]`, layers) | `x`, `y`, `opacity` (via `colorchannelmixer` + `enable` windows or pre-baked alpha), `scale` (per-frame `scale` with `eval=frame`), `rotation` (`rotate` with `a=` expr) |
+| Shapes (`drawbox`, new §4.4) | `x`, `y`, `w`, `h`, `opacity`, `thickness`                                                                                                                               |
+| Camera (§4.2)                | `zoom`, `panX`, `panY`, `rotate`, `shake`                                                                                                                                |
+| Look (§4.5)                  | `vignette.angle`, `grade.brightness` (via `eq` eval=frame on Node, `lutyuv` approximation on device), `grain`                                                            |
 
 Time grammar: absolute seconds, `"+0.3"` relative to the previous key, `"@beat:4"` (§5), or anchors
 `"after:headline.settle+0.1"`. Anchors resolve at compile time into a single static timeline. They are
@@ -147,18 +147,18 @@ The text splitter uses `font-metrics.ts` (HarfBuzz-compatible advances for the 1
 line into words or graphemes. Each piece becomes its own `drawtext` at a precomputed x. That gives Remotion-class
 choreography on device.
 
-| Preset                  | Look                                                       | Key options                                                                   |
-| ----------------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `kinetic.cascade`       | Words rise in sequence on a spring                          | `unit: word|glyph`, `stagger`, `order: forward|reverse|center-out|random(seed)`, `distance`, `spring` |
-| `kinetic.tracking-in`   | Wide tracking collapses to tight (Apple keynote title)      | `from`, `to`, `ease`, `blurIn` (alpha ghost trail)                             |
-| `kinetic.mask-rise`     | Words emerge from behind a baseline                        | Lowered as a `crop`ped text layer composited per line (overlay of a pre-rendered text plane) |
-| `kinetic.highlight`     | Marker sweep behind a word                                 | `word`, `color`, `sweepDuration`, `skew`, `radius`                             |
-| `kinetic.scramble`      | Decode/cipher effect, seeded glyph sets settling L→R        | `charset`, `settleStagger`, `seed`                                             |
-| `kinetic.typewriter`    | Glyph-by-glyph with optional caret blink                    | `cps`, `caret`, `jitter(seed)`                                                 |
-| `kinetic.counter`       | Number rolls to a value (`%{eif:…}`)                        | `from`, `to`, `ease`, `format`, `prefix/suffix`                                |
-| `kinetic.split-slide`   | Halves travel in opposition and lock                        | `axis`, `distance`, `spring`                                                   |
-| `kinetic.impact`        | Scale punch with overshoot plus camera hit (pairs with 4.2) | `peak`, `hitFrames`                                                            |
-| `kinetic.wave`          | Continuous sine bob across glyphs (idle life during holds)  | `amplitude`, `wavelength`, `speed` — capped by motion lint                     |
+| Preset                | Look                                                        | Key options                                                                                  |
+| --------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `kinetic.cascade`     | Words rise in sequence on a spring                          | `unit: word                                                                                  | glyph`, `stagger`, `order: forward | reverse | center-out | random(seed)`, `distance`, `spring` |
+| `kinetic.tracking-in` | Wide tracking collapses to tight (Apple keynote title)      | `from`, `to`, `ease`, `blurIn` (alpha ghost trail)                                           |
+| `kinetic.mask-rise`   | Words emerge from behind a baseline                         | Lowered as a `crop`ped text layer composited per line (overlay of a pre-rendered text plane) |
+| `kinetic.highlight`   | Marker sweep behind a word                                  | `word`, `color`, `sweepDuration`, `skew`, `radius`                                           |
+| `kinetic.scramble`    | Decode/cipher effect, seeded glyph sets settling L→R        | `charset`, `settleStagger`, `seed`                                                           |
+| `kinetic.typewriter`  | Glyph-by-glyph with optional caret blink                    | `cps`, `caret`, `jitter(seed)`                                                               |
+| `kinetic.counter`     | Number rolls to a value (`%{eif:…}`)                        | `from`, `to`, `ease`, `format`, `prefix/suffix`                                              |
+| `kinetic.split-slide` | Halves travel in opposition and lock                        | `axis`, `distance`, `spring`                                                                 |
+| `kinetic.impact`      | Scale punch with overshoot plus camera hit (pairs with 4.2) | `peak`, `hitFrames`                                                                          |
+| `kinetic.wave`        | Continuous sine bob across glyphs (idle life during holds)  | `amplitude`, `wavelength`, `speed` — capped by motion lint                                   |
 
 Budget: at most 48 `drawtext` instances per section on device (enforced, measured in the perf bench). Above
 that, the splitter degrades from glyph to word granularity with a warning.
@@ -184,17 +184,17 @@ which keeps one resample per section.
 `xfade` is already on every backend, including its `transition=custom:expr=…` mode, so we can ship a library
 of **custom pure-expression transitions** with easing applied to `P`. No filter rebuild is needed.
 
-| Preset                   | Description                                                                  |
-| ------------------------ | ---------------------------------------------------------------------------- |
-| `push.{dir}`             | iOS-style push. Both plates move with a spring, and the outgoing plate dims 20%. |
-| `zoom-through`           | Outgoing scales up and fades while incoming settles from 1.08 (the "Apple Event" cut). |
-| `iris.soft`              | Circular reveal with feathered edge (`feather` px), centre configurable or anchored on an element. |
-| `luma-wipe`              | Wipe driven by a bundled grayscale map (`gradients` or PNG: radial, clock, brush, noise(seed)). |
-| `slice.{n}`              | N staggered bands (seeded order) for editorial montages.                      |
-| `glitch`                 | Seeded block displacement plus RGB split on the boundary frames.              |
-| `light-flash`            | Brightness bloom to white with exposure curve, the native `Flash`.            |
-| `match-scale`            | Scale-matched cut on a shared anchor (logo, product) for match cuts.          |
-| `whip.{dir}`             | Pairs with camera whip; smear plus offset.                                    |
+| Preset         | Description                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| `push.{dir}`   | iOS-style push. Both plates move with a spring, and the outgoing plate dims 20%.                   |
+| `zoom-through` | Outgoing scales up and fades while incoming settles from 1.08 (the "Apple Event" cut).             |
+| `iris.soft`    | Circular reveal with feathered edge (`feather` px), centre configurable or anchored on an element. |
+| `luma-wipe`    | Wipe driven by a bundled grayscale map (`gradients` or PNG: radial, clock, brush, noise(seed)).    |
+| `slice.{n}`    | N staggered bands (seeded order) for editorial montages.                                           |
+| `glitch`       | Seeded block displacement plus RGB split on the boundary frames.                                   |
+| `light-flash`  | Brightness bloom to white with exposure curve, the native `Flash`.                                 |
+| `match-scale`  | Scale-matched cut on a shared anchor (logo, product) for match cuts.                               |
+| `whip.{dir}`   | Pairs with camera whip; smear plus offset.                                                         |
 
 Every transition accepts `easing` (any token), `duration`, and `audio: "crossfade"|"cut"|"swoosh"` (swoosh
 uses bundled SFX, chosen deterministically).
@@ -222,14 +222,14 @@ uses bundled SFX, chosen deterministically).
 These are one-line, high-level, versioned recipes built from 4.1–4.5. They are the fastest path to a dynamic
 video and the main vocabulary for agents.
 
-| Recipe                    | What it composes                                                                     |
-| ------------------------- | ------------------------------------------------------------------------------------ |
-| `keynote-title@1`         | Ink canvas, tracking-in headline, gradient underline sweep, slow push-in, soft flash out |
-| `impact-statement@1`      | Word cascade on `$bouncy`, camera hit on the last word, shockwave, grade pump        |
-| `product-hero@1`          | Device plate with orbit camera, light pass, kicker plus counter stat, zoom-through exit |
-| `feature-triplet@1`       | Three beats on a rhythm grid, each with `push` transition and alternating layouts    |
-| `stat-burst@1`            | Counter roll, highlight sweep, sparks on completion                                  |
-| `outro-lockup@1`          | Logo spring, wordmark tracking, CTA hold ≥ 2.5 s, letterbox release                  |
+| Recipe               | What it composes                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------- |
+| `keynote-title@1`    | Ink canvas, tracking-in headline, gradient underline sweep, slow push-in, soft flash out |
+| `impact-statement@1` | Word cascade on `$bouncy`, camera hit on the last word, shockwave, grade pump            |
+| `product-hero@1`     | Device plate with orbit camera, light pass, kicker plus counter stat, zoom-through exit  |
+| `feature-triplet@1`  | Three beats on a rhythm grid, each with `push` transition and alternating layouts        |
+| `stat-burst@1`       | Counter roll, highlight sweep, sparks on completion                                      |
+| `outro-lockup@1`     | Logo spring, wordmark tracking, CTA hold ≥ 2.5 s, letterbox release                      |
 
 Recipes are data (JSON partials with typed parameters), not code, so the MCP catalog, builder, CLI and Expo
 all read the same source.
@@ -252,16 +252,16 @@ all read the same source.
 
 `leclap validate` gains a `motion` category with machine-readable findings for humans, the builder and agents.
 
-| Rule                         | Default                                                                                      |
-| ---------------------------- | -------------------------------------------------------------------------------------------- |
-| `readable_hold`              | Text must be settled for at least `0.4 s + words/3.5 s` before exit or cut                   |
-| `concurrent_motion`          | At most 3 independently moving elements in any 200 ms window (scaled by `energy`)            |
-| `easing_consistency`         | Warn when one section mixes more than 2 curve families                                      |
-| `overshoot_safe_area`        | Spring overshoot and travel must remain inside title-safe (error)                            |
-| `transition_density`         | Warn when more than 50% of boundaries are non-cut (cost on device and visual fatigue)        |
-| `photosensitivity`           | Error on flashes > 3 Hz or full-frame luminance swings > 20% at > 3 Hz (WCAG 2.3.1)           |
-| `device_budget`              | `drawtext` count, expression length, overlay count against the platform profile               |
-| `reduced_motion`             | Every template gets a free `energy: 0` variant (fades only) for accessibility exports        |
+| Rule                  | Default                                                                               |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `readable_hold`       | Text must be settled for at least `0.4 s + words/3.5 s` before exit or cut            |
+| `concurrent_motion`   | At most 3 independently moving elements in any 200 ms window (scaled by `energy`)     |
+| `easing_consistency`  | Warn when one section mixes more than 2 curve families                                |
+| `overshoot_safe_area` | Spring overshoot and travel must remain inside title-safe (error)                     |
+| `transition_density`  | Warn when more than 50% of boundaries are non-cut (cost on device and visual fatigue) |
+| `photosensitivity`    | Error on flashes > 3 Hz or full-frame luminance swings > 20% at > 3 Hz (WCAG 2.3.1)   |
+| `device_budget`       | `drawtext` count, expression length, overlay count against the platform profile       |
+| `reduced_motion`      | Every template gets a free `energy: 0` variant (fades only) for accessibility exports |
 
 ---
 
@@ -299,14 +299,14 @@ all read the same source.
 
 ## 8. Platform matrix
 
-| Capability                     | Node | WASM | Device | Notes                                                                 |
-| ------------------------------ | :--: | :--: | :----: | --------------------------------------------------------------------- |
-| Tokens, springs, bezier, tracks |  ✅  |  ✅  |   ✅   | Pure expressions                                                      |
-| Kinetic type (word/glyph)      |  ✅  |  ✅  |   ✅   | Budgeted drawtext count                                               |
-| Camera rig                     |  ✅  |  ✅  |   ✅   | `zoompan` / `scale eval=frame` + `crop`                               |
-| Custom xfade transitions       |  ✅  |  ✅  |   ✅   | `xfade custom` already compiled in                                    |
-| Glow / motion-blur echo        |  ✅  |  ✅  |   ⚠️   | Needs `blend`, `tmix`; device uses pre-baked plates until Phase 5 rebuild |
-| Perspective device plates      |  ✅  |  ✅  |   ⚠️   | `perspective` not in device build; flat fallback                      |
+| Capability                      | Node | WASM | Device | Notes                                                                     |
+| ------------------------------- | :--: | :--: | :----: | ------------------------------------------------------------------------- |
+| Tokens, springs, bezier, tracks |  ✅  |  ✅  |   ✅   | Pure expressions                                                          |
+| Kinetic type (word/glyph)       |  ✅  |  ✅  |   ✅   | Budgeted drawtext count                                                   |
+| Camera rig                      |  ✅  |  ✅  |   ✅   | `zoompan` / `scale eval=frame` + `crop`                                   |
+| Custom xfade transitions        |  ✅  |  ✅  |   ✅   | `xfade custom` already compiled in                                        |
+| Glow / motion-blur echo         |  ✅  |  ✅  |   ⚠️   | Needs `blend`, `tmix`; device uses pre-baked plates until Phase 5 rebuild |
+| Perspective device plates       |  ✅  |  ✅  |   ⚠️   | `perspective` not in device build; flat fallback                          |
 
 **Phase 5 device build:** evaluate adding `blend`, `tmix`, `perspective`, `geq`-free `displace` (all LGPL) to
 `scripts/ffmpeg/common.sh`. Gate on binary size (+ < 400 KB per ABI) and `verify-filters.sh`.
@@ -315,15 +315,15 @@ all read the same source.
 
 ## 9. Roadmap
 
-| Phase | Deliverable                                                                                             | Exit criteria                                                                                 |
-| ----- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| **P0** | Determinism contract D1–D7, filtergraph goldens for all kit templates, `render.manifest.json`, `leclap verify` | Twice-render byte-identical on Node for all 10 kit templates; CI goldens green              |
-| **P1** | Motion tokens, easing engine (spring/bezier/steps), `animate` tracks, sugar lowered to tracks (v1 parity) | `motionVersion: 1` goldens unchanged; spring vs reference ODE error < 0.002                  |
-| **P2** | Kinetic typography (10 presets) + text splitter + device budget                                         | Native `kinetic.cascade` frame-matches the Remotion `elastic-stagger` within SSIM 0.97 on device |
-| **P3** | Camera rig + custom-expression transition library + shapes/light/texture                                | All presets have contact sheets; perf bench ≤ 1.3× current per-section render time on device |
-| **P4** | Rhythm grid + `leclap analyze` + recipes (6) + motion lint                                              | Each kit template re-authored with recipes; lint clean; reduced-motion variant renders        |
-| **P5** | Builder timeline/curve editor/scrub, Expo recipe UI, MCP catalog/preview/lint, optional device filter additions | Agent produces a lint-clean, recipe-based 30 s promo from a brief in ≤ 3 patch rounds       |
-| **P6** | **Hero proof:** rebuild the `LeClapShowcase` title + finale beats in pure template JSON              | Side-by-side with Remotion original on the landing page; renders on an iPhone and a mid Android |
+| Phase  | Deliverable                                                                                                     | Exit criteria                                                                                    |
+| ------ | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| **P0** | Determinism contract D1–D7, filtergraph goldens for all kit templates, `render.manifest.json`, `leclap verify`  | Twice-render byte-identical on Node for all 10 kit templates; CI goldens green                   |
+| **P1** | Motion tokens, easing engine (spring/bezier/steps), `animate` tracks, sugar lowered to tracks (v1 parity)       | `motionVersion: 1` goldens unchanged; spring vs reference ODE error < 0.002                      |
+| **P2** | Kinetic typography (10 presets) + text splitter + device budget                                                 | Native `kinetic.cascade` frame-matches the Remotion `elastic-stagger` within SSIM 0.97 on device |
+| **P3** | Camera rig + custom-expression transition library + shapes/light/texture                                        | All presets have contact sheets; perf bench ≤ 1.3× current per-section render time on device     |
+| **P4** | Rhythm grid + `leclap analyze` + recipes (6) + motion lint                                                      | Each kit template re-authored with recipes; lint clean; reduced-motion variant renders           |
+| **P5** | Builder timeline/curve editor/scrub, Expo recipe UI, MCP catalog/preview/lint, optional device filter additions | Agent produces a lint-clean, recipe-based 30 s promo from a brief in ≤ 3 patch rounds            |
+| **P6** | **Hero proof:** rebuild the `LeClapShowcase` title + finale beats in pure template JSON                         | Side-by-side with Remotion original on the landing page; renders on an iPhone and a mid Android  |
 
 Each phase lands behind `motionVersion: 2` and needs no migration. Old templates keep rendering exactly as
 before.
@@ -335,7 +335,7 @@ before.
 - **Expression size and eval cost.** Many glyph-level `drawtext` instances with long expressions can slow device
   renders. Mitigation: register folding (`st/ld`), the 48-instance budget, per-preset perf bench entries.
 - **Cross-platform pixels.** Encoders differ (x264 / openh264 / VideoToolbox). Determinism is
-  *per platform profile* (as the README already states). Filtergraph equality is the cross-platform invariant.
+  _per platform profile_ (as the README already states). Filtergraph equality is the cross-platform invariant.
 - **Font metrics drift.** Splitter positions must match HarfBuzz shaping. Mitigation: metric goldens per bundled
   font and kerning-pair tests. Unknown fonts fall back to line-level animation.
 - **Taste regressions.** A larger library makes bad combinations possible. Recipes and motion lint are the

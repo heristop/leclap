@@ -19,6 +19,7 @@ import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type Template from '../core/models/Template';
 import type Project from '../core/models/Project';
 import type VariableManager from './managers/VariableManager';
+import { uniqueTempSuffix } from '../utils/temp-suffix';
 
 export type StagedAnimation = { path: string; anim: InternalAnimation };
 
@@ -141,8 +142,7 @@ class AnimationComposer {
       return;
     }
 
-    const time = Date.now();
-    const temp = `${this.filesystemAdapter.getTempDir()}/tmp_anim_${time}.mp4`;
+    const temp = `${this.filesystemAdapter.getTempDir()}/tmp_anim_${uniqueTempSuffix()}.mp4`;
     await this.filesystemAdapter.move(finalVideo, temp);
 
     // The joined output may have no audio (e.g. a video-only upload); probe so the map below

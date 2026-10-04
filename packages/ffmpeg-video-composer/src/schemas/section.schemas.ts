@@ -284,6 +284,22 @@ export const TemplateMetaSchema = z
           'avoidances and review criteria. Guides humans/agents; never interpreted or executed by the renderer. ' +
           'Implement the direction explicitly in sections, filters and effect props.'
       ),
+    motionVersion: z
+      .union([z.literal(1), z.literal(2)])
+      .optional()
+      .describe(
+        'Pins motion semantics (default 1 = historical output, unchanged). 2 opts into the v2 motion system: ' +
+          'motion tokens, spring/bezier easing, `animate` keyframe tracks, frame-indexed time, seeded procedural ' +
+          'filters and the deterministic encoder profile. Preset retunes ship behind a new version, so a pinned ' +
+          'template never changes output.'
+      ),
+    allowNondeterministic: z
+      .boolean()
+      .optional()
+      .describe(
+        'Opt out of the nondeterministic_expression check (wall-clock `%{localtime}`/`time(0)` or unseeded ' +
+          '`random()` in raw filters). Default false: such templates fail validation.'
+      ),
   })
   .strict()
   .describe('Optional human-facing metadata embedded in the descriptor; behavioral catalog fields are derived.');

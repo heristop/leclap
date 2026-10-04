@@ -30,6 +30,7 @@ import {
   buildColorMetadataArgs,
   buildColorMetadataFilter,
 } from '@/core/encoding';
+import { conformMotionV2Chain } from './presets/motion-v2-chain';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -517,7 +518,13 @@ class SegmentBuilder {
     this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
     this.backgroundSugarCount = background.length;
 
-    this.section.filters = [...background, ...this.section.filters];
+    // motionVersion 2: CFR conform + seeded noise (presets/motion-v2-chain.ts); v1 chains pass through.
+    this.section.filters = conformMotionV2Chain(
+      [...background, ...this.section.filters],
+      this.template.descriptor,
+      this.fps(),
+      this.section.name
+    );
   };
 
   /**

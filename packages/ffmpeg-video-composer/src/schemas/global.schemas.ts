@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_SEED } from '../core/determinism/contract';
 import {
   TransitionSchema,
   GlobalAudioSchema,
@@ -185,6 +186,16 @@ export const GlobalConfigSchema = z
       'Template-wide variable definitions referenced via {{ varName }} syntax.'
     ),
     orientation: OrientationSchema.optional(),
+    seed: z
+      .number()
+      .int()
+      .min(0)
+      .max(MAX_SEED)
+      .optional()
+      .describe(
+        'Root seed (uint32, default 0) for every procedural effect: each element derives its own stream as ' +
+          'hash(seed, element path), so the same seed always renders the same shake, grain and scramble.'
+      ),
     fps: z
       .number()
       .int()

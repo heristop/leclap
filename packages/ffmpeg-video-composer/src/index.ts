@@ -11,8 +11,7 @@ import type AbstractLogger from './platform/logging/AbstractLogger';
 import TeeLogAdapter from './platform/logging/TeeLogAdapter';
 import { attachCompilationListeners } from './platform/compilation-listeners';
 import type { CompileReporter, ProjectConfig, TemplateDescriptor } from './core/types';
-import { getPerfTimer, resetPerfTimer } from './utils/perf-timer';
-import { formatPerfReport } from './utils/perf-report';
+import { resetPerfTimer } from './utils/perf-timer';
 import { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
 import { selectVideoCodec } from './platform/ffmpeg/select-video-codec';
 import { TemplateValidator } from './services/TemplateValidator';
@@ -20,6 +19,7 @@ import type { TemplateDescriptor as SchemaTemplateDescriptor } from './schemas/t
 import { hasDrawtext } from './services/geometry/drawtext-probe';
 import { nodeFontLoader } from './services/geometry/node-geometry';
 import { runRenderCheck, type RenderCheckOptions, type RenderedGeometry } from './services/geometry/render-check';
+import { runCompileEpilogue } from './services/compile-epilogue-node';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -98,41 +98,6 @@ export async function loadConfig(configPath: string): Promise<TemplateDescriptor
     }
 
     throw error;
-  }
-}
-
-// Log the per-run perf table and persist it next to the build output. No-op when FVC_PERF is
-// disabled (the timer reports totalMs 0). Never throws — perf reporting must not break a compile.
-async function emitPerfReport(
-  logger: AbstractLogger,
-  buildDir: string,
-  templateDescriptor: TemplateDescriptor
-): Promise<void> {
-  const report = getPerfTimer().report();
-
-  if (report.totalMs <= 0) {
-    return;
-  }
-
-  logger.info(`\n${formatPerfReport(report)}`);
-
-  try {
-    const fileSystem = container.resolve<AbstractFilesystem>('filesystemAdapter');
-    const data = new TextEncoder().encode(JSON.stringify(report, null, 2));
-    // FVC_PERF_OUT lets a caller (the bench harness) pin an exact output path per run so reports
-    // don't collide across fixtures that share a meta.name; otherwise name it from the descriptor.
-    const explicit = process.env.FVC_PERF_OUT;
-
-    if (explicit) {
-      await fileSystem.writeFile(explicit, data);
-
-      return;
-    }
-    const buildPath = await fileSystem.getBuildPath(buildDir);
-    const name = (templateDescriptor.meta?.name ?? 'run').replace(/[^a-z0-9_-]+/gi, '_');
-    await fileSystem.writeFile(`${buildPath}/perf-${name}.json`, data);
-  } catch (error) {
-    logger.info(`perf report write skipped: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -223,7 +188,7 @@ async function runConstruction(
   try {
     const output = await timer.span('compile:total', () => director.construct());
 
-    await emitPerfReport(logger, projectConfig.buildDir ?? '', templateDescriptor);
+    await runCompileEpilogue({ logger, projectConfig, templateDescriptor, output, reporter });
 
     // The director reports a failed build through `task-stopped` and resolves null; rethrow the cause
     // so compile() hands it to the reporter instead of failing without saying which section broke.
@@ -388,3 +353,7 @@ export type {
   ResolvedEffectProvenance,
   ResolvedTemplateEffects,
 } from './core/resolve-template-effects';
+export * from './core/determinism';
+export { ENGINE_VERSION } from './core/version';
+// Node entry only: digest a rendered file for `leclap verify`.
+export { digestRenderedFile } from './services/render-manifest-node';

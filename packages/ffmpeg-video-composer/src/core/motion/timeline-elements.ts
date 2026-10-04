@@ -60,7 +60,7 @@ interface KineticPlan {
 
 function kineticPlan(block: KineticBlock, frame: ElementFrame, text: string): KineticPlan {
   const ctx = kineticFrame(frame);
-  const settings = resolveKinetic(block, ctx);
+  const settings = resolveKinetic(block, ctx, text);
   const laid = block.preset === 'counter' || !text.trim() ? null : layoutWithin(settings, text);
   const count = block.preset === 'counter' ? 1 : (laid?.layout.pieces.length ?? unitCount(text, settings.unit));
   const pieces = Array.from({ length: Math.max(1, count) }, () => ({}) as LayoutPiece);
@@ -71,9 +71,9 @@ function kineticPlan(block: KineticBlock, frame: ElementFrame, text: string): Ki
   return { start: settings.delay, arrive: settings.delay + spread + settings.duration, spread, maxRank, bbox };
 }
 
-function kineticExit(block: KineticBlock, frame: ElementFrame, plan: KineticPlan): MotionEvent | null {
+function kineticExit(block: KineticBlock, frame: ElementFrame, plan: KineticPlan, text: string): MotionEvent | null {
   const ctx = kineticFrame(frame);
-  const exit = resolveExit(block, resolveKinetic(block, ctx), ctx, plan.maxRank);
+  const exit = resolveExit(block, resolveKinetic(block, ctx, text), ctx, plan.maxRank);
 
   if (!exit) return null;
 
@@ -103,7 +103,7 @@ export function kineticEvents(block: KineticBlock, index: number, frame: Element
   const element = `kinetic[${index}]`;
   const path = `${frame.prefix}.${element}`;
   const id = authoredId(block);
-  const exit = kineticExit(block, frame, plan);
+  const exit = kineticExit(block, frame, plan, text);
   const ease = easeKey(resolveKinetic(block, kineticFrame(frame)).ease);
   const entrance: MotionEvent = {
     path,

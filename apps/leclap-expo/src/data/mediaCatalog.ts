@@ -76,6 +76,8 @@ export const FONT_ASSETS: Record<string, number> = {
   'BebasNeue.ttf':       require('../../assets/fonts/BebasNeue.ttf'),
   'Bungee.ttf':          require('../../assets/fonts/Bungee.ttf'),
   'Lobster.ttf':         require('../../assets/fonts/Lobster.ttf'),
+  'NotoSansArabic.ttf':  require('../../assets/fonts/NotoSansArabic.ttf'),
+  'NotoSansHebrew.ttf':  require('../../assets/fonts/NotoSansHebrew.ttf'),
   'Oswald.ttf':          require('../../assets/fonts/Oswald.ttf'),
   'Pacifico.ttf':        require('../../assets/fonts/Pacifico.ttf'),
   'PlayfairDisplay.ttf': require('../../assets/fonts/PlayfairDisplay.ttf'),

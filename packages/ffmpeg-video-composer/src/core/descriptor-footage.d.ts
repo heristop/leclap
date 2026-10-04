@@ -1,6 +1,8 @@
 // Recorded-footage descriptor types: look strength, silence trimming, explicit keep ranges, B-roll
 // cutaways and the probed source traits. Split out of `types.d.ts` for its max-lines budget and
-// re-exported from there; self-contained (primitives only) so the module graph stays acyclic.
+// re-exported from there, with the footage editing option types (type-only, from the schemas) and the
+// media bookkeeping types. Nothing here imports types.d.ts, so the module graph stays acyclic.
+export type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '../schemas/footage.schemas';
 
 /** A look preset by name, or `{ preset, strength }` to blend a LUT look toward the untouched footage. */
 export type LookInput = string | { preset: string; strength?: number };
@@ -73,3 +75,16 @@ export interface ProbedTraits {
   /** Colour/timing traits of the video stream, when the adapter reports them. */
   traits?: MediaTraits;
 }
+
+export type Media = {
+  name: string;
+  url?: string;
+  path?: string;
+  extension?: string;
+};
+
+export type TemplateAssets = {
+  fonts: Record<string, string>;
+  musics: Record<string, string>;
+  inputs: string[];
+};

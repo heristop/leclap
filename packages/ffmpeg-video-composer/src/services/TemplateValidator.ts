@@ -5,6 +5,7 @@ import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
 import { findPaletteDrift, paletteAdvisories } from '@/core/theme/palette';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
+import { collectScriptWarnings, type ScriptLintCapabilities } from './script-lint';
 import { emojiAdvisories } from './emoji-advisories';
 import { subtitleAdvisories } from './subtitles-advisories';
 import { footageAdvisories } from './footage-advisories';
@@ -16,6 +17,7 @@ import { expandPartialsSafe } from '@/core/partials';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
+export type { ScriptLintCapabilities } from './script-lint';
 export type { GeometryWarning, FontLoader } from './geometry';
 
 // Footage advisories read the expanded sections, like the pacing lint, so paths index them.
@@ -113,7 +115,9 @@ export class TemplateValidator extends BaseTemplateValidator {
   // section), the low-confidence beat grid advisory and the take advisories (take-validation.ts) ride along, so every surface
   // that shows pacing feedback shows them. Per format when the template declares several, plus the
   // whole-template format advisories (format_crop_only, format_story_diverges: core/formats/advisories.ts).
-  getMotionWarnings(template: unknown): MotionWarning[] {
+  // Script/mask advisories ride along too (services/script-lint.ts); pass the target build's
+  // capabilities to also hear what it can't draw (rtl_unshaped, mask_unavailable).
+  getMotionWarnings(template: unknown, capabilities?: ScriptLintCapabilities): MotionWarning[] {
     const perFormat = adviseEachFormatSync(template, (resolved) => [
       ...collectMotionWarnings(resolved),
       ...accentAdvisories(resolved),
@@ -123,6 +127,7 @@ export class TemplateValidator extends BaseTemplateValidator {
       ...footageAdvisories(resolved),
       ...beatGridAdvisories(resolved),
       ...takeWarnings(resolved),
+      ...collectScriptWarnings(resolved, capabilities),
     ]);
 
     return [...perFormat, ...formatAdvisories(expandedForFormats(template))];

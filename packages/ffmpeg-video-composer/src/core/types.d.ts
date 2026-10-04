@@ -22,14 +22,12 @@ import type { QcOption, QcReport } from './qc/types';
 import type { MotionTokens } from '../schemas/motion.schemas';
 import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
+import type { SectionLayout } from '../schemas/layout.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
 import type { Subtitles } from '../schemas/subtitles.schemas';
-import type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
+import type { AutomationKeyInput, SfxCue, VoicePreset } from '../schemas/audio.schemas';
 export type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
-import type { VoicePreset } from './audio/voice-presets';
-import type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '../schemas/footage.schemas';
-export type { ClipRange, FitFill, Focus, FootageFit, Freeze, SpeedRamp } from '../schemas/footage.schemas';
 import type { Beats, BeatsSpec } from './timing/timeline';
 import type { SectionRole } from '../schemas/section-intent.schemas';
 export type { Beats, BeatsSpec } from './timing/timeline';
@@ -40,11 +38,35 @@ export type { EffectReference } from '../schemas/effect-reference.schema';
 export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 export type * from './descriptor-footage';
-import type { LookInput, ProbedTraits, SectionTakeFields, TakeBuildInfos, TakeOptions } from './descriptor-footage';
+import type {
+  ClipRange,
+  FitFill,
+  Focus,
+  FootageFit,
+  Freeze,
+  LookInput,
+  ProbedTraits,
+  SectionTakeFields,
+  SpeedRamp,
+  TakeBuildInfos,
+  TakeOptions,
+} from './descriptor-footage';
 // Filtergraph primitives (input/filter/map + shape recipe) also live in a sibling for the budget;
 // the public ones are re-exported, and Filter/Input/Map imported back for the section declarations below.
-export type { ShapeSpec, Map, Filter, FilterValues, MapAnimationInput, OverlayFit, OverlayFlip } from './filter-types';
-import type { Filter, Input, Map, Translation, OverlayFit, OverlayFlip } from './filter-types';
+export type {
+  ShapeSpec,
+  Map,
+  Filter,
+  FilterGraphChain,
+  FilterValues,
+  MapAnimationInput,
+  OverlayFit,
+  OverlayFlip,
+} from './filter-types';
+import type { Filter, Input, Map, Translation } from './filter-types';
+// Whole-video overlays (global.overlays / animations / watermark) live in a sibling for the budget too.
+export type { GlobalTextOverlay, GlobalAnimation, WatermarkPosition, Watermark } from './descriptor-global';
+import type { GlobalTextOverlay, GlobalAnimation, Watermark } from './descriptor-global';
 
 export type LogParams = Record<string, unknown>;
 
@@ -188,61 +210,6 @@ export interface TemplateDescriptorGlobal {
   allowUploadBackground?: boolean;
 }
 
-// A whole-video text overlay (global.overlays) composited onto every section (or a named subset).
-export interface GlobalTextOverlay {
-  text: Translation;
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top' | 'bottom' | 'center';
-  font?: FontInput;
-  size?: number;
-  color?: string;
-  opacity?: number;
-  reveal?: Reveal;
-  effect?: TextEffect;
-  sections?: string[];
-}
-
-// A whole-video animation overlay (global.animations) composited over the final joined video.
-export interface GlobalAnimation {
-  url: string;
-  position?: string;
-  scale?: string;
-  /** Aspect handling within the "w:h" scale box; 'stretch' (or omitted) scales freely. */
-  fit?: OverlayFit;
-  opacity?: number;
-  /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
-  rotation?: number;
-  /** Mirror the overlay before compositing: left-right, top-bottom, or both. */
-  flip?: OverlayFlip;
-  loop?: boolean;
-  /** Finite play count; takes precedence over loop. */
-  loops?: number;
-  /** Seconds the overlay plays before it ends; takes precedence over loops/loop. */
-  duration?: number;
-  /** Seconds to delay the overlay before it appears (via -itsoffset); 0/omitted starts at the beginning. */
-  start?: number;
-  persistent?: boolean;
-  /** Animated entrance (rise/slide/fade), same lowering as the per-section overlay path. */
-  motion?: Reveal;
-}
-
-// The corner a `global.watermark` anchors to; also the position-lowering lookup key in
-// editor/presets/watermark.ts (POSITION_EXPRESSIONS).
-export type WatermarkPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-
-// A still-image watermark composited over the whole video (global.watermark) — pure sugar, lowered by
-// watermarkToAnimation (editor/presets/watermark.ts) into a GlobalAnimation entry so it reuses the
-// whole-video overlay pipeline untouched.
-export interface Watermark {
-  url: string;
-  position?: WatermarkPosition;
-  /** Watermark width as a fraction of the output width, 0.02..0.5 (default 0.12). */
-  scale?: number;
-  /** Watermark alpha, 0..1 (default 0.8). */
-  opacity?: number;
-  /** Inset from the frame edges in output pixels, 0..200 (default 24). */
-  margin?: number;
-}
-
 interface SectionTransition {
   type: string;
   duration?: number;
@@ -303,6 +270,8 @@ export interface Section extends SectionTakeFields {
   letterbox?: Letterbox;
   motion?: MotionEffect[];
   chromaKey?: ChromaKey;
+  /** Split screen / before-after wipe (schemas/layout.schemas.ts). */
+  layout?: SectionLayout;
   /** Why the section exists; authoring metadata, never rendered. */
   purpose?: string;
   /** Narrative role (hook, problem, product-intro, reveal, proof, cta, outro, bridge); never rendered. */
@@ -391,8 +360,6 @@ interface Field {
   maxLength: number;
   label: Translation;
 }
-
-export type { Media, TemplateAssets } from './asset-types';
 
 export type FFMpegInfos = ProbedTraits & {
   duration: number | null;

@@ -94,6 +94,18 @@ export interface Filter {
   animate?: Animate;
   // Motion role (global.motion.roles): fills reveal/exit easing (and duration) and animate key eases left unset.
   role?: MotionRole;
+  // ENGINE-INTERNAL (never authored): a sub-graph spliced into the chain in place of one filter, for
+  // lowerings that branch (masks, split screens). See editor/utils/filter-graph.ts.
+  graph?: FilterGraphChain[];
+}
+
+// One chain of a spliced sub-graph. The FIRST chain has no input labels: it continues the stream the
+// fragment is spliced into; the LAST has no output labels: the chain after the fragment continues from
+// it. Labels are `[A-Za-z0-9_]` pad names, or `input:<key>` for an extra `-i` the segment registered.
+export interface FilterGraphChain {
+  inputs?: string[];
+  filters: Filter[];
+  outputs?: string[];
 }
 
 export interface FilterValues {

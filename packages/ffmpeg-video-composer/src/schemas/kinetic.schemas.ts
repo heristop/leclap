@@ -61,6 +61,76 @@ export const KineticExitSchema = z
   .strict()
   .describe('Exit choreography for a kinetic block.');
 
+const FillColorSchema = z
+  .string()
+  .regex(
+    /^(?:[#$A-Za-z0-9@._]+|\{\{ ?color\d+ ?\}\})$/,
+    'a colour: #RRGGBB, #RRGGBB@alpha, a name, $color.<token> or {{ colorN }}'
+  );
+
+export const KineticFillSchema = z
+  .object({
+    gradient: z
+      .union([
+        z
+          .object({
+            from: FillColorSchema.describe('Colour at the start of the sweep.'),
+            to: FillColorSchema.describe('Colour at the end of the sweep.'),
+            angle: z
+              .number()
+              .min(0)
+              .max(360)
+              .optional()
+              .describe('CSS-style angle in degrees: 0 bottom→top, 90 left→right (default 90).'),
+          })
+          .strict(),
+        z
+          .object({
+            stops: z.array(FillColorSchema).min(2).max(8).describe('2–8 colours spread evenly across the block.'),
+            angle: z.number().min(0).max(360).optional().describe('CSS-style angle in degrees (default 90).'),
+          })
+          .strict(),
+      ])
+      .optional()
+      .describe('Gradient across the text block: { from, to, angle? } or { stops: [...], angle? }.'),
+    texture: z
+      .string()
+      .min(1)
+      .optional()
+      .describe('Image (URL or path) seen through the letters, cover-scaled to the frame; wins over gradient.'),
+    sweep: z
+      .object({
+        duration: z.number().positive().max(10).optional().describe('Seconds per pass across the frame (default 1.2).'),
+        width: z.number().positive().max(2000).optional().describe('Band width in px (default 60% of the font size).'),
+        color: FillColorSchema.optional().describe('Highlight colour (default #FFFFFF@0.7).'),
+        delay: z
+          .number()
+          .min(0)
+          .max(60)
+          .optional()
+          .describe('Seconds from the section start of the first pass (default: when the last unit lands).'),
+        every: z
+          .number()
+          .positive()
+          .max(60)
+          .optional()
+          .describe('Seconds between pass starts; omit for a single pass.'),
+      })
+      .strict()
+      .optional()
+      .describe('Shimmer: a soft highlight band travelling left→right through the letters.'),
+  })
+  .strict()
+  .refine(
+    (fill) => [fill.gradient, fill.texture, fill.sweep].some((part) => part !== undefined),
+    'set gradient, texture or sweep'
+  )
+  .describe(
+    'Fill the letters with a gradient, a texture image and/or a shimmer sweep instead of a flat colour. Drawn ' +
+      'as a mask (alphamerge), per-unit timing kept. Needs alphamerge: the on-device engine falls back to the ' +
+      'solid colour with a warning when its build lacks it.'
+  );
+
 export const KineticBlockSchema = z
   .object({
     text: TranslationSchema.describe(
@@ -71,7 +141,8 @@ export const KineticBlockSchema = z
       .enum(['line', 'word', 'glyph'])
       .optional()
       .describe(
-        'What animates independently (default per preset: word for cascade/pop/impact/highlight, glyph for tracking-in/typewriter/scramble/wave).'
+        'What animates independently (default per preset: word for cascade/pop/impact/highlight, glyph for tracking-in/typewriter/scramble/wave). ' +
+          'Copy in a joining or right-to-left script (Arabic, Hebrew, Devanagari…) always animates per line.'
       ),
     order: z
       .enum(KINETIC_ORDERS)
@@ -112,7 +183,8 @@ export const KineticBlockSchema = z
       .optional()
       .describe('Bundled font id or .ttf file (default bebas). Word/glyph units need a bundled font.'),
     size: z.number().positive().max(600).optional().describe('Font size in px (default 11% of the frame height).'),
-    color: z.string().optional().describe('Text colour (default #F5F3F7).'),
+    color: z.string().optional().describe('Text colour (default #F5F3F7); the fallback when `fill` cannot render.'),
+    fill: KineticFillSchema.optional(),
     accent: z
       .object({
         words: z
@@ -203,3 +275,4 @@ export const KineticBlocksSchema = z
 
 export type KineticBlock = z.infer<typeof KineticBlockSchema>;
 export type KineticExit = z.infer<typeof KineticExitSchema>;
+export type KineticFill = z.infer<typeof KineticFillSchema>;

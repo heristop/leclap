@@ -4,7 +4,7 @@
 
 import { EMOJI_SCALE } from '../emoji-assets';
 import { hasEmoji, splitEmoji } from '../emoji-clusters';
-import { FIRST_CODE_POINT, FONT_ADVANCES, LAST_CODE_POINT } from '../font-advances.generated';
+import { FIRST_CODE_POINT, FONT_ADVANCES, LAST_CODE_POINT, type FontAdvanceTable } from '../font-advances.generated';
 
 export type KineticUnit = 'line' | 'word' | 'glyph';
 export type KineticAlign = 'left' | 'center' | 'right';
@@ -51,14 +51,41 @@ export function codePoints(text: string): string[] {
   return points;
 }
 
-type AdvanceTable = (typeof FONT_ADVANCES)[string];
+type AdvanceTable = FontAdvanceTable;
+
+// Decoded advance runs (see font-advances.generated.ts), by encoded string: -1 = no glyph.
+const decoded = new Map<string, number[]>();
+
+function decodeRun(encoded: string): number[] {
+  let values = decoded.get(encoded);
+
+  if (!values) {
+    values = encoded.split(',').map((token) => (token === '' ? -1 : parseInt(token, 36)));
+    decoded.set(encoded, values);
+  }
+
+  return values;
+}
+
+// A code point's advance in font units, -1 when the table has no glyph for it: the Latin range, then
+// the font's extra script blocks (Hebrew, Arabic).
+export function advanceOf(table: AdvanceTable, cp: number): number {
+  if (cp >= FIRST_CODE_POINT && cp <= LAST_CODE_POINT) return decodeRun(table.advances)[cp - FIRST_CODE_POINT];
+
+  for (const block of table.extra ?? []) {
+    const values = decodeRun(block.advances);
+
+    if (cp >= block.start && cp < block.start + values.length) return values[cp - block.start];
+  }
+
+  return -1;
+}
 
 function advanceUnits(table: AdvanceTable, text: string): number | null {
   let units = 0;
 
   for (const char of text) {
-    const cp = char.codePointAt(0) ?? 0;
-    const advance = cp >= FIRST_CODE_POINT && cp <= LAST_CODE_POINT ? table.advances[cp - FIRST_CODE_POINT] : -1;
+    const advance = advanceOf(table, char.codePointAt(0) ?? 0);
 
     if (advance < 0) return null;
 

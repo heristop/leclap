@@ -3,7 +3,8 @@
 // the colour image can be composited into that gap. Widths come from the bundled advance table (the
 // same one kinetic layout uses), so the result is synchronous and identical on every platform; a font
 // outside the table is estimated at 0.5em per glyph.
-import { FIRST_CODE_POINT, FONT_ADVANCES, LAST_CODE_POINT } from '@/core/font-advances.generated';
+import { FONT_ADVANCES } from '@/core/font-advances.generated';
+import { advanceOf } from '@/core/kinetic/layout';
 import { coverageFor, isInvisible } from '@/core/font-coverage';
 import { splitEmoji, type GlyphCovered } from '@/core/emoji-clusters';
 import { EMOJI_SCALE, emojiAssetKey } from '@/core/emoji-assets';
@@ -59,8 +60,7 @@ function advancePx(font: string | null, char: string, size: number): number {
 
   const point = char.codePointAt(0) ?? 0;
   const table = font === null ? undefined : FONT_ADVANCES[font];
-  const inRange = point >= FIRST_CODE_POINT && point <= LAST_CODE_POINT;
-  const advance = table && inRange ? table.advances[point - FIRST_CODE_POINT] : -1;
+  const advance = table ? advanceOf(table, point) : -1;
 
   return advance >= 0 && table ? (advance / table.unitsPerEm) * size : ASSUMED_ADVANCE_EM * size;
 }

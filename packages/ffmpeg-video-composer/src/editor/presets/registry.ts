@@ -4,11 +4,13 @@ import { captionToFilters } from './captions';
 import { titleCardToFilters, globalTextOverlayToFilters } from './text-blocks';
 import { lowerThirdFilters } from './lower-third-styles';
 import { kineticBlocksToFilters } from './kinetic';
+import { sectionLayoutFilters } from './layout';
 import { subtitlesToFilters } from './subtitles';
 import { cameraBackground } from './camera';
 import { freezeFlashFilters, graphicsToFilters } from './graphics';
 
 export type { SugarContext, KineticSugarContext } from './sugar-context';
+export { compositingContext, createExtraInputs } from './compositing';
 // Emoji leave the lowered text right after the sugar compiles (editor/emoji); re-exported so the builder
 // stages both from one place.
 export { createEmojiPlan, type EmojiPlan } from '../emoji/EmojiPlan';
@@ -32,6 +34,13 @@ export type SugarCompiler = {
 
 // Order preserves the previous hardcoded chain: layers → motion → grade → look → letterbox → caption.
 export const SUGAR_COMPILERS: SugarCompiler[] = [
+  {
+    // Split screen / before-after: composes the frame first, so everything below grades the whole.
+    key: 'layout',
+    order: 5,
+    layer: 'background',
+    compile: (section, ctx) => sectionLayoutFilters(section, ctx),
+  },
   {
     key: 'layers',
     order: 10,

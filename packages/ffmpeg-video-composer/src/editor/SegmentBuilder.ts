@@ -13,7 +13,15 @@ import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/arg-guard';
 import { SectionError } from '@/core/errors/section-error';
-import { compileSugarLayers, compileGlobalDecorations, createEmojiPlan, type EmojiPlan } from './presets/registry';
+import {
+  compileSugarLayers,
+  compileGlobalDecorations,
+  compositingContext,
+  createEmojiPlan,
+  createExtraInputs,
+  type EmojiPlan,
+  type SugarContext,
+} from './presets/registry';
 import {
   buildSingleFileAnimationSource,
   buildSingleFileImageSource,
@@ -66,6 +74,8 @@ container.register<SegmentManagersBag>('SegmentManagersBag', {
 
 // Runtime-typed view of segment.inputsAsset used as a string-keyed store.
 type InputsAssetMap = Record<string, string>;
+// What a sugar lowering asks to stage as an extra input (presets/sugar-context.ts ExtraInputSource).
+type ExtraInputSource = Parameters<NonNullable<SugarContext['masks']>['input']>[1];
 
 @injectable()
 class SegmentBuilder {
@@ -93,6 +103,9 @@ class SegmentBuilder {
   // before buildMaps (so overlay base legs pick up the grade), and buildFilters calls it too (a no-op
   // then) so buildFilters stays self-contained when driven directly. Reset per section in hydrate.
   private sugarStaged = false;
+  // Extra `-i` inputs sugar lowerings registered (layout panes, kinetic fill textures); numbered after
+  // every other input, so they force a `-filter_complex` graph. Reset per section in hydrate.
+  private readonly extras = createExtraInputs();
   // The section's emoji images (editor/emoji): set by stageBackgroundSugar, null for a section not staged yet.
   private emojiPlan: EmojiPlan | null = null;
 
@@ -177,6 +190,7 @@ class SegmentBuilder {
     this.segment.tempLuts = [];
     this.segment.inputsAsset = [];
     this.segment.inputsMapCount = 0;
+    this.segment.extraInputs = this.extras.reset();
 
     this.resetSugarState();
 
@@ -230,7 +244,7 @@ class SegmentBuilder {
       // are built, so an animation/gradient overlay's base leg (which bakes the section filters via
       // `useSectionFilters` during buildMaps) picks up the colour grade and motion.
       this.stageBackgroundSugar();
-      await this.emojiPlan?.prepare(this.filesystemAdapter);
+      await timer.span('segment:staged-media', () => this.prepareStagedMedia());
 
       await timer.span('segment:maps', () => this.buildMaps());
       this.logger.info(`[${this.section.name}][Maps] built`);
@@ -320,6 +334,10 @@ class SegmentBuilder {
     const videoScale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const pendingAnimations: Array<{ input: MapAnimationInput; index: number }> = [];
 
+    // Extra inputs come after every other one; numbered now, because the first overlay map below
+    // already renders the section chain that reads them.
+    this.extras.number(this.extraInputsStart(), this.segment.extraInputs);
+
     // Stage every input as one `-i` in section order (stable stream indices), deferring the animation
     // overlay maps so gradient layers can composite UNDER them.
     for (const input of inputs) {
@@ -347,6 +365,59 @@ class SegmentBuilder {
     for (const animation of pendingAnimations) {
       this.mapManager.addAnimationOverlay(animation.input, animation.index, videoScale);
     }
+
+    this.extras.append(inputsAsset);
+  };
+
+  /**
+   * Inputs a segment class places ahead of `this.sources` in its command (blank audio, the clip).
+   * Default: the blank-audio track color/image backgrounds always prepend.
+   */
+  protected leadingInputCount(): number {
+    return 1;
+  }
+
+  // The stream index of the first extra input: the leading inputs, the background-colour source, every
+  // section input, then the gradient-layer sources — the exact order buildInputs emits them in.
+  private extraInputsStart(): number {
+    const background = this.section.options?.backgroundColor ? 1 : 0;
+    const gradients = (this.section.options?.layers ?? []).filter((layer) => layer.gradient).length;
+
+    return this.leadingInputCount() + background + (this.section.inputs?.length ?? 0) + gradients;
+  }
+
+  // An extra input's `-i` fragment: another section's recorded clip by path, or fetched media
+  // (`-loop 1` for a still, so it lasts the whole section).
+  // Media the staged sugar asked for: the section's emoji images and its extra inputs (layout panes,
+  // fill textures). Both must exist before the maps are built.
+  private readonly prepareStagedMedia = async (): Promise<void> => {
+    await this.emojiPlan?.prepare(this.filesystemAdapter);
+    await this.extras.stage(this.stageExtraInput);
+  };
+
+  private readonly stageExtraInput = async (key: string, source: ExtraInputSource): Promise<string> => {
+    if ('clip' in source) {
+      const clip = this.project.config.userVideoPaths?.[source.clip] ?? this.filesystemAdapter.getSource(source.clip);
+
+      return `-i ${assertSafeArgToken(clip, 'layout clip')}`;
+    }
+
+    const media = { name: key, url: source.url };
+    await this.assetManager.fetchMedia(media);
+    const path = this.assetManager.fetchCachedMedia(media);
+
+    return source.still ? buildSingleFileImageSource(path) : `-i ${assertSafeArgToken(path, 'layout media')}`;
+  };
+
+  // A section reading extra inputs needs `-filter_complex` (a `-vf` chain has one input): with no
+  // overlay graph, the linear chain becomes the graph's single map from the clip stream.
+  private readonly promoteToComplexGraph = (): void => {
+    if (this.extras.size === 0 || this.segment.filtersMapList.length > 0 || this.segment.filtersList.length === 0) {
+      return;
+    }
+
+    this.segment.filtersMapList.push(`[${this.videoInputIndex()}:v]${this.segment.filtersList.join(',')}[composed]`);
+    this.segment.mapsList.push('composed');
   };
 
   // Emoji images (pulled out of the section's text) follow every other input, from stream `firstIndex`.
@@ -471,6 +542,7 @@ class SegmentBuilder {
     // is ignored — so overlay-class sugar (caption/lowerThird text) is chained ONTO the final map
     // instead, drawing on top of the overlay rather than being dropped.
     this.appendOverlayChain(hasOverlayGraph ? overlaySugar : []);
+    this.promoteToComplexGraph();
 
     // Colour emoji composite above the text they were pulled out of (editor/emoji).
     this.emojiPlan?.compose(this.segment, this.section.filters, `${this.videoInputIndex()}:v`);
@@ -517,7 +589,7 @@ class SegmentBuilder {
   // calibrates over the clip's TRUE length: project_video clips are usually shorter than their declared
   // options.duration; their probed length is filled into buildInfos.durations by
   // TemplateDirector.calculateTotalLength before segments build, so read it here.
-  private readonly sugarContext = () => {
+  private readonly sugarContext = (): SugarContext => {
     const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const isVideo = this.section.type === 'project_video' || this.section.type === 'video';
     const probedDuration = isVideo ? this.project.buildInfos.durations[this.section.name] : undefined;
@@ -527,6 +599,16 @@ class SegmentBuilder {
     const motion = motionSugarContext(this.template.descriptor, this.section.name);
 
     const platform = this.template.descriptor.global?.platform;
+    const masks = compositingContext({
+      config: this.project.config,
+      features: this.project.engineFeatures,
+      extras: this.extras,
+      formatColor: this.formattersManager.formatColor,
+      warn: (message) => {
+        this.logger.warn(`[${this.section.name}]${message}`);
+      },
+    });
+    const sections = this.template.descriptor.sections as SugarContext['sections'];
     const theme = this.template.descriptor.global?.theme;
 
     return {
@@ -537,6 +619,8 @@ class SegmentBuilder {
       platform,
       theme,
       motion: { ...motion, resolveText: this.resolveSugarText },
+      masks,
+      sections,
     };
   };
 

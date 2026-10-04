@@ -99,4 +99,5 @@ export const CLIP_AUDIO_OPTION_FIELDS = {
 };
 
 export type SfxCue = z.infer<typeof SfxCueSchema>;
+export type { VoicePreset } from '../core/audio/voice-presets';
 export type AutomationKeyInput = z.infer<typeof AutomationKeySchema>;

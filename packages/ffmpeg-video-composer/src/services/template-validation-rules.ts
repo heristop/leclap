@@ -9,6 +9,7 @@ import { validateGlyphCoverage } from './glyph-coverage';
 import { nearest } from './validation/suggest';
 import type { ValidationError } from './validation/types';
 import { validateTimeRefs } from './time-ref-validation';
+import { validateLayouts } from './layout-validation';
 import { validateSubtitles } from './subtitles-validation';
 import { validateTakeEdits } from './take-validation';
 import { validateFootage } from './footage-validation';
@@ -284,6 +285,7 @@ export function validateDescriptorRules(template: TemplateDescriptor): Validatio
     ...validateAssertions(template),
     ...validateGlyphCoverage(template),
     ...validateTimeRefs(template),
+    ...validateLayouts(template),
     ...validateSubtitles(template),
     ...validateTakeEdits(template),
     ...validateFootage(template),

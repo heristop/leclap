@@ -31,6 +31,11 @@ const GUIDE = [
     'broadcast graphics (progress, ticker, bars-chart); designed transitions include whip-left/right/up/down; ' +
     '`lowerThird.style` picks clean-bar, side-rule, kicker, stack-bars or pill. ' +
     'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
+  'Masks, layouts and scripts: a kinetic block can `fill` its letters with a gradient, a texture image and/or a ' +
+    'shimmer `sweep`; Arabic/Hebrew/Indic copy animates per line (bundled fonts noto-arabic, noto-hebrew). A ' +
+    'section `layout` composes several media in one frame: { type: "split", sources: [...] } panes or ' +
+    '{ type: "before-after", before, after, wipe }; a source is a section name (its colour, picture, video or ' +
+    'clip), a media URL or a #colour.',
   'Word-timed captions: section `subtitles` takes speech-to-text `words` [{text,start,end}] (grouped into phrases ' +
     'by `group`: pauses, sentence ends, maxWords, maxSeconds), authored `cues` [{at,end,text,words?}] or an inline ' +
     '`srt`. A caption DNA `style` (clean, loud, keynote, documentary, boxed, neon) sets font, colours, case, ' +

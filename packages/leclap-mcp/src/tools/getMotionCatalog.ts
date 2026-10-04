@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/server';
 import { motionCatalog } from 'ffmpeg-video-composer';
 
 // The v2 motion catalog (kinetic typography presets, exits, orders, easing grammar, built-in tokens,
-// art-direction rules and a complete starter beat) straight from the engine, so an agent can design
+// built-in themes, art-direction rules and a complete starter beat) straight from the engine, so an agent can design
 // "wow" motion without reading source, and every name it picks is one the renderer accepts.
 export function registerGetMotionCatalog(server: McpServer): void {
   server.registerTool(
@@ -12,6 +12,7 @@ export function registerGetMotionCatalog(server: McpServer): void {
       description:
         'Return the motion system v2 catalog: kinetic typography presets with their defaults, exit presets, ' +
         'stagger orders, the easing grammar (springs, cubic-bezier, named curves), built-in motion tokens, ' +
+        'built-in themes (palette, fonts and motion feel for global.theme, referenced as $color.* / $font.*), ' +
         'art-direction rules and a complete starter template. Call it before authoring animated copy, ' +
         'camera moves, graphics or designed transitions.',
     },

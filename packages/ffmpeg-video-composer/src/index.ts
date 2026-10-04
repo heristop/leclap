@@ -372,5 +372,6 @@ export {
   type ResolvedPlatform,
   type SafeZone,
 } from './core/platforms';
+export * from './core/theme';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';

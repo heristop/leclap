@@ -300,6 +300,7 @@ export { default as Project } from './core/models/Project';
 export { default as Segment } from './core/models/Segment';
 export type { ProjectConfig, TemplateDescriptor, Variables, Section, Filter } from './core/types';
 export { isFontRef, type FontRef, type FontInput } from './core/fonts';
+export { themeCatalog, resolveTheme, type ThemeCatalog, type ThemeSpec } from './core/theme';
 export { container } from 'tsyringe';
 export { compileBrowser as compile };
 

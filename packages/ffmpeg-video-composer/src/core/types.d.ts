@@ -16,6 +16,7 @@ import type { FontInput } from './fonts';
 import type { PlatformName } from './platforms';
 import type { RenderManifest } from './determinism/manifest';
 import type { MotionTokens } from '../schemas/motion.schemas';
+import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
@@ -122,6 +123,8 @@ export interface TemplateDescriptorGlobal {
   seed?: number;
   /** Motion tokens + energy, see schemas/motion.schemas.ts. */
   motion?: MotionTokens;
+  /** Theme: a built-in name or { extends, colors, fonts, radius, motion }, see schemas/theme.schemas.ts. */
+  theme?: Theme;
   fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;

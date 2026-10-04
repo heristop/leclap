@@ -16,6 +16,11 @@ export interface TimingOptions {
   locale?: string;
   /** Form-field values substituted into `{{ field }}` placeholders. */
   fields?: Record<string, string>;
+  /**
+   * Validation: leave references that wait for `global.beats: { analyze: 'music' }` unresolved instead of
+   * reporting the grid as unavailable (the Node compile measures it before resolving).
+   */
+  deferBeatsAnalysis?: boolean;
 }
 
 interface DescriptorView {

@@ -24,8 +24,8 @@ import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
-import type { Beats } from './timing/timeline';
-export type { Beats } from './timing/timeline';
+import type { BeatsSpec } from './timing/timeline';
+export type { Beats, BeatsSpec } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -141,8 +141,11 @@ export interface TemplateDescriptorGlobal {
   motion?: MotionTokens;
   /** Theme: a built-in name or { extends, colors, fonts, radius, motion }, see schemas/theme.schemas.ts. */
   theme?: Theme;
-  /** Beat grid of the whole video for "beat:n" / "bar:n" time references (core/timing/timeline.ts). */
-  beats?: Beats;
+  /**
+   * Beat grid of the whole video for "beat:n" / "bar:n" time references (core/timing/timeline.ts), or
+   * `{ analyze: 'music' }`, measured from the music track by the Node compile before references resolve.
+   */
+  beats?: BeatsSpec;
   fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;
@@ -298,6 +301,10 @@ export interface SectionOptions {
   upperCase?: boolean;
   lowerCase?: boolean;
   useVideoSection?: string;
+  /**
+   * Seconds. A template may author `{ beats }` / `{ bars }` (schemas/time.schemas.ts BeatDuration); the
+   * time-reference pass turns it into seconds before anything is lowered (core/timing/durations.ts).
+   */
   duration?: number;
   musicVolume?: number;
   audioFade?: { in?: AudioFade; out?: AudioFade };

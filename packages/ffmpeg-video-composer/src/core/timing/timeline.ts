@@ -4,8 +4,29 @@
 
 import { DEFAULT_TRANSITION_DURATION } from '../../schemas/effects.schemas';
 
+/** What an analysis adds to a grid: its confidence, and whether the pulse is reliable enough to cut on. */
+interface AnalysisMarks {
+  confidence?: number;
+  usable?: boolean;
+}
+
 /** A tempo grid (`bpm`, first beat at `offset`) or explicit beat times from an analysis, in video seconds. */
-export type Beats = { bpm: number; offset?: number; beatsPerBar?: number } | { times: number[]; beatsPerBar?: number };
+export type Beats =
+  | ({ bpm: number; offset?: number; beatsPerBar?: number } & AnalysisMarks)
+  | ({ times: number[]; beatsPerBar?: number } & AnalysisMarks);
+
+/** A request to measure the grid from the template's music track at compile time (Node only). */
+export interface BeatsAnalysisRequest {
+  analyze: 'music';
+  beatsPerBar?: number;
+}
+
+/** `global.beats` as authored: a grid, or a request to analyze the music. */
+export type BeatsSpec = Beats | BeatsAnalysisRequest;
+
+export function isAnalysisRequest(beats: unknown): beats is BeatsAnalysisRequest {
+  return typeof beats === 'object' && beats !== null && (beats as { analyze?: unknown }).analyze === 'music';
+}
 
 interface TimelineTransition {
   type: string;
@@ -14,7 +35,7 @@ interface TimelineTransition {
 
 export interface TimelineSection {
   type: string;
-  options?: { duration?: number };
+  options?: { duration?: unknown };
   transition?: TimelineTransition;
 }
 
@@ -38,7 +59,10 @@ export function barTime(beats: Beats, index: number): number | null {
  * recorded clip (`project_video`), whose length comes from the probe.
  */
 export function knownDuration(section: TimelineSection): number | undefined {
-  return section.type === 'project_video' ? undefined : section.options?.duration;
+  const duration = section.options?.duration;
+
+  // A `{ beats }` / `{ bars }` length is only a number once core/timing/durations.ts resolved it.
+  return section.type === 'project_video' || typeof duration !== 'number' ? undefined : duration;
 }
 
 // How far the boundary after `previous` pulls the next section back: a transition overlaps both clips.

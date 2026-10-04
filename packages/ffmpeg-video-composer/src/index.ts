@@ -372,4 +372,9 @@ export {
   type SectionTimeline,
 } from './core/motion/timeline';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
+// Music analysis: the platform-neutral analyzer, and (Node only) decoding a file with FFmpeg first.
+export { analyzeBeats, detectOnsets, MIN_CONFIDENCE, type BeatAnalysis, type MusicCues } from './core/audio/beats';
+export { applyMusicAnalysis, beatsFromAnalysis, type MusicAnalysis } from './core/audio/apply-analysis';
+export { analyzeMusicFile, type AnalyzeMusicOptions } from './services/beats-analysis-node';
+export { decodeMonoPcm, ANALYSIS_SAMPLE_RATE } from './platform/ffmpeg/decode-pcm-node';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';

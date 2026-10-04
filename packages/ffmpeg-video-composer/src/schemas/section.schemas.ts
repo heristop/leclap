@@ -16,6 +16,7 @@ import { FilterSchema, MapSchema } from './filter.schemas';
 import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas';
 import { InputSchema, FieldSchema } from './section-media.schemas';
 import { MOTION_SECTION_FIELDS } from './motion-section.schemas';
+import { BeatDurationSchema } from './time.schemas';
 
 export {
   CAPTION_STYLES,
@@ -31,6 +32,17 @@ export {
 // importers keep a single `section.schemas` entry point, and Input/Field imported back for the
 // section option/base schemas below.
 export { InputOptionsSchema, ShapeSpecSchema, InputSchema, FieldSchema } from './section-media.schemas';
+
+// A section length in seconds or on the beat grid. Typed as seconds: the time-reference pass turns a beat
+// length into seconds before anything reads it as a number (core/timing/durations.ts), and the code that
+// runs earlier (validation rules, motion timeline) checks `typeof duration === 'number'` first.
+const SectionDurationSchema = z
+  .union([z.number().positive(), BeatDurationSchema])
+  .optional()
+  .describe(
+    'Fixed duration of the section in seconds, or on the beat grid as { beats: n } / { bars: n } (needs ' +
+      'global.beats with a bpm); overrides clip length.'
+  ) as unknown as z.ZodOptional<z.ZodNumber>;
 
 // ── section options ────────────────────────────────────────────────────────────
 
@@ -50,11 +62,7 @@ export const BaseSectionOptionsSchema = z
       .describe(
         'Name of a project_video section whose recorded clip is reused in this section instead of capturing a new one.'
       ),
-    duration: z
-      .number()
-      .positive()
-      .optional()
-      .describe('Fixed duration of the section in seconds; overrides clip length.'),
+    duration: SectionDurationSchema,
     musicVolume: z
       .number()
       .min(0)

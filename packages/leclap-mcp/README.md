@@ -22,6 +22,7 @@ video models, which sample rather than render.
 | `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields, geometry? }`                                      |
 | `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4 |
 | `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                                                             |
+| `analyze_music`        | Measure a local music file → `{ bpm, offset, beatsPerBar, confidence, usable, cues, globalBeats }` for `global.beats` and `cue:drop`                         |
 | `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                        |
 | `ping`                 | Liveness check                                                                                                                                               |
 
@@ -170,8 +171,8 @@ Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy; its `temp
 orientation and fps. Codec, quality-tier and FFmpeg segment-concurrency fields are library host
 settings, not arbitrary MCP tool arguments.
 
-Nine tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
-`get_motion_catalog`, `validate_template`, `compose_video`, `patch_template` and `probe_media`. Opt-in adds
+Ten tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
+`get_motion_catalog`, `validate_template`, `compose_video`, `patch_template`, `probe_media` and `analyze_music`. Opt-in adds
 `get_effect_schema`, `render_preview` and `render_remotion_clip`. Patch availability does not bypass
 effect-backend validation.
 

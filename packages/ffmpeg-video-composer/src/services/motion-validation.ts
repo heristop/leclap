@@ -200,7 +200,7 @@ function kineticErrors(template: TemplateDescriptor): ValidationError[] {
 
 export function validateMotionSystem(template: TemplateDescriptor): ValidationError[] {
   // Keyframe times may be time references: check the tracks as they will lower, in seconds.
-  const uses = motionUses(resolveTimeRefs(template).descriptor);
+  const uses = motionUses(resolveTimeRefs(template, { deferBeatsAnalysis: true }).descriptor);
 
   const tokens = resolveTokens(template.global?.motion);
   const easingErrors = uses.filter((use) => use.kind === 'easing').map((use) => easingUseError(use, tokens));

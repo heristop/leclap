@@ -13,7 +13,8 @@ const GUIDE = [
     'array — each section becomes a clip and they are composed in order.',
   'Each section has a `name`, a `type` (video, project_video, form, color_background, ' +
     'image_background, music, effect), optional `options`, and optional `filters`/`inputs`/`maps`.',
-  'All durations are in SECONDS (options.duration, transition.duration, audioFade durations, etc.).',
+  'All durations are in SECONDS (options.duration, transition.duration, audioFade durations, etc.); ' +
+    'options.duration may also count beats of global.beats as { beats: n } or { bars: n }.',
   'A structured-sugar layer sits above raw filters (prefer it over raw filters): `transition` ({type: an xfade name ' +
     'or "cut", duration?}) on global and/or per section; `look` (cinematic/warm/cool/vintage/noir/' +
     'vivid/dreamy) and `grade` (brightness/contrast/saturation/gamma/hue/colorBalance/blur); `motion` ' +
@@ -37,6 +38,11 @@ const GUIDE = [
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +
     'with get_effect_schema. These registered Remotion modes need a Node worker, not the portable native path.',
+  'Music timing: call analyze_music on the music file for bpm, offset, beatsPerBar, confidence, usable and ' +
+    'cues (build, drop, end); set global.beats to { bpm, offset, beatsPerBar } and put the drop into the cues ' +
+    'of the section playing then, so "beat:n", "bar:n" and "cue:drop" land on the music. Section lengths may ' +
+    'be options.duration { beats: n } / { bars: n }. global.beats { analyze: "music" } measures the track at ' +
+    'compose time on this Node server. When usable is false (calm or ambient music), pace by phrases instead of beats.',
   'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +
     'cut-only templates use a fast stream-copy concat.',
   'Strings may contain `{{ variables }}` (from global.variables), `{{ colorN }}` (1-indexed from ' +

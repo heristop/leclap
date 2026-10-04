@@ -14,6 +14,7 @@ import { loadSelfHostedCore } from '@/infrastructure/ffmpeg-core';
 import { browserMediaService } from '@/services/browserMediaService';
 import { materializeTemplateMedia } from '@/application/usecases/materializeTemplateMedia';
 import { applyMediaChoices, type MediaChoices } from '@/application/usecases/applyMediaChoices';
+import { analyzeMusicInBrowser } from '@/application/usecases/musicBeats';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
 import { renderQuip } from '@leclap/creative-kit/render-quips';
 import { CompileError, classifyCompileFailure } from './compile-failure';
@@ -339,6 +340,8 @@ class CoreCompilationService {
       applyMediaChoices(templateDescriptor, mediaChoices);
     }
 
+    // Uploaded music (or a track the library table lacks) gets its beat grid measured here (musicBeats.ts).
+    await analyzeMusicInBrowser(templateDescriptor, browserMediaService);
     await materializeTemplateMedia(templateDescriptor, browserMediaService, this.filesystemAdapter);
     await this.preloadBundledMusic(templateDescriptor);
   }

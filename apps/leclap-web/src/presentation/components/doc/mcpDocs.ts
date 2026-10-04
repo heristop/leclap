@@ -131,6 +131,13 @@ export const mcpDoc: McpDoc = {
       when: 'Use to check a user-supplied clip before composing. The path must resolve inside the media dir.',
     },
     {
+      name: 'analyze_music',
+      args: 'path, beatsPerBar?, includeTimes?',
+      purpose:
+        'Measures a music file: BPM, beat 1 offset, beats per bar, confidence, usable, and build/drop/end cues, plus globalBeats to paste into global.beats.',
+      when: 'Use before timing cuts and hits to the music ("beat:n", "bar:n", "cue:drop"). When usable is false (calm or ambient music), pace by phrases instead.',
+    },
+    {
       name: 'render_remotion_clip',
       args: 'compositionId, entry?, serveUrl?, inputProps?, outputName?',
       purpose:

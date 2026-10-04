@@ -4,7 +4,16 @@
 // unknown ids, cycles, unresolvable anchors and negative times. Pure and deterministic.
 
 import { nearestName, parseTimeRef, type TimeRef } from './grammar';
-import { barTime, beatTime, knownDuration, sectionStarts, type Beats, type TimelineSection } from './timeline';
+import {
+  barTime,
+  beatTime,
+  isAnalysisRequest,
+  knownDuration,
+  sectionStarts,
+  type BeatsSpec,
+  type TimelineSection,
+} from './timeline';
+import { resolveSectionDurations } from './durations';
 import { sectionElements, timeSlots, type ElementEntry, type TimeSlot } from './fields';
 import { defaultStart, entranceSpan, type SpanContext } from './spans';
 import { timingFrame, timingText, type TimingOptions } from './context';
@@ -16,7 +25,9 @@ export type TimeIssueCode =
   | 'circular_time_ref'
   | 'unresolvable_time_ref'
   | 'negative_time'
-  | 'duplicate_time_id';
+  | 'duplicate_time_id'
+  | 'beat_duration_needs_bpm'
+  | 'beats_analysis_unavailable';
 
 export interface TimeIssue {
   path: string;
@@ -24,6 +35,10 @@ export interface TimeIssue {
   message: string;
   hint?: string;
 }
+
+// A reference that waits for the music analysis (`global.beats: { analyze: 'music' }`): left as written,
+// never reported, and resolved once the analysis has filled in the grid.
+class DeferredTime extends Error {}
 
 class TimeRefError extends Error {
   constructor(
@@ -39,7 +54,9 @@ interface Clock {
   ctx: SpanContext;
   /** Section start in the whole video, when known. */
   start: number | null;
-  beats?: Beats;
+  beats?: BeatsSpec;
+  /** The section length is in beats and the grid awaits the analysis. */
+  lengthDeferred: boolean;
   cues: Record<string, number>;
   elements: Map<string, ElementEntry>;
   starts: Map<string, number>;
@@ -54,6 +71,8 @@ function round(value: number): number {
 function sectionLength(clock: Clock): number {
   if (clock.ctx.duration !== undefined) return clock.ctx.duration;
 
+  if (clock.lengthDeferred) throw new DeferredTime();
+
   throw new TimeRefError(
     'unresolvable_time_ref',
     'the section length is only known once its clip is probed',
@@ -62,6 +81,8 @@ function sectionLength(clock: Clock): number {
 }
 
 function gridTime(ref: Extract<TimeRef, { kind: 'beat' | 'bar' }>, clock: Clock): number {
+  if (isAnalysisRequest(clock.beats)) throw new DeferredTime();
+
   if (!clock.beats) {
     throw new TimeRefError(
       'unresolvable_time_ref',
@@ -188,6 +209,8 @@ function resolveSlot(slot: TimeSlot, clock: Clock, prefix: string): TimeIssue | 
         }
       : null;
   } catch (error) {
+    if (error instanceof DeferredTime) return null;
+
     if (!(error instanceof TimeRefError)) throw error;
 
     return { path: `${prefix}${slot.path}`, code: error.code, message: error.message, hint: error.hint };
@@ -217,10 +240,13 @@ function elementTable(section: Bag, prefix: string, issues: TimeIssue[]): Map<st
 interface PassContext {
   descriptor: { global?: unknown };
   options: TimingOptions;
-  beats?: Beats;
+  beats?: BeatsSpec;
+  deferred: Set<number>;
 }
 
-function resolveSection(section: Bag, start: number | null, pass: PassContext, prefix: string): [Bag, TimeIssue[]] {
+function resolveSection(section: Bag, index: number, start: number | null, pass: PassContext): [Bag, TimeIssue[]] {
+  const prefix = `sections[${index}].`;
+
   if (timeSlots(section).length === 0) return [section, []];
 
   const clone = structuredClone(section);
@@ -234,6 +260,7 @@ function resolveSection(section: Bag, start: number | null, pass: PassContext, p
     },
     start,
     beats: pass.beats,
+    lengthDeferred: pass.deferred.has(index),
     cues: (section.cues ?? {}) as Record<string, number>,
     elements: elementTable(clone, prefix, issues),
     starts: new Map(),
@@ -248,9 +275,25 @@ function resolveSection(section: Bag, start: number | null, pass: PassContext, p
   return [clone, issues];
 }
 
+// Outside validation, a grid that still awaits the music analysis is an error: only the Node compile can
+// measure the music (it does so before this pass runs).
+function analysisIssues(beats: BeatsSpec | undefined, options: TimingOptions): TimeIssue[] {
+  if (!isAnalysisRequest(beats) || options.deferBeatsAnalysis) return [];
+
+  return [
+    {
+      path: 'global.beats',
+      code: 'beats_analysis_unavailable',
+      message: 'global.beats { analyze: "music" } was not measured: only the Node compile can analyze music',
+      hint: 'precompute the grid with `leclap beats <audio> --json` or the analyze_music MCP tool',
+    },
+  ];
+}
+
 /**
- * The descriptor with every time reference in its sections resolved to seconds, and what could not be
- * resolved. Sections without references are returned untouched.
+ * The descriptor with every section length in beats resolved to seconds (core/timing/durations.ts) and
+ * every time reference in its sections resolved to seconds, and what could not be resolved. Sections
+ * without references are returned untouched.
  */
 export function resolveTimeRefs<T extends { global?: unknown; sections?: unknown }>(
   descriptor: T,
@@ -258,13 +301,14 @@ export function resolveTimeRefs<T extends { global?: unknown; sections?: unknown
 ): { descriptor: T; issues: TimeIssue[] } {
   if (!Array.isArray(descriptor.sections)) return { descriptor, issues: [] };
 
-  const sections = descriptor.sections as Bag[];
-  const global = (descriptor.global ?? {}) as { beats?: Beats; transition?: { type: string; duration?: number } };
+  const lengths = resolveSectionDurations(descriptor);
+  const sections = lengths.descriptor.sections as Bag[];
+  const global = (descriptor.global ?? {}) as { beats?: BeatsSpec; transition?: { type: string; duration?: number } };
   const starts = sectionStarts(sections as unknown as TimelineSection[], global.transition);
-  const pass: PassContext = { descriptor, options, beats: global.beats };
-  const issues: TimeIssue[] = [];
+  const pass: PassContext = { descriptor, options, beats: global.beats, deferred: lengths.deferred };
+  const issues: TimeIssue[] = [...lengths.issues, ...analysisIssues(global.beats, options)];
   const resolved = sections.map((section, index) => {
-    const [out, found] = resolveSection(section, starts[index], pass, `sections[${index}].`);
+    const [out, found] = resolveSection(section, index, starts[index], pass);
 
     issues.push(...found);
 

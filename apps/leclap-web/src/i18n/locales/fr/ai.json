@@ -100,13 +100,17 @@
     "replace": "Remplacer le brouillon",
     "keep": "Continuer l'édition",
     "regenerate": "En générer un autre",
-    "details": "Détails techniques"
+    "details": "Détails techniques",
+    "writeTemplate": "Écrire le modèle",
+    "startOver": "Recommencer"
   },
   "steps": {
     "thinking": "Réflexion",
     "validating": "Validation",
     "repairing": "Réparation",
-    "ready": "Prêt"
+    "ready": "Prêt",
+    "planning": "Plan",
+    "polishing": "Finitions"
   },
   "status": {
     "thinking": "Réflexion…",
@@ -114,7 +118,10 @@
     "validating": "Validation…",
     "repairing": "Réparation (passe {{round}}) : correction de {{count}} problème(s)…",
     "ready": "Prêt",
-    "cancelled": "Annulé. Rien n'a été modifié."
+    "cancelled": "Annulé. Rien n'a été modifié.",
+    "planning": "Concepts et séquences en préparation…",
+    "planReady": "Plan prêt. Ajustez-le si besoin, puis écrivez le modèle.",
+    "polishing": "Finitions : {{count}} remarque(s) de direction artistique…"
   },
   "result": {
     "scenes_one": "{{count}} scène",
@@ -125,7 +132,10 @@
     "durationEstimate": "~{{seconds}} s + plans",
     "effects": "Effets",
     "noEffects": "Aucun effet — coupes franches.",
-    "replaceWarning": "Cela remplace le brouillon actuel. Vos modèles enregistrés ne sont pas touchés, et Annuler rétablit le brouillon."
+    "replaceWarning": "Cela remplace le brouillon actuel. Vos modèles enregistrés ne sont pas touchés, et Annuler rétablit le brouillon.",
+    "advisories_one": "{{count}} remarque de direction artistique",
+    "advisories_other": "{{count}} remarques de direction artistique",
+    "noAdvisories": "Aucune remarque de direction artistique du moteur."
   },
   "errors": {
     "auth": "{{provider}} a refusé la clé. Vérifiez qu'elle a été copiée en entier et qu'elle est toujours active.",
@@ -140,5 +150,32 @@
     "http": "{{provider}} a renvoyé une erreur. Réessayez.",
     "invalid": "Le modèle n'a pas produit de modèle valide après {{rounds}} tentatives. Essayez un brief plus simple ou plus précis.",
     "unknown": "Un problème est survenu. Réessayez."
+  },
+  "plan": {
+    "planFirst": "Planifier d'abord",
+    "planFirstHint": "Propose trois concepts et un découpage avant l'écriture. Un appel de plus, rapide.",
+    "review": "Relire le plan",
+    "reviewHint": "S'arrête sur le plan pour le modifier. Désactivé : enchaîne directement.",
+    "title": "Plan",
+    "intro": "Modifiez les textes, les verbes ou le rythme, ou choisissez un autre concept. Le modèle suit ce plan.",
+    "strategy": "Stratégie",
+    "concepts": "Concept",
+    "typicality": {
+      "expected": "Attendu",
+      "fresh": "Original",
+      "unusual": "Inattendu"
+    },
+    "beats": "Séquences",
+    "role": "Rôle",
+    "verb": "Verbe",
+    "onScreen": "À l’écran",
+    "seconds": "Durée",
+    "verbLabel": "Verbe de la séquence {{row}}",
+    "onScreenLabel": "Texte à l’écran de la séquence {{row}}",
+    "secondsLabel": "Durée de la séquence {{row}} en secondes",
+    "footage": "Vidéo, sans texte",
+    "facts": "Détails du plan",
+    "transitions": "Transitions : {{primary}}",
+    "transitionsWithAccents": "Transitions : {{primary}} + {{accents}}"
   }
 }

@@ -100,13 +100,17 @@
     "replace": "Sostituisci bozza",
     "keep": "Continua a modificare",
     "regenerate": "Generane un altro",
-    "details": "Dettagli tecnici"
+    "details": "Dettagli tecnici",
+    "writeTemplate": "Scrivi il modello",
+    "startOver": "Ricomincia"
   },
   "steps": {
     "thinking": "Riflessione",
     "validating": "Verifica",
     "repairing": "Riparazione",
-    "ready": "Pronto"
+    "ready": "Pronto",
+    "planning": "Pianificazione",
+    "polishing": "Rifinitura"
   },
   "status": {
     "thinking": "Sto riflettendo…",
@@ -114,7 +118,10 @@
     "validating": "Verifica in corso…",
     "repairing": "Riparazione (giro {{round}}): correzione di {{count}} problema/i…",
     "ready": "Pronto",
-    "cancelled": "Annullato. Non è stato modificato nulla."
+    "cancelled": "Annullato. Non è stato modificato nulla.",
+    "planning": "Pianificazione di concept e scene…",
+    "planReady": "Piano pronto. Modificalo se vuoi, poi scrivi il modello.",
+    "polishing": "Rifinitura di {{count}} nota/e di art direction…"
   },
   "result": {
     "scenes_one": "{{count}} scena",
@@ -125,7 +132,10 @@
     "durationEstimate": "~{{seconds}} s + clip",
     "effects": "Effetti",
     "noEffects": "Nessun effetto — tagli netti.",
-    "replaceWarning": "Questo sostituisce la bozza attuale. I modelli salvati non vengono toccati e Annulla ripristina la bozza."
+    "replaceWarning": "Questo sostituisce la bozza attuale. I modelli salvati non vengono toccati e Annulla ripristina la bozza.",
+    "advisories_one": "{{count}} nota di art direction",
+    "advisories_other": "{{count}} note di art direction",
+    "noAdvisories": "Nessuna nota di art direction dal motore."
   },
   "errors": {
     "auth": "{{provider}} ha rifiutato la chiave. Verifica che sia stata copiata per intero e che sia ancora attiva.",
@@ -140,5 +150,32 @@
     "http": "{{provider}} ha restituito un errore. Riprova.",
     "invalid": "Il modello non ha prodotto un modello valido dopo {{rounds}} tentativi. Prova un brief più semplice o più preciso.",
     "unknown": "Qualcosa è andato storto. Riprova."
+  },
+  "plan": {
+    "planFirst": "Prima il piano",
+    "planFirstHint": "Propone tre concept e una scaletta prima di scrivere. Una chiamata in più, veloce.",
+    "review": "Rivedi il piano",
+    "reviewHint": "Si ferma sul piano per modificarlo. Disattivato: prosegue subito.",
+    "title": "Piano",
+    "intro": "Modifica testi, verbi o tempi, oppure scegli un altro concept. Il modello segue questo piano.",
+    "strategy": "Strategia",
+    "concepts": "Concept",
+    "typicality": {
+      "expected": "Prevedibile",
+      "fresh": "Fresco",
+      "unusual": "Insolito"
+    },
+    "beats": "Scene",
+    "role": "Ruolo",
+    "verb": "Verbo",
+    "onScreen": "A schermo",
+    "seconds": "Durata",
+    "verbLabel": "Verbo della scena {{row}}",
+    "onScreenLabel": "Testo a schermo della scena {{row}}",
+    "secondsLabel": "Durata della scena {{row}} in secondi",
+    "footage": "Riprese, senza testo",
+    "facts": "Dettagli del piano",
+    "transitions": "Transizioni: {{primary}}",
+    "transitionsWithAccents": "Transizioni: {{primary}} + {{accents}}"
   }
 }

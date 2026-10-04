@@ -21,6 +21,7 @@ import shell from './shell.json';
 import projects from './projects.json';
 import legal from './legal.json';
 import privacy from './privacy.json';
+import ai from './ai.json';
 import type { Resources } from '../en';
 
 // Recursively replace string-literal leaves with `string` so French values may differ from
@@ -45,4 +46,5 @@ export const fr = {
   projects,
   legal,
   privacy,
+  ai,
 } satisfies LocaleShape<Resources>;

@@ -17,10 +17,12 @@ interface SectionDisclosureProps {
   /** At-a-glance state shown on the collapsed header ("Cinematic · Ken Burns" / "None"). */
   summary: string;
   children: ReactNode;
+  /** Start expanded (e.g. when the group holds something the user must fill in first). */
+  defaultOpen?: boolean;
 }
 
-export const SectionDisclosure = ({ label, icon, summary, children }: SectionDisclosureProps) => {
-  const [open, setOpen] = useState(false);
+export const SectionDisclosure = ({ label, icon, summary, children, defaultOpen = false }: SectionDisclosureProps) => {
+  const [open, setOpen] = useState(defaultOpen);
   const bodyId = useId();
   const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
 

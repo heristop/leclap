@@ -6,10 +6,9 @@ import pc from 'picocolors';
 import {
   compile,
   loadConfig,
-  FFmpegDetector,
-  FFmpegAvailability,
   type CompileReporter,
   type ProjectConfig,
+  type QcReport,
   type RenderManifest,
 } from 'ffmpeg-video-composer';
 import { setEngineLogLevel } from '../log.js';
@@ -17,10 +16,11 @@ import { LiveRenderer } from '../render-progress.js';
 import { buildProjectConfig, collectRepeated, withOrientation, type RenderFlags } from '../render-args.js';
 import { summaryLine, safeSize } from '../render-format.js';
 import { watchPaths } from '../watch.js';
-import { finalizeOutput, writeManifest } from '../render-manifest.js';
+import { assertOutputIsNotInput, finalizeOutput, writeManifest } from '../render-manifest.js';
 import { fail, hint } from '../ui.js';
 import { compileFailure, errorMessage, printErrorHints } from '../render-errors.js';
-import { wordmark, statusRow, ok, bad, dot } from '../theme.js';
+import { printHeader } from '../render-header.js';
+import { failedChecks, reportQc } from '../render-qc.js';
 
 // Everything a render pass needs, assembled once from the CLI flags.
 interface RenderOptions {
@@ -35,6 +35,8 @@ interface RenderOptions {
   watch: boolean;
   /** `--manifest`: write `<output>.manifest.json` next to the video. */
   manifest: boolean;
+  /** The last render's QC report (`--qc`), read after the render settles. */
+  qc?: QcReport;
 }
 
 // Every value of a repeatable flag. They come from raw argv, because citty keeps only the last value
@@ -77,6 +79,7 @@ async function compileOnce(opts: RenderOptions, reporter?: CompileReporter): Pro
     onError: (error) => {
       captured.error = error;
     },
+    onQc: (report) => (opts.qc = report),
     ...(opts.manifest && { onManifest: (manifest: RenderManifest) => (captured.manifest = manifest) }),
   });
 
@@ -114,6 +117,8 @@ export const render = defineCommand({
       description: 'Bit-exact muxing + pinned encoder threads (--no-deterministic to disable)',
       default: true,
     },
+    qc: { type: 'boolean', description: 'Check the output (format + content); exit 1 on a failure', default: false },
+    cache: { type: 'string', description: 'Per-section render cache directory' },
   },
   async run({ args, rawArgs }) {
     const json = args.json;
@@ -135,6 +140,8 @@ export const render = defineCommand({
       assets: args.assets,
       build: args.build,
       deterministic: args.deterministic,
+      qc: args.qc,
+      cache: args.cache,
     };
 
     const mode = { quiet, json, verbose, watch: args.watch, output: args.output, manifest: args.manifest };
@@ -158,11 +165,15 @@ interface ModeFlags {
 // Assemble RenderOptions; surfaces a bad `--field`/`--video` value as a clean error + exit.
 function buildOptions(templatePath: string, flags: RenderFlags, mode: ModeFlags): RenderOptions {
   try {
+    const outputAbs = mode.output ? path.resolve(process.cwd(), mode.output) : undefined;
+    const projectConfig = buildProjectConfig(process.cwd(), flags);
+    assertOutputIsNotInput(outputAbs, [templatePath, ...Object.values(projectConfig.userVideoPaths ?? {})]);
+
     return {
       templatePath,
-      projectConfig: buildProjectConfig(process.cwd(), flags),
+      projectConfig,
       orientation: flags.orientation,
-      outputAbs: mode.output ? path.resolve(process.cwd(), mode.output) : undefined,
+      outputAbs,
       quiet: mode.quiet,
       json: mode.json,
       verbose: mode.verbose,
@@ -201,41 +212,21 @@ async function dispatch(opts: RenderOptions): Promise<void> {
   await renderWithReporter(opts);
 }
 
-// The branded header: the LeClap wordmark over an aligned status block (which ffmpeg backs the render,
-// and where its assets come from). Detection is best-effort — a real failure is surfaced by compile().
-async function printHeader(projectConfig: ProjectConfig & { buildDir: string }, cwd: string): Promise<void> {
-  process.stdout.write(wordmark());
-
-  try {
-    const det = await FFmpegDetector.detect();
-    const engine =
-      det.availability === FFmpegAvailability.NONE
-        ? `${bad} ffmpeg not found  ${dot}  run ${pc.bold('leclap diagnose')}`
-        : `${ok} ffmpeg ${pc.dim(det.version ?? '')}  ${dot}  ${pc.dim(det.availability)}`;
-    console.log(statusRow('engine', engine));
-  } catch {
-    // Detection is decorative here; the real failure path is compile().
-  }
-
-  console.log(statusRow('assets', pc.dim(prettyAssets(projectConfig.assetsDir, cwd))));
-  console.log('');
-}
-
-function prettyAssets(dir: string | undefined, cwd: string): string {
-  if (!dir) return 'none';
-  const rel = path.relative(cwd, dir);
-
-  return rel === '' ? '.' : rel;
-}
-
 // JSON mode: one machine-readable object, no colour/progress. Exit 1 on failure.
 async function renderJson(opts: RenderOptions): Promise<void> {
   const startedAt = Date.now();
 
   try {
     const output = await compileOnce(opts);
-    const result = { ok: true, output, bytes: safeSize(output), durationMs: Date.now() - startedAt };
-    process.stdout.write(`${JSON.stringify(result)}\n`);
+    const failed = failedChecks(opts.qc);
+    const result = { ok: failed.length === 0, output, bytes: safeSize(output), durationMs: Date.now() - startedAt };
+    const qc = opts.qc && {
+      qc: opts.qc,
+      ...(failed.length > 0 && { error: `output QC failed: ${failed.join(', ')}` }),
+    };
+    process.stdout.write(`${JSON.stringify({ ...result, ...qc })}\n`);
+
+    if (failed.length > 0) process.exit(1);
   } catch (error) {
     process.stdout.write(`${JSON.stringify({ ok: false, error: errorMessage(error) })}\n`);
     process.exit(1);
@@ -253,6 +244,8 @@ async function renderVerbose(opts: RenderOptions): Promise<void> {
     printErrorHints(error);
     process.exit(1);
   }
+
+  if (reportQc(opts.qc, false)) process.exit(1);
 }
 
 interface ReporterBundle {
@@ -309,6 +302,8 @@ async function renderWithReporter(opts: RenderOptions): Promise<void> {
     printErrorHints(error);
     process.exit(1);
   }
+
+  if (reportQc(opts.qc, opts.quiet)) process.exit(1);
 }
 
 // Print the success summary, optionally with the log-path hint, via the live region when present.
@@ -381,6 +376,7 @@ async function watchPass(opts: RenderOptions): Promise<void> {
     const output = await compileOnce(opts, reporter);
     flushLog();
     finishSuccess(output, startedAt, live, null);
+    reportQc(opts.qc, false);
   } catch (error) {
     flushLog();
     live?.finishError();

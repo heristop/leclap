@@ -19,6 +19,10 @@ export interface RenderFlags {
   build?: string;
   /** `--deterministic` (default on): bit-exact muxing and pinned encoder threads (engine D5 profile). */
   deterministic?: boolean;
+  /** `--qc`: probe and decode the finished video, report findings, exit non-zero on a failure. */
+  qc?: boolean;
+  /** `--cache <dir>`: per-section render cache (resolved vs cwd). */
+  cache?: string;
 }
 
 // Every value of a repeatable flag, read from raw argv in order. citty parses a repeated string flag
@@ -93,6 +97,14 @@ export function buildProjectConfig(cwd: string, flags: RenderFlags): ProjectConf
 
   if (flags.deterministic !== undefined) {
     config.deterministic = flags.deterministic;
+  }
+
+  if (flags.qc) {
+    config.qc = { content: true };
+  }
+
+  if (flags.cache) {
+    config.cacheDir = path.resolve(cwd, flags.cache);
   }
 
   return config;

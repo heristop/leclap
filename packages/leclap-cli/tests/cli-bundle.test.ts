@@ -102,4 +102,27 @@ describe('CLI bundle (dist/index.js)', () => {
     expect(JSON.parse(tampered.stdout)).toMatchObject({ ok: false });
     expect(tampered.code).toBe(1);
   }, 180_000);
+
+  it('checks the output with --qc and reuses sections with --cache', async () => {
+    const work = fs.mkdtempSync(path.join(os.tmpdir(), 'leclap-qc-'));
+    const fixture = path.join(here, 'fixtures/cli-deterministic.json');
+    const args = ['render', fixture, '--qc', '--json', '--cache', path.join(work, 'cache')];
+    const first = await runCli([...args, '--build', path.join(work, 'build')]);
+    const result = JSON.parse(first.stdout) as {
+      ok: boolean;
+      qc: { verified: boolean; findings: Array<{ check: string; status: string }> };
+    };
+
+    expect(first.code).toBe(0);
+    expect(result.ok).toBe(true);
+    expect(result.qc.verified).toBe(true);
+    expect(result.qc.findings.map((finding) => finding.check)).toContain('black_frames');
+    expect(fs.readdirSync(path.join(work, 'cache')).length).toBeGreaterThan(0);
+
+    const clip = path.join(work, 'build', 'output.mp4');
+    const clobber = await runCli(['render', fixture, '--json', '--video', `intro=${clip}`, '--output', clip]);
+
+    expect(clobber.code).toBe(1);
+    expect(JSON.parse(clobber.stdout)).toMatchObject({ ok: false, error: expect.stringMatching(/is also an input/) });
+  }, 180_000);
 });

@@ -24,6 +24,8 @@ import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
+import type { TemplateFormats } from '../schemas/formats.schemas';
+export type { TemplateFormats, FormatOverride } from '../schemas/formats.schemas';
 import type { Beats } from './timing/timeline';
 export type { Beats } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
@@ -82,6 +84,9 @@ export type ProjectConfig = {
   // Node only. Directory of the per-section render cache: a section whose FFmpeg command, input files,
   // FFmpeg build and engine version all match a previous render is copied instead of re-encoded.
   cacheDir?: string;
+  // Output format to render (overrides global.orientation): applies the descriptor's `formats[format]`
+  // override and resolves its `$format` values (core/formats). Default: the descriptor's own orientation.
+  format?: 'landscape' | 'portrait' | 'square';
 };
 
 export type MusicConfig = {
@@ -120,6 +125,8 @@ export interface TemplateDescriptor {
   meta?: TemplateMeta;
   global?: TemplateDescriptorGlobal;
   sections?: DescriptorSection[];
+  /** Per-format compositions of the same story: patches applied when that orientation renders (core/formats). */
+  formats?: TemplateFormats;
 }
 
 interface TemplateMeta {

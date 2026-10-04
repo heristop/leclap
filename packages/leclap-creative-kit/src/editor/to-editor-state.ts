@@ -27,6 +27,7 @@ import {
 } from './model';
 import { audioFrom, colorsListFrom, defaultTransitionFrom, globalVariablesFrom } from './to-editor-global';
 import { editorMotionFrom, motionBlocksOf, type MotionBlocks } from './motion-passthrough';
+import { editorFormatsFrom } from './formats-passthrough';
 import { overlaysFromFilters, videoFilterStateFrom } from './overlay-parsing';
 import { pruneEmpty } from './prune';
 import { editorIdentityFrom } from './template-meta';
@@ -320,6 +321,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     id: template.id,
     ...editorIdentityFrom(template),
     ...(editorMotionFrom(template.descriptor.global) ? { motion: editorMotionFrom(template.descriptor.global) } : {}),
+    ...(editorFormatsFrom(template.descriptor) ? { formats: editorFormatsFrom(template.descriptor) } : {}),
     orientation: template.orientation,
     sections: editorSectionsFrom(template.descriptor),
     globalVariables: globalVariablesFrom(global),

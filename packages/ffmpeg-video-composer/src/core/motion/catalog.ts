@@ -14,6 +14,7 @@ import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
 import { CAMERA_GUIDES, GRAPHIC_GUIDES, KINETIC_GUIDES, TRANSITION_GUIDES, type MotionGuide } from './catalog-guides';
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+import { FORMATS_ART_DIRECTION, FORMATS_GUIDE } from '../formats/guide';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
@@ -44,6 +45,7 @@ const ART_DIRECTION = [
   'Set global.platform (tiktok, reels, shorts, youtube, x, linkedin, facebook, square-feed) when the video ' +
     'has a destination: keep kinetic copy and graphics out of its safe zones (see platforms[].safe, fractions ' +
     'of the frame per edge) and the timeline under platforms[].maxDuration.',
+  FORMATS_ART_DIRECTION,
   'Every result is deterministic: the same JSON and global.seed render the same frames. Change the seed to ' +
     'reshuffle random order, scramble glyphs and grain.',
   'Pick a genre doctrine first, then a blueprint per narrative role; keep each blueprint signatureMove. Every ' +
@@ -113,6 +115,8 @@ export interface MotionCatalog {
   themes: ThemeCatalog;
   timing: typeof TIMING;
   starter: typeof STARTER;
+  /** One story, several formats: `formats` overrides, `$format` values, merge rules (core/formats). */
+  formats: typeof FORMATS_GUIDE;
 }
 
 // Time references: name the moment instead of computing it. Resolved to seconds at compile time.
@@ -229,5 +233,6 @@ export function motionCatalog(): MotionCatalog {
     themes: themeCatalog(),
     timing: TIMING,
     starter: STARTER,
+    formats: FORMATS_GUIDE,
   };
 }

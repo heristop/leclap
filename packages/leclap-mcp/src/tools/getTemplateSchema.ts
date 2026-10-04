@@ -33,6 +33,12 @@ const GUIDE = [
     'and validate_template then warns platform_ui_overlap (text under the app UI, per-edge safe zones such as ' +
     "TikTok's bottom 22%), platform_duration_exceeded and platform_fps_mismatch. get_motion_catalog lists " +
     'platforms[] with safe zones, max duration and loudness.',
+  'One story, several formats: top-level `formats` ({ landscape?, portrait?, square? }) holds per-orientation ' +
+    'compositions, each a deep-merge patch ({ global, sections: { "<name>": patch | { remove: true } } }; arrays ' +
+    'replace, or patch by element id with { byId: { "<id>": patch | { remove: true } } }). Any value may be ' +
+    '{ "$format": { landscape, portrait, square, default } }. Recompose, do not crop: vertical = fewer elements, ' +
+    'larger type, its own camera path; square = tighter type, shorter holds. compose_video { format } renders one; ' +
+    'validate_template checks every declared format. get_motion_catalog lists formats.merge.',
   'Text reveal easing accepts linear, ease-out, ease-in-out and ease-out-back. Back easing overshoots travel by ' +
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +

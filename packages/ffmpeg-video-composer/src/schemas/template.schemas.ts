@@ -28,6 +28,7 @@ export * from './motion.schemas';
 export * from './kinetic.schemas';
 export * from './camera.schemas';
 export * from './graphics.schemas';
+export * from './formats.schemas';
 
 // ── JSON Schema export ─────────────────────────────────────────────────────────
 

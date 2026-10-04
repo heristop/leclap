@@ -111,7 +111,7 @@ function assertValidDescriptor(projectConfig: ProjectConfig, templateDescriptor:
   }
 
   const validator = new TemplateValidator();
-  const validation = validator.validateTemplate(templateDescriptor);
+  const validation = validator.validateTemplate(templateDescriptor, { format: projectConfig.format });
 
   if (!validation.success) {
     throw new Error(validator.getValidationSummary(validation));
@@ -362,6 +362,7 @@ export { ENGINE_VERSION } from './core/version';
 export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
 export * from './core/platforms';
+export * from './core/formats';
 export * from './core/theme';
 export {
   motionTimeline,

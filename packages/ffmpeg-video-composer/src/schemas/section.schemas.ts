@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { EffectReferenceSchema } from './effect-reference.schema';
 import { TemplatePartialSchema } from './partial.schemas';
+import { FormatsSchema } from './formats.schemas';
 import {
   AudioFadeSchema,
   BackgroundLayerSchema,
@@ -311,6 +312,7 @@ export const TemplateDescriptorSchema = z
       .array(TemplatePartialSchema)
       .optional()
       .describe('Reusable partials referenced by `{ type: "partial", ref }` sections; expanded before compilation.'),
+    formats: FormatsSchema.optional(),
   })
   .describe(
     'Root descriptor of a video composition template; all fields are optional so partial descriptors can be validated incrementally.'

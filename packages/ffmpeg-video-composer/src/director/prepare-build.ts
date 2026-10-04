@@ -9,6 +9,8 @@ import { resolveFps, resolveOrientationScale } from './resolve-video-config';
 import { resolveMotionDescriptor } from '@/core/motion/tokens';
 import { effectiveOrientation } from '@/core/platforms';
 import { resolveThemeDescriptor } from '@/core/theme/resolve';
+import { resolveBuildFormat } from '@/core/formats/resolve';
+import { assertEffectsResolved } from '@/core/partials';
 
 export { discardOutput, publishOutput, resolveOutputPaths } from './output-staging';
 export { qcExpectations } from './qc-expectations';
@@ -41,6 +43,15 @@ export function recordBuildCommands(adapter: AbstractFFmpeg, project: Project): 
     onCommand: (command) => project.ffmpegCommands.push(command),
     intercept: project.commandInterceptor,
   });
+}
+
+/**
+ * The partial-expanded descriptor as it renders in the requested format (core/formats: `formats[format]`
+ * and `$format` values), the FIRST pass before orientation, theme, tokens and time references; then
+ * the registered-effects check.
+ */
+export function prepareFormat(expanded: unknown, format: string | undefined): ReturnType<typeof assertEffectsResolved> {
+  return assertEffectsResolved(resolveBuildFormat(expanded, format));
 }
 
 /** What the time-reference pass needs from the build: output frame, fps, locale and form fields. */

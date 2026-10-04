@@ -29,7 +29,7 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { EditorMotion, MotionBlocks } from './motion-passthrough';
+import type { EditorFormats, EditorMotion, MotionBlocks } from './motion-passthrough';
 import type { DefaultTransition, SectionTransition } from './transition-types';
 export { DEFAULT_TRANSITION, type DefaultTransition, type SectionTransition } from './transition-types';
 export type { EditorMotion, MotionBlocks } from './motion-passthrough';
@@ -400,6 +400,8 @@ export interface EditorState extends Pick<NonNullable<TemplateDescriptor['meta']
   id: string;
   // Motion settings (global.seed, global.motion); absent when the template sets none.
   motion?: EditorMotion;
+  // Per-format compositions (descriptor.formats), carried verbatim; absent when the template declares none.
+  formats?: EditorFormats;
   name: string;
   description: string;
   orientation: Orientation;

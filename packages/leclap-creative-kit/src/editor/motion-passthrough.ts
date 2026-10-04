@@ -10,6 +10,7 @@ import type { EasingSpecInput, MotionTokens } from 'ffmpeg-video-composer/src/sc
 import type { Theme } from 'ffmpeg-video-composer/src/schemas/theme.schemas.ts';
 
 export type MotionEase = EasingSpecInput;
+export type { EditorFormats } from './formats-passthrough';
 
 /** Per-section motion blocks. */
 export interface MotionBlocks {

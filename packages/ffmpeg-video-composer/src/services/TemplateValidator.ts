@@ -4,6 +4,8 @@ import { BaseTemplateValidator, type ValidationError } from './BaseTemplateValid
 import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
+import { adviseEachFormat, adviseEachFormatSync, expandedForFormats } from './validation/format-validation';
+import { formatAdvisories } from '@/core/formats/advisories';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -83,7 +85,8 @@ export class TemplateValidator extends BaseTemplateValidator {
   async getGeometryWarnings(template: TemplateDescriptor, loadFont?: FontLoader): Promise<GeometryWarning[]> {
     const { collectGeometryWarnings } = await import('./geometry');
 
-    return collectGeometryWarnings(template, loadFont);
+    // Per format when the template declares several (each its own frame, platform and safe zones).
+    return adviseEachFormat(template, (resolved) => collectGeometryWarnings(resolved as TemplateDescriptor, loadFont));
   }
 
   // Advisory, like getGeometryWarnings: pacing findings read off the motion timeline (ease monotony,
@@ -91,7 +94,14 @@ export class TemplateValidator extends BaseTemplateValidator {
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
   // The theme's one-accent-per-idea advisory rides along, so every surface that shows pacing feedback
   // shows it too.
+  // Per format when the template declares several, plus the whole-template format advisories
+  // (format_crop_only, format_story_diverges: core/formats/advisories.ts).
   getMotionWarnings(template: unknown): MotionWarning[] {
-    return [...collectMotionWarnings(template), ...accentAdvisories(template)];
+    const perFormat = adviseEachFormatSync(template, (resolved) => [
+      ...collectMotionWarnings(resolved),
+      ...accentAdvisories(resolved),
+    ]);
+
+    return [...perFormat, ...formatAdvisories(expandedForFormats(template))];
   }
 }

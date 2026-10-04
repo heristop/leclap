@@ -9950,5 +9950,2703 @@
         }
       ]
     }
+  },
+  {
+    "id": "fx-pack",
+    "title": "Motion FX pack",
+    "description": "A glitch hook with an echo-trailed punch word, a rack-focus title, a bar chart counting up under a progress bar, a looping ticker and whip transitions on the beat.",
+    "category": "effects",
+    "source": "examples/motion-design/fx-pack.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: creators who want broadcast and social polish from JSON alone. Direction: a glitched hook whose punch word smears in, a rack-focus title, a data beat where bars grow and count up under a progress bar, a ticker beat, and a close that shows the lower-third styles. Whips carry the energy between beats. Review: the glitch never lasts longer than a beat, echoes vanish once the word lands, every number is readable once it settles, the ticker loops cleanly, and lower thirds stay inside the title-safe area.",
+    "showcasePath": "/showcase?sample=fx-pack",
+    "preview": {
+      "video": "/videos/showcase/fx-pack.mp4",
+      "poster": "/videos/showcase/fx-pack.webp",
+      "template": "/videos/showcase/fx-pack.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[0].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[1].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[3].lowerThird.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[3].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[4].lowerThird.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[4].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        }
+      ],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Motion FX pack",
+        "description": "Motion effects pack: kinetic echo trails, whip transitions, glitch and focus hits, data and broadcast graphics (progress, ticker, bar chart) and lower-third styles. Asset-free.",
+        "creativeDirection": "Audience: creators who want broadcast and social polish from JSON alone. Direction: a glitched hook whose punch word smears in, a rack-focus title, a data beat where bars grow and count up under a progress bar, a ticker beat, and a close that shows the lower-third styles. Whips carry the energy between beats. Review: the glitch never lasts longer than a beat, echoes vanish once the word lands, every number is readable once it settles, the ticker loops cleanly, and lower thirds stay inside the title-safe area."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 11,
+        "motion": {
+          "energy": 1
+        }
+      },
+      "sections": [
+        {
+          "name": "hook",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 1.8
+          },
+          "camera": {
+            "hits": [0.35]
+          },
+          "graphics": [
+            {
+              "type": "glitch",
+              "at": 0.3,
+              "duration": 0.3,
+              "intensity": 0.7
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "GLITCH."
+              },
+              "preset": "impact",
+              "size": 220,
+              "delay": 0.15,
+              "trail": {
+                "echoes": 3,
+                "delta": 0.04,
+                "fade": 0.5
+              }
+            }
+          ],
+          "lowerThird": {
+            "title": {
+              "en": "Signal lost"
+            },
+            "subtitle": {
+              "en": "graphics[].glitch"
+            },
+            "style": "side-rule",
+            "accent": "#FF8AAE",
+            "effect": {
+              "shadow": true
+            },
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.7
+            }
+          },
+          "transition": {
+            "type": "whip-left",
+            "duration": 0.4
+          }
+        },
+        {
+          "name": "focus",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": 2.7
+          },
+          "graphics": [
+            {
+              "type": "corners",
+              "at": 0.2,
+              "color": "#FF8AAE"
+            },
+            {
+              "type": "focus",
+              "at": 0.1,
+              "duration": 0.9,
+              "amount": 20,
+              "direction": "in"
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "PULL FOCUS"
+              },
+              "preset": "tracking-in",
+              "size": 140,
+              "delay": 0.25
+            }
+          ],
+          "lowerThird": {
+            "title": {
+              "en": "Rack focus"
+            },
+            "subtitle": {
+              "en": "graphics[].focus"
+            },
+            "style": "clean-bar",
+            "accent": "#FF8AAE",
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.9
+            }
+          },
+          "transition": {
+            "type": "whip-up",
+            "duration": 0.4
+          }
+        },
+        {
+          "name": "data",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 5.4
+          },
+          "graphics": [
+            {
+              "type": "bars-chart",
+              "at": 0.3,
+              "values": [12, 28, 19, 42],
+              "labels": ["Q1", "Q2", "Q3", "Q4"],
+              "x": 300,
+              "y": 140,
+              "width": 680,
+              "height": 360,
+              "suffix": "K",
+              "ease": "$snappy"
+            },
+            {
+              "type": "progress",
+              "at": 0.2,
+              "duration": 5,
+              "thickness": 10,
+              "track": "#FFFFFF@0.15"
+            }
+          ],
+          "lowerThird": {
+            "title": {
+              "en": "Revenue"
+            },
+            "subtitle": {
+              "en": "BY QUARTER"
+            },
+            "style": "kicker",
+            "position": "top",
+            "reveal": {
+              "type": "rise",
+              "delay": 0.15
+            }
+          },
+          "transition": {
+            "type": "push-left",
+            "duration": 0.5,
+            "ease": "$snappy"
+          }
+        },
+        {
+          "name": "ticker",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#2A2238",
+            "duration": 2.6
+          },
+          "graphics": [
+            {
+              "type": "ticker",
+              "at": 0.2,
+              "text": {
+                "en": "BREAKING  ·  JSON IN, VIDEO OUT  ·  SAME FRAMES ON EVERY SCREEN  ·"
+              },
+              "speed": 220,
+              "color": "#7C83FD"
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "Live from JSON"
+              },
+              "preset": "slide",
+              "size": 110,
+              "y": 220,
+              "delay": 0.3,
+              "trail": {
+                "echoes": 4,
+                "delta": 0.03
+              }
+            }
+          ],
+          "lowerThird": {
+            "title": {
+              "en": "Ada Lovelace"
+            },
+            "subtitle": {
+              "en": "@ada"
+            },
+            "style": "stack-bars",
+            "position": "top",
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.8
+            }
+          },
+          "transition": {
+            "type": "whip-right",
+            "duration": 0.4
+          }
+        },
+        {
+          "name": "close",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 2.6
+          },
+          "kinetic": [
+            {
+              "text": {
+                "en": "Pick a style."
+              },
+              "preset": "rise",
+              "size": 96,
+              "y": 200,
+              "delay": 0.2
+            }
+          ],
+          "lowerThird": {
+            "title": {
+              "en": "LeClap"
+            },
+            "subtitle": {
+              "en": "Motion FX pack"
+            },
+            "style": "pill",
+            "reveal": {
+              "type": "fade",
+              "delay": 0.6
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "word-captions",
+    "title": "Word captions",
+    "description": "Speech-to-text word timings turned into designed captions: a calm karaoke highlight, then loud popping capitals with a crowned payoff line.",
+    "category": "effects",
+    "source": "examples/motion-design/word-captions.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Direction: captions as typography, not an afterthought. Scene one is a calm talking-head voice: clean white Rubik, a soft shadow, and the spoken word lighting up in warm yellow so the eye rides the voice. Scene two is the hype cut: heavy Anton capitals with a thick outline, each word popping in pink as it is said, and the closing exclamation crowned larger as the one payoff line. Asset-free ink backgrounds keep the focus on the type. Review: no phrase exceeds two lines, no line ends on an article or preposition, the highlight never runs ahead of the word timing, and the crown is the only enlarged line.",
+    "showcasePath": "/showcase?sample=word-captions",
+    "preview": {
+      "video": "/videos/showcase/word-captions.mp4",
+      "poster": "/videos/showcase/word-captions.webp",
+      "template": "/videos/showcase/word-captions.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Word captions",
+        "description": "Word-timed captions: speech-to-text word timings grouped into phrases, balanced on two lines, drawn in two caption DNAs with karaoke.",
+        "creativeDirection": "Direction: captions as typography, not an afterthought. Scene one is a calm talking-head voice: clean white Rubik, a soft shadow, and the spoken word lighting up in warm yellow so the eye rides the voice. Scene two is the hype cut: heavy Anton capitals with a thick outline, each word popping in pink as it is said, and the closing exclamation crowned larger as the one payoff line. Asset-free ink backgrounds keep the focus on the type. Review: no phrase exceeds two lines, no line ends on an article or preposition, the highlight never runs ahead of the word timing, and the crown is the only enlarged line."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 5,
+        "transition": {
+          "type": "cut"
+        }
+      },
+      "sections": [
+        {
+          "name": "clean-voice",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 4.4
+          },
+          "subtitles": {
+            "style": "clean",
+            "words": [
+              {
+                "text": "Every",
+                "start": 0.3,
+                "end": 0.62
+              },
+              {
+                "text": "caption",
+                "start": 0.66,
+                "end": 1.1
+              },
+              {
+                "text": "follows",
+                "start": 1.14,
+                "end": 1.52
+              },
+              {
+                "text": "the",
+                "start": 1.55,
+                "end": 1.66
+              },
+              {
+                "text": "voice,",
+                "start": 1.7,
+                "end": 2.1
+              },
+              {
+                "text": "word",
+                "start": 2.42,
+                "end": 2.7
+              },
+              {
+                "text": "by",
+                "start": 2.74,
+                "end": 2.86
+              },
+              {
+                "text": "word,",
+                "start": 2.9,
+                "end": 3.3
+              },
+              {
+                "text": "on",
+                "start": 3.34,
+                "end": 3.46
+              },
+              {
+                "text": "any",
+                "start": 3.5,
+                "end": 3.7
+              },
+              {
+                "text": "frame.",
+                "start": 3.74,
+                "end": 4.1
+              }
+            ]
+          }
+        },
+        {
+          "name": "loud-payoff",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1E1E24",
+            "duration": 3.6
+          },
+          "subtitles": {
+            "style": "loud",
+            "crown": "auto",
+            "group": {
+              "maxWords": 3
+            },
+            "words": [
+              {
+                "text": "Same",
+                "start": 0.2,
+                "end": 0.48
+              },
+              {
+                "text": "JSON.",
+                "start": 0.52,
+                "end": 0.98
+              },
+              {
+                "text": "Same",
+                "start": 1.1,
+                "end": 1.36
+              },
+              {
+                "text": "frames.",
+                "start": 1.4,
+                "end": 1.86
+              },
+              {
+                "text": "Every",
+                "start": 2,
+                "end": 2.3
+              },
+              {
+                "text": "time!",
+                "start": 2.34,
+                "end": 2.9
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "formats",
+    "title": "One story, three formats",
+    "description": "The 16:9 cut of a launch story authored once for landscape, portrait and square: each format is recomposed, not cropped.",
+    "category": "effects",
+    "source": "examples/motion-design/formats.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: people scrolling past a product launch. Direction: one story, separate compositions. Landscape is the full film: a headline with a supporting line, a two-sided proof beat, a stat and a close. Portrait is recomposed for the thumb: larger type, one element per beat, a vertical camera path, no side-by-side layout, platform safe zones respected. Square is the tight feed post: smaller margins, shorter holds, the proof beat dropped. Review: every format tells the same beats in the same order (minus explicit removals), no text under a platform's UI, every beat holds long enough to read.",
+    "showcasePath": "/showcase?sample=formats",
+    "preview": {
+      "video": "/videos/showcase/formats.mp4",
+      "poster": "/videos/showcase/formats.webp",
+      "template": "/videos/showcase/formats.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "One story, three formats",
+        "description": "One launch story composed three times: a 16:9 film, a 9:16 vertical cut and a 1:1 feed post, each with its own type scale, holds, camera path and element count.",
+        "creativeDirection": "Audience: people scrolling past a product launch. Direction: one story, separate compositions. Landscape is the full film: a headline with a supporting line, a two-sided proof beat, a stat and a close. Portrait is recomposed for the thumb: larger type, one element per beat, a vertical camera path, no side-by-side layout, platform safe zones respected. Square is the tight feed post: smaller margins, shorter holds, the proof beat dropped. Review: every format tells the same beats in the same order (minus explicit removals), no text under a platform's UI, every beat holds long enough to read."
+      },
+      "global": {
+        "orientation": "landscape",
+        "platform": "youtube",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 7,
+        "transition": {
+          "type": "cut"
+        },
+        "motion": {
+          "energy": 1
+        }
+      },
+      "sections": [
+        {
+          "name": "hook",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": {
+              "$format": {
+                "landscape": 2.4,
+                "portrait": 2,
+                "square": 2
+              }
+            }
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.06,
+            "hits": [0.6]
+          },
+          "graphics": [
+            {
+              "id": "hit",
+              "type": "flash",
+              "at": 0.6,
+              "duration": 0.25,
+              "intensity": 0.6
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "headline",
+              "text": {
+                "en": "One story."
+              },
+              "preset": "cascade",
+              "size": {
+                "$format": {
+                  "landscape": 120,
+                  "portrait": 150,
+                  "square": 130
+                }
+              },
+              "y": {
+                "$format": {
+                  "default": 220,
+                  "portrait": 470,
+                  "square": 340
+                }
+              },
+              "accent": {
+                "words": "last"
+              }
+            },
+            {
+              "id": "support",
+              "text": {
+                "en": "Three compositions, not three crops"
+              },
+              "preset": "fade",
+              "font": "oswald",
+              "size": {
+                "$format": {
+                  "landscape": 40,
+                  "portrait": 50,
+                  "square": 44
+                }
+              },
+              "y": {
+                "$format": {
+                  "landscape": 400,
+                  "portrait": 700,
+                  "square": 560
+                }
+              },
+              "delay": "headline.end + 0.15"
+            }
+          ]
+        },
+        {
+          "name": "proof",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#0E0E12",
+            "duration": {
+              "$format": {
+                "default": 4,
+                "portrait": 3.4
+              }
+            }
+          },
+          "camera": {
+            "preset": "drift-left",
+            "amount": 0.05
+          },
+          "graphics": [
+            {
+              "id": "rule",
+              "type": "underline",
+              "at": 0.5,
+              "x": 160,
+              "y": 330,
+              "width": 960
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "before",
+              "text": {
+                "en": "Before: crop"
+              },
+              "preset": "rise",
+              "ease": "$snappy",
+              "size": 64,
+              "x": 340,
+              "y": 240
+            },
+            {
+              "id": "after",
+              "text": {
+                "en": "After: compose"
+              },
+              "preset": "rise",
+              "size": 64,
+              "x": 940,
+              "y": 240,
+              "delay": "before.end + 0.1",
+              "accent": {
+                "words": "last"
+              }
+            },
+            {
+              "id": "aside",
+              "text": {
+                "en": "same JSON, per-format patches"
+              },
+              "preset": "fade",
+              "font": "mono",
+              "size": 30,
+              "y": 420,
+              "delay": "after.end + 0.2"
+            }
+          ]
+        },
+        {
+          "name": "stat",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": {
+              "$format": {
+                "default": 2.4,
+                "square": 2
+              }
+            }
+          },
+          "kinetic": [
+            {
+              "id": "number",
+              "text": {
+                "en": ""
+              },
+              "preset": "counter",
+              "counter": {
+                "from": 0,
+                "to": 3,
+                "suffix": " formats"
+              },
+              "duration": 1,
+              "size": {
+                "$format": {
+                  "landscape": 150,
+                  "portrait": 130,
+                  "square": 120
+                }
+              },
+              "y": "center",
+              "color": "#FFF685"
+            }
+          ]
+        },
+        {
+          "name": "outro",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": {
+              "$format": {
+                "default": 3.6,
+                "square": 3
+              }
+            }
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": {
+              "$format": {
+                "default": 0.04,
+                "portrait": 0.06
+              }
+            }
+          },
+          "kinetic": [
+            {
+              "id": "close",
+              "text": {
+                "en": "Same story. Every screen."
+              },
+              "preset": "split",
+              "size": 90,
+              "y": "center"
+            }
+          ]
+        }
+      ],
+      "formats": {
+        "portrait": {
+          "global": {
+            "platform": "shorts"
+          },
+          "sections": {
+            "hook": {
+              "camera": {
+                "preset": "drift-up",
+                "amount": 0.06,
+                "hits": null
+              }
+            },
+            "proof": {
+              "camera": {
+                "preset": "drift-down"
+              },
+              "graphics": {
+                "byId": {
+                  "rule": {
+                    "x": 120,
+                    "y": 760,
+                    "width": 480
+                  }
+                }
+              },
+              "kinetic": {
+                "byId": {
+                  "before": {
+                    "size": 76,
+                    "x": 360,
+                    "y": 470
+                  },
+                  "after": {
+                    "size": 76,
+                    "x": 360,
+                    "y": 600
+                  },
+                  "aside": {
+                    "remove": true
+                  }
+                }
+              }
+            },
+            "outro": {
+              "kinetic": {
+                "byId": {
+                  "close": {
+                    "size": 96,
+                    "maxWidth": 560
+                  }
+                }
+              }
+            }
+          }
+        },
+        "square": {
+          "global": {
+            "platform": "square-feed"
+          },
+          "sections": {
+            "proof": {
+              "remove": true
+            },
+            "outro": {
+              "kinetic": {
+                "byId": {
+                  "close": {
+                    "size": 80
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "kinetic-fills",
+    "title": "Filled type",
+    "description": "Letters filled with a gradient, a photograph seen through a heavy title, and a shimmer band sweeping across a brand word.",
+    "category": "effects",
+    "source": "examples/motion-design/kinetic-fills.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: brand and launch editors who want type that carries colour and texture without pre-rendered video. Direction: three beats, one fill each. A pink-to-lavender gradient cascades in; the golden-hour photograph fills a heavy title under a slow push-in; the closing brand word tracks in and catches a single shimmer pass, then a second one before the cut. Review: every fill reads as the letters themselves (no rectangles behind them), the solid fallback colour stays legible, the texture beat is dark enough around the letters for the photo to read, and the shimmer never starts before the word has landed.",
+    "showcasePath": "/showcase?sample=kinetic-fills",
+    "preview": {
+      "video": "/videos/showcase/kinetic-fills.mp4",
+      "poster": "/videos/showcase/kinetic-fills.webp",
+      "template": "/videos/showcase/kinetic-fills.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Filled type",
+        "description": "Kinetic fills: a two-colour gradient headline, a photograph seen through the letters and a shimmer band sweeping across a brand word. Bundled fonts and one bundled photo.",
+        "creativeDirection": "Audience: brand and launch editors who want type that carries colour and texture without pre-rendered video. Direction: three beats, one fill each. A pink-to-lavender gradient cascades in; the golden-hour photograph fills a heavy title under a slow push-in; the closing brand word tracks in and catches a single shimmer pass, then a second one before the cut. Review: every fill reads as the letters themselves (no rectangles behind them), the solid fallback colour stays legible, the texture beat is dark enough around the letters for the photo to read, and the shimmer never starts before the word has landed."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 21,
+        "transition": {
+          "type": "push-left",
+          "duration": 0.5,
+          "ease": "$snappy"
+        },
+        "motion": {
+          "energy": 1
+        }
+      },
+      "sections": [
+        {
+          "name": "gradient",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 3
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.04
+          },
+          "kinetic": [
+            {
+              "id": "title",
+              "text": {
+                "en": "Colour in motion"
+              },
+              "preset": "cascade",
+              "font": "anton",
+              "size": 150,
+              "y": 240,
+              "color": "#FF8AAE",
+              "fill": {
+                "gradient": {
+                  "from": "#FF8AAE",
+                  "to": "#7C83FD",
+                  "angle": 90
+                }
+              }
+            },
+            {
+              "text": {
+                "en": "kinetic[].fill.gradient"
+              },
+              "preset": "fade",
+              "font": "mono",
+              "size": 30,
+              "y": 430,
+              "color": "#9A98A6",
+              "delay": "title.end + 0.2"
+            }
+          ]
+        },
+        {
+          "name": "texture",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#0B0B0D",
+            "duration": 3.2
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.06
+          },
+          "kinetic": [
+            {
+              "id": "title",
+              "text": {
+                "en": "GOLDEN HOUR"
+              },
+              "preset": "rise",
+              "font": "anton",
+              "size": 230,
+              "y": "center",
+              "color": "#F2B866",
+              "fill": {
+                "texture": "backgrounds/golden-hour.jpg"
+              }
+            },
+            {
+              "text": {
+                "en": "a photograph seen through the letters"
+              },
+              "preset": "fade",
+              "font": "oswald",
+              "size": 36,
+              "y": 560,
+              "color": "#C9C6D2",
+              "delay": "title.end + 0.25"
+            }
+          ]
+        },
+        {
+          "name": "shimmer",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": 3.4
+          },
+          "graphics": [
+            {
+              "type": "underline",
+              "at": 1.2,
+              "x": 440,
+              "y": 470,
+              "width": 400,
+              "color": "#7C83FD"
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "brand",
+              "text": {
+                "en": "LECLAP"
+              },
+              "preset": "tracking-in",
+              "size": 210,
+              "y": 220,
+              "color": "#9EA3FF",
+              "fill": {
+                "gradient": {
+                  "stops": ["#7C83FD", "#C9CBFF", "#7C83FD"],
+                  "angle": 90
+                },
+                "sweep": {
+                  "duration": 0.9,
+                  "delay": 1.3,
+                  "every": 1.5,
+                  "color": "#FFFFFF@0.85"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "split-layouts",
+    "title": "Split screens & wipes",
+    "description": "A three-photo triptych, a stacked comparison with a divider, and a before/after wipe that uncovers the second picture.",
+    "category": "effects",
+    "source": "examples/motion-design/split-layouts.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: travel, real-estate and product editors who compare places or versions. Direction: the triptych arrives as one frame and names its three shores; the stacked pair contrasts two desks with a thin lavender seam; the wipe uncovers the tidy desk over the busy one while BEFORE and AFTER labels sit on their own sides of the edge. Review: panes stay cover-fitted (no stretched photos), dividers are crisp, the wipe eases in and out and finishes before the labels need reading, and type never straddles a pane boundary.",
+    "showcasePath": "/showcase?sample=split-layouts",
+    "preview": {
+      "video": "/videos/showcase/split-layouts.mp4",
+      "poster": "/videos/showcase/split-layouts.webp",
+      "template": "/videos/showcase/split-layouts.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Split screens and wipes",
+        "description": "Section layouts: three photographs side by side with gaps and dividers, a stacked two-pane comparison, and a before/after wipe with a divider edge. Bundled photos only.",
+        "creativeDirection": "Audience: travel, real-estate and product editors who compare places or versions. Direction: the triptych arrives as one frame and names its three shores; the stacked pair contrasts two desks with a thin lavender seam; the wipe uncovers the tidy desk over the busy one while BEFORE and AFTER labels sit on their own sides of the edge. Review: panes stay cover-fitted (no stretched photos), dividers are crisp, the wipe eases in and out and finishes before the labels need reading, and type never straddles a pane boundary."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 8,
+        "transition": {
+          "type": "push-left",
+          "duration": 0.5,
+          "ease": "$snappy"
+        }
+      },
+      "sections": [
+        {
+          "name": "triptych",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 3.4
+          },
+          "layout": {
+            "type": "split",
+            "sources": ["backgrounds/rocky-coast.jpg", "backgrounds/forest-sea.jpg", "backgrounds/green-forest.jpg"],
+            "gap": 12
+          },
+          "graphics": [
+            {
+              "type": "panel",
+              "at": 0.2,
+              "x": 0,
+              "y": 560,
+              "width": 1280,
+              "height": 160,
+              "color": "#141416@0.72",
+              "from": "bottom"
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "title",
+              "text": {
+                "en": "Three shores, one frame"
+              },
+              "preset": "rise",
+              "font": "oswald",
+              "size": 58,
+              "y": 595,
+              "color": "#F5F3F7",
+              "delay": 0.45,
+              "accent": {
+                "words": "last",
+                "color": "#FFF685"
+              }
+            }
+          ]
+        },
+        {
+          "name": "stacked",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 3
+          },
+          "layout": {
+            "type": "split",
+            "direction": "vertical",
+            "sources": ["backgrounds/laptop-desk.jpg", "backgrounds/desk-flatlay.jpg"],
+            "divider": {
+              "color": "#FFF685",
+              "width": 6
+            }
+          },
+          "graphics": [
+            {
+              "type": "panel",
+              "at": 0.15,
+              "x": 900,
+              "y": 40,
+              "width": 320,
+              "height": 88,
+              "color": "#141416@0.82",
+              "from": "right"
+            },
+            {
+              "type": "panel",
+              "at": 0.5,
+              "x": 900,
+              "y": 400,
+              "width": 320,
+              "height": 88,
+              "color": "#141416@0.82",
+              "from": "right"
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "WIDE"
+              },
+              "preset": "slide",
+              "direction": "left",
+              "ease": "$snappy",
+              "size": 64,
+              "align": "left",
+              "x": 932,
+              "y": 50,
+              "delay": 0.4
+            },
+            {
+              "text": {
+                "en": "OVERHEAD"
+              },
+              "preset": "slide",
+              "direction": "left",
+              "ease": "$snappy",
+              "size": 64,
+              "align": "left",
+              "x": 932,
+              "y": 410,
+              "delay": 0.75,
+              "color": "#FFF685"
+            }
+          ]
+        },
+        {
+          "name": "wipe",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 4
+          },
+          "layout": {
+            "type": "before-after",
+            "before": "backgrounds/laptop-desk.jpg",
+            "after": "backgrounds/desk-flatlay.jpg",
+            "wipe": {
+              "at": 0.9,
+              "duration": 1.4,
+              "direction": "right",
+              "ease": "ease-in-out-cubic"
+            },
+            "divider": {
+              "color": "#FFFFFF",
+              "width": 5
+            }
+          },
+          "kinetic": [
+            {
+              "text": {
+                "en": "BEFORE"
+              },
+              "preset": "fade",
+              "size": 72,
+              "align": "right",
+              "x": 1220,
+              "y": 50,
+              "delay": 0.2,
+              "effect": {
+                "shadow": true
+              },
+              "exit": {
+                "preset": "fade",
+                "at": 1.7
+              }
+            },
+            {
+              "text": {
+                "en": "AFTER"
+              },
+              "preset": "rise",
+              "size": 72,
+              "align": "left",
+              "x": 60,
+              "y": 50,
+              "delay": 1.5,
+              "color": "#FFF685",
+              "effect": {
+                "shadow": true
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "rtl-type",
+    "title": "Right-to-left type",
+    "description": "Arabic and Hebrew headlines shaped, joined and animated a line at a time, each with a Latin gloss, then both scripts side by side.",
+    "category": "effects",
+    "source": "examples/motion-design/rtl-type.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: creators publishing in Arabic and Hebrew who need native, correctly joined type rather than broken isolated letters. Direction: each script gets its own beat and colour. The Arabic headline rises line by line, the Hebrew line slides in from the right (its reading start), and a small Oswald gloss translates each one after it lands. The close sets both scripts together under one Latin line. Review: Arabic letters join, both scripts read right to left, no line animates letter by letter, and the gloss never competes with the headline.",
+    "showcasePath": "/showcase?sample=rtl-type",
+    "preview": {
+      "video": "/videos/showcase/rtl-type.mp4",
+      "poster": "/videos/showcase/rtl-type.webp",
+      "template": "/videos/showcase/rtl-type.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Right-to-left type",
+        "description": "Arabic and Hebrew kinetic typography: shaped, joined letters animated a line at a time in the bundled Noto Sans Arabic and Noto Sans Hebrew, with Latin glosses.",
+        "creativeDirection": "Audience: creators publishing in Arabic and Hebrew who need native, correctly joined type rather than broken isolated letters. Direction: each script gets its own beat and colour. The Arabic headline rises line by line, the Hebrew line slides in from the right (its reading start), and a small Oswald gloss translates each one after it lands. The close sets both scripts together under one Latin line. Review: Arabic letters join, both scripts read right to left, no line animates letter by letter, and the gloss never competes with the headline."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 13,
+        "transition": {
+          "type": "push-left",
+          "duration": 0.5,
+          "ease": "$snappy"
+        }
+      },
+      "sections": [
+        {
+          "name": "arabic",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 3.4
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.04
+          },
+          "kinetic": [
+            {
+              "id": "headline",
+              "text": {
+                "ar": "قصتك في حركة"
+              },
+              "preset": "rise",
+              "font": "noto-arabic",
+              "unit": "line",
+              "size": 120,
+              "maxWidth": 1120,
+              "y": 200,
+              "color": "#F5F3F7"
+            },
+            {
+              "text": {
+                "en": "Arabic · your story, in motion"
+              },
+              "preset": "fade",
+              "font": "oswald",
+              "size": 34,
+              "y": 425,
+              "color": "#9A98A6",
+              "delay": "headline.end + 0.2"
+            }
+          ],
+          "graphics": [
+            {
+              "type": "underline",
+              "at": 0.9,
+              "x": 440,
+              "y": 395,
+              "width": 400,
+              "color": "#FF8AAE",
+              "origin": "right"
+            }
+          ]
+        },
+        {
+          "name": "hebrew",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": 3.4
+          },
+          "camera": {
+            "preset": "drift-left",
+            "amount": 0.03
+          },
+          "kinetic": [
+            {
+              "id": "headline",
+              "text": {
+                "he": "הסיפור שלך בתנועה"
+              },
+              "preset": "slide",
+              "direction": "left",
+              "font": "noto-hebrew",
+              "unit": "line",
+              "size": 120,
+              "y": 210,
+              "color": "#C9CBFF"
+            },
+            {
+              "text": {
+                "en": "Hebrew · your story, in motion"
+              },
+              "preset": "fade",
+              "font": "oswald",
+              "size": 34,
+              "y": 470,
+              "color": "#9A98A6",
+              "delay": "headline.end + 0.2"
+            }
+          ]
+        },
+        {
+          "name": "together",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 4
+          },
+          "kinetic": [
+            {
+              "id": "ar",
+              "text": {
+                "ar": "مرحبا"
+              },
+              "preset": "fade",
+              "font": "noto-arabic",
+              "unit": "line",
+              "size": 110,
+              "x": 360,
+              "y": 170,
+              "color": "#FF8AAE"
+            },
+            {
+              "id": "he",
+              "text": {
+                "he": "שלום"
+              },
+              "preset": "fade",
+              "font": "noto-hebrew",
+              "unit": "line",
+              "size": 110,
+              "x": 920,
+              "y": 170,
+              "color": "#C9CBFF",
+              "delay": "ar.end + 0.1"
+            },
+            {
+              "text": {
+                "en": "Every script, joined"
+              },
+              "preset": "split",
+              "size": 84,
+              "y": 430,
+              "delay": "he.end + 0.2",
+              "accent": {
+                "words": "last",
+                "color": "#FFF685"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "emoji-type",
+    "title": "Emoji in type",
+    "description": "Colour emoji inside kinetic words, an emoji row that pops one by one and a title card, each one landing with its line.",
+    "category": "effects",
+    "source": "examples/motion-design/emoji-type.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: social creators whose copy already carries emoji. Direction: playful but tidy. The hook drops a two-word line whose fire emoji lands with the words; the routine beat pops three emoji one by one over a calm caption; the close is a title card where the party emoji sits inside the headline. Review: every emoji is in colour (never a tofu box or a monochrome glyph), sits on the text baseline in its own gap, animates with its word, and no beat carries more than three emoji.",
+    "showcasePath": "/showcase?sample=emoji-type",
+    "preview": {
+      "video": "/videos/showcase/emoji-type.mp4",
+      "poster": "/videos/showcase/emoji-type.webp",
+      "template": "/videos/showcase/emoji-type.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[0].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].titleCard.filters[1].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].titleCard.filters[3].values.fontfile",
+          "source": "preset"
+        }
+      ],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Emoji in type",
+        "description": "Colour emoji inside drawn text: kinetic words, an emoji-only row, a caption and a title card, each emoji composited as a bundled image in the measured gap of its line.",
+        "creativeDirection": "Audience: social creators whose copy already carries emoji. Direction: playful but tidy. The hook drops a two-word line whose fire emoji lands with the words; the routine beat pops three emoji one by one over a calm caption; the close is a title card where the party emoji sits inside the headline. Review: every emoji is in colour (never a tofu box or a monochrome glyph), sits on the text baseline in its own gap, animates with its word, and no beat carries more than three emoji."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 17,
+        "transition": {
+          "type": "swipe-left",
+          "duration": 0.5,
+          "ease": "$snappy"
+        },
+        "motion": {
+          "energy": 1.1
+        }
+      },
+      "sections": [
+        {
+          "name": "hook",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 2.8
+          },
+          "camera": {
+            "hits": [0.75]
+          },
+          "kinetic": [
+            {
+              "id": "title",
+              "text": {
+                "en": "So good 🔥"
+              },
+              "preset": "drop",
+              "font": "anton",
+              "size": 170,
+              "y": "center",
+              "accent": {
+                "words": "last",
+                "color": "#FF8AAE"
+              }
+            }
+          ]
+        },
+        {
+          "name": "routine",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": 3.8
+          },
+          "kinetic": [
+            {
+              "id": "row",
+              "text": {
+                "en": "☕ 💻 🚀"
+              },
+              "preset": "pop",
+              "size": 150,
+              "y": 170,
+              "stagger": 0.22
+            },
+            {
+              "text": {
+                "en": "Coffee, code, launch."
+              },
+              "preset": "rise",
+              "font": "oswald",
+              "size": 56,
+              "y": 430,
+              "color": "#C9CBFF",
+              "delay": "row.end + 0.15"
+            }
+          ]
+        },
+        {
+          "name": "close",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 3.2
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.05
+          },
+          "titleCard": {
+            "kicker": {
+              "en": "RELEASE NOTES"
+            },
+            "headline": {
+              "en": "Launch day 🎉"
+            },
+            "subtitle": {
+              "en": "Emoji stay in colour ✅"
+            },
+            "accent": "#FF8AAE",
+            "align": "center",
+            "stagger": 0.12,
+            "reveal": {
+              "type": "rise",
+              "delay": 0.15,
+              "duration": 0.4,
+              "distance": 30,
+              "easing": "ease-out"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "beat-grid",
+    "title": "On the beat",
+    "description": "A 120 BPM grid sets section lengths in bars, pops a count-in on each beat, punches the camera through the drop and plays a click track on the same beats.",
+    "category": "effects",
+    "source": "examples/motion-design/beat-grid.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: editors cutting to music who want motion locked to the tempo without measuring frames. Direction: a count-in where each number pops exactly on its beat, a build whose headline arrives just ahead of the bar while a riser climbs into the drop, a two-bar drop that punches the camera on every beat and flashes on each downbeat, and a one-bar close. The audible click (tick on beats, hit on downbeats) proves the sync. Review: every pop and hit lands on its click, entrances lead the beat slightly rather than trail it, the riser ends exactly on the drop, and no section ends off the bar line.",
+    "showcasePath": "/showcase?sample=beat-grid",
+    "preview": {
+      "video": "/videos/showcase/beat-grid.mp4",
+      "poster": "/videos/showcase/beat-grid.webp",
+      "template": "/videos/showcase/beat-grid.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "On the beat",
+        "description": "A 120 BPM beat grid drives everything: section lengths in bars, entrances on beat:n, camera hits and flashes on every downbeat, and a click track of bundled sound effects placed on the same grid.",
+        "creativeDirection": "Audience: editors cutting to music who want motion locked to the tempo without measuring frames. Direction: a count-in where each number pops exactly on its beat, a build whose headline arrives just ahead of the bar while a riser climbs into the drop, a two-bar drop that punches the camera on every beat and flashes on each downbeat, and a one-bar close. The audible click (tick on beats, hit on downbeats) proves the sync. Review: every pop and hit lands on its click, entrances lead the beat slightly rather than trail it, the riser ends exactly on the drop, and no section ends off the bar line."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 4,
+        "transition": {
+          "type": "cut"
+        },
+        "beats": {
+          "bpm": 120,
+          "offset": 0,
+          "beatsPerBar": 4
+        },
+        "sfx": [
+          {
+            "id": "hit",
+            "at": "bar:1",
+            "volume": 0.55
+          },
+          {
+            "id": "tick",
+            "at": "beat:2"
+          },
+          {
+            "id": "tick",
+            "at": "beat:3"
+          },
+          {
+            "id": "tick",
+            "at": "beat:4"
+          },
+          {
+            "id": "hit",
+            "at": "bar:2",
+            "volume": 0.55
+          },
+          {
+            "id": "tick",
+            "at": "beat:6"
+          },
+          {
+            "id": "tick",
+            "at": "beat:7"
+          },
+          {
+            "id": "tick",
+            "at": "beat:8"
+          },
+          {
+            "id": "riser",
+            "at": "bar:3",
+            "volume": 0.45
+          },
+          {
+            "id": "boom",
+            "at": "bar:3",
+            "volume": 0.7
+          },
+          {
+            "id": "tick",
+            "at": "beat:10"
+          },
+          {
+            "id": "tick",
+            "at": "beat:11"
+          },
+          {
+            "id": "tick",
+            "at": "beat:12"
+          },
+          {
+            "id": "hit",
+            "at": "bar:4",
+            "volume": 0.6
+          },
+          {
+            "id": "tick",
+            "at": "beat:14"
+          },
+          {
+            "id": "tick",
+            "at": "beat:15"
+          },
+          {
+            "id": "tick",
+            "at": "beat:16"
+          },
+          {
+            "id": "hit",
+            "at": "bar:5",
+            "volume": 0.55
+          },
+          {
+            "id": "ding",
+            "at": "beat:19",
+            "volume": 0.4
+          }
+        ]
+      },
+      "sections": [
+        {
+          "name": "count-in",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": {
+              "bars": 1
+            }
+          },
+          "kinetic": [
+            {
+              "text": {
+                "en": "1"
+              },
+              "preset": "pop",
+              "role": "accent",
+              "size": 200,
+              "x": 340,
+              "y": "center",
+              "delay": "beat:1 + 0.05",
+              "color": "#FF8AAE"
+            },
+            {
+              "text": {
+                "en": "2"
+              },
+              "preset": "rise",
+              "role": "micro",
+              "size": 200,
+              "x": 540,
+              "y": "center",
+              "delay": "beat:2 - 0.06"
+            },
+            {
+              "text": {
+                "en": "3"
+              },
+              "preset": "rise",
+              "role": "micro",
+              "ease": "$expo",
+              "size": 200,
+              "x": 740,
+              "y": "center",
+              "delay": "beat:3 - 0.06"
+            },
+            {
+              "text": {
+                "en": "4"
+              },
+              "preset": "rise",
+              "role": "micro",
+              "ease": "$smooth",
+              "size": 200,
+              "x": 940,
+              "y": "center",
+              "delay": "beat:4 - 0.06"
+            }
+          ]
+        },
+        {
+          "name": "build",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": {
+              "bars": 1
+            }
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.08
+          },
+          "kinetic": [
+            {
+              "id": "title",
+              "text": {
+                "en": "Cut on time"
+              },
+              "preset": "cascade",
+              "size": 150,
+              "y": "center",
+              "delay": "beat:5 + 0.1",
+              "accent": {
+                "words": "last",
+                "color": "#FFF685"
+              }
+            }
+          ]
+        },
+        {
+          "name": "drop",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#7C83FD",
+            "duration": {
+              "bars": 2
+            }
+          },
+          "camera": {
+            "hits": ["beat:9", "beat:10", "beat:11", "beat:12", "beat:13", "beat:14", "beat:15", "beat:16"]
+          },
+          "graphics": [
+            {
+              "type": "flash",
+              "at": "bar:3",
+              "duration": 0.25,
+              "intensity": 0.6
+            },
+            {
+              "type": "flash",
+              "at": "bar:4",
+              "duration": 0.25,
+              "intensity": 0.5
+            },
+            {
+              "type": "progress",
+              "at": "bar:3",
+              "duration": 4,
+              "thickness": 10,
+              "color": "#141416",
+              "track": "#141416@0.2"
+            }
+          ],
+          "kinetic": [
+            {
+              "text": {
+                "en": "DROP"
+              },
+              "preset": "impact",
+              "size": 260,
+              "y": "center",
+              "color": "#141416",
+              "delay": "beat:9 + 0.1",
+              "trail": {
+                "echoes": 3,
+                "delta": 0.04,
+                "fade": 0.45
+              }
+            }
+          ]
+        },
+        {
+          "name": "close",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": {
+              "bars": 1
+            }
+          },
+          "kinetic": [
+            {
+              "text": {
+                "en": "Locked in."
+              },
+              "preset": "split",
+              "size": 110,
+              "y": "center",
+              "delay": "bar:5 + 0.1",
+              "accent": {
+                "words": "first",
+                "color": "#FF8AAE"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "theme-roles",
+    "title": "Theme, roles & safe zones",
+    "description": "A vertical TikTok promo styled by the neon theme tokens, moved by motion roles instead of hand-picked eases, and kept clear of the platform's on-screen buttons.",
+    "category": "effects",
+    "source": "examples/motion-design/theme-roles.json",
+    "orientation": "portrait",
+    "backend": "native",
+    "creativeDirection": "Audience: social teams who brand many short videos and need them to move with one vocabulary. Direction: the neon theme sets the deep green ink, lime accent and bouncy pacing; roles decide every curve (the headline lands with $expo and holds, the accent underline snaps, panels settle without overshoot, the mascot emoji is the one thing that bounces). Copy sits clear of the TikTok tab bar, caption block and action buttons. Review: no literal hex colours outside the palette, one accent per beat, the headline holds before each cut, and nothing lands under the right-hand buttons or the bottom caption block.",
+    "showcasePath": "/showcase?sample=theme-roles",
+    "preview": {
+      "video": "/videos/showcase/theme-roles.mp4",
+      "poster": "/videos/showcase/theme-roles.webp",
+      "template": "/videos/showcase/theme-roles.json"
+    },
+    "requirements": {
+      "projectVideos": [],
+      "formFields": [],
+      "variables": [],
+      "assets": [
+        {
+          "kind": "font",
+          "reference": "$font.display",
+          "path": "sections[0].kinetic[0].font"
+        },
+        {
+          "kind": "font",
+          "reference": "$font.mono",
+          "path": "sections[1].kinetic[0].font"
+        },
+        {
+          "kind": "font",
+          "reference": "$font.display",
+          "path": "sections[1].kinetic[1].font"
+        },
+        {
+          "kind": "font",
+          "reference": "$font.display",
+          "path": "sections[2].kinetic[0].font"
+        },
+        {
+          "kind": "font",
+          "reference": "$font.mono",
+          "path": "sections[2].kinetic[1].font"
+        }
+      ],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Theme, roles and safe zones",
+        "description": "A vertical TikTok promo built on the neon theme: colours and fonts come from $color / $font tokens, every animated element declares a motion role instead of an ease, and the copy stays inside the platform's safe zones.",
+        "creativeDirection": "Audience: social teams who brand many short videos and need them to move with one vocabulary. Direction: the neon theme sets the deep green ink, lime accent and bouncy pacing; roles decide every curve (the headline lands with $expo and holds, the accent underline snaps, panels settle without overshoot, the mascot emoji is the one thing that bounces). Copy sits clear of the TikTok tab bar, caption block and action buttons. Review: no literal hex colours outside the palette, one accent per beat, the headline holds before each cut, and nothing lands under the right-hand buttons or the bottom caption block."
+      },
+      "global": {
+        "orientation": "portrait",
+        "platform": "tiktok",
+        "theme": "neon",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 19,
+        "transition": {
+          "type": "push-up",
+          "duration": 0.45,
+          "ease": "$role.panel"
+        }
+      },
+      "sections": [
+        {
+          "name": "hook",
+          "type": "color_background",
+          "role": "hook",
+          "purpose": "Stop the scroll with one bold promise.",
+          "options": {
+            "backgroundColor": "$color.bg",
+            "duration": 2.8
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.05,
+            "role": "camera"
+          },
+          "graphics": [
+            {
+              "type": "underline",
+              "at": 1,
+              "x": 127,
+              "y": 880,
+              "width": 400,
+              "color": "$color.accent",
+              "role": "accent"
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "headline",
+              "text": {
+                "en": "Brand once. Post everywhere."
+              },
+              "preset": "cascade",
+              "role": "headline",
+              "font": "$font.display",
+              "size": 116,
+              "maxWidth": 560,
+              "x": 327,
+              "y": 470,
+              "color": "$color.fg",
+              "accent": {
+                "words": "last",
+                "color": "$color.accent"
+              }
+            }
+          ]
+        },
+        {
+          "name": "proof",
+          "type": "color_background",
+          "role": "proof",
+          "purpose": "Show that the theme carries colour, type and pacing.",
+          "options": {
+            "backgroundColor": "$color.surface",
+            "duration": 3.6
+          },
+          "graphics": [
+            {
+              "type": "panel",
+              "at": 0.2,
+              "x": 60,
+              "y": 520,
+              "width": 520,
+              "height": 300,
+              "color": "$color.bg@0.8",
+              "from": "left",
+              "role": "panel"
+            },
+            {
+              "type": "corners",
+              "at": 0.5,
+              "color": "$color.accent",
+              "inset": 120,
+              "role": "micro"
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "kicker",
+              "text": {
+                "en": "THEME: NEON"
+              },
+              "preset": "fade",
+              "role": "micro",
+              "font": "$font.mono",
+              "size": 34,
+              "x": 327,
+              "y": 570,
+              "color": "$color.muted",
+              "delay": 0.4
+            },
+            {
+              "id": "stat",
+              "text": {
+                "en": ""
+              },
+              "preset": "counter",
+              "role": "headline",
+              "counter": {
+                "from": 0,
+                "to": 6,
+                "suffix": " roles"
+              },
+              "font": "$font.display",
+              "size": 150,
+              "x": 327,
+              "y": 640,
+              "color": "$color.accent",
+              "delay": "kicker.end + 0.1"
+            },
+            {
+              "text": {
+                "en": "🦄"
+              },
+              "preset": "pop",
+              "role": "mascot",
+              "size": 120,
+              "x": 327,
+              "y": 860,
+              "delay": "stat.end + 0.1"
+            }
+          ]
+        },
+        {
+          "name": "cta",
+          "type": "color_background",
+          "role": "cta",
+          "purpose": "Invite the viewer to try it, inside the safe zone.",
+          "options": {
+            "backgroundColor": "$color.bg",
+            "duration": 3.2
+          },
+          "camera": {
+            "preset": "drift-up",
+            "amount": 0.03,
+            "role": "camera"
+          },
+          "kinetic": [
+            {
+              "id": "close",
+              "text": {
+                "en": "Pick a theme"
+              },
+              "preset": "rise",
+              "role": "headline",
+              "font": "$font.display",
+              "size": 140,
+              "x": 327,
+              "y": 600,
+              "color": "$color.fg"
+            },
+            {
+              "text": {
+                "en": "global.theme = neon"
+              },
+              "preset": "fade",
+              "role": "micro",
+              "font": "$font.mono",
+              "size": 32,
+              "x": 327,
+              "y": 800,
+              "color": "$color.accent",
+              "delay": "close.end + 0.2"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "footage-edit",
+    "title": "Footage editing",
+    "description": "A vertical clip fitted over its own blur, a focus pan with a user LUT, a bullet-time speed ramp, a freeze frame with a flash, and a B-roll cutaway under a 60% look.",
+    "category": "effects",
+    "source": "examples/motion-design/footage-edit.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: creators who cut their own footage and want the edit in JSON. Direction: one control per beat, named by a small clean-bar label so the viewer knows what changed. The portrait clip sits whole over a dimmed blur instead of bars; the wide shot pans left to right under a warm print grade; the trimmed clip snaps into 0.2x bullet time then whips out; the zoom freezes on a white flash with a shutter click; the main shot cuts away to B-roll and back while a teal-orange look runs at 60%. Review: no stretched or letterboxed frames, the pan eases at both ends, the ramp's slow section reads on the clip's own clock, the freeze holds under a second, and the cutaway returns to the main shot on time.",
+    "showcasePath": "/showcase?sample=footage-edit",
+    "preview": {
+      "video": "/videos/showcase/footage-edit.mp4",
+      "poster": "/videos/showcase/footage-edit.webp",
+      "template": "/videos/showcase/footage-edit.json"
+    },
+    "requirements": {
+      "projectVideos": [
+        {
+          "name": "reframe",
+          "duration": 2,
+          "captureMode": "upload"
+        },
+        {
+          "name": "pan",
+          "duration": 2.8,
+          "captureMode": "upload"
+        },
+        {
+          "name": "ramp",
+          "duration": 4.2,
+          "captureMode": "upload"
+        },
+        {
+          "name": "freeze",
+          "duration": 3,
+          "captureMode": "upload"
+        },
+        {
+          "name": "cutaway",
+          "duration": 3,
+          "captureMode": "upload"
+        }
+      ],
+      "formFields": [],
+      "variables": [
+        {
+          "name": "broll",
+          "default": "videos/video_2.mp4",
+          "placeholders": ["{{ broll }}"],
+          "source": "global"
+        },
+        {
+          "name": "lut",
+          "default": "luts/warm-print.cube",
+          "placeholders": ["{{ lut }}"],
+          "source": "global"
+        }
+      ],
+      "assets": [
+        {
+          "kind": "asset",
+          "reference": "videos/video_2.mp4",
+          "path": "global.variables.broll"
+        },
+        {
+          "kind": "asset",
+          "reference": "luts/warm-print.cube",
+          "path": "global.variables.lut"
+        },
+        {
+          "kind": "animation",
+          "reference": "{{ lut }}",
+          "path": "sections[1].grade.lut.url",
+          "default": "luts/warm-print.cube"
+        },
+        {
+          "kind": "animation",
+          "reference": "{{ broll }}",
+          "path": "sections[4].cutaways[0].url",
+          "default": "videos/video_2.mp4"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[0].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[0].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[1].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[1].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[2].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[2].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[3].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[3].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Anton.ttf",
+          "path": "sections[4].lowerThird.filters[2].values.fontfile",
+          "source": "preset"
+        },
+        {
+          "kind": "font",
+          "reference": "Oswald.ttf",
+          "path": "sections[4].lowerThird.filters[3].values.fontfile",
+          "source": "preset"
+        }
+      ],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Preview media is not included. Supply or replace the listed authored asset references; relative references remain unchanged and must resolve in your configured assets/media directory.",
+        "Font assets marked source=preset are effective engine-resolved filenames from text presets and authored font overrides. Supply these font files; family-based font references also include their family, weight and style for resolution.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Footage editing",
+        "description": "Five recorded clips, five edits: a vertical clip fitted over its own blur, a keyframed focus pan through a wide shot with a user LUT, a trimmed clip on a bullet-time speed ramp, a freeze frame with a flash, and a B-roll cutaway under a LUT look dialled to 60%.",
+        "creativeDirection": "Audience: creators who cut their own footage and want the edit in JSON. Direction: one control per beat, named by a small clean-bar label so the viewer knows what changed. The portrait clip sits whole over a dimmed blur instead of bars; the wide shot pans left to right under a warm print grade; the trimmed clip snaps into 0.2x bullet time then whips out; the zoom freezes on a white flash with a shutter click; the main shot cuts away to B-roll and back while a teal-orange look runs at 60%. Review: no stretched or letterboxed frames, the pan eases at both ends, the ramp's slow section reads on the clip's own clock, the freeze holds under a second, and the cutaway returns to the main shot on time."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 23,
+        "transition": {
+          "type": "cut"
+        },
+        "variables": {
+          "broll": "videos/video_2.mp4",
+          "lut": "luts/warm-print.cube"
+        },
+        "audio": {
+          "sourceVolume": 0.6
+        }
+      },
+      "sections": [
+        {
+          "name": "reframe",
+          "type": "project_video",
+          "options": {
+            "captureMode": "upload",
+            "duration": 2,
+            "fit": "blur",
+            "fill": {
+              "blur": 30,
+              "dim": 0.35,
+              "zoom": 1.1
+            }
+          },
+          "lowerThird": {
+            "title": {
+              "en": "Fit: blur"
+            },
+            "subtitle": {
+              "en": "options.fit"
+            },
+            "style": "clean-bar",
+            "accent": "#FF8AAE",
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.3
+            }
+          }
+        },
+        {
+          "name": "pan",
+          "type": "project_video",
+          "options": {
+            "captureMode": "upload",
+            "duration": 2.8,
+            "focus": [
+              {
+                "t": 0.2,
+                "x": 0,
+                "y": 0.5
+              },
+              {
+                "t": 2.6,
+                "x": 1,
+                "y": 0.5,
+                "ease": "ease-in-out-sine"
+              }
+            ]
+          },
+          "grade": {
+            "lut": {
+              "url": "{{ lut }}",
+              "strength": 0.85
+            }
+          },
+          "lowerThird": {
+            "title": {
+              "en": "Focus pan + user LUT"
+            },
+            "subtitle": {
+              "en": "options.focus · grade.lut"
+            },
+            "style": "clean-bar",
+            "accent": "#FF8AAE",
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.3
+            }
+          }
+        },
+        {
+          "name": "ramp",
+          "type": "project_video",
+          "options": {
+            "captureMode": "upload",
+            "duration": 4.2,
+            "clip": {
+              "from": 1,
+              "to": 5
+            },
+            "speedRamp": "bullet",
+            "rampAudio": "mute"
+          },
+          "lowerThird": {
+            "title": {
+              "en": "Clip range + speed ramp"
+            },
+            "subtitle": {
+              "en": "options.clip · speedRamp: bullet"
+            },
+            "style": "clean-bar",
+            "accent": "#FF8AAE",
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.3
+            }
+          }
+        },
+        {
+          "name": "freeze",
+          "type": "project_video",
+          "options": {
+            "captureMode": "upload",
+            "duration": 3,
+            "clip": {
+              "from": 2,
+              "to": 4.2
+            },
+            "freeze": [
+              {
+                "at": 1.1,
+                "hold": 0.8,
+                "flash": true
+              }
+            ]
+          },
+          "sfx": [
+            {
+              "id": "shutter",
+              "at": 1.1
+            }
+          ],
+          "lowerThird": {
+            "title": {
+              "en": "Freeze frame"
+            },
+            "subtitle": {
+              "en": "options.freeze · flash"
+            },
+            "style": "clean-bar",
+            "accent": "#FF8AAE",
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.3
+            }
+          }
+        },
+        {
+          "name": "cutaway",
+          "type": "project_video",
+          "options": {
+            "captureMode": "upload",
+            "duration": 3
+          },
+          "look": {
+            "preset": "teal-orange",
+            "strength": 0.6
+          },
+          "cutaways": [
+            {
+              "url": "{{ broll }}",
+              "at": 0.9,
+              "duration": 1.4
+            }
+          ],
+          "lowerThird": {
+            "title": {
+              "en": "Cutaway + look at 60%"
+            },
+            "subtitle": {
+              "en": "cutaways · look.strength"
+            },
+            "style": "clean-bar",
+            "accent": "#FF8AAE",
+            "reveal": {
+              "type": "slide-right",
+              "delay": 0.3
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "id": "sound-design",
+    "title": "Sound design",
+    "description": "Sound effects placed on motion events, automatic whooshes and hits, a riser into the drop, a voice preset and volume automation on a recorded line.",
+    "category": "effects",
+    "source": "examples/motion-design/sound-design.json",
+    "orientation": "landscape",
+    "backend": "native",
+    "creativeDirection": "Audience: editors who want every cut to sound finished without opening a DAW. Direction: one sound per visual event, on its frame. The hook's impact word lands on an automatic hit; designed transitions carry automatic whooshes; the recorded line is cleaned by the clean voice preset and faded up then out by automation; a riser climbs into the drop cue where an authored boom and a flash land together; the close rings once. Review: no sound before its picture, at most one sound per second on average, the riser ends exactly on the drop, the voice stays clear without pumping, and the final ding is the only one.",
+    "showcasePath": "/showcase?sample=sound-design",
+    "preview": {
+      "video": "/videos/showcase/sound-design.mp4",
+      "poster": "/videos/showcase/sound-design.webp",
+      "template": "/videos/showcase/sound-design.json"
+    },
+    "requirements": {
+      "projectVideos": [
+        {
+          "name": "voice",
+          "duration": 3.6,
+          "captureMode": "upload"
+        }
+      ],
+      "formFields": [],
+      "variables": [],
+      "assets": [],
+      "effects": [],
+      "setup": [
+        "Supply project_video clips by section name (userVideoPaths), customize form fields (fields) and global.variables, then validate the descriptor before rendering.",
+        "Render with an available FFmpeg backend: Node/system FFmpeg, browser/WASM, or the on-device engine. Provide the fonts and media used by the descriptor."
+      ]
+    },
+    "template": {
+      "meta": {
+        "name": "Sound design",
+        "description": "Audio polish from JSON: bundled sound effects placed on motion events, automatic whooshes, hits and a riser derived from the edit, a voice preset on a recorded clip and volume automation shaping its level.",
+        "creativeDirection": "Audience: editors who want every cut to sound finished without opening a DAW. Direction: one sound per visual event, on its frame. The hook's impact word lands on an automatic hit; designed transitions carry automatic whooshes; the recorded line is cleaned by the clean voice preset and faded up then out by automation; a riser climbs into the drop cue where an authored boom and a flash land together; the close rings once. Review: no sound before its picture, at most one sound per second on average, the riser ends exactly on the drop, the voice stays clear without pumping, and the final ding is the only one."
+      },
+      "global": {
+        "orientation": "landscape",
+        "fps": 30,
+        "musicEnabled": false,
+        "seed": 29,
+        "transition": {
+          "type": "push-left",
+          "duration": 0.45,
+          "ease": "$snappy"
+        },
+        "audio": {
+          "sfx": "auto",
+          "sourceVolume": 1
+        }
+      },
+      "sections": [
+        {
+          "name": "hook",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 2.4
+          },
+          "camera": {
+            "hits": [
+              {
+                "at": "title.end",
+                "strength": 0.3
+              }
+            ]
+          },
+          "kinetic": [
+            {
+              "id": "title",
+              "text": {
+                "en": "LISTEN."
+              },
+              "preset": "impact",
+              "size": 230,
+              "y": "center",
+              "delay": 0.2,
+              "color": "#F5F3F7"
+            }
+          ]
+        },
+        {
+          "name": "voice",
+          "type": "project_video",
+          "options": {
+            "captureMode": "upload",
+            "duration": 3.6,
+            "voice": "clean",
+            "audioAutomation": [
+              {
+                "at": 0,
+                "volume": 0.2
+              },
+              {
+                "at": 0.8,
+                "volume": 1,
+                "ease": "ease-in-out"
+              },
+              {
+                "at": 2.9,
+                "volume": 1
+              },
+              {
+                "at": 3.6,
+                "volume": 0,
+                "ease": "ease-in-out"
+              }
+            ]
+          },
+          "kinetic": [
+            {
+              "text": {
+                "en": "Voice: clean"
+              },
+              "preset": "rise",
+              "size": 120,
+              "y": 200,
+              "delay": 0.25,
+              "accent": {
+                "words": "last",
+                "color": "#FFF685"
+              }
+            },
+            {
+              "text": {
+                "en": "options.voice · audioAutomation"
+              },
+              "preset": "fade",
+              "font": "mono",
+              "size": 30,
+              "y": 400,
+              "color": "#9A98A6",
+              "delay": 0.9
+            }
+          ]
+        },
+        {
+          "name": "build",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#1B1830",
+            "duration": 3.4
+          },
+          "cues": {
+            "drop": 1.9
+          },
+          "camera": {
+            "preset": "push-in",
+            "amount": 0.1,
+            "hits": ["cue:drop"]
+          },
+          "graphics": [
+            {
+              "type": "flash",
+              "at": "cue:drop",
+              "duration": 0.3,
+              "intensity": 0.6
+            }
+          ],
+          "sfx": [
+            {
+              "id": "boom",
+              "at": "cue:drop"
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "rise",
+              "text": {
+                "en": "Build up"
+              },
+              "preset": "fade",
+              "size": 110,
+              "y": 250,
+              "delay": 0.2,
+              "color": "#9A98A6",
+              "exit": {
+                "preset": "fade",
+                "at": "cue:drop - 0.1"
+              }
+            },
+            {
+              "text": {
+                "en": "DROP"
+              },
+              "preset": "impact",
+              "size": 240,
+              "y": "center",
+              "delay": "cue:drop",
+              "color": "#FF8AAE",
+              "trail": {
+                "echoes": 3,
+                "delta": 0.04
+              }
+            }
+          ]
+        },
+        {
+          "name": "close",
+          "type": "color_background",
+          "options": {
+            "backgroundColor": "#141416",
+            "duration": 2.6
+          },
+          "sfx": [
+            {
+              "id": "ding",
+              "at": "title.end",
+              "volume": 0.4
+            }
+          ],
+          "kinetic": [
+            {
+              "id": "title",
+              "text": {
+                "en": "Every cut, scored."
+              },
+              "preset": "cascade",
+              "size": 120,
+              "y": "center",
+              "delay": 0.2,
+              "accent": {
+                "words": "last",
+                "color": "#7C83FD"
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
 ]

@@ -432,6 +432,138 @@
       "media": "Synthetic demo-shop captures and house cards",
       "bytes": 326720,
       "hasAudio": true
+    },
+    {
+      "id": "fx-pack",
+      "source": "examples/motion-design/fx-pack.json",
+      "duration": 13.443991,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "1b4415be8905f0b4c4f2e655538cff8dcba1ab71ec9a7f9e04d9f4b68a62d43d",
+      "templateSha256": "dd8753066e0c1ccfa92fe13f915baed63eac591b002cb004aceaab5e0d43d8a6",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 192778
+    },
+    {
+      "id": "word-captions",
+      "source": "examples/motion-design/word-captions.json",
+      "duration": 8.045011,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "f02c9dba62ab8aab6854f742bc2b7bd7fa875844add49c0693a0921a7c7ddbe5",
+      "templateSha256": "2035496320b0ee7ce53689980ee467e83d15b68c76cb64536c99083a691a93dd",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 46778
+    },
+    {
+      "id": "formats",
+      "source": "examples/motion-design/formats.json",
+      "duration": 12.445011,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "57cc73e40abcaa7e9bd6cf91c6b8b08520f1e8eeadd738fd07a05ebdae3893bd",
+      "templateSha256": "3494e784f9d2b7b88198a2a8441a0fc34507cbcf8d1467bd1cd57f0142cfef32",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 118946
+    },
+    {
+      "id": "kinetic-fills",
+      "source": "examples/motion-design/kinetic-fills.json",
+      "duration": 8.638005,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "c3932abb6d121b760c5b8ae4679b25692d26e917a3d0a5e93f0102700e1bb16b",
+      "templateSha256": "2fe22bb6ddebd301656da1b5233c4801ba3797f92fc168de9f1090814731db2b",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 135890
+    },
+    {
+      "id": "split-layouts",
+      "source": "examples/motion-design/split-layouts.json",
+      "duration": 9.45,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "d4e8ecf890c2dddc4e46d2902fc3a8d2cac5b3e532effcfd7f8ae92238d7ae53",
+      "templateSha256": "48864b456af5f3d8971f52e1b7ba3376d835af5be73d64423562f5f376676111",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 360633
+    },
+    {
+      "id": "rtl-type",
+      "source": "examples/motion-design/rtl-type.json",
+      "duration": 9.845011,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "180357fd2e7acb077b0c2108dd3aa90684411cc106dd5ea6d9a8771e167e4eb5",
+      "templateSha256": "447ed5ad557d6a983dc1d4229098d00a99ad8277af96d19be0413e6a67f866cd",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 91034
+    },
+    {
+      "id": "emoji-type",
+      "source": "examples/motion-design/emoji-type.json",
+      "duration": 8.822993,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "90b8aa11e7f90362b1ae02169bc6ba39f94feb13774ce1b2b9a08fb3ec853720",
+      "templateSha256": "7396733c46afa55a5dfe94fc2d19ee3f1005e6b8e0beef44a774f2548a67aa57",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 79146
+    },
+    {
+      "id": "beat-grid",
+      "source": "examples/motion-design/beat-grid.json",
+      "duration": 10.041667,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "27bb6e6ab1171fb9903f62eea3a3aff9a2b80bc3c7baec6f9ca8450f03ac8ce0",
+      "templateSha256": "06645693686204dd0eaf7586f1cfa9893dd1f70bca6f16512f88420aee948867",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 189673
+    },
+    {
+      "id": "theme-roles",
+      "source": "examples/motion-design/theme-roles.json",
+      "duration": 8.753991,
+      "hasAudio": true,
+      "orientation": "portrait",
+      "backend": "native",
+      "sha256": "a67fc5f2c28a8d88de47883684a205ed6e345c8b64a81ae9a194e54107e11c50",
+      "templateSha256": "4576e137fcd705777883466d9e7472a6de04f4aca0360e8b50ea59a0f50e4dd6",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 59614
+    },
+    {
+      "id": "footage-edit",
+      "source": "examples/motion-design/footage-edit.json",
+      "duration": 15.041995,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "a0558f49400ef98b36961393c60a4d278f8fb59d8357e0cd78c803f52276d59a",
+      "templateSha256": "f1b3ef23d16a6e3a1e37b5bb6d60eb1289006eceaca616ef327c3db3835efb09",
+      "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
+      "bytes": 920324
+    },
+    {
+      "id": "sound-design",
+      "source": "examples/motion-design/sound-design.json",
+      "duration": 10.703991,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "6bf2b333d4bf1895c490490ab1fde738dfe51040e14105000ea19529b866dc65",
+      "templateSha256": "7be4a31ef95d50906315ff19e697f4612ea08c9c6d3f1b50c8d311a36c843811",
+      "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
+      "bytes": 361664
     }
   ]
 }

@@ -1,6 +1,6 @@
 import catalog from '../../../../../../examples/showcase/catalog.json';
 
-export const CATEGORIES = ['all', 'templates', 'typography', 'overlays', 'app-demos', 'evidence'] as const;
+export const CATEGORIES = ['all', 'templates', 'typography', 'effects', 'overlays', 'app-demos', 'evidence'] as const;
 export type ShowcaseCategory = (typeof CATEGORIES)[number];
 export type ShowcaseSample = {
   id: string;

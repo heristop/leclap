@@ -1,10 +1,20 @@
-import type { z } from 'zod';
 import {
   TemplateDescriptorSchema,
   SectionSchema,
+  FilterValuesSchema,
   type TemplateDescriptor,
   type Section,
 } from '../schemas/template.schemas';
+import { findUnknownKeys, type UnknownKey } from './validation/schema-walk';
+import { knownNames, referenceFinding } from './validation/reference-finding';
+import {
+  dedupeFindings,
+  unknownKeyFinding,
+  zodIssueFindings,
+  zodIssues,
+  withoutHostFields,
+  type IssueSource,
+} from './validation/zod-findings';
 import { validateDescriptorRules, type ValidationError } from './template-validation-rules';
 import { expandPartialsSafe } from '@/core/partials';
 import { resolveThemeDescriptor } from '@/core/theme/resolve';
@@ -20,49 +30,14 @@ export interface ValidationResult {
   errors?: ValidationError[];
 }
 
+// Raw FFmpeg filter values are forwarded key-by-key to the filter (FormatterManager), so any
+// drawtext/drawbox option is legal there even when the schema does not name it.
+const FREE_FORM_SCHEMAS: ReadonlySet<unknown> = new Set([FilterValuesSchema]);
+
 export class TemplateValidator {
-  private formatZodError(error: z.ZodError): ValidationError[] {
+  private formatZodError(error: IssueSource, data?: unknown, unknownKeys: UnknownKey[] = []): ValidationError[] {
     try {
-      // Handle different ZodError structures
-      let errorArray: Array<{ path?: unknown; message?: unknown; code?: unknown }> = [];
-
-      const hasIssues = Array.isArray(error.issues);
-
-      if (!hasIssues && !error.message) {
-        return [
-          {
-            path: 'zod_error_structure',
-            message: 'Invalid ZodError structure',
-            code: 'invalid_zod_error',
-          },
-        ];
-      }
-
-      if (hasIssues) {
-        errorArray = error.issues;
-      }
-
-      if (!hasIssues && error.message) {
-        // Try to parse the message as JSON (some versions of Zod store errors this way)
-        try {
-          errorArray = JSON.parse(error.message);
-        } catch {
-          // If parsing fails, create a single error from the message
-          errorArray = [
-            {
-              path: [],
-              message: error.message,
-              code: 'zod_error',
-            },
-          ];
-        }
-      }
-
-      return errorArray.map((err) => ({
-        path: Array.isArray(err.path) ? err.path.join('.') : 'unknown',
-        message: typeof err.message === 'string' ? err.message : 'Unknown validation error',
-        code: typeof err.code === 'string' ? err.code : 'unknown',
-      }));
+      return zodIssueFindings(zodIssues(error), data, unknownKeys);
     } catch (mapError) {
       return [
         {
@@ -72,6 +47,22 @@ export class TemplateValidator {
         },
       ];
     }
+  }
+
+  // Every schema finding in one pass: zod's issues plus the unknown keys a strip object dropped.
+  // `envelope`: the data is a whole descriptor, whose top level hosts may extend with their own fields.
+  private schemaErrors(
+    schema: unknown,
+    data: unknown,
+    error: IssueSource | undefined,
+    envelope = false
+  ): ValidationError[] {
+    const found = findUnknownKeys(schema, data, { freeForm: FREE_FORM_SCHEMAS });
+    const unknownKeys = envelope ? withoutHostFields(found) : found;
+    const issues = error ? this.formatZodError(error, data, unknownKeys) : [];
+    const keyFindings = unknownKeys.map((entry) => unknownKeyFinding(entry.path.join('.'), entry.key, entry.allowed));
+
+    return dedupeFindings([...issues, ...keyFindings]);
   }
 
   private validateVariableReferences(template: TemplateDescriptor): ValidationError[] {
@@ -93,11 +84,13 @@ export class TemplateValidator {
           const variable = match[1];
 
           if (!definedVariables.has(variable)) {
-            errors.push({
-              path,
-              message: `Undefined variable reference: ${variable}`,
-              code: 'undefined_variable',
-            });
+            errors.push(
+              referenceFinding(path, `Undefined variable reference: ${variable}`, 'undefined_variable', {
+                name: variable,
+                known: [...definedVariables],
+                fix: `define "${variable}" in global.variables`,
+              })
+            );
           }
         }
 
@@ -141,11 +134,14 @@ export class TemplateValidator {
         const referencedSection = section.options.useVideoSection;
 
         if (!sectionNames.has(referencedSection)) {
-          errors.push({
-            path: `sections[${index}].options.useVideoSection`,
-            message: `Referenced section "${referencedSection}" does not exist`,
-            code: 'undefined_section_reference',
-          });
+          errors.push(
+            referenceFinding(
+              `sections[${index}].options.useVideoSection`,
+              `Referenced section "${referencedSection}" does not exist`,
+              'undefined_section_reference',
+              { name: referencedSection, known: knownNames(sectionNames), fix: 'point it at an existing section name' }
+            )
+          );
         }
       }
     }
@@ -184,11 +180,12 @@ export class TemplateValidator {
         };
       }
 
+      // Unknown keys are reported even when the parse succeeded: a strip object drops them silently.
+      const schemaErrors = this.schemaErrors(TemplateDescriptorSchema, templateData, result.error, true);
+
+      // The descriptor rules read typed data, so they only run once the schema parse succeeded.
       if (!result.success) {
-        return {
-          success: false,
-          errors: this.formatZodError(result.error),
-        };
+        return { success: false, errors: schemaErrors };
       }
 
       const template = result.data;
@@ -196,7 +193,7 @@ export class TemplateValidator {
       try {
         // Only validate section references as hard errors
         // Variable references are warnings since templates often use runtime variables
-        const allErrors = this.collectDescriptorErrors(template);
+        const allErrors = [...schemaErrors, ...this.collectDescriptorErrors(template)];
 
         if (allErrors.length > 0) {
           return {
@@ -246,12 +243,10 @@ export class TemplateValidator {
   validateSection(sectionData: unknown): ValidationResult {
     try {
       const result = SectionSchema.safeParse(sectionData);
+      const errors = this.schemaErrors(SectionSchema, sectionData, result.error);
 
-      if (!result.success) {
-        return {
-          success: false,
-          errors: this.formatZodError(result.error),
-        };
+      if (!result.success || errors.length > 0) {
+        return { success: false, errors };
       }
 
       return {

@@ -47,6 +47,27 @@ describe('formatValidation', () => {
     expect(text).toContain('2'); // a count of problems is surfaced
   });
 
+  it('prints a "→ hint" line under an error that has a known fix', () => {
+    const lines = formatValidation({
+      success: false,
+      errors: [
+        {
+          path: 'sections.0.options.colour',
+          message: 'Unknown key "colour"',
+          code: 'unknown_key',
+          hint: 'Rename "colour" to "backgroundColor".',
+          suggestion: 'backgroundColor',
+          kind: 'format',
+        },
+        { path: 'sections.1.type', message: 'bad type', code: 'invalid_type' },
+      ],
+    }).map(plain);
+
+    const index = lines.findIndex((line) => line.includes('✗ sections[0].options.colour'));
+    expect(lines[index + 1]).toContain('→ Rename "colour" to "backgroundColor".');
+    expect(lines.filter((line) => line.includes('→'))).toHaveLength(1);
+  });
+
   it('falls back gracefully when there are no error details', () => {
     const lines = formatValidation({ success: false }).map(plain);
     expect(lines.join('\n').toLowerCase()).toContain('invalid');
@@ -171,6 +192,24 @@ describe('validate command exit code with geometry warnings', () => {
     await validate.run?.({ args: { template: 'template.json', json: true } } as never);
 
     expect(process.exitCode).toBe(1);
+  });
+
+  it('emits hint, suggestion and kind unchanged with --json', async () => {
+    const finding = {
+      path: 'sections.0.look',
+      message: 'bad look',
+      code: 'invalid_value',
+      hint: 'Use one of: "warm".',
+      suggestion: 'warm',
+      kind: 'format',
+    };
+    validateTemplateMock.mockReturnValue({ success: false, errors: [finding] });
+
+    const { validate } = await import('../src/commands/validate');
+    await validate.run?.({ args: { template: 'template.json', json: true } } as never);
+
+    const out = writeSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
+    expect(JSON.parse(out).errors).toEqual([finding]);
   });
 
   // The loader wiring now lives in the engine (`nodeGeometryWarnings`), shared with the MCP server.

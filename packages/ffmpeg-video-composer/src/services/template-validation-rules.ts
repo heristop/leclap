@@ -1,15 +1,13 @@
-import { findFont, isFontRef, type FontInput } from '@/core/fonts';
+import { FONTS, findFont, isFontRef, type FontInput } from '@/core/fonts';
 import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
 import { findNondeterministicExpressions } from '@/core/determinism/hygiene';
 import { validateMotionSystem } from './motion-validation';
 import { validateTheme } from '@/core/theme/validate';
+import { nearest } from './validation/suggest';
+import type { ValidationError } from './validation/types';
 
-export interface ValidationError {
-  path: string;
-  message: string;
-  code: string;
-}
+export type { ValidationError, ValidationFindingKind } from './validation/types';
 
 const RENDERING_SECTION_TYPES = new Set(['video', 'project_video', 'color_background', 'image_background', 'effect']);
 
@@ -32,8 +30,17 @@ function danglingTransitionErrors(renderingSections: IndexedSection[]): Validati
       path: `sections[${lastRenderingIndex}].transition`,
       message: `Section "${lastRendering.name}": "${lastRendering.transition.type}" transition on the last rendering section has no following section to transition into`,
       code: 'dangling_transition',
+      hint: 'Remove this transition, or set its type to "cut".',
+      suggestion: { type: 'cut' },
+      kind: 'format',
     },
   ];
+}
+
+// Half the shorter neighbour, to two decimals: always strictly shorter than both sections, and long
+// enough to still read as a transition.
+function fittingTransitionDuration(smaller: number): number {
+  return Math.max(0.01, Math.floor(smaller * 50) / 100);
 }
 
 // transition_too_long: effective transition duration >= smaller of the two adjacent explicit durations
@@ -62,10 +69,15 @@ function transitionPairError(
     return null;
   }
 
+  const fitting = fittingTransitionDuration(smaller);
+
   return {
     path: `sections[${indexA}].transition`,
     message: `Section "${sectionA.name}": effective transition duration ${effectiveDuration}s must be shorter than the smaller adjacent section duration ${smaller}s`,
     code: 'transition_too_long',
+    hint: `Set the transition duration to ${fitting}s (or lengthen the adjacent sections).`,
+    suggestion: { ...sectionA.transition, duration: fitting },
+    kind: 'judgement',
   };
 }
 
@@ -109,6 +121,8 @@ export function validateGlobalAnimations(template: TemplateDescriptor): Validati
         path: `global.animations[${index}].url`,
         message: `Whole-video animation ${index} has no url`,
         code: 'global_animation_missing_url',
+        hint: 'Set url to an overlay file (.png/.jpg/.webp/.apng/.gif/.webm), or remove this animation.',
+        kind: 'judgement',
       };
     })
     .filter((error): error is ValidationError => error !== null);
@@ -130,6 +144,8 @@ export function validateGlobalWatermark(template: TemplateDescriptor): Validatio
       path: 'global.watermark.url',
       message: 'Watermark has no url',
       code: 'global_watermark_missing_url',
+      hint: 'Set url to a logo image (png/jpg), or remove global.watermark.',
+      kind: 'judgement',
     },
   ];
 }
@@ -157,6 +173,26 @@ function unresolvableFont(font: FontInput | undefined): string | null {
 
 const KNOWN_FONTS_HINT = 'known ids: rubik, oswald, bebas, … — or a .ttf filename';
 
+// The unknown_font finding, suggesting the nearest bundled id when the name is a likely typo.
+function unknownFontError(path: string, message: string, font: string): ValidationError {
+  const suggestion = nearest(
+    font,
+    FONTS.map((entry) => entry.id)
+  );
+  const finding: ValidationError = {
+    path,
+    message,
+    code: 'unknown_font',
+    hint:
+      suggestion === undefined
+        ? 'Use a bundled font id, a .ttf filename, or { "family": "<Google Fonts family>" }.'
+        : `Use the bundled font id "${suggestion}".`,
+    kind: suggestion === undefined ? 'judgement' : 'format',
+  };
+
+  return suggestion === undefined ? finding : { ...finding, suggestion };
+}
+
 export function validateFonts(template: TemplateDescriptor): ValidationError[] {
   const errors: ValidationError[] = [];
   const sections = template.sections ?? [];
@@ -165,11 +201,9 @@ export function validateFonts(template: TemplateDescriptor): ValidationError[] {
     const font = unresolvableFont(sections[index].caption?.font);
 
     if (font) {
-      errors.push({
-        path: `sections[${index}].caption.font`,
-        message: `Section "${sections[index].name}": unknown caption font "${font}" (${KNOWN_FONTS_HINT})`,
-        code: 'unknown_font',
-      });
+      const message = `Section "${sections[index].name}": unknown caption font "${font}" (${KNOWN_FONTS_HINT})`;
+
+      errors.push(unknownFontError(`sections[${index}].caption.font`, message, font));
     }
   }
 
@@ -179,11 +213,9 @@ export function validateFonts(template: TemplateDescriptor): ValidationError[] {
     const font = unresolvableFont(overlays[index].font);
 
     if (font) {
-      errors.push({
-        path: `global.overlays[${index}].font`,
-        message: `Whole-video overlay ${index}: unknown font "${font}" (${KNOWN_FONTS_HINT})`,
-        code: 'unknown_font',
-      });
+      const message = `Whole-video overlay ${index}: unknown font "${font}" (${KNOWN_FONTS_HINT})`;
+
+      errors.push(unknownFontError(`global.overlays[${index}].font`, message, font));
     }
   }
 
@@ -211,6 +243,9 @@ export function validateMotion(template: TemplateDescriptor): ValidationError[] 
       path: `sections[${index}].motion`,
       message: `Section "${section.name}": kenburns motion requires a video or image_background section`,
       code: 'motion_unsupported_section',
+      hint: 'Remove the kenburns entry from motion, or make this a video, project_video or image_background section.',
+      suggestion: (section.motion ?? []).filter((effect) => effect.type !== 'kenburns'),
+      kind: 'judgement',
     });
   }
 

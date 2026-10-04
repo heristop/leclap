@@ -78,6 +78,30 @@ describe('validate_template handler', () => {
     expect(result.content[0].text).toContain('Invalid template');
   });
 
+  it('returns every finding with its hint, suggestion and kind', async () => {
+    const template: Record<string, unknown> = {
+      sections: [
+        { name: 'card', type: 'color_background', look: 'cinematik', options: { duration: 3, colour: '#000000' } },
+      ],
+    };
+    const result = await setup()({ template });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('→ Rename "colour" to "backgroundColor".');
+    expect(result.structuredContent?.valid).toBe(false);
+    expect(result.structuredContent?.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: 'sections.0.look', code: 'invalid_value', suggestion: 'cinematic' }),
+        expect.objectContaining({
+          path: 'sections.0.options.colour',
+          code: 'unknown_key',
+          suggestion: 'backgroundColor',
+          kind: 'format',
+        }),
+      ])
+    );
+  });
+
   // Regression guard: a project_video declared inside a `{type:'partial'}` section must surface in
   // requiredClips — the engine expands partials before rendering, so compose_video WILL demand a
   // clip for it, and this tool used to report no clips at all for such templates.

@@ -31,6 +31,8 @@ export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
 export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
+export type { LookInput, TrimSilence, KeepRange, Cutaway, MediaTraits } from './descriptor-footage';
+import type { LookInput, TrimSilence, KeepRange, Cutaway, MediaTraits } from './descriptor-footage';
 // Filtergraph primitives (input/filter/map + shape recipe) also live in a sibling for the budget;
 // the public ones are re-exported, and Filter/Input/Map imported back for the section declarations below.
 export type { ShapeSpec, Map, Filter, FilterValues, MapAnimationInput, OverlayFit, OverlayFlip } from './filter-types';
@@ -108,6 +110,8 @@ export type ProjectBuildInfos = {
   // Per project_video section: whether its source clip has an audio stream. Probed once by the
   // director; false lets the segment add a silent track so transition acrossfade always has audio.
   sourceHasAudio: Record<string, boolean>;
+  // Per video/project_video section: the footage plan resolved at probe time (director/footage-plan.ts).
+  footage?: Record<string, SectionFootage>;
   videoInputs: string[];
   musicInputs: string[];
   musicFilters: string[];
@@ -152,7 +156,7 @@ export interface TemplateDescriptorGlobal {
   animations?: GlobalAnimation[];
   overlays?: GlobalTextOverlay[];
   watermark?: Watermark;
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   allowedMusic?: string[];
   allowUploadMusic?: boolean;
@@ -260,9 +264,11 @@ export interface Section {
   kinetic?: KineticBlock[];
   camera?: Camera;
   graphics?: Graphic[];
+  /** B-roll clips overlaid on a video/project_video section's footage for a window. */
+  cutaways?: Cutaway[];
   /** Named moments in seconds from the section start, referenced as "cue:<name>" in time fields. */
   cues?: Record<string, number>;
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   letterbox?: Letterbox;
   motion?: MotionEffect[];
@@ -280,7 +286,7 @@ export interface PartialSection {
   description?: Translation;
   transition?: SectionTransition;
   caption?: Caption;
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   motion?: MotionEffect[];
   ref?: string;
@@ -320,6 +326,9 @@ export interface SectionOptions {
   framingGuide?: FramingGuideConfig;
   captureMode?: string;
   allowedCaptureModes?: string[];
+  // video / project_video footage editing
+  trimSilence?: TrimSilence;
+  keep?: KeepRange[];
 }
 
 export interface FramingGuideConfig {
@@ -348,9 +357,22 @@ export type TemplateAssets = {
   inputs: string[];
 };
 
+/** What the director resolved for one section's footage before it renders (director/footage-plan.ts). */
+export interface SectionFootage {
+  /** Source windows kept (explicit options.keep, or computed by trimSilence), in source seconds. */
+  keep?: KeepRange[];
+  /** Tone-map an HDR source to SDR in the section graph. */
+  tonemap?: boolean;
+  traits?: MediaTraits;
+  /** False when the probed source has no audio stream. */
+  hasAudio?: boolean;
+}
+
 export type FFMpegInfos = {
   duration: number | null;
   videoCodec: string | null;
   audioCodec: string | null;
   sampleRate: number | null;
+  /** Colour/timing traits of the video stream, when the adapter reports them. */
+  traits?: MediaTraits;
 };

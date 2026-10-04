@@ -358,6 +358,9 @@ export type {
 } from './core/resolve-template-effects';
 export * from './core/determinism';
 export { ENGINE_VERSION } from './core/version';
+// Probed source traits (HDR transfer, bit depth, VFR, rotation), shared with the MCP probe_media tool.
+export { mediaTraits, type ProbeVideoStream } from './core/footage/media-traits';
+export type { MediaTraits } from './core/types';
 // Node entry only: digest a rendered file for `leclap verify`.
 export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';

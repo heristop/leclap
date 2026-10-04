@@ -9,6 +9,7 @@ import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { fetchSectionInfos, segmentOutputPath } from './section-infos';
+import { planFootage, recordProbe, type FootagePlanDeps } from './footage-plan';
 import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
@@ -230,15 +231,12 @@ class TemplateDirector {
   };
 
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
-    const resolveDuration = async (segment: Section): Promise<number> => {
-      if (segment.type === 'project_video') {
-        return this.getVideoSectionDuration(segment);
-      }
-
-      return segment.options?.duration ?? 0;
-    };
+    const resolveDuration = async (segment: Section): Promise<number> =>
+      segment.type === 'project_video' ? this.getVideoSectionDuration(segment) : (segment.options?.duration ?? 0);
 
     const durations = await Promise.all(segments.map(resolveDuration));
+    // Keep windows / silence trimming / HDR tone-map, resolved on the probed clips (director/footage-plan.ts).
+    await planFootage(this.footageDeps(), segments, durations, this.project.buildInfos);
     const durMap = this.project.buildInfos.durations;
 
     for (const [index, segment] of segments.entries()) {
@@ -262,6 +260,7 @@ class TemplateDirector {
     // Record whether the source clip carries audio so ProjectVideoSegment can add a silent track for a
     // video-only upload — otherwise the transition acrossfade later references a missing `[k:a]`.
     this.project.buildInfos.sourceHasAudio[segment.name] = sectionInfos.audioCodec !== null;
+    recordProbe(this.project.buildInfos, segment.name, sectionInfos);
 
     return sectionInfos.duration;
   };
@@ -366,16 +365,16 @@ class TemplateDirector {
 
   // Resolve a section's clip source and read its media info, falling back to the declared duration when
   // the probe can't (see sectionInfos.ts). Kept as a method so the director's tests exercise it directly.
-  fetchSectionInfos = (section: Section): Promise<FFMpegInfos> =>
-    fetchSectionInfos(
-      {
-        config: this.project.config,
-        ffmpegAdapter: this.ffmpegAdapter,
-        filesystemAdapter: this.filesystemAdapter,
-        logger: this.logger,
-      },
-      section
-    );
+  fetchSectionInfos = (section: Section): Promise<FFMpegInfos> => fetchSectionInfos(this.footageDeps(), section);
+
+  private readonly footageDeps = (): FootagePlanDeps => ({
+    config: this.project.config,
+    ffmpegAdapter: this.ffmpegAdapter,
+    filesystemAdapter: this.filesystemAdapter,
+    logger: this.logger,
+    mediaCache: this.template.assets.inputs as unknown as Record<string, string>,
+    analyzer: this.project.footageAnalyzer,
+  });
 
   addToQueue = async (section: Section): Promise<void> => {
     const { segment } = await this.concreteBuilder.build(section, this.project.config);

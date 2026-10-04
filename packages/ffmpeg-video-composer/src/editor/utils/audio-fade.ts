@@ -49,6 +49,13 @@ function buildFadeOutPart(fade: SectionOptions['audioFade'], duration: number): 
  * frames. Padded with silence, the audio never ends first, so `-shortest` (and `-t`) cut at the video.
  */
 export function buildAudioFadeArg(opts: SectionOptions | undefined, pad = false): string {
+  const chain = buildAudioFadeChain(opts, pad);
+
+  return chain === '' ? '' : ` -af "${chain}" `;
+}
+
+/** The bare filter chain buildAudioFadeArg wraps in `-af` ('' when none), for a section folding it into its graph. */
+export function buildAudioFadeChain(opts: SectionOptions | undefined, pad = false): string {
   if (opts?.muteSection === true) {
     return '';
   }
@@ -61,9 +68,5 @@ export function buildAudioFadeArg(opts: SectionOptions | undefined, pad = false)
     ...(pad ? ['apad'] : []),
   ];
 
-  if (parts.length === 0) {
-    return '';
-  }
-
-  return ` -af "${parts.join(',')}" `;
+  return parts.join(',');
 }

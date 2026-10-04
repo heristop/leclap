@@ -2,6 +2,7 @@
 // source. One data structure serves MCP (`get_motion_catalog`), the CLI and the template builder's
 // prompt-to-template flow, so they always agree with the engine.
 
+import { FOOTAGE_GUIDE } from './catalog-footage';
 import { CSS_BEZIERS, NAMED_CURVES } from './curves';
 import { LEGACY_EASINGS, MIN_DAMPING_RATIO } from './easing';
 import { BUILTIN_MOTION_TOKENS } from './tokens';
@@ -112,6 +113,8 @@ export interface MotionCatalog {
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
   themes: ThemeCatalog;
   timing: typeof TIMING;
+  /** Recorded-footage editing: look strength, user LUTs, trimSilence/keep, cutaways, probed traits. */
+  footage: typeof FOOTAGE_GUIDE;
   starter: typeof STARTER;
 }
 
@@ -228,6 +231,7 @@ export function motionCatalog(): MotionCatalog {
     platforms: platformCatalog(),
     themes: themeCatalog(),
     timing: TIMING,
+    footage: FOOTAGE_GUIDE,
     starter: STARTER,
   };
 }

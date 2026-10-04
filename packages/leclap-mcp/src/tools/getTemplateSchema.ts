@@ -37,6 +37,11 @@ const GUIDE = [
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +
     'with get_effect_schema. These registered Remotion modes need a Node worker, not the portable native path.',
+  'Recorded footage (video/project_video): look accepts { preset, strength } for the LUT looks; grade.lut ' +
+    '{ url, strength? } applies a user .cube (e.g. Log → Rec.709) first; options.trimSilence cuts silent edges ' +
+    'and long pauses (Node analysis; elsewhere pass options.keep [[from,to],…]); cutaways[] overlay B-roll ' +
+    '({ url, at, duration, from?, audio: a|b|mix, fit }) while the main clip keeps running. probe_media reports ' +
+    'hdr/vfr/rotation; get_motion_catalog lists footage rules.',
   'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +
     'cut-only templates use a fast stream-copy concat.',
   'Strings may contain `{{ variables }}` (from global.variables), `{{ colorN }}` (1-indexed from ' +

@@ -88,6 +88,7 @@ export function timeSlots(section: Bag): TimeSlot[] {
       ...slot(g, 'until', `graphics[${i}]`),
     ]),
     ...cameraSlots(bag(section.camera)),
+    ...list(section.cutaways).flatMap((cutaway, i) => slot(cutaway, 'at', `cutaways[${i}]`)),
     ...list(section.filters).flatMap((filter, i) => filterSlots(filter, `filters[${i}]`)),
   ];
 }

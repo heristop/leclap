@@ -14,7 +14,7 @@ interface TimelineTransition {
 
 export interface TimelineSection {
   type: string;
-  options?: { duration?: number };
+  options?: { duration?: number; keep?: Array<[number, number]>; trimSilence?: unknown };
   transition?: TimelineTransition;
 }
 
@@ -35,10 +35,21 @@ export function barTime(beats: Beats, index: number): number | null {
 
 /**
  * The section's length when it is known before any media is probed: its `options.duration`, except for a
- * recorded clip (`project_video`), whose length comes from the probe.
+ * recorded clip (`project_video`), whose length comes from the probe, and a silence-trimmed take, whose
+ * length comes from the analysis. Explicit `keep` windows on a `video` section shorten it to their sum.
  */
 export function knownDuration(section: TimelineSection): number | undefined {
-  return section.type === 'project_video' ? undefined : section.options?.duration;
+  const options = section.options;
+
+  if (section.type === 'project_video' || options?.trimSilence !== undefined) return undefined;
+
+  const keep = options?.keep;
+
+  if (!keep || keep.length === 0) return options?.duration;
+
+  const kept = keep.reduce((sum, [from, to]) => sum + Math.max(0, to - from), 0);
+
+  return Math.min(kept, options.duration ?? kept);
 }
 
 // How far the boundary after `previous` pulls the next section back: a transition overlaps both clips.

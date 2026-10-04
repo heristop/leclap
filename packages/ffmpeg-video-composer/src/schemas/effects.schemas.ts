@@ -227,6 +227,9 @@ export const GlobalAudioSchema = z
 // `effects.schemas` entry point.
 export {
   LOOK_PRESETS,
+  LUT_LOOK_PRESETS,
+  LookSchema,
+  GradeLutSchema,
   GradeSchema,
   MotionEffectSchema,
   BackgroundLayerSchema,

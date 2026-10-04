@@ -4,10 +4,19 @@ import { BaseTemplateValidator, type ValidationError } from './BaseTemplateValid
 import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
+import { footageAdvisories } from './footage-validation';
+import { expandPartialsSafe } from '@/core/partials';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
 export type { GeometryWarning, FontLoader } from './geometry';
+
+// Footage advisories read the expanded sections, like the pacing lint, so paths index them.
+function footageWarnings(template: unknown): MotionWarning[] {
+  const expanded = expandPartialsSafe(template);
+
+  return expanded.ok ? footageAdvisories(expanded.data as TemplateDescriptor) : [];
+}
 
 // The full validator: everything BaseTemplateValidator checks, plus the advisory passes. Advisories
 // never enter `errors` nor flip `success` — a template that renders badly still renders.
@@ -92,6 +101,6 @@ export class TemplateValidator extends BaseTemplateValidator {
   // The theme's one-accent-per-idea advisory rides along, so every surface that shows pacing feedback
   // shows it too.
   getMotionWarnings(template: unknown): MotionWarning[] {
-    return [...collectMotionWarnings(template), ...accentAdvisories(template)];
+    return [...collectMotionWarnings(template), ...accentAdvisories(template), ...footageWarnings(template)];
   }
 }

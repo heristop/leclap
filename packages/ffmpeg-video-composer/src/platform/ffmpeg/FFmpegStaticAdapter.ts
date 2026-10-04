@@ -6,6 +6,7 @@ import { promisify } from 'node:util';
 import type { FFMpegInfos } from '@/core/types';
 import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
+import { reportedTraits } from '../../core/footage/media-traits';
 import { parseCommand } from './parse-command';
 import { FFPROBE_MISSING_MESSAGE, resolveStaticFfprobe } from './resolve-ffprobe';
 import { tailStderr } from './tail-stderr';
@@ -110,6 +111,7 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
         videoCodec: videoStream?.codec_name ?? null,
         audioCodec: audioStream?.codec_name ?? null,
         sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate, 10) : null,
+        ...reportedTraits(videoStream),
       };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };

@@ -3,6 +3,7 @@ import type { ProjectBuildInfos, ProjectConfig } from '../types';
 import DefaultConfig from '../default.config';
 import type { LoudnessReport, QcExpectations } from '../qc/types';
 import type { CommandInterceptor } from '../determinism/command-tap';
+import type { FootageAnalyzer } from '../footage/analyzer';
 
 @singleton()
 class Project {
@@ -38,6 +39,8 @@ class Project {
   // core/encoding.ts) and the section-cache hook the command tap routes through (null elsewhere).
   public ffmpegVersion: string | null = null;
   public commandInterceptor: CommandInterceptor | null = null;
+  // Set by the Node compile() too: silencedetect + filter-list analysis for footage edits (null elsewhere).
+  public footageAnalyzer: FootageAnalyzer | null = null;
 
   constructor() {
     this.init();
@@ -77,12 +80,13 @@ class Project {
     bi.videoInputs.length = bi.musicInputs.length = bi.musicFilters.length = bi.transitions.length = 0;
     bi.durations = {};
     bi.sourceHasAudio = {};
+    bi.footage = {};
     // loadMusic leaves musicPath untouched when no track resolves, and it may still hold the last build's loop copy.
     bi.musicPath = '';
     this.errors.length = 0;
     this.ffmpegCommands.length = 0;
     this.finalVideo = '';
-    this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = null;
+    this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = this.footageAnalyzer = null;
     this.output = { staging: '', final: '' };
   };
 

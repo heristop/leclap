@@ -7,7 +7,7 @@ import {
   ChromaKeySchema,
   FramingGuideSchema,
   GradeSchema,
-  LOOK_PRESETS,
+  LookSchema,
   MotionEffectSchema,
   TransitionSchema,
 } from './effects.schemas';
@@ -16,6 +16,7 @@ import { FilterSchema, MapSchema } from './filter.schemas';
 import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas';
 import { InputSchema, FieldSchema } from './section-media.schemas';
 import { MOTION_SECTION_FIELDS } from './motion-section.schemas';
+import { CutawaysSchema, FOOTAGE_OPTION_FIELDS } from './footage.schemas';
 
 export {
   CAPTION_STYLES,
@@ -135,10 +136,9 @@ export const BaseSectionSchema = z
     caption: CaptionSchema.optional().describe('Styled on-screen caption rendered as a drawtext filter.'),
     lowerThird: LowerThirdSchema.optional().describe('Title/subtitle band composited over the section clip.'),
     ...MOTION_SECTION_FIELDS,
-    look: z
-      .enum(LOOK_PRESETS)
-      .optional()
-      .describe('Named colour-grade preset applied to the section video (default: none).'),
+    look: LookSchema.optional().describe(
+      'Named colour-grade preset applied to the section video (default: none); string or { preset, strength }.'
+    ),
     grade: GradeSchema.optional().describe('Fine-grained colour-grade settings applied to the section video.'),
     letterbox: z
       .object({
@@ -162,7 +162,11 @@ export const BaseSectionSchema = z
 
 export const VideoSectionSchema = BaseSectionSchema.extend({
   type: z.literal('video').describe('Section type: renders a pre-recorded or asset-backed video clip.'),
-  options: BaseSectionOptionsSchema.optional().describe('Playback and compositing options for the video section.'),
+  options: BaseSectionOptionsSchema.extend(FOOTAGE_OPTION_FIELDS)
+    .strict()
+    .optional()
+    .describe('Playback and compositing options for the video section.'),
+  cutaways: CutawaysSchema.optional(),
 }).describe('A section that plays a pre-recorded video clip or a user-uploaded video asset.');
 
 export const EffectSectionSchema = BaseSectionSchema.extend({
@@ -191,10 +195,12 @@ export const ProjectVideoSectionSchema = BaseSectionSchema.extend({
       .array(CaptureModeSchema)
       .optional()
       .describe('Modes available to the user; omit for all four. A single element locks to one mode.'),
+    ...FOOTAGE_OPTION_FIELDS,
   })
     .strict()
     .optional()
     .describe('Recording and compositing options for the project_video section.'),
+  cutaways: CutawaysSchema.optional(),
 }).describe('A section that records a new clip from the device camera; supports a framing guide overlay.');
 
 export const FormSectionSchema = BaseSectionSchema.extend({

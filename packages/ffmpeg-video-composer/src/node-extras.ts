@@ -7,5 +7,9 @@ export { analyzeMusicFile, type AnalyzeMusicOptions } from './services/beats-ana
 export { decodeMonoPcm, ANALYSIS_SAMPLE_RATE } from './platform/ffmpeg/decode-pcm-node';
 // Probed source traits (HDR transfer, bit depth, VFR, rotation), shared with the MCP probe_media tool.
 export { mediaTraits, type ProbeVideoStream } from './core/footage/media-traits';
+// The FFmpeg capability doctor (`leclap diagnose --json`, MCP get_capabilities).
+export * from './platform/ffmpeg/capability-exports-node';
+// Partial expansion with its advisories (partial_compressed) and structured failures.
+export { expandPartialsReport, PartialError, type PartialFinding } from './core/partials';
 // Frame snapshots, comparisons, the whole-video timeline and catalog search (services/snapshot-api-node.ts).
 export * from './services/snapshot-api-node';

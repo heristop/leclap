@@ -5,6 +5,8 @@ import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
 import { findPaletteDrift, paletteAdvisories } from '@/core/theme/palette';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
+import { capabilityFindings } from './capability-validation';
+import type { CapabilityReport } from '@/core/capabilities';
 import { collectScriptWarnings, type ScriptLintCapabilities } from './script-lint';
 import { emojiAdvisories } from './emoji-advisories';
 import { subtitleAdvisories } from './subtitles-advisories';
@@ -25,6 +27,14 @@ function takeWarnings(template: unknown): MotionWarning[] {
   const expanded = expandPartialsSafe(template);
 
   return expanded.ok ? takeAdvisories(expanded.data as TemplateDescriptor) : [];
+}
+
+// Expansion advisories (partial_compressed: a ref squeezed under its partial's fixed intro/outro). Partials
+// expand before formats resolve, so these are the same for every format: reported once, at authored paths.
+function partialWarnings(template: unknown): MotionWarning[] {
+  const expanded = expandPartialsSafe(template);
+
+  return expanded.ok ? (expanded.warnings ?? []).map((w) => ({ ...w, severity: 'warn' as const })) : [];
 }
 
 // The full validator: everything BaseTemplateValidator checks, plus the advisory passes. Advisories
@@ -130,6 +140,13 @@ export class TemplateValidator extends BaseTemplateValidator {
       ...collectScriptWarnings(resolved, capabilities),
     ]);
 
-    return [...perFormat, ...formatAdvisories(expandedForFormats(template))];
+    return [...partialWarnings(template), ...perFormat, ...formatAdvisories(expandedForFormats(template))];
+  }
+
+  // Advisory: `feature_unavailable` for every feature the template uses that the probed FFmpeg cannot
+  // render (drawtext, xfade, lut3d, loudnorm…). Pure; without a capability report there is nothing to
+  // compare against, so it returns nothing. Node hosts pass `probeCapabilities()`.
+  getCapabilityWarnings(template: unknown, capabilities?: CapabilityReport | null): ValidationError[] {
+    return capabilities ? capabilityFindings(template, capabilities) : [];
   }
 }

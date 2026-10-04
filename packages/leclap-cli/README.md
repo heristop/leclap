@@ -28,7 +28,7 @@ leclap style <reference>  # derive a theme + style guide from an image or clip (
 leclap snapshot <template> # render and save still frames (PNG) of chosen moments, contact sheets
 leclap compare <a> <b>    # the same moment of several templates in one labelled grid
 leclap timeline <template> # sections, motion events, beats and cues on video seconds (--json)
-leclap diagnose           # check your FFmpeg setup
+leclap diagnose           # check your FFmpeg setup and what it can render (--json for the report)
 leclap --help             # usage (per-command help with `leclap <command> --help`)
 leclap --version
 ```

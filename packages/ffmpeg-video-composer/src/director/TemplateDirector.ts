@@ -333,7 +333,8 @@ class TemplateDirector {
       hasAnimations,
       musicEnabled: Boolean(global?.musicEnabled),
       musicWillRun,
-      normalizeWillRun: !global?.musicEnabled && this.musicComposer.hasNormalization(),
+      // Without a music mix, normalisation and sound effects need their own audio pass.
+      normalizeWillRun: !musicWillRun && this.musicComposer.hasStandaloneAudioPass(),
       disableFold: Boolean(process.env.FVC_DISABLE_CONCAT_FOLD),
       finalPath: this.project.output.staging || `${buildDir}/output.mp4`,
       listPath: this.project.buildInfos.fileConcatPath,

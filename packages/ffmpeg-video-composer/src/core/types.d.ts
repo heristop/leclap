@@ -25,6 +25,9 @@ import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
 import type { Subtitles } from '../schemas/subtitles.schemas';
+import type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
+export type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
+import type { VoicePreset } from './audio/voice-presets';
 import type { Beats } from './timing/timeline';
 export type { Beats } from './timing/timeline';
 import type { EffectReference } from '../schemas/effect-reference.schema';
@@ -151,6 +154,8 @@ export interface TemplateDescriptorGlobal {
   musicEnabled?: boolean;
   transition?: SectionTransition;
   audio?: GlobalAudio;
+  /** Sound effects on the whole-video timeline. */
+  sfx?: SfxCue[];
   music?: MusicConfig;
   animations?: GlobalAnimation[];
   overlays?: GlobalTextOverlay[];
@@ -238,6 +243,10 @@ interface GlobalAudio {
   normalize?: 'loudnorm' | 'dynaudnorm';
   ducking?: boolean | DuckingConfig;
   musicFade?: number;
+  /** Music-bed volume automation on the whole-video timeline (core/audio/automation.ts). */
+  automation?: AutomationKeyInput[];
+  /** 'auto' places sound effects from the motion (core/audio/auto-sfx.ts). */
+  sfx?: 'auto';
 }
 
 export interface Variables {
@@ -267,6 +276,8 @@ export interface Section {
   cues?: Record<string, number>;
   /** Word-timed captions (cues, SRT or word timings) drawn in a caption DNA with optional karaoke. */
   subtitles?: Subtitles;
+  /** Sound effects placed in this section (section time). */
+  sfx?: SfxCue[];
   look?: string;
   grade?: GradeConfig;
   letterbox?: Letterbox;
@@ -307,6 +318,10 @@ export interface SectionOptions {
   musicVolume?: number;
   audioFade?: { in?: AudioFade; out?: AudioFade };
   audioEffect?: 'echo' | 'telephone' | 'muffled';
+  /** Voice clean-up preset for the clip's own sound (video / project_video). */
+  voice?: VoicePreset;
+  /** Volume automation of the clip's own sound (section time). */
+  audioAutomation?: AutomationKeyInput[];
   fields?: Field[];
   speed?: number;
   muteSection?: boolean;

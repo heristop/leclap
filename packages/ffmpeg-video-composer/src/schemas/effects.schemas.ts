@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DESIGNED_TRANSITIONS } from '../core/motion/transitions';
 import { EasingSpecSchema } from './motion.schemas';
+import { GLOBAL_AUDIO_POLISH_FIELDS } from './audio.schemas';
 
 // ── overlay fit ────────────────────────────────────────────────────────────────
 
@@ -218,6 +219,7 @@ export const GlobalAudioSchema = z
       .describe(
         'Length in seconds of the music cross-fade between sections, independent of the video transition (default: the global transition duration). Longer values smooth large per-section musicVolume changes.'
       ),
+    ...GLOBAL_AUDIO_POLISH_FIELDS,
   })
   .describe('Global audio mix settings applied across the entire composition.');
 

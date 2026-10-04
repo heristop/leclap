@@ -19,7 +19,7 @@ export interface TimelineSection {
 }
 
 // Sections that become clips in the final timeline (effect sections are resolved into clips first).
-const RENDERED = new Set(['video', 'project_video', 'image_background', 'color_background', 'effect']);
+export const RENDERED = new Set(['video', 'project_video', 'image_background', 'color_background', 'effect']);
 
 /** Video time of beat `index` (1-based), or null when the grid has no such beat. */
 export function beatTime(beats: Beats, index: number): number | null {

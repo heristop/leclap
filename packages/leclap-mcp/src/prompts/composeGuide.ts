@@ -109,6 +109,8 @@ function buildText(args: GuideArgs): string {
     '    `crop`. Per-section `options.speed` retimes a clip (2 = half-speed slow-mo, 0.5 = 2× fast).',
     '  - audio: `global.audio` with `musicVolume`, `normalize: "loudnorm"`, and `ducking`',
     '    ({ threshold, ratio, attack, release }) so music dips under speech — on-device-safe.',
+    '    `options.voice: "clean"` on recorded sections, `sfx: [{ id: "hit", at: "title.end" }]` on the',
+    '    moments that land, or `global.audio.sfx: "auto"`; `global.audio.automation` swells the music bed.',
     '  - background: full-frame `drawbox` (t:fill) for a solid base, layered band drawboxes or `gradients`',
     '    for depth, `vignette` for a cinematic edge.',
     '  - motion between clips: `xfade`; per-clip in/out: `fade`.',

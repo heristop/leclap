@@ -8,6 +8,7 @@ import {
   type DefaultTransition,
   type EditorState,
 } from './model';
+import type { AudioMixPassthrough } from './motion-passthrough';
 
 // Recover the template palette: prefer the schema's user-facing global.colorsList, falling back to
 // the engine slot (global.variables.colorsList) for descriptors authored before the palette editor.
@@ -36,6 +37,18 @@ export function audioFrom(global: TemplateDescriptor['global']): AudioMix {
     musicVolume: a?.musicVolume ?? DEFAULT_AUDIO_MIX.musicVolume,
     ...(a?.normalize ? { normalize: a.normalize } : {}),
     ducking: duckingFrom(a?.ducking),
+    ...audioPassthroughFrom(global),
+  };
+}
+
+// Music-bed automation, auto sound effects and global.sfx: no builder controls yet, carried verbatim.
+function audioPassthroughFrom(global: TemplateDescriptor['global']): AudioMixPassthrough {
+  const a = global?.audio;
+
+  return {
+    ...(a?.automation ? { automation: a.automation } : {}),
+    ...(a?.sfx ? { sfx: a.sfx } : {}),
+    ...(global?.sfx ? { cues: global.sfx } : {}),
   };
 }
 

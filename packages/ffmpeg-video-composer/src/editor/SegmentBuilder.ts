@@ -589,12 +589,12 @@ class SegmentBuilder {
   };
 
   /**
-   * Builds the `-af` argument string for this section's audio effect (echo/telephone/muffled) and
-   * fades, or returns '' if neither is configured or the section is muted (processing a silent
-   * track is pointless). Delegates to the pure module-level buildAudioFadeArg to keep this class
-   * within line limits.
+   * Builds the `-af` argument string for this section's voice preset, audio effect, volume automation
+   * and fades, or returns '' if none is configured or the section is muted (processing a silent track
+   * is pointless). Delegates to the pure module-level buildAudioFadeArg to keep this class within line
+   * limits.
    */
-  protected buildAudioFadeArg = (): string => buildAudioFadeArg(this.section.options);
+  protected buildAudioFadeArg = (): string => buildAudioFadeArg(this.section.options, false, this.project.config);
 
   private readonly prependScaleFilters = (opts: SectionOptions | undefined): void => {
     const baseScale = this.project.config.videoConfig?.scale ?? '';

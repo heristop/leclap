@@ -29,6 +29,10 @@
       "types": "./src/media.ts",
       "default": "./src/media.ts"
     },
+    "./sfx": {
+      "types": "./src/sfx.ts",
+      "default": "./src/sfx.ts"
+    },
     "./*.json": {
       "default": "./src/templates/*.json"
     },
@@ -47,7 +51,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vp test run",
     "gen:templates": "node scripts/gen-templates.ts",
-    "gen:partials": "node scripts/gen-partials.ts"
+    "gen:partials": "node scripts/gen-partials.ts",
+    "gen:sfx": "node scripts/gen-sfx.ts"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",

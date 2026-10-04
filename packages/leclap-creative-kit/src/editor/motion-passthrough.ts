@@ -1,6 +1,6 @@
 // Motion fields the builder has no controls for yet (kinetic typography, the section camera, animated
-// graphics, word-timed subtitles, designed-transition easing, global.seed, global.motion tokens and the
-// global.theme). The editor carries them
+// graphics, word-timed subtitles, sound effects, designed-transition easing, global.seed, global.motion
+// tokens and the global.theme). The editor carries them
 // through in descriptor shape, so opening a template in the builder and saving it never strips them.
 
 import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
@@ -10,6 +10,8 @@ import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas
 import type { EasingSpecInput, MotionTokens } from 'ffmpeg-video-composer/src/schemas/motion.schemas.ts';
 import type { Theme } from 'ffmpeg-video-composer/src/schemas/theme.schemas.ts';
 import type { Subtitles } from 'ffmpeg-video-composer/src/schemas/subtitles.schemas.ts';
+import type { AutomationKeyInput, SfxCue } from 'ffmpeg-video-composer/src/schemas/audio.schemas.ts';
+import type { VoicePreset } from 'ffmpeg-video-composer/src/core/audio/voice-presets.ts';
 
 export type MotionEase = EasingSpecInput;
 
@@ -20,6 +22,8 @@ export interface MotionBlocks {
   graphics?: Graphic[];
   /** Word-timed captions (cues / SRT / word timings, caption DNA, karaoke), carried verbatim. */
   subtitles?: Subtitles;
+  /** Section sound effects, carried verbatim. */
+  sfx?: SfxCue[];
 }
 
 /** Template-wide motion settings. */
@@ -30,12 +34,26 @@ export interface EditorMotion {
   theme?: Theme;
 }
 
+/** Section audio options the builder has no controls for yet, carried verbatim (options.voice / audioAutomation). */
+export interface ClipAudioPassthrough {
+  voice?: VoicePreset;
+  audioAutomation?: AutomationKeyInput[];
+}
+
+/** global.audio.automation / global.audio.sfx and global.sfx (as `cues`), carried verbatim. */
+export interface AudioMixPassthrough {
+  automation?: AutomationKeyInput[];
+  sfx?: 'auto';
+  cues?: SfxCue[];
+}
+
 export function motionBlocksOf(source: MotionBlocks): MotionBlocks {
   return {
     ...(source.kinetic ? { kinetic: source.kinetic } : {}),
     ...(source.camera ? { camera: source.camera } : {}),
     ...(source.graphics ? { graphics: source.graphics } : {}),
     ...(source.subtitles ? { subtitles: source.subtitles } : {}),
+    ...(source.sfx ? { sfx: source.sfx } : {}),
   };
 }
 

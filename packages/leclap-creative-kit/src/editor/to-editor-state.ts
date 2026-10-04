@@ -14,7 +14,6 @@ import {
   type MotionEffect,
   type BackgroundLayer,
   type FramingGuide,
-  type SectionAudioFade,
   type EditorCaption,
   type AnimationOverlay,
   type TitleCard,
@@ -23,7 +22,7 @@ import {
   type ChromaKey,
   type CaptureMode,
   type SectionFit,
-  type AudioEffect,
+  type VisualAudio,
 } from './model';
 import { audioFrom, colorsListFrom, defaultTransitionFrom, globalVariablesFrom } from './to-editor-global';
 import { editorMotionFrom, motionBlocksOf, type MotionBlocks } from './motion-passthrough';
@@ -112,20 +111,19 @@ function visualExtrasFrom(s: Section): VisualExtras {
   };
 }
 
-// Recover per-section audio extras (musicVolume / audioFade / audioEffect) from stored options.
-function sectionAudioExtrasFrom(s: Section): {
-  musicVolume?: number;
-  audioFade?: SectionAudioFade;
-  audioEffect?: AudioEffect;
-} {
+// Recover per-section audio extras (musicVolume / audioFade / audioEffect / voice / audioAutomation).
+function sectionAudioExtrasFrom(s: Section): VisualAudio {
   const mv = s.options?.musicVolume;
   const af = s.options?.audioFade;
   const ae = s.options?.audioEffect;
+  const { voice, audioAutomation } = s.options ?? {};
 
   return {
     ...(mv === undefined ? {} : { musicVolume: mv }),
     ...(af ? { audioFade: af } : {}),
     ...(ae ? { audioEffect: ae } : {}),
+    ...(voice ? { voice } : {}),
+    ...(audioAutomation ? { audioAutomation } : {}),
   };
 }
 

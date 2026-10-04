@@ -160,4 +160,12 @@ export const ENGINE_EMITTED_FILTERS = [
   'aecho',
   'highpass',
   'lowpass',
+  // voice clean-up presets (core/audio/voice-presets.ts VOICE_PRESET_STAGES, subset-filtered on device)
+  'acompressor',
+  'agate',
+  'alimiter',
+  'equalizer',
+  // sound-effect placement (editor/utils/sfx-mix.ts): adelay, else an anullsrc lead joined by concat
+  'adelay',
+  'concat',
 ] as const;

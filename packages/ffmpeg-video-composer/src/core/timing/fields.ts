@@ -93,6 +93,10 @@ export function timeSlots(section: Bag): TimeSlot[] {
       ...slot(cue, 'end', `subtitles.cues[${i}]`),
     ]),
     ...list(section.filters).flatMap((filter, i) => filterSlots(filter, `filters[${i}]`)),
+    ...list(section.sfx).flatMap((cue, i) => slot(cue, 'at', `sfx[${i}]`)),
+    ...list(bag(section.options)?.audioAutomation).flatMap((key, i) =>
+      slot(key, 'at', `options.audioAutomation[${i}]`)
+    ),
   ];
 }
 

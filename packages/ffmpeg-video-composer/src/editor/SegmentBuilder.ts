@@ -30,7 +30,7 @@ import {
   buildColorMetadataArgs,
   buildColorMetadataFilter,
 } from '@/core/encoding';
-import { conformMotionV2Chain, motionSugarContext } from './presets/motion-v2-chain';
+import { cameraEndOfChain, conformMotionV2Chain, motionSugarContext } from './presets/motion-v2-chain';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -586,8 +586,9 @@ class SegmentBuilder {
   // xfade and overlay passes inherit the clean tag. setparams is pixel-neutral metadata, so it is the
   // last node of the chain — appended to the linear `-vf` list, or as a node off the complex graph's
   // final video pad. (The output `-color*` flags are a matrix/range floor for the no-filter case.)
+  // The section camera (motionVersion 2) rides just before the tag, so it moves the finished frame.
   private readonly appendColorMetadataFilter = (): void => {
-    const tag = buildColorMetadataFilter();
+    const tag = [...cameraEndOfChain(this.section, this.sugarContext()), buildColorMetadataFilter()].join(',');
 
     if (this.segment.filtersMapList.length > 0 && this.segment.mapsList.length > 0) {
       const finalPad = this.segment.mapsList.at(-1);

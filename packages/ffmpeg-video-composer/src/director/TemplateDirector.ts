@@ -221,7 +221,7 @@ class TemplateDirector {
       }
 
       const duration = declared.duration ?? globalTransition?.duration ?? DEFAULT_TRANSITION_DURATION;
-      transitions.push({ type: declared.type, duration });
+      transitions.push({ type: declared.type, duration, ease: declared.ease });
     }
   };
 

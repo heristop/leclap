@@ -240,10 +240,27 @@
                 },
                 {
                   "type": "string",
+                  "enum": [
+                    "push-left",
+                    "push-right",
+                    "push-up",
+                    "push-down",
+                    "swipe-left",
+                    "swipe-right",
+                    "zoom-through",
+                    "iris"
+                  ]
+                },
+                {
+                  "type": "string",
                   "const": "cut"
                 }
               ],
-              "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+              "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+            },
+            "ease": {
+              "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+              "$ref": "#/$defs/EasingSpec"
             },
             "duration": {
               "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -2038,10 +2055,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -2398,6 +2432,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -4169,10 +4214,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -4529,6 +4591,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -6343,10 +6416,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -6703,6 +6793,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -8501,10 +8602,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -8861,6 +8979,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -10632,10 +10761,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -10992,6 +11138,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -13229,10 +13386,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -13589,6 +13763,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -15360,10 +15545,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -15720,6 +15922,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -17491,10 +17704,27 @@
                       },
                       {
                         "type": "string",
+                        "enum": [
+                          "push-left",
+                          "push-right",
+                          "push-up",
+                          "push-down",
+                          "swipe-left",
+                          "swipe-right",
+                          "zoom-through",
+                          "iris"
+                        ]
+                      },
+                      {
+                        "type": "string",
                         "const": "cut"
                       }
                     ],
-                    "description": "xfade transition name between this section and the next, or \"cut\" for a hard cut."
+                    "description": "xfade transition name between this section and the next, \"cut\" for a hard cut, or (meta.motionVersion 2) a designed transition: push-left/right/up/down, swipe-left/right, zoom-through, iris."
+                  },
+                  "ease": {
+                    "description": "Curve of a designed transition (default cubic-bezier(0.65, 0, 0.35, 1)); springs overshoot. motionVersion 2.",
+                    "$ref": "#/$defs/EasingSpec"
                   },
                   "duration": {
                     "description": "Transition length in seconds (default: the global transition duration, then 0.3).",
@@ -17851,6 +18081,17 @@
                   "$ref": "#/$defs/KineticBlock"
                 },
                 "description": "Kinetic typography blocks (meta.motionVersion 2): animated copy drawn on top of the section."
+              },
+              "camera": {
+                "$ref": "#/$defs/Camera"
+              },
+              "graphics": {
+                "maxItems": 24,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/Graphic"
+                },
+                "description": "Animated graphics (meta.motionVersion 2): flash, bars, underline, frame, corners, wipe, panel."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -18925,6 +19166,661 @@
       "required": ["text", "preset"],
       "additionalProperties": false,
       "description": "Kinetic typography block (meta.motionVersion 2): per-word / per-glyph choreography, laid out and wrapped automatically."
+    },
+    "Camera": {
+      "type": "object",
+      "properties": {
+        "preset": {
+          "description": "Camera move. push-in / pull-out: slow dolly toward / away. drift-*: lateral or vertical glide. orbit: push with a curved drift. handheld: organic seeded shake only. none: hits/shake/tracks only (default).",
+          "type": "string",
+          "enum": [
+            "none",
+            "push-in",
+            "pull-out",
+            "drift-left",
+            "drift-right",
+            "drift-up",
+            "drift-down",
+            "orbit",
+            "handheld"
+          ]
+        },
+        "amount": {
+          "description": "Move strength: zoom delta and drift range (default 0.12).",
+          "type": "number",
+          "minimum": 0.01,
+          "maximum": 0.6
+        },
+        "delay": {
+          "description": "Seconds before the preset move starts (default 0).",
+          "type": "number",
+          "minimum": 0
+        },
+        "duration": {
+          "description": "Seconds the preset move takes (default: to the section end).",
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "ease": {
+          "description": "Curve of the preset move (default ease-in-out-sine).",
+          "$ref": "#/$defs/EasingSpec"
+        },
+        "zoom": {
+          "description": "Zoom keyframes (1 = framed, 1.2 = 20% closer); overrides the preset zoom.",
+          "minItems": 1,
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "t": {
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                ]
+              },
+              "v": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[+-]\\d+(?:\\.\\d+)?$"
+                  }
+                ],
+                "description": "Value at this key. x/y: pixels, or \"+80\"/\"-40\" relative to the resting position (scaled by energy). opacity: 0..1. scale: a multiplier of the font size."
+              },
+              "ease": {
+                "description": "Curve INTO this key from the previous one (default linear).",
+                "$ref": "#/$defs/EasingSpec"
+              }
+            },
+            "required": ["v"],
+            "additionalProperties": false
+          }
+        },
+        "x": {
+          "description": "Camera x keyframes in output px (+ moves the camera right); overrides the preset.",
+          "minItems": 1,
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "t": {
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                ]
+              },
+              "v": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[+-]\\d+(?:\\.\\d+)?$"
+                  }
+                ],
+                "description": "Value at this key. x/y: pixels, or \"+80\"/\"-40\" relative to the resting position (scaled by energy). opacity: 0..1. scale: a multiplier of the font size."
+              },
+              "ease": {
+                "description": "Curve INTO this key from the previous one (default linear).",
+                "$ref": "#/$defs/EasingSpec"
+              }
+            },
+            "required": ["v"],
+            "additionalProperties": false
+          }
+        },
+        "y": {
+          "description": "Camera y keyframes in output px (+ moves the camera down); overrides the preset.",
+          "minItems": 1,
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "t": {
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                ]
+              },
+              "v": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[+-]\\d+(?:\\.\\d+)?$"
+                  }
+                ],
+                "description": "Value at this key. x/y: pixels, or \"+80\"/\"-40\" relative to the resting position (scaled by energy). opacity: 0..1. scale: a multiplier of the font size."
+              },
+              "ease": {
+                "description": "Curve INTO this key from the previous one (default linear).",
+                "$ref": "#/$defs/EasingSpec"
+              }
+            },
+            "required": ["v"],
+            "additionalProperties": false
+          }
+        },
+        "rotate": {
+          "description": "Roll keyframes in degrees (+ clockwise), within ±15.",
+          "minItems": 1,
+          "maxItems": 32,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "t": {
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                ]
+              },
+              "v": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^[+-]\\d+(?:\\.\\d+)?$"
+                  }
+                ],
+                "description": "Value at this key. x/y: pixels, or \"+80\"/\"-40\" relative to the resting position (scaled by energy). opacity: 0..1. scale: a multiplier of the font size."
+              },
+              "ease": {
+                "description": "Curve INTO this key from the previous one (default linear).",
+                "$ref": "#/$defs/EasingSpec"
+              }
+            },
+            "required": ["v"],
+            "additionalProperties": false
+          }
+        },
+        "hits": {
+          "description": "Punch-ins on beats: seconds, or { at, strength, decay }. Pair with kinetic impact or a flash.",
+          "maxItems": 16,
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "at": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Seconds from the section start when the punch lands."
+                  },
+                  "strength": {
+                    "description": "Zoom bump (0.08 = 8% punch-in; default 0.08).",
+                    "type": "number",
+                    "minimum": 0.01,
+                    "maximum": 0.4
+                  },
+                  "decay": {
+                    "description": "How fast the punch relaxes, per second (default 10).",
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 40
+                  }
+                },
+                "required": ["at"],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "shake": {
+          "description": "Seeded organic shake (sum of sines; global.seed reshuffles it).",
+          "type": "object",
+          "properties": {
+            "amplitude": {
+              "description": "Wander in output px (default 6).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 60
+            },
+            "frequency": {
+              "description": "Wander speed in Hz (default 0.8).",
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 8
+            },
+            "rotation": {
+              "description": "Roll wobble in degrees (default 0).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 5
+            }
+          },
+          "additionalProperties": false
+        },
+        "includeText": {
+          "description": "Move text and graphics with the frame (default true); false keeps overlays steady over a moving shot.",
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Virtual camera over the section (meta.motionVersion 2)."
+    },
+    "Graphic": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "flash"
+            },
+            "at": {
+              "description": "Seconds from the section start when it animates in (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "description": "Seconds the animation takes (default per type).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 3
+            },
+            "ease": {
+              "description": "Curve of the animation (default per type, e.g. $expo).",
+              "$ref": "#/$defs/EasingSpec"
+            },
+            "until": {
+              "description": "Seconds when it disappears (default: holds to the cut).",
+              "type": "number",
+              "minimum": 0
+            },
+            "color": {
+              "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
+              "type": "string"
+            },
+            "above": {
+              "description": "Draw above text (default: true for flash and wipe, false otherwise).",
+              "type": "boolean"
+            },
+            "intensity": {
+              "description": "Peak opacity (default 0.85).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "A full-frame light hit that decays (default white, 0.3 s). Pair with a camera hit."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "bars"
+            },
+            "at": {
+              "description": "Seconds from the section start when it animates in (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "description": "Seconds the animation takes (default per type).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 3
+            },
+            "ease": {
+              "description": "Curve of the animation (default per type, e.g. $expo).",
+              "$ref": "#/$defs/EasingSpec"
+            },
+            "until": {
+              "description": "Seconds when it disappears (default: holds to the cut).",
+              "type": "number",
+              "minimum": 0
+            },
+            "color": {
+              "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
+              "type": "string"
+            },
+            "above": {
+              "description": "Draw above text (default: true for flash and wipe, false otherwise).",
+              "type": "boolean"
+            },
+            "aspect": {
+              "description": "Cinema aspect the bars frame (default 2.39).",
+              "type": "number",
+              "minimum": 1,
+              "maximum": 4
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "Letterbox bars that slide in from the top and bottom edges."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "underline"
+            },
+            "at": {
+              "description": "Seconds from the section start when it animates in (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "description": "Seconds the animation takes (default per type).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 3
+            },
+            "ease": {
+              "description": "Curve of the animation (default per type, e.g. $expo).",
+              "$ref": "#/$defs/EasingSpec"
+            },
+            "until": {
+              "description": "Seconds when it disappears (default: holds to the cut).",
+              "type": "number",
+              "minimum": 0
+            },
+            "color": {
+              "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
+              "type": "string"
+            },
+            "above": {
+              "description": "Draw above text (default: true for flash and wipe, false otherwise).",
+              "type": "boolean"
+            },
+            "x": {
+              "description": "Left edge in px.",
+              "type": "number"
+            },
+            "y": {
+              "description": "Top edge in px.",
+              "type": "number"
+            },
+            "width": {
+              "description": "Width in px.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "thickness": {
+              "description": "Line thickness in px (default 6).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 80
+            },
+            "origin": {
+              "description": "Where the line grows from (default left).",
+              "type": "string",
+              "enum": ["left", "center", "right"]
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "A rule that draws itself across under a headline."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "frame"
+            },
+            "at": {
+              "description": "Seconds from the section start when it animates in (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "description": "Seconds the animation takes (default per type).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 3
+            },
+            "ease": {
+              "description": "Curve of the animation (default per type, e.g. $expo).",
+              "$ref": "#/$defs/EasingSpec"
+            },
+            "until": {
+              "description": "Seconds when it disappears (default: holds to the cut).",
+              "type": "number",
+              "minimum": 0
+            },
+            "color": {
+              "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
+              "type": "string"
+            },
+            "above": {
+              "description": "Draw above text (default: true for flash and wipe, false otherwise).",
+              "type": "boolean"
+            },
+            "inset": {
+              "description": "Distance from the frame edge in px (default 48).",
+              "type": "number",
+              "minimum": 0
+            },
+            "thickness": {
+              "description": "Stroke in px (default 4).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 40
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "A rectangle outline that traces itself clockwise."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "corners"
+            },
+            "at": {
+              "description": "Seconds from the section start when it animates in (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "description": "Seconds the animation takes (default per type).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 3
+            },
+            "ease": {
+              "description": "Curve of the animation (default per type, e.g. $expo).",
+              "$ref": "#/$defs/EasingSpec"
+            },
+            "until": {
+              "description": "Seconds when it disappears (default: holds to the cut).",
+              "type": "number",
+              "minimum": 0
+            },
+            "color": {
+              "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
+              "type": "string"
+            },
+            "above": {
+              "description": "Draw above text (default: true for flash and wipe, false otherwise).",
+              "type": "boolean"
+            },
+            "inset": {
+              "description": "Distance from the frame edge in px (default 56).",
+              "type": "number",
+              "minimum": 0
+            },
+            "length": {
+              "description": "Arm length in px (default 72).",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "thickness": {
+              "description": "Stroke in px (default 5).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 40
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "Four corner brackets that extend from the corners (viewfinder / focus framing)."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "wipe"
+            },
+            "at": {
+              "description": "Seconds from the section start when it animates in (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "description": "Seconds the animation takes (default per type).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 3
+            },
+            "ease": {
+              "description": "Curve of the animation (default per type, e.g. $expo).",
+              "$ref": "#/$defs/EasingSpec"
+            },
+            "until": {
+              "description": "Seconds when it disappears (default: holds to the cut).",
+              "type": "number",
+              "minimum": 0
+            },
+            "color": {
+              "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
+              "type": "string"
+            },
+            "above": {
+              "description": "Draw above text (default: true for flash and wipe, false otherwise).",
+              "type": "boolean"
+            },
+            "direction": {
+              "description": "Travel direction (default left).",
+              "type": "string",
+              "enum": ["left", "right", "up", "down"]
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "A solid colour panel that sweeps across the whole frame: covers, then uncovers (an in-scene transition)."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "panel"
+            },
+            "at": {
+              "description": "Seconds from the section start when it animates in (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "duration": {
+              "description": "Seconds the animation takes (default per type).",
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 3
+            },
+            "ease": {
+              "description": "Curve of the animation (default per type, e.g. $expo).",
+              "$ref": "#/$defs/EasingSpec"
+            },
+            "until": {
+              "description": "Seconds when it disappears (default: holds to the cut).",
+              "type": "number",
+              "minimum": 0
+            },
+            "color": {
+              "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
+              "type": "string"
+            },
+            "above": {
+              "description": "Draw above text (default: true for flash and wipe, false otherwise).",
+              "type": "boolean"
+            },
+            "x": {
+              "description": "Left edge in px.",
+              "type": "number"
+            },
+            "y": {
+              "description": "Top edge in px.",
+              "type": "number"
+            },
+            "width": {
+              "description": "Width in px.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "height": {
+              "description": "Height in px.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "from": {
+              "description": "Edge the panel grows from (default left).",
+              "type": "string",
+              "enum": ["left", "right", "top", "bottom"]
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false,
+          "description": "A solid block that grows from one edge: a backing plate for text or a colour reveal."
+        }
+      ]
     },
     "__schema0": {
       "anyOf": [

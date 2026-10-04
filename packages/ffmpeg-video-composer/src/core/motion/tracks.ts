@@ -78,27 +78,29 @@ function stepExpr(from: number | string, to: number | string, base: string | num
   return `(${valueExpr(to, base)}-(${valueExpr(from, base)}))`;
 }
 
-function easedStep(previous: TimedKey, key: TimedKey): string {
+function easedStep(previous: TimedKey, key: TimedKey, time: string): string {
   const window = { delay: previous.at, duration: key.at - previous.at };
   const ease = key.ease ?? 'linear';
 
   // Linear stays a plain clamped ramp; every other curve gets the Hermite lowering.
   if (ease === 'linear') {
-    return `if(lt(t,${fmt(window.delay)}),0,if(lt(t,${fmt(key.at)}),(t-${fmt(window.delay)})/${fmt(window.duration)},1))`;
+    const start = fmt(window.delay);
+
+    return `if(lt(${time},${start}),0,if(lt(${time},${fmt(key.at)}),(${time}-${start})/${fmt(window.duration)},1))`;
   }
 
-  return easedProgressExpr(parseEasing(ease), window);
+  return easedProgressExpr(parseEasing(ease), window, time);
 }
 
-/** The track's value over time as an (unquoted) expression in `t`. */
-export function trackExpr(keys: readonly TrackKey[], base: string | number = 0): string {
+/** The track's value over time as an (unquoted) expression in `time` (default drawtext's `t`). */
+export function trackExpr(keys: readonly TrackKey[], base: string | number = 0, time = 't'): string {
   const timed = resolveKeyTimes(keys);
   const terms = [valueExpr(timed[0].v, base)];
 
   for (let index = 1; index < timed.length; index++) {
     const step = stepExpr(timed[index - 1].v, timed[index].v, base);
 
-    if (step !== null) terms.push(`${step}*(${easedStep(timed[index - 1], timed[index])})`);
+    if (step !== null) terms.push(`${step}*(${easedStep(timed[index - 1], timed[index], time)})`);
   }
 
   return terms.join('+');

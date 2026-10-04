@@ -248,6 +248,30 @@
       "hasAudio": true
     },
     {
+      "id": "kinetic-type",
+      "source": "examples/motion-design/kinetic-type.json",
+      "duration": 15.041667,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "d9b04ede3ef781319ec061c208e6a5d1aa3d3da2eb283f1aeb2c481b9e152532",
+      "templateSha256": "ff7a034bc6a58f0e5e40cda9a39d8df1c2dcdc351501fec131fbdbb5f5e60356",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 138352
+    },
+    {
+      "id": "spring-kinetics",
+      "source": "examples/motion-design/spring-kinetics.json",
+      "duration": 5.625,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "3929e765a239d2251a71b4fa93f5172cdd0dbd65309e6f8ba2a5c34ee332aa4c",
+      "templateSha256": "ddf4ca33cb1a74db6ba838a8b878fb01f555fb28c89d42376857d9b1c61806cf",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 64153
+    },
+    {
       "id": "title-reveal",
       "source": "examples/llm-remotion-title/template.json",
       "duration": 12.041016,

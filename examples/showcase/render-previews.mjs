@@ -41,6 +41,8 @@ function ffmpeg(args) {
 function probe(file) {
   return JSON.parse(run('ffprobe', ['-v', 'error', '-show_streams', '-show_format', '-of', 'json', file]));
 }
+// Poster frame per sample (seconds), when the default 1.4 s lands mid-motion.
+const POSTER_AT = { 'product-launch': 3.4, 'kinetic-type': 2.4 };
 const fields = {
   form_1_name: 'KILN',
   form_1_tagline: 'Made for everyday rituals',
@@ -254,7 +256,7 @@ async function renderSample(sample) {
   ffmpeg(previewVideoArgs(output, video));
   const metadata = probe(video);
   const duration = Number(metadata.format.duration);
-  const posterTime = Math.min(sample.id === 'product-launch' ? 3.4 : 1.4, duration / 3);
+  const posterTime = Math.min(POSTER_AT[sample.id] ?? 1.4, duration / 3);
   const poster = path.join(publicDir, `${sample.id}.webp`);
   ffmpeg(['-ss', String(posterTime), '-i', video, '-frames:v', '1', '-vf', 'scale=720:405', '-quality', '85', poster]);
   // Optional local provenance tool; the portable manifest below always records the render source.

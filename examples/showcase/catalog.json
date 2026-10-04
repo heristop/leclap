@@ -142,6 +142,20 @@
       "source": "examples/motion-design/native-timing.json"
     },
     {
+      "id": "kinetic-type",
+      "title": "Kinetic type",
+      "description": "Every kinetic preset, natively: cascade, highlight, typewriter, counter, scramble and more.",
+      "category": "typography",
+      "source": "examples/motion-design/kinetic-type.json"
+    },
+    {
+      "id": "spring-kinetics",
+      "title": "Spring kinetics",
+      "description": "Physical springs, brand curves and keyframe tracks instead of timings.",
+      "category": "typography",
+      "source": "examples/motion-design/spring-kinetics.json"
+    },
+    {
       "id": "title-reveal",
       "title": "Brand reveal",
       "description": "A wordmark, a delayed logo and a quiet finish.",

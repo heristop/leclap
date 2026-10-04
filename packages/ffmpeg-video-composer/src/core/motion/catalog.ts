@@ -7,6 +7,8 @@ import { LEGACY_EASINGS, MIN_DAMPING_RATIO } from './easing';
 import { BUILTIN_MOTION_TOKENS } from './tokens';
 import { kineticCatalog } from '../kinetic/presets';
 import { KINETIC_EXIT_PRESETS, KINETIC_ORDERS } from '../../schemas/kinetic.schemas';
+import { CAMERA_PRESETS } from '../../schemas/camera.schemas';
+import { DESIGNED_TRANSITION_DESCRIPTIONS } from './transitions';
 
 const ART_DIRECTION = [
   'Set meta.motionVersion: 2 to use anything in this catalog; omit it and the template keeps v1 motion.',
@@ -24,6 +26,12 @@ const ART_DIRECTION = [
   'Exits: none for a hard cut on the beat, fade for calm, cascade for energy. A block holds to the cut by default.',
   'Word/glyph units need a bundled font (bebas, oswald, anton, archivo-black, bungee, mono, rubik, playfair, ' +
     'righteous, abril-fatface, lobster, pacifico). At most 64 units per block; longer copy steps up to words/lines.',
+  'Camera: one move per beat (push-in for build-up, drift for calm, orbit for product, handheld for documentary); ' +
+    'add hits on the beats where impact type lands, optionally with a flash graphic at the same time.',
+  'Graphics: corners or frame for focus, underline under a headline, panel as a backing plate, bars for cinema, ' +
+    'wipe as an in-scene page turn, flash for impact (at most 3 per second).',
+  'Transitions: push for sequence, swipe for layering, zoom-through for energy, iris for reveals; keep 0.5–0.8 s and ' +
+    'prefer cut between beats of the same idea. Designed transitions ease like any other motion (ease: $snappy…).',
   'Every result is deterministic: the same JSON and global.seed render the same frames. Change the seed to ' +
     'reshuffle random order, scramble glyphs and grain.',
 ];
@@ -36,6 +44,8 @@ const STARTER = {
       name: 'hook',
       type: 'color_background',
       options: { backgroundColor: '#141416', duration: 3 },
+      camera: { preset: 'push-in', amount: 0.08, hits: [0.6] },
+      graphics: [{ type: 'flash', at: 0.6, duration: 0.25 }],
       kinetic: [
         { text: { en: 'Make every word land.' }, preset: 'cascade', accent: { words: 'last' }, exit: 'cascade' },
         {
@@ -65,9 +75,22 @@ export interface MotionCatalog {
     functions: string[];
     springRules: string;
   };
+  camera: { presets: readonly string[]; fields: string[] };
+  transitions: Record<string, string>;
+  graphics: Record<string, string>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
   starter: typeof STARTER;
 }
+
+const GRAPHICS: Record<string, string> = {
+  flash: 'Full-frame light hit that decays (at, duration, color, intensity).',
+  bars: 'Cinema letterbox bars slide in (aspect).',
+  underline: 'A rule that draws itself (x, y, width, thickness, origin).',
+  frame: 'A rectangle outline tracing itself clockwise (inset, thickness).',
+  corners: 'Viewfinder brackets extending from the corners (inset, length, thickness).',
+  wipe: 'A colour panel sweeping across the frame: covers then uncovers (direction).',
+  panel: 'A solid block growing from one edge: a backing plate for text (x, y, width, height, from).',
+};
 
 export function motionCatalog(): MotionCatalog {
   return {
@@ -90,6 +113,25 @@ export function motionCatalog(): MotionCatalog {
       ],
       springRules: `stiffness 1..2000, damping 1..200, mass 0.1..20, velocity -50..50, damping ratio ≥ ${MIN_DAMPING_RATIO}; with no duration a spring takes its own settle time.`,
     },
+    camera: {
+      presets: CAMERA_PRESETS,
+      fields: [
+        'preset',
+        'amount',
+        'delay',
+        'duration',
+        'ease',
+        'zoom[]',
+        'x[]',
+        'y[]',
+        'rotate[]',
+        'hits[]',
+        'shake',
+        'includeText',
+      ],
+    },
+    transitions: DESIGNED_TRANSITION_DESCRIPTIONS,
+    graphics: GRAPHICS,
     tokens: BUILTIN_MOTION_TOKENS,
     starter: STARTER,
   };

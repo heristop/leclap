@@ -11,11 +11,13 @@ export type {
   ChromaKey,
   Caption,
 } from './descriptor-text';
-import type { Reveal, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
+import type { Reveal, RevealEasing, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 import type { FontInput } from './fonts';
 import type { RenderManifest } from './determinism/manifest';
 import type { MotionTokens } from '../schemas/motion.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
+import type { Camera } from '../schemas/camera.schemas';
+import type { Graphic } from '../schemas/graphics.schemas';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -93,7 +95,7 @@ export type ProjectBuildInfos = {
   musicFilters: string[];
   fileConcatPath: string;
   musicPath: string;
-  transitions: Array<{ type: string; duration: number }>;
+  transitions: Array<{ type: string; duration: number; ease?: RevealEasing }>;
 };
 
 export interface TemplateDescriptor {
@@ -194,6 +196,8 @@ export interface Watermark {
 interface SectionTransition {
   type: string;
   duration?: number;
+  /** Curve of a designed transition (motionVersion 2). */
+  ease?: RevealEasing;
 }
 
 interface DuckingConfig {
@@ -232,6 +236,8 @@ export interface Section {
   titleCard?: TitleCard;
   lowerThird?: LowerThird;
   kinetic?: KineticBlock[];
+  camera?: Camera;
+  graphics?: Graphic[];
   look?: string;
   grade?: GradeConfig;
   letterbox?: Letterbox;

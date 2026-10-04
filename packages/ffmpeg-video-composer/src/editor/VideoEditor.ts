@@ -24,6 +24,7 @@ import {
   type SegmentProbe,
   type Transition,
 } from './utils/transition-graph';
+import { isDesignedTransition } from '@/core/motion/transitions';
 
 @injectable()
 class VideoEditor {
@@ -254,7 +255,12 @@ class VideoEditor {
     const effectiveDurations = computeEffectiveDurations(transitions, probes);
     const offsets = computeOffsets(probes, effectiveDurations);
     const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
-    const normalizeGraph = buildNormalizeGraph(segmentFiles.length, scale);
+    const fps = this.project.config.videoConfig?.fps ?? DefaultConfig.FPS;
+    const normalizeGraph = buildNormalizeGraph(
+      segmentFiles.length,
+      scale,
+      transitions.some((transition) => isDesignedTransition(transition.type))
+    );
     const audioGraph = buildAudioGraph(transitions, audioInputIndex, effectiveDurations);
 
     // Fused path: when the template has whole-video animation overlays, weave the overlay graph onto
@@ -269,7 +275,10 @@ class VideoEditor {
         })
       : { sources: '', graph: '' };
 
-    const videoGraph = buildVideoGraph(transitions, offsets, effectiveDurations, fuse ? '[vfx]' : '[vout]');
+    const videoGraph = buildVideoGraph(transitions, offsets, effectiveDurations, fuse ? '[vfx]' : '[vout]', {
+      scale,
+      fps,
+    });
     const filterComplex = [normalizeGraph, videoGraph, overlay.graph, audioGraph].filter(Boolean).join(';');
     const outputArgs = `${buildVideoEncoderArgs(this.project.config)} ${buildPixFmtArg(this.project.config)} ${buildColorMetadataArgs()}`;
 
@@ -279,7 +288,7 @@ class VideoEditor {
       silentInputs.join('') +
       (overlay.sources ? ` ${overlay.sources} ` : '') +
       ` -filter_complex "${filterComplex}" ` +
-      ` -map "[vout]" -map "[aout]" -r ${this.project.config.videoConfig?.fps ?? DefaultConfig.FPS} ${outputArgs} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
+      ` -map "[vout]" -map "[aout]" -r ${fps} ${outputArgs} -c:a aac -ac 2 -movflags +faststart ${finalOutputPath} `
     );
   }
 

@@ -61,3 +61,5 @@ export function motionSugarContext(
     seedFor: (path) => deriveSeed(seed, `sections.${sectionName}.${path}`),
   };
 }
+
+export { cameraEndOfChain } from './camera';

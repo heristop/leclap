@@ -186,6 +186,10 @@ The validator rejects:
 - an effective transition duration **≥** the smaller of the two adjacent _declared_ `options.duration`s (`transition_too_long`);
 - `kenburns` motion outside `image_background`, `video`, `project_video` or `effect` (`motion_unsupported_section`).
 
+### Designed transitions
+
+With `meta.motionVersion: 2`, `transition.type` also accepts `push-left`, `push-right`, `push-up`, `push-down`, `swipe-left`, `swipe-right`, `zoom-through` and `iris`, plus an `ease` (default `cubic-bezier(0.65, 0, 0.35, 1)`; springs overshoot a push). A designed boundary cuts the outgoing tail and the incoming head, and composes them with filters whose geometry is evaluated once per frame (pad/overlay/crop, zoompan, a built-in crossfade). It then concatenates the result back on the same timeline as `xfade`. It costs about the same as a built-in transition and runs on device. `iris` uses the built-in circle reveal and ignores `ease`.
+
 ### xfade transition names
 
 Quoted from `XFADE_TRANSITIONS` in [`effects.schemas.ts`](../packages/ffmpeg-video-composer/src/schemas/effects.schemas.ts) — that array is the authoritative list (don't retype it):
@@ -883,6 +887,38 @@ With `meta.motionVersion: 2`, any visual section takes `kinetic`: up to 8 blocks
 | `exit`                                          | `none`                                          | `fade`, `rise`, `drop`, `slide`, `shrink`, `cascade`, or `{ preset, at, duration, stagger, ease, distance }`. |
 
 Moving boxes (the highlight marker, the typewriter caret) are emitted as one box per frame, each gated by an `enable` window, because FFmpeg evaluates `drawbox` geometry only once. They are frame-exact and deterministic. Validation codes: `motion_v2_required`, `kinetic_font_unmeasurable`, and `invalid_kinetic` (a counter without numbers). Agents get every preset, its defaults, art-direction rules and a starter from MCP `get_motion_catalog` (or `motionCatalog()` in the library). See [`examples/motion-design/kinetic-type.json`](../examples/motion-design/kinetic-type.json).
+
+## Camera
+
+With `meta.motionVersion: 2`, a section takes a `camera`: a virtual camera that moves over the finished frame. By default it moves the text and graphics too; set `includeText: false` to keep overlays steady over a moving shot. It is lowered to `zoompan` (on a 2× upscale, as Ken Burns is) plus `rotate`, on the frame clock. The frame is over-scanned just enough that pans, shake and roll never show an edge.
+
+```jsonc
+"camera": { "preset": "push-in", "amount": 0.12, "hits": [0.6, { "at": 1.8, "strength": 0.06 }], "shake": { "amplitude": 4 } }
+```
+
+| Field                         | Default                                     | Notes                                                                                                                                |
+| ----------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `preset`                      | `none`                                      | `push-in`, `pull-out`, `drift-left`, `drift-right`, `drift-up`, `drift-down`, `orbit`, `handheld` (seeded shake only).               |
+| `amount`                      | 0.12                                        | Zoom delta and drift range (0.01–0.6).                                                                                               |
+| `delay` / `duration` / `ease` | 0 / to the section end / `ease-in-out-sine` | Timing of the preset move; any [easing](#easing) or token.                                                                           |
+| `zoom` / `x` / `y` / `rotate` | —                                           | Keyframe tracks (as in `animate`) that override the preset per property. Zoom is a multiplier, x/y are output px, rotate is degrees. |
+| `hits`                        | —                                           | Punch-ins: seconds, or `{ at, strength = 0.08, decay = 10 }`. Pair with `impact` type or a `flash`.                                  |
+| `shake`                       | —                                           | `{ amplitude = 6 px, frequency = 0.8 Hz, rotation = 0° }`: a seeded sum of sines (`global.seed` reshuffles it).                      |
+| `includeText`                 | `true`                                      | `false` lowers the camera beneath text and graphics.                                                                                 |
+
+## Graphics
+
+`graphics` (motionVersion 2, up to 24 per section) are editorial shapes and light hits that animate on a curve. FFmpeg evaluates `drawbox` geometry only once, so each animated frame is its own box behind an `enable` window: frame-exact, deterministic, and on every backend. Every type takes `at` (default 0), `duration`, `ease`, `until` (default: hold to the cut), `color` and `above` (default: true for flash and wipe, false otherwise).
+
+| Type        | Extra fields                             | Effect                                                              |
+| ----------- | ---------------------------------------- | ------------------------------------------------------------------- |
+| `flash`     | `intensity`                              | A full-frame light hit that decays (white, 0.3 s).                  |
+| `bars`      | `aspect` (2.39)                          | Letterbox bars slide in from the top and bottom.                    |
+| `underline` | `x`, `y`, `width`, `thickness`, `origin` | A rule that draws itself across.                                    |
+| `frame`     | `inset`, `thickness`                     | A rectangle outline that traces itself clockwise.                   |
+| `corners`   | `inset`, `length`, `thickness`           | Viewfinder brackets that extend from the corners.                   |
+| `wipe`      | `direction`                              | A colour panel sweeping across the frame: it covers, then uncovers. |
+| `panel`     | `x`, `y`, `width`, `height`, `from`      | A block that grows from one edge (a backing plate for text).        |
 
 ## Determinism
 

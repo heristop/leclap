@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `drawtext`. Accents, highlight markers, carets, seeded scramble/random order, exits, energy scaling, a
   shared baseline, and automatic wrapping and alignment. `motionCatalog()` exposes presets, defaults and
   art-direction rules for agents.
+- Effects (motionVersion 2): a section `camera` (push-in, pull-out, drift, orbit, handheld presets; zoom/x/y/
+  rotate tracks; beat `hits`; seeded shake; over-scanned so edges never show), animated `graphics` (flash,
+  bars, underline, frame, corners, wipe, panel; frame-exact boxes), and designed transitions (`push-*`,
+  `swipe-*`, `zoom-through`, `iris`, eased or spring-driven) composed from per-frame filters on the xfade
+  timeline.
 - Exports: `core/determinism` (hashing, seeds, manifest), `core/motion` (curves, easing, tokens, tracks),
   `ENGINE_VERSION`, `digestRenderedFile`.
 

@@ -97,6 +97,7 @@ Set `meta.motionVersion: 2` and use section `kinetic` blocks for animated copy. 
 - **Easing:** prefer springs (`$snappy`, `$bouncy`, `$gentle`, or `spring(k, c)`) and omit `duration` so physics decides; use `$expo`/`$smooth` for controlled moves.
 - **Intensity:** `global.motion.energy` scales every travel (0 reduced motion, 1.5 hype). `global.seed` fixes random order and scramble glyphs.
 - **Fonts:** word/glyph units need a bundled font (`kinetic_font_unmeasurable` otherwise). One dominant block per beat, one accent word per line, and vary presets between beats.
+- **Camera, graphics, transitions:** a section `camera` (push-in, drift, orbit, handheld; `hits` on the beats), `graphics` (flash, bars, underline, frame, corners, wipe, panel) and designed transitions (`push-*`, `swipe-*`, `zoom-through`, `iris`, with `ease`). Use one camera idea and one graphic idea per beat.
 - **Discovery:** `get_motion_catalog` (MCP) or `motionCatalog()` lists presets with defaults, art-direction rules and a starter. See [`examples/motion-design/kinetic-type.json`](../../../examples/motion-design/kinetic-type.json).
 
 ## Variables, filters, maps

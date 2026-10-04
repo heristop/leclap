@@ -14,6 +14,7 @@ import { keyTimesError, type TrackKey } from '@/core/motion/tracks';
 import { FONT_ADVANCES } from '@/core/font-advances.generated';
 import { findFont } from '@/core/fonts';
 import { KINETIC_PRESET_DEFAULTS } from '@/core/kinetic/presets';
+import { isDesignedTransition } from '@/core/motion/transitions';
 
 // Structurally the validator's ValidationError (declared here so the rules module can import this one
 // without a cycle).
@@ -60,11 +61,26 @@ function motionUses(template: TemplateDescriptor): Use[] {
   return uses;
 }
 
+const V2_SECTION_FIELDS = ['kinetic', 'camera', 'graphics'] as const;
+
+// Section fields that only exist in the v2 motion system, plus a designed transition.
+function v2SectionFields(section: NonNullable<TemplateDescriptor['sections']>[number], path: string): string[] {
+  const record = section as Record<string, unknown>;
+  const fields = V2_SECTION_FIELDS.filter((field) => record[field] !== undefined).map((field) => `${path}.${field}`);
+  const transition = record.transition as { type?: string } | undefined;
+
+  return transition?.type && isDesignedTransition(transition.type) ? [...fields, `${path}.transition`] : fields;
+}
+
 function v2Required(template: TemplateDescriptor, uses: Use[]): ValidationError[] {
   const offending = uses.filter((use) => use.kind === 'animate' || !isLegacyEasing(use.value)).map((use) => use.path);
 
   for (const [index, section] of (template.sections ?? []).entries()) {
-    if ('kinetic' in section && section.kinetic) offending.push(`sections[${index}].kinetic`);
+    offending.push(...v2SectionFields(section, `sections[${index}]`));
+  }
+
+  if (template.global?.transition && isDesignedTransition(template.global.transition.type)) {
+    offending.push('global.transition');
   }
 
   if (template.global?.motion) offending.unshift('global.motion');

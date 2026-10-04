@@ -99,3 +99,32 @@ describe('kinetic typography example', () => {
     );
   }, 240000);
 });
+
+// Camera, graphics and designed transitions through real FFmpeg (examples/motion-design/camera-and-graphics.json).
+describe('camera and graphics example', () => {
+  const effects = JSON.parse(
+    fs.readFileSync(path.resolve(repoRoot, 'examples/motion-design/camera-and-graphics.json'), 'utf8')
+  ) as TemplateDescriptor;
+
+  it('validates and renders twice to identical bytes, with a stable graph', async () => {
+    expect(new TemplateValidator().validateTemplate(effects).errors ?? []).toEqual([]);
+
+    async function renderEffects(): Promise<{ bytes: Buffer; manifest: RenderManifest }> {
+      let manifest: RenderManifest | undefined;
+      const output = await compile(config, effects, { onManifest: (m) => (manifest = m) });
+
+      expect(output).not.toBeNull();
+
+      return { bytes: fs.readFileSync(output as string), manifest: manifest as RenderManifest };
+    }
+
+    // Sequential: both renders share the build directory.
+    const runs = [await renderEffects()];
+    runs.push(await renderEffects());
+
+    expect(runs[1].bytes.equals(runs[0].bytes)).toBe(true);
+    await expect(`${runs[0].manifest.graph.commands.join('\n')}\n`).toMatchFileSnapshot(
+      '__goldens__/motion/camera-and-graphics.txt'
+    );
+  }, 300000);
+});

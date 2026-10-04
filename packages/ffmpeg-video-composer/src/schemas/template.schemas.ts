@@ -26,6 +26,8 @@ export * from './section.schemas';
 export * from './partial.schemas';
 export * from './motion.schemas';
 export * from './kinetic.schemas';
+export * from './camera.schemas';
+export * from './graphics.schemas';
 
 // ── JSON Schema export ─────────────────────────────────────────────────────────
 

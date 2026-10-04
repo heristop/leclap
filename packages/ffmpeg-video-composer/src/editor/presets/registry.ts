@@ -3,6 +3,8 @@ import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letter
 import { captionToFilters } from './captions';
 import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
 import { kineticBlocksToFilters } from './kinetic';
+import { cameraBackground } from './camera';
+import { graphicsToFilters } from './graphics';
 
 export type { SugarContext, KineticSugarContext } from './sugar-context';
 import type { SugarContext } from './sugar-context';
@@ -36,6 +38,12 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     order: 20,
     layer: 'background',
     compile: (section, ctx) => motionToFilters(section.motion, ctx),
+  },
+  {
+    key: 'camera',
+    order: 25,
+    layer: 'background',
+    compile: (section, ctx) => cameraBackground(section, ctx),
   },
   {
     key: 'grade',
@@ -75,10 +83,22 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     compile: (section, ctx) => lowerThirdToFilters(section.lowerThird, { scale: ctx.scale }),
   },
   {
+    key: 'graphics',
+    order: 52,
+    layer: 'overlay',
+    compile: (section, ctx) => graphicsToFilters(section, ctx, false),
+  },
+  {
     key: 'kinetic',
     order: 60,
     layer: 'overlay',
     compile: (section, ctx) => kineticBlocksToFilters(section.kinetic, ctx),
+  },
+  {
+    key: 'graphics-above',
+    order: 70,
+    layer: 'overlay',
+    compile: (section, ctx) => graphicsToFilters(section, ctx, true),
   },
 ];
 

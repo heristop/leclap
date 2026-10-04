@@ -68,7 +68,7 @@ export const DocMcp = () => (
     <DocSection id="tools" title="Tools" kicker={`${mcpDoc.tools.length} tools`}>
       <Prose>
         <p>
-          Nine tools are always registered. Remotion opt-in adds <Code>get_effect_schema</Code>,{' '}
+          Twelve tools are always registered. Remotion opt-in adds <Code>get_effect_schema</Code>,{' '}
           <Code>render_preview</Code> and <Code>render_remotion_clip</Code>. Every argument below is the literal key the
           agent passes. Patch availability does not bypass effect-backend validation.
         </p>
@@ -76,8 +76,9 @@ export const DocMcp = () => (
       <DefList rows={toolRows} />
       <Callout label="Typical flow">
         <Code>list_samples</Code> → <Code>get_sample</Code> → inspect requirements and customize →{' '}
-        <Code>validate_template</Code> → preview and patch registered effects when needed → <Code>compose_video</Code> →
-        open the returned <Code>outputPath</Code>.
+        <Code>validate_template</Code> → <Code>render_frames</Code> to look at the result and check safe zones → preview
+        and patch registered effects when needed → <Code>compose_video</Code> → open the returned{' '}
+        <Code>outputPath</Code>.
       </Callout>
     </DocSection>
 

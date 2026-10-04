@@ -15,6 +15,9 @@ import { registerPatchTemplate } from './tools/patchTemplate.js';
 import { validateEffects } from './effects/title-registry.js';
 import { registerSamples } from './tools/samples.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
+import { registerGetTimeline } from './tools/getTimeline.js';
+import { registerRenderFrames } from './tools/renderFrames.js';
+import { registerReportCatalogGap } from './tools/reportCatalogGap.js';
 
 // Each tool group is registered by a small `registerXxx(server, config)` function, called from
 // `createServer`. The surface is authoring-only: schema, validate, compose, probe, the Remotion
@@ -74,8 +77,11 @@ export function createServer(input: McpConfig): McpServer {
   registerSamples(server);
   registerGetTemplateSchema(server);
   registerGetMotionCatalog(server);
+  registerReportCatalogGap(server, config);
+  registerGetTimeline(server);
   registerValidateTemplate(server, config);
   registerCompose(server, config);
+  registerRenderFrames(server, config);
 
   if (config.allowRemotion) {
     registerGetEffectSchema(server, config);

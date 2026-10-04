@@ -65,7 +65,7 @@ const outputSchema = z.object({
   qc: qcSchema.optional(),
 });
 
-type ComposeArgs = {
+export type ComposeArgs = {
   template: Record<string, unknown>;
   expectedRevision?: string;
   fields?: Record<string, string>;
@@ -74,10 +74,10 @@ type ComposeArgs = {
   outputBaseName?: string;
 };
 
-type ToolError = { isError: true; content: [{ type: 'text'; text: string }] };
+export type ToolError = { isError: true; content: [{ type: 'text'; text: string }] };
 type DescriptorResult = { ok: true; descriptor: TemplateDescriptor } | ToolError;
 
-function errorResult(text: string): ToolError {
+export function errorResult(text: string): ToolError {
   return { isError: true, content: [{ type: 'text', text }] };
 }
 
@@ -268,7 +268,7 @@ function checkEffectBindings(descriptor: TemplateDescriptor, provided: Record<st
 
 // Validate the descriptor, contain its raw filter chain, check section coverage, and realpath-guard
 // every supplied clip — returning either the render-ready inputs or the first tool error.
-async function prepareCompose(
+export async function prepareCompose(
   args: ComposeArgs,
   config: McpConfig,
   signal?: AbortSignal

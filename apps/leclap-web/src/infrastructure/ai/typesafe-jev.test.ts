@@ -1,54 +1,99 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { askJev, JEV_URL, jevAsker, readJevAnswers } from './typesafe-jev';
+import { describe, expect, it, vi } from 'vitest';
+import type { JevQuestion } from '@/application/usecases/ai-template/brief-router';
+import { askJev, JEV_URL, jevAsker, withConfidence } from './typesafe-jev';
 
 const KEY = 'jev-secret-key-42';
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+}
+
+function fetchReturning(response: Response | Error) {
+  return vi.fn((_url: string | URL | Request, _init?: RequestInit) =>
+    response instanceof Error ? Promise.reject(response) : Promise.resolve(response)
+  );
+}
+
+const questions: Record<string, JevQuestion> = {
+  genre: { type: 'choice', instructions: 'Which kind?', criteria: { explainer: 'Explains', other: null } },
+  energy: { type: 'score', instructions: 'How energetic?', criteria: ['Calm', 'Balanced', 'Explosive'] },
+  music: { type: 'boolean', instructions: 'Does it need music?' },
+};
 
 describe('askJev', () => {
-  it('posts to System One with the exact headers and body shape', async () => {
-    const answers = {
-      genre: { type: 'choice', choice: 'explainer', confidence: 0.8, probabilities: { explainer: 0.8 } },
-    };
-    const fetchMock = vi.fn((_url: string, _init: RequestInit) =>
-      Promise.resolve(
-        new Response(JSON.stringify({ model: 'jev-latest', answers, usage: { input_tokens: 1, output_tokens: 1 } }))
-      )
+  it('posts to System One with the key only in the Authorization header', async () => {
+    const fetch = fetchReturning(
+      jsonResponse({
+        model: 'jev-latest',
+        answers: {
+          genre: {
+            type: 'choice',
+            choice: 'explainer',
+            confidence: 0.8,
+            probabilities: { explainer: 0.8, other: 0.2 },
+          },
+          energy: { type: 'score', score: 1, confidence: 0.6, probabilities: { 0: 0.2, 1: 0.6, 2: 0.2 } },
+          music: { type: 'noul', noul: 0.9 },
+        },
+        usage: { input_tokens: 1, output_tokens: 1 },
+      })
     );
-    vi.stubGlobal('fetch', fetchMock);
-    const questions = {
-      genre: { type: 'choice' as const, instructions: 'Which kind?', criteria: { explainer: 'Explains', other: null } },
+
+    const result = await askJev({ apiKey: KEY, state: 'a calm explainer', questions, fetch });
+    const [url, init] = fetch.mock.calls[0];
+    const headers = new Headers(init?.headers);
+    const body = JSON.parse(init?.body as string) as {
+      model: string;
+      state: string;
+      questions: Record<string, unknown>;
     };
 
-    const result = await askJev({ apiKey: KEY, state: 'a calm explainer', questions });
-    const [url, init] = fetchMock.mock.calls[0];
-    const headers = init.headers as Record<string, string>;
-
-    expect(result).toEqual(answers);
-    expect(url).toBe(JEV_URL);
-    expect(init.method).toBe('POST');
-    expect(headers).toEqual({
-      authorization: `Bearer ${KEY}`,
-      'content-type': 'application/json',
-      accept: 'application/json',
+    expect(result).toEqual({
+      genre: { type: 'choice', choice: 'explainer', confidence: 0.8, probabilities: { explainer: 0.8, other: 0.2 } },
+      energy: { type: 'score', score: 1, confidence: 0.6, probabilities: { 0: 0.2, 1: 0.6, 2: 0.2 } },
+      music: { type: 'boolean', probability: 0.9 },
     });
-    expect(JSON.parse(init.body as string)).toEqual({ model: 'jev-latest', state: 'a calm explainer', questions });
-    expect(init.body as string).not.toContain(KEY);
-    expect(url).not.toContain(KEY);
+    expect(url).toBe(JEV_URL);
+    expect(init).toMatchObject({ method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer' });
+    expect(headers.get('authorization')).toBe(`Bearer ${KEY}`);
+    expect(headers.get('user-agent')).toBeNull();
+    expect(body).toMatchObject({ model: 'jev-latest', state: 'a calm explainer' });
+    // The SDK's boolean question travels as Jev's native "noul".
+    expect(body.questions).toEqual({ ...questions, music: { ...questions.music, type: 'noul' } });
+    expect(init?.body as string).not.toContain(KEY);
   });
 
   it('turns a CORS/network failure into a network error', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
+    const fetch = fetchReturning(new TypeError('Failed to fetch'));
 
-    await expect(jevAsker(KEY)('x', {})).rejects.toMatchObject({ kind: 'network' });
+    await expect(jevAsker(KEY, undefined, fetch)('x', questions)).rejects.toMatchObject({ kind: 'network' });
   });
 
-  it('maps a rejected key and a malformed body', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{"message":"bad key"}', { status: 401 })));
-    await expect(askJev({ apiKey: KEY, state: 'x', questions: {} })).rejects.toMatchObject({ kind: 'auth' });
+  it('maps a rejected key, an abort and a malformed body', async () => {
+    const unauthorized = fetchReturning(jsonResponse({ message: 'bad key' }, 401));
+    await expect(askJev({ apiKey: KEY, state: 'x', questions, fetch: unauthorized })).rejects.toMatchObject({
+      kind: 'auth',
+      detail: 'bad key',
+    });
 
-    expect(() => readJevAnswers({ model: 'jev-latest' })).toThrow();
+    const controller = new AbortController();
+    controller.abort();
+    const aborted = fetchReturning(new DOMException('aborted', 'AbortError'));
+    await expect(
+      askJev({ apiKey: KEY, state: 'x', questions, signal: controller.signal, fetch: aborted })
+    ).rejects.toMatchObject({ kind: 'aborted' });
+
+    const malformed = fetchReturning(jsonResponse({ model: 'jev-latest' }));
+    await expect(askJev({ apiKey: KEY, state: 'x', questions, fetch: malformed })).rejects.toMatchObject({
+      kind: 'bad-response',
+    });
+  });
+});
+
+describe('withConfidence', () => {
+  it('defaults a missing confidence to zero', () => {
+    expect(withConfidence({ genre: { type: 'choice', choice: 'other' } }, undefined)).toEqual({
+      genre: { type: 'choice', choice: 'other', confidence: 0 },
+    });
   });
 });

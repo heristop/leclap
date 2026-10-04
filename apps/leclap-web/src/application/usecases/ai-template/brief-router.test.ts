@@ -63,7 +63,7 @@ describe('decisions', () => {
 
   it('drops labels it did not ask about and wrong answer types', () => {
     expect(choiceDecision({ type: 'choice', choice: 'vertical', confidence: 1 }, ['portrait'])).toBeUndefined();
-    expect(choiceDecision({ type: 'noul', noul: 0.4 }, ['portrait'])).toBeUndefined();
+    expect(choiceDecision({ type: 'boolean', probability: 0.4 }, ['portrait'])).toBeUndefined();
     expect(scoreDecision({ type: 'choice', choice: 'x', confidence: 1 }, 4)).toBeUndefined();
   });
 

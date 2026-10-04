@@ -8,17 +8,20 @@ import type { SampleDetail } from 'ffmpeg-video-composer/src/samples/types.ts';
 import type { CatalogEntry } from './engine-catalog';
 import { isSeedCandidate } from './sample-picker';
 
+// Typed questions as the AI SDK's evaluation API takes them: choice (a criteria map), score (2–10
+// ordered levels) and boolean.
 export type JevQuestion =
   | { type: 'choice'; instructions: string; criteria: Record<string, string | null> }
   | { type: 'score'; instructions: string; criteria: string[] }
-  | { type: 'noul'; instructions: string; criteria?: Record<string, string | null> };
+  | { type: 'boolean'; instructions: string; criteria?: { true?: string | null; false?: string | null } };
 
+// Answers, with Jev's calibrated confidence folded in by the adapter (booleans carry P(true) only).
 export type JevAnswer =
   | { type: 'choice'; choice: string; confidence: number; probabilities?: Record<string, number> }
   | { type: 'score'; score: number; confidence: number; probabilities?: Record<string, number> }
-  | { type: 'noul'; noul: number };
+  | { type: 'boolean'; probability: number };
 
-export type JevAsk = (state: unknown, questions: Record<string, JevQuestion>) => Promise<Record<string, JevAnswer>>;
+export type JevAsk = (state: string, questions: Record<string, JevQuestion>) => Promise<Record<string, JevAnswer>>;
 
 export interface Decision<T> {
   value: T;

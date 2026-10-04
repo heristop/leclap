@@ -13,23 +13,35 @@ video models, which sample rather than render.
 
 ## Tools
 
-| Tool                   | Description                                                                                                                                                  |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `list_samples`         | Discover sample metadata and required inputs, filtered by category/backend/query → `{ samples }`                                                             |
-| `get_sample`           | Get a sample by stable ID → metadata, requirements and self-contained `template` JSON                                                                        |
-| `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                                                          |
-| `get_motion_catalog`   | Motion presets, camera, graphics, transitions, easing/time grammar, themes, platforms, genre doctrine and scene blueprints                                   |
-| `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields, geometry? }`                                      |
-| `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4 |
-| `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                                                             |
-| `extract_style`        | Reference image/clip under the media dir → `{ theme, styleGuide, confidence }`: palette roles + WCAG contrast, grain, pacing (palette and pacing only)       |
-| `analyze_music`        | Measure a local music file → `{ bpm, offset, beatsPerBar, confidence, usable, cues, globalBeats }` for `global.beats` and `cue:drop`                         |
-| `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                        |
-| `ping`                 | Liveness check                                                                                                                                               |
+| Tool                   | Description                                                                                                                                                                                   |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_samples`         | Discover sample metadata and required inputs, filtered by category/backend/query → `{ samples }`                                                                                              |
+| `get_sample`           | Get a sample by stable ID → metadata, requirements and self-contained `template` JSON                                                                                                         |
+| `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                                                                                           |
+| `get_motion_catalog`   | Motion presets, camera, graphics, transitions, easing/time grammar, themes, platforms, genre doctrine and scene blueprints; `{ query, kind? }` → ranked matches                               |
+| `report_catalog_gap`   | `{ query, wanted }` → append a need the catalog could not answer to a JSONL log under the output dir                                                                                          |
+| `get_timeline`         | Render-free timeline on video seconds → sections with absolute start/end, motion events, beats and cues                                                                                       |
+| `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields, geometry?, featureWarnings? }`                                                     |
+| `compose_video`        | Validate an inline descriptor and render (one `format` of it, optionally) → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4 |
+| `render_frames`        | Render a native template and return still frames as PNG images + paths: `at`, `atTransitions`, `perSection`, `sheet`, `safe`, `zoom`, `variants`, `looks`                                     |
+| `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size, and HDR / colour / bit depth / VFR / rotation traits                                                                        |
+| `extract_style`        | Reference image/clip under the media dir → `{ theme, styleGuide, confidence }`: palette roles + WCAG contrast, grain, pacing (palette and pacing only)                                        |
+| `analyze_music`        | Measure a local music file → `{ bpm, offset, beatsPerBar, confidence, usable, cues, globalBeats }` for `global.beats` and `cue:drop`                                                          |
+| `get_capabilities`     | Local FFmpeg capability report (listings + one-frame probes) → each feature yes/no/unknown with a fix                                                                                         |
+| `render_remotion_clip` | _(bonus, opt-in)_ Render a composition from **your own** Remotion project → an mp4 clip for a `project_video` section                                                                         |
+| `ping`                 | Liveness check                                                                                                                                                                                |
 
 Typical agent flow: `list_samples` → `get_sample` → inspect requirements and customize media/copy →
-`get_template_schema` → `validate_template` (iterate until valid) → `compose_video` → read the returned
-`outputPath`. Author a fresh descriptor from the schema when no sample fits.
+`get_template_schema` → `validate_template` (iterate until valid) → `render_frames` (look at the result;
+check safe zones with `safe`) → `compose_video` → read the returned `outputPath`. Author a fresh descriptor
+from the schema when no sample fits.
+
+`render_frames` renders through a per-section cache under `<output-dir>/.section-cache`, so a second look
+after a small edit re-encodes only the sections that changed. It runs in the render worker under the same
+media-dir checks, slot cap, timeout and cancellation as `compose_video`, writes PNGs to
+`<output-dir>/frames-<id>/`, and inlines at most eight images (the sheets when `sheet` is set). Moments are
+seconds or time references on the whole video: `"intro.end"` (a section or an element id), `"50%"`,
+`"beat:8"`, `"cue:drop + 0.1"`. `get_timeline` lists the moments worth picking.
 
 `validate_template` also reports, render-free, text that would run off the frame or out of title-safe,
 collide with other text, sit under a band, be too small, lack contrast, or sit over footage with no box,
@@ -150,16 +162,17 @@ keep working — the stdio entry serves both eras from the same tool definitions
 
 ### Configuration
 
-| Setting                       | Flag                       | Env                                 | Default                                     |
-| ----------------------------- | -------------------------- | ----------------------------------- | ------------------------------------------- |
-| Output dir                    | `--output-dir`             | `LECLAP_MCP_OUTPUT_DIR`             | `~/.leclap/renders`                         |
-| Media allowlist / assets root | `--media-dir`              | `LECLAP_MCP_MEDIA_DIR`              | `~/.leclap/media`                           |
-| Remotion opt-in               | `--allow-remotion`         | `LECLAP_MCP_ALLOW_REMOTION`         | Off                                         |
-| Stage/worker timeout          | `--render-timeout-ms`      | `LECLAP_MCP_RENDER_TIMEOUT_MS`      | `600000` ms (10 min)                        |
-| Trusted Remotion entry        | `--remotion-entry`         | `LECLAP_MCP_REMOTION_ENTRY`         | Unset                                       |
-| Chrome executable             | `--remotion-browser`       | `LECLAP_MCP_REMOTION_BROWSER`       | Unset; Remotion manages its browser         |
-| Operator effect catalog       | `--effect-catalog`         | `LECLAP_MCP_EFFECT_CATALOG`         | Unset; builtin contracts only               |
-| Effect cache bytes            | `--effect-cache-max-bytes` | `LECLAP_MCP_EFFECT_CACHE_MAX_BYTES` | `536870912` (512 MiB); `0` disables caching |
+| Setting                       | Flag                       | Env                                 | Default                                           |
+| ----------------------------- | -------------------------- | ----------------------------------- | ------------------------------------------------- |
+| Output dir                    | `--output-dir`             | `LECLAP_MCP_OUTPUT_DIR`             | `~/.leclap/renders`                               |
+| Media allowlist / assets root | `--media-dir`              | `LECLAP_MCP_MEDIA_DIR`              | `~/.leclap/media`                                 |
+| Remotion opt-in               | `--allow-remotion`         | `LECLAP_MCP_ALLOW_REMOTION`         | Off                                               |
+| Stage/worker timeout          | `--render-timeout-ms`      | `LECLAP_MCP_RENDER_TIMEOUT_MS`      | `600000` ms (10 min)                              |
+| Trusted Remotion entry        | `--remotion-entry`         | `LECLAP_MCP_REMOTION_ENTRY`         | Unset                                             |
+| Chrome executable             | `--remotion-browser`       | `LECLAP_MCP_REMOTION_BROWSER`       | Unset; Remotion manages its browser               |
+| Operator effect catalog       | `--effect-catalog`         | `LECLAP_MCP_EFFECT_CATALOG`         | Unset; builtin contracts only                     |
+| Effect cache bytes            | `--effect-cache-max-bytes` | `LECLAP_MCP_EFFECT_CACHE_MAX_BYTES` | `536870912` (512 MiB); `0` disables caching       |
+| Catalog gap log               | `--catalog-gap-log`        | `LECLAP_MCP_CATALOG_GAP_LOG`        | `catalog-gaps.jsonl`, always under the output dir |
 
 Precedence is flag → environment → default. Paths resolve from the server's working directory;
 supplied `~` values are not expanded. A bare `--allow-remotion`, `=true` / `=1`, or environment
@@ -168,13 +181,13 @@ require restart. See the complete [engine configuration reference](../../docs/en
 for host configuration, output precedence, stage deadlines and cache behavior.
 
 `compose_video` uses `mediaDir` as the engine's `assetsDir` and creates one `buildDir` per render.
-Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy; its `template.global` controls
+Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy, and `format` picks one composition of a template with `formats`; its `template.global` controls
 orientation and fps. Codec, quality-tier and FFmpeg segment-concurrency fields are library host
 settings, not arbitrary MCP tool arguments.
 
-Eleven tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
-`get_motion_catalog`, `validate_template`, `compose_video`, `patch_template`, `probe_media`, `extract_style` and
-`analyze_music`. Opt-in adds
+Fifteen tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
+`get_motion_catalog`, `report_catalog_gap`, `get_timeline`, `validate_template`, `compose_video`,
+`render_frames`, `patch_template`, `probe_media`, `extract_style`, `analyze_music` and `get_capabilities`. Opt-in adds
 `get_effect_schema`, `render_preview` and `render_remotion_clip`. Patch availability does not bypass
 effect-backend validation.
 

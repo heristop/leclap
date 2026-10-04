@@ -19,6 +19,8 @@ import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { runGeometryCheck } from '../compose/renderRunner.js';
 import { invalidTemplateText, validateTemplate } from '../compose/validation.js';
 import { motionNote, motionWarnings, motionWarningsSchema } from './motionWarnings.js';
+import { capabilityWarnings } from '../compose/capabilities.js';
+import { featureNote, featureWarningsSchema } from './featureWarnings.js';
 
 const inputSchema = z.object({
   template: z.record(z.string(), z.unknown()),
@@ -51,6 +53,7 @@ const outputSchema = z.object({
         'saying what to change, present only when there is something to fix; check this before rendering.'
     ),
   motionWarnings: motionWarningsSchema,
+  featureWarnings: featureWarningsSchema,
   // Present only on an invalid template (with isError): every finding at once, with fixes when known.
   errors: z
     .array(
@@ -302,6 +305,7 @@ async function summary(
     ? await effectFindings(descriptor, authored, request)
     : await findings(descriptor, authored, request);
   const motion = motionWarnings(authored);
+  const features = await capabilityWarnings(authored);
   const needs = [
     clips.length > 0 ? `clips: ${clips.join(', ')}` : 'no clips',
     fields.length > 0 ? `fields: ${fields.join(', ')}` : 'no fields',
@@ -311,7 +315,7 @@ async function summary(
     content: [
       {
         type: 'text' as const,
-        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${renderNote(render)}${geometryNote(geometry)}${motionNote(motion)}`,
+        text: `Valid template — ${sectionCount} section(s), ${orientation ?? 'default'} orientation. Requires ${needs}.${renderNote(render)}${geometryNote(geometry)}${motionNote(motion)}${featureNote(features)}`,
       },
     ],
     structuredContent: {
@@ -324,6 +328,7 @@ async function summary(
       formFields: fields,
       geometry,
       motionWarnings: motion,
+      featureWarnings: features,
       render,
     },
   };
@@ -359,7 +364,8 @@ export function registerValidateTemplate(server: McpServer, config: RenderConfig
         'runs off the frame or out of title-safe, collides with other text, sits under a band, is too ' +
         'small, lacks contrast, or sits over footage with no box/outline/shadow — see the `geometry` field — and ' +
         'flags motion pacing (monotonous eases, front-loaded beats, dead air, flat tempo) in `motionWarnings`; ' +
-        'section `assert` entries that fail are errors. ' +
+        'section `assert` entries that fail are errors; `featureWarnings` lists what the local FFmpeg cannot ' +
+        'render (feature_unavailable, see get_capabilities). ' +
         'Pass `render: true` to also render the text-bearing sections and measure contrast from real pixels ' +
         '(seconds; settles text over images, grades and looks).',
       inputSchema,

@@ -64,16 +64,20 @@ export const FEATURE_FILTERS: Partial<Record<CapabilityFeature, readonly string[
 /** GPL-only filters the engine may write (rewritten or dropped on an LGPL build). */
 export const GPL_FILTERS: readonly string[] = ['eq', 'boxblur'];
 
-/** What the engine takes from a probe report (editor/utils/filter-compat.ts). */
-export interface ProbedCapabilities {
-  /** Filters this build lacks or cannot run: dropped with a warning instead of failing the render. */
-  missingFilters: ReadonlySet<string>;
-  gpl: boolean;
-  textShaping: boolean;
+/**
+ * What the engine knows about the FFmpeg binary it renders with (editor/utils/filter-compat.ts): the text
+ * libraries it links (from `-buildconf`) and, when the Node capability probe ran, the filters it lacks or
+ * cannot run (dropped with a warning instead of failing the render) and whether it is a GPL build.
+ */
+export interface EngineFeatures {
+  fribidi: boolean;
+  harfbuzz: boolean;
+  missingFilters?: ReadonlySet<string>;
+  gpl?: boolean;
 }
 
-/** The engine capability overrides a probe report implies. Unknown features are assumed present. */
-export function probedCapabilities(report: CapabilityReport): ProbedCapabilities {
+/** The engine features a probe report implies (one probe, no second `-buildconf`). Unknown = present. */
+export function probedCapabilities(report: CapabilityReport): EngineFeatures {
   const missing = Object.entries(FEATURE_FILTERS).flatMap(([feature, filters]) =>
     report.features[feature as CapabilityFeature].usable === 'no' ? [...filters] : []
   );
@@ -81,7 +85,8 @@ export function probedCapabilities(report: CapabilityReport): ProbedCapabilities
   return {
     missingFilters: new Set(missing),
     gpl: report.features.gpl.usable !== 'no',
-    textShaping: report.features.textShaping.usable === 'yes',
+    fribidi: report.fonts.fribidi,
+    harfbuzz: report.fonts.harfbuzz,
   };
 }
 

@@ -111,7 +111,7 @@ function assertValidDescriptor(projectConfig: ProjectConfig, templateDescriptor:
   }
 
   const validator = new TemplateValidator();
-  const validation = validator.validateTemplate(templateDescriptor);
+  const validation = validator.validateTemplate(templateDescriptor, { format: projectConfig.format });
 
   if (!validation.success) {
     throw new Error(validator.getValidationSummary(validation));
@@ -292,13 +292,10 @@ export {
   expandPartials,
   expandPartialsSafe,
   expandPartialsWithRegistry,
-  expandPartialsReport,
   partialsById,
-  PartialError,
   type PartialExpansion,
-  type PartialFinding,
 } from './core/partials';
-export type { ProjectConfig, TemplateDescriptor, CompileReporter } from './core/types';
+export type { ProjectConfig, TemplateDescriptor, CompileReporter, MediaTraits } from './core/types';
 export {
   TemplateValidator,
   type ValidationResult,
@@ -317,8 +314,6 @@ export { createBundledFontLoader } from './services/geometry/bundled-font-loader
 // the MCP server share. The browser and React-Native entries never see it — it reaches disk and
 // network. Its geometry imports are type-only, so the lazy `import('./geometry')` still holds.
 export { geometryApproxNote, nodeGeometryWarnings } from './services/geometry/node-geometry';
-// Node entry only: the FFmpeg capability doctor (`leclap diagnose --json`, MCP get_capabilities).
-export * from './platform/ffmpeg/capability-exports-node';
 export type { RenderCheckOptions, RenderedGeometry } from './services/geometry/render-check';
 export { default as TeeLogAdapter } from './platform/logging/TeeLogAdapter';
 export {
@@ -368,6 +363,18 @@ export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
 export * from './core/platforms';
 export * from './core/theme';
+// Reference-style analysis (pure) and its Node frame decoder: palette, texture and pacing as a theme.
+export * from './core/style';
+export {
+  analyzeStyleFile,
+  extractStyleFrames,
+  resolveStyleFfmpeg,
+  STYLE_FRAME_WIDTH,
+  STYLE_MAX_FRAMES,
+  STYLE_SAMPLE_INTERVAL,
+  type StyleFrames,
+  type StyleFramesOptions,
+} from './services/style-frames-node';
 export {
   motionTimeline,
   type MotionBox,
@@ -377,4 +384,5 @@ export {
   type SectionTimeline,
 } from './core/motion/timeline';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
+export * from './node-extras';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';

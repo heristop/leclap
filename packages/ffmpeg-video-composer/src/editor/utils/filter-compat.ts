@@ -1,8 +1,8 @@
 import type { Filter, ProjectConfig } from '@/core/types';
-import type { ProbedCapabilities } from '@/core/capabilities';
+import type { EngineFeatures } from '@/core/capabilities';
 import { usesLgplEngine } from '../../core/encoding';
 import { eqValueToLutyuv } from '../presets/looks';
-import { DEVICE_FILTERS } from './device-filters.generated';
+import { DEVICE_FILTERS, DEVICE_LIBRARIES } from './device-filters.generated';
 
 /**
  * What the active FFmpeg build can do. The on-device engine is a `--disable-gpl` LGPL build, so
@@ -16,7 +16,11 @@ export type EngineCapabilities = {
   lut3d: boolean;
   /** `colorkey` chroma-key filter available (standard LGPL filter). */
   colorkey: boolean;
-  /** drawtext `text_shaping` (HarfBuzz) available. Off by default — the WASM 6.x core may lack HarfBuzz. */
+  /**
+   * drawtext `text_shaping` available: the build links libfribidi, so Arabic/Hebrew lines are reordered
+   * (bidi) on top of HarfBuzz shaping. The option only exists in such builds (emitting it elsewhere is
+   * an "Option not found" error). Node probes its binary; the device reads its build config; WASM: off.
+   */
   textShaping: boolean;
   /** The curated on-device allowlist (generated from common.sh), or null on full GPL/WASM builds
    * where every filter the engine can emit is present. */
@@ -25,24 +29,35 @@ export type EngineCapabilities = {
   missingFilters: ReadonlySet<string> | null;
 };
 
+export type { EngineFeatures } from '@/core/capabilities';
+
 // lut3d/colorkey are standard default-enabled filters present on every backend (host GPL, on-device
 // LGPL, the 6.x WASM core), so they're advertised as available everywhere; the web e2e confirms the
 // WASM core and these flags can be flipped if a filter ever turns out absent (the FILTER_COMPAT rules
-// below then drop the effect with a warning rather than aborting the render). text_shaping needs
-// HarfBuzz, which the host build and the WASM 6.x core do not reliably bundle, so it stays off — the
-// shadow/outline typography below covers legibility on every backend without it.
-//
-// On Node, `probed` (the cached capability probe of the FFmpeg binary about to render, see
-// platform/ffmpeg/capability-probe-node.ts) narrows these to what that build really runs.
-export function engineCapabilities(config: ProjectConfig, probed?: ProbedCapabilities | null): EngineCapabilities {
+// below then drop the effect with a warning rather than aborting the render). text_shaping follows the
+// real build: a probed binary's own configure flags (Node), else the device build config (LGPL engine),
+// else off — the WASM core and an unprobed host may lack libfribidi.
+export function engineCapabilities(config: ProjectConfig, features: EngineFeatures | null = null): EngineCapabilities {
+  const device = usesLgplEngine(config);
+
   return {
-    gpl: !usesLgplEngine(config) && (probed?.gpl ?? true),
-    lut3d: !probed?.missingFilters.has('lut3d'),
+    gpl: !device && (features?.gpl ?? true),
+    lut3d: features?.missingFilters?.has('lut3d') !== true,
     colorkey: true,
-    textShaping: probed?.textShaping ?? false,
-    deviceFilters: usesLgplEngine(config) ? DEVICE_FILTERS : null,
-    missingFilters: probed?.missingFilters ?? null,
+    textShaping: features ? features.fribidi : device && DEVICE_LIBRARIES.has('fribidi'),
+    deviceFilters: device ? DEVICE_FILTERS : null,
+    missingFilters: features?.missingFilters ?? null,
   };
+}
+
+/**
+ * True when the active build has the filter: every filter on a full build, the allowlist on device, and
+ * never one the Node capability probe found missing (masks then fall back to solid text, for instance).
+ */
+export function hasFilter(caps: EngineCapabilities, filter: string): boolean {
+  if (caps.missingFilters?.has(filter) === true) return false;
+
+  return caps.deviceFilters === null || caps.deviceFilters.has(filter);
 }
 
 /**
@@ -142,11 +157,20 @@ export const ENGINE_EMITTED_FILTERS = [
   // (FormatterManager's setpts, authored via section.filters)
   'overlay',
   'split',
+  // masks (kinetic-fill.ts): a drawtext mask's luma copied into a gradient/texture fill's alpha; the
+  // mask is stretched to full range with lutyuv (listed above) and sized with pad/crop for wipes
+  'alphamerge',
   'colorkey',
   'gradients',
   'setpts',
   // colour metadata (core/encoding.ts buildColorMetadataFilter, appended as every segment's final node)
   'setparams',
+  // footage edits (footage-lowering.ts: clip range trim, freeze loop, the audio concat of ramp pieces
+  // and freeze silences) and the blur fit subgraph (reframe.ts: split/scale/crop/gblur/lutyuv/overlay,
+  // all listed above). tpad/apad/adelay are deliberately not used: they are absent on device.
+  'trim',
+  'loop',
+  'concat',
   // assembly & audio (transition-graph.ts, MusicComposer, audio-fade.ts): atempo is FormatterManager's
   // audio counterpart to setpts (authored via section.filters); asplit/sidechaincompress/amix drive the
   // ducking mix; loudnorm/dynaudnorm the normalize pass; afftdn the noise-reduction pass
@@ -168,10 +192,23 @@ export const ENGINE_EMITTED_FILTERS = [
   'dynaudnorm',
   'anullsrc',
   'aevalsrc',
+  // footage edits (editor/footage/): kept windows (trim/atrim + concat) and cutaways (overlay, volume,
+  // amix, anullsrc, aformat above). The HDR tone-map (zscale/tonemap) and silencedetect are host-only:
+  // the director requests them only through the Node FootageAnalyzer, never on the device engine.
+  'trim',
+  'concat',
   // section audio effect presets (audio-fade.ts AUDIO_EFFECT_FILTERS: echo/telephone/muffled) —
   // `telephone` chains highpass,lowpass in one -af value; listed as individual filter names since
   // this string isn't a FilterManager filter object and so isn't FILTER_COMPAT-routed.
   'aecho',
   'highpass',
   'lowpass',
+  // voice clean-up presets (core/audio/voice-presets.ts VOICE_PRESET_STAGES, subset-filtered on device)
+  'acompressor',
+  'agate',
+  'alimiter',
+  'equalizer',
+  // sound-effect placement (editor/utils/sfx-mix.ts): adelay, else an anullsrc lead joined by concat
+  'adelay',
+  'concat',
 ] as const;

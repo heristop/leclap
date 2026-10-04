@@ -7,7 +7,7 @@ import {
 } from '@/core/capabilities';
 import { TemplateValidator } from '@/services/TemplateValidator';
 import { templateFeatureUses } from '@/services/capability-validation';
-import { applyFilterCompat, engineCapabilities } from '@/editor/utils/filter-compat';
+import { applyFilterCompat, engineCapabilities, hasFilter } from '@/editor/utils/filter-compat';
 import { boundaryTransitions } from '@/director/prepare-build';
 
 function report(missing: Partial<Record<(typeof CAPABILITY_FEATURES)[number], string>>): CapabilityReport {
@@ -101,6 +101,13 @@ describe('capability-driven degradation', () => {
     const resolved = applyFilterCompat({ type: 'eq', value: 'contrast=1.1' }, engineCapabilities({}, caps));
 
     expect(resolved?.type).toBe('lutyuv');
+  });
+
+  it('reports a probed-missing filter as absent, so masks fall back instead of emitting alphamerge', () => {
+    const engine = engineCapabilities({}, probedCapabilities(report({ alphamerge: 'no alphamerge' })));
+
+    expect(hasFilter(engine, 'alphamerge')).toBe(false);
+    expect(hasFilter(engine, 'overlay')).toBe(true);
   });
 
   it('keeps the unprobed capabilities unchanged', () => {

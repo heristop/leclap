@@ -136,3 +136,12 @@ via Google Fonts (github.com/google/fonts).
 - Lobster
 
 Keep this file in sync with packages/creative-kit/src/fonts.ts.
+
+EMOJI (public/assets/emoji/)
+----------------------------
+Colour emoji drawn over video text, rendered to 72x72 PNG from Twemoji
+(https://github.com/jdecked/twemoji), Copyright 2019 Twitter, Inc and other
+contributors, Copyright 2024 jdecked and other contributors.
+Graphics licensed under CC-BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+Source files: packages/leclap-creative-kit/src/library/emoji/ (regenerate with
+`pnpm gen:emoji`).

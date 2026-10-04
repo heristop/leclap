@@ -2,14 +2,40 @@ import type { TemplateDescriptor } from '../schemas/template.schemas';
 import { referenceFinding } from './validation/reference-finding';
 import { BaseTemplateValidator, type ValidationError } from './BaseTemplateValidator';
 import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
+import { findPaletteDrift, paletteAdvisories } from '@/core/theme/palette';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
 import { capabilityFindings } from './capability-validation';
 import type { CapabilityReport } from '@/core/capabilities';
+import { collectScriptWarnings, type ScriptLintCapabilities } from './script-lint';
+import { emojiAdvisories } from './emoji-advisories';
+import { subtitleAdvisories } from './subtitles-advisories';
+import { footageAdvisories } from './footage-advisories';
+import { beatGridAdvisories } from './beats-advisory';
+import { adviseEachFormat, adviseEachFormatSync, expandedForFormats } from './validation/format-validation';
+import { formatAdvisories } from '@/core/formats/advisories';
+import { takeAdvisories } from './take-validation';
+import { expandPartialsSafe } from '@/core/partials';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
+export type { ScriptLintCapabilities } from './script-lint';
 export type { GeometryWarning, FontLoader } from './geometry';
+
+// Footage advisories read the expanded sections, like the pacing lint, so paths index them.
+function takeWarnings(template: unknown): MotionWarning[] {
+  const expanded = expandPartialsSafe(template);
+
+  return expanded.ok ? takeAdvisories(expanded.data as TemplateDescriptor) : [];
+}
+
+// Expansion advisories (partial_compressed: a ref squeezed under its partial's fixed intro/outro). Partials
+// expand before formats resolve, so these are the same for every format: reported once, at authored paths.
+function partialWarnings(template: unknown): MotionWarning[] {
+  const expanded = expandPartialsSafe(template);
+
+  return expanded.ok ? (expanded.warnings ?? []).map((w) => ({ ...w, severity: 'warn' as const })) : [];
+}
 
 // The full validator: everything BaseTemplateValidator checks, plus the advisory passes. Advisories
 // never enter `errors` nor flip `success` — a template that renders badly still renders.
@@ -71,9 +97,10 @@ export class TemplateValidator extends BaseTemplateValidator {
     return this.validateVariableReferences(template);
   }
 
-  // Advisory: sections that spread the theme accent over too many elements (core/theme/accent.ts).
+  // Advisory: sections that spread the theme accent over too many elements (core/theme/accent.ts),
+  // and colours/fonts that drift off the theme (core/theme/palette.ts).
   getThemeWarnings(template: TemplateDescriptor): ValidationError[] {
-    return findAccentOveruse(template);
+    return [...findAccentOveruse(template), ...findPaletteDrift(template)];
   }
 
   // Advisory, exactly like getVariableWarnings: geometry findings never enter `errors` and never
@@ -85,16 +112,35 @@ export class TemplateValidator extends BaseTemplateValidator {
   async getGeometryWarnings(template: TemplateDescriptor, loadFont?: FontLoader): Promise<GeometryWarning[]> {
     const { collectGeometryWarnings } = await import('./geometry');
 
-    return collectGeometryWarnings(template, loadFont);
+    // Per format when the template declares several (each its own frame, platform and safe zones).
+    return adviseEachFormat(template, (resolved) => collectGeometryWarnings(resolved as TemplateDescriptor, loadFont));
   }
 
   // Advisory, like getGeometryWarnings: pacing findings read off the motion timeline (ease monotony,
   // front-loaded sections, dead air, flat tempo…) plus assertions that can't be measured render-free.
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
-  // The theme's one-accent-per-idea advisory rides along, so every surface that shows pacing feedback
-  // shows it too.
-  getMotionWarnings(template: unknown): MotionWarning[] {
-    return [...collectMotionWarnings(template), ...accentAdvisories(template)];
+  // The theme advisories (one accent per idea, palette drift), the emoji advisories (missing bundled image,
+  // per-section cap, strip mode), the subtitle advisories (split, shrunk, past the end), the footage
+  // advisories (extreme ramp speeds, ignored focus, blur fit under overlays, a clip range shorter than the
+  // section), the low-confidence beat grid advisory and the take advisories (take-validation.ts) ride along, so every surface
+  // that shows pacing feedback shows them. Per format when the template declares several, plus the
+  // whole-template format advisories (format_crop_only, format_story_diverges: core/formats/advisories.ts).
+  // Script/mask advisories ride along too (services/script-lint.ts); pass the target build's
+  // capabilities to also hear what it can't draw (rtl_unshaped, mask_unavailable).
+  getMotionWarnings(template: unknown, capabilities?: ScriptLintCapabilities): MotionWarning[] {
+    const perFormat = adviseEachFormatSync(template, (resolved) => [
+      ...collectMotionWarnings(resolved),
+      ...accentAdvisories(resolved),
+      ...paletteAdvisories(resolved),
+      ...emojiAdvisories(resolved),
+      ...subtitleAdvisories(resolved),
+      ...footageAdvisories(resolved),
+      ...beatGridAdvisories(resolved),
+      ...takeWarnings(resolved),
+      ...collectScriptWarnings(resolved, capabilities),
+    ]);
+
+    return [...partialWarnings(template), ...perFormat, ...formatAdvisories(expandedForFormats(template))];
   }
 
   // Advisory: `feature_unavailable` for every feature the template uses that the probed FFmpeg cannot

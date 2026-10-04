@@ -24,6 +24,7 @@ leclap samples list       # discover showcase samples (also --category, --backen
 leclap samples show <id>  # inspect direction and requirements (also --json)
 leclap samples export <id> # raw descriptor JSON to stdout (or --output <new-file>)
 leclap verify <manifest>  # check a video against its render manifest (--rerender to re-render and compare)
+leclap style <reference>  # derive a theme + style guide from an image or clip (--json, --out style-guide.md)
 leclap diagnose           # check your FFmpeg setup and what it can render (--json for the report)
 leclap --help             # usage (per-command help with `leclap <command> --help`)
 leclap --version
@@ -146,6 +147,20 @@ with first — a build without libfreetype has no `drawtext` — and without one
 render-free findings and says why it skipped. Text over a user recording (`project_video`) is not
 measured — the recording does not exist yet — and over template footage one frame is only one
 frame, so that finding keeps the render-free one beside it.
+
+## `style` — match a reference look
+
+```bash
+leclap style reference.mp4                       # roles, contrast, pacing and the global.theme snippet
+leclap style poster.png --out style-guide.md     # also writes style-guide.md + style-guide.theme.json
+leclap style reference.mp4 --json                # the full analysis: { theme, styleGuide, confidence }
+```
+
+FFmpeg decodes the reference into small frames (every 0.25 s for clips, at most 240). The palette is
+clustered in OKLab and assigned to theme roles, with `fg` and `muted` moved to WCAG AA (4.5:1) on `bg`
+when they fall short; clips add the average shot length, cuts per minute, motion energy and a
+suggested genre. Only the palette, texture and pacing carry over — subjects, logos and text in the
+reference are never copied. The same reference (and `--seed`) always gives the same theme.
 
 ## `init` — scaffold a project
 

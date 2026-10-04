@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { OrientationSchema, type ProjectConfig, type TemplateDescriptor } from 'ffmpeg-video-composer';
+import { parseFormatFlag } from './render-formats.js';
 
 // Pure assembly of a render's ProjectConfig from CLI flags — kept out of the command so it is unit
 // testable without touching the filesystem or the engine.
@@ -13,6 +14,8 @@ export interface RenderFlags {
   locale?: string;
   /** `--orientation` → overrides `descriptor.global.orientation` (see withOrientation). */
   orientation?: string;
+  /** `--format` → `ProjectConfig.format`: the template's composition for that format (its `formats` override). */
+  format?: string;
   /** `--assets` dir override (resolved vs cwd; defaults to `<cwd>/assets`). */
   assets?: string;
   /** `--build` dir override (resolved vs cwd; defaults to `<cwd>/build`). */
@@ -105,6 +108,10 @@ export function buildProjectConfig(cwd: string, flags: RenderFlags): ProjectConf
 
   if (flags.cache) {
     config.cacheDir = path.resolve(cwd, flags.cache);
+  }
+
+  if (flags.format) {
+    config.format = parseFormatFlag(flags.format);
   }
 
   return config;

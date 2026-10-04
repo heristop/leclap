@@ -3,20 +3,11 @@ import type { QcExpectations } from '@/core/qc/types';
 import { effectiveDurations } from '../editor/utils/transition-graph';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import { loudnessTarget } from '../editor/utils/music-mix';
+// A section's rendered length: a project_video is trimmed to its declared duration (`-t … -shortest`).
+import { hasSfx, renderedLength } from '../editor/utils/sfx-plan';
 
 // What the output QC (core/qc) expects of this render, read from the plan once the section lengths are
 // known and before the build state resets at the end of the compile. Pure.
-
-// A section's rendered length: a project_video is trimmed to its declared duration (`-t … -shortest`),
-// so it is the shorter of the declared and probed lengths; every other type renders its declared one.
-function renderedLength(section: Section, durations: Record<string, number>): number {
-  const declared = section.options?.duration ?? 0;
-  const probed = durations[section.name] ?? 0;
-
-  if (declared > 0 && probed > 0) return Math.min(declared, probed);
-
-  return probed || declared;
-}
 
 // Clip sound reaches the output when a project_video clip has its own audio and is not muted, or a
 // video section is explicitly unmuted.
@@ -49,7 +40,10 @@ export function qcExpectations(
   return {
     durationSeconds: total - overlap,
     fps,
-    audioExpected: music || rendering.some((section) => hasClipSound(section, buildInfos.sourceHasAudio)),
+    audioExpected:
+      music ||
+      hasSfx(rendering, global) ||
+      rendering.some((section) => hasClipSound(section, buildInfos.sourceHasAudio)),
     normalize: global?.audio?.normalize ?? null,
     loudnessTarget: loudnessTarget(global),
   };

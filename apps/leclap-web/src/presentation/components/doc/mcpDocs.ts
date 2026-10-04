@@ -131,6 +131,20 @@ export const mcpDoc: McpDoc = {
       when: 'Use to check a user-supplied clip before composing. The path must resolve inside the media dir.',
     },
     {
+      name: 'extract_style',
+      args: 'path, seed?',
+      purpose:
+        'Derives a global.theme object and a style guide from a reference image or clip: palette roles with area shares and WCAG contrast, grain texture, and for clips the average shot length, cuts per minute, motion energy and a suggested genre.',
+      when: 'Use to match a reference look. Palette and pacing only: subjects, logos and text are never copied. The path must resolve inside the media dir.',
+    },
+    {
+      name: 'analyze_music',
+      args: 'path, beatsPerBar?, includeTimes?',
+      purpose:
+        'Measures a music file: BPM, beat 1 offset, beats per bar, confidence, usable, and build/drop/end cues, plus globalBeats to paste into global.beats.',
+      when: 'Use before timing cuts and hits to the music ("beat:n", "bar:n", "cue:drop"). When usable is false (calm or ambient music), pace by phrases instead.',
+    },
+    {
       name: 'get_capabilities',
       args: 'no arguments',
       purpose:

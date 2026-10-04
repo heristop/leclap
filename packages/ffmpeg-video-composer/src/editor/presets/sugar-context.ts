@@ -1,3 +1,5 @@
+import type { LayoutSectionRef } from '@/core/layout/sources';
+
 // Context a sugar compiler needs to lower time/space-dependent effects (motion calibrates its
 // Ken Burns curve over the clip length and scale). Built once per section by SegmentBuilder.
 export type SugarContext = {
@@ -9,8 +11,31 @@ export type SugarContext = {
   isVideo: boolean;
   /** `global.platform` (core/platforms.ts): the default caption clears that app's bottom UI. */
   platform?: string;
+  /** `global.theme` (resolved per use): subtitle DNA colours may be `$color.*` tokens. */
+  theme?: unknown;
   /** Motion inputs for kinetic typography (energy, seeds, text resolution). */
   motion?: KineticSugarContext;
+  /** Mask/compositing services (kinetic fills, section layouts); absent = no mask features. */
+  masks?: MaskSugarContext;
+  /** The template's sections, for layout panes that name another section. */
+  sections?: readonly LayoutSectionRef[];
+};
+
+export type ExtraInputSource = { url: string; still: boolean } | { clip: string };
+
+export type MaskSugarContext = {
+  /** The build has alphamerge (fills); false on an on-device engine built without it. */
+  available: boolean;
+  /**
+   * Registers media as an extra `-i` of this segment under `key` — a URL/path (`still` images are
+   * looped) or another section's recorded clip — returning its `input:<key>` sub-graph label, or null
+   * when this segment can't take extra inputs. Registering a key twice returns the same label.
+   */
+  input: (key: string, source: ExtraInputSource) => string | null;
+  /** A colour token resolved (variables) and reduced to a filter-option-safe value. */
+  color: (color: string) => string;
+  /** Compile-time advisory (logged). */
+  warn: (message: string) => void;
 };
 
 export type KineticSugarContext = {

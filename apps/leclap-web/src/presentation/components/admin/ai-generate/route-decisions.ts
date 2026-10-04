@@ -4,6 +4,8 @@
 import type { BriefRoute, Decision } from '@/application/usecases/ai-template/brief-router';
 import type { GenerationHints, Orientation } from '@/application/usecases/ai-template/system-prompt';
 
+export type { Orientation };
+
 export type RouteField = 'genre' | 'platform' | 'orientation' | 'energy' | 'theme' | 'seed';
 
 export interface RouteChip {
@@ -79,4 +81,14 @@ export function preferredSamples(chips: RouteChip[]): string[] {
 
 export function percent(confidence: number): string {
   return `${String(Math.round(confidence * 100))}%`;
+}
+
+// An attached reference style sets the theme itself, so a routed built-in theme hint would contradict it.
+export function withoutThemeHint(hints: GenerationHints, referenceStyle: string | null): GenerationHints {
+  if (!referenceStyle) return hints;
+
+  const rest = { ...hints };
+  delete rest.theme;
+
+  return rest;
 }

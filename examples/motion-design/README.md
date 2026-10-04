@@ -51,6 +51,15 @@ Set `global.motion.energy` to `0` for the reduced-motion cut (fades only) or `1.
 
 It is asset-free (bundled fonts), deterministic, and renders on every backend. See [kinetic typography](../../docs/template-configuration.md#kinetic-typography).
 
+## Word captions
+
+[`word-captions.json`](./word-captions.json) turns speech-to-text word timings into designed captions, in two scenes:
+
+- `clean`: white Rubik with a soft shadow; the spoken word lights up in yellow (`word` karaoke). Phrases break on sentence ends, commas followed by a pause, and pauses.
+- `loud`: Anton capitals with a thick outline; each word pops in pink (`pop` karaoke), at most three words per phrase, and the closing exclamation is crowned larger (`"crown": "auto"`).
+
+Each phrase is fitted to at most two balanced lines, held for at least a second, and drawn with plain `drawtext` / `drawbox` filters gated by `enable` windows. It needs no footage, and the same JSON renders the same bytes on every run.
+
 ## Native controls
 
 [`native-timing.json`](./native-timing.json) is a landscape, asset-free demonstration with bundled fonts. It includes a broadcast-inspired frame, a title card with configurable line stagger, and coordinated exits on positioned text.

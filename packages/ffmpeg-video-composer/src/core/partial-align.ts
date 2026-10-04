@@ -4,7 +4,14 @@
 // the fully expanded section list, in ref order, so a later align sees the earlier ones. Pure.
 
 import { parseTimeRef, type TimeRef } from './timing/grammar';
-import { barTime, beatTime, sectionStarts, type Beats, type TimelineSection } from './timing/timeline';
+import {
+  barTime,
+  beatTime,
+  isAnalysisRequest,
+  sectionStarts,
+  type BeatsSpec,
+  type TimelineSection,
+} from './timing/timeline';
 import { PartialError } from './partial-error';
 import { fixedDuration } from './partial-envelope';
 import type { PartialAlign } from '../schemas/partial.schemas';
@@ -23,7 +30,7 @@ export interface AlignRecord {
 }
 
 interface GlobalView {
-  beats?: Beats;
+  beats?: BeatsSpec;
   transition?: { type: string; duration?: number };
 }
 
@@ -41,6 +48,16 @@ function fail(record: AlignRecord, code: string, message: string, hint?: string)
 function gridTarget(ref: Extract<TimeRef, { kind: 'beat' | 'bar' }>, global: GlobalView, record: AlignRecord): number {
   if (!global.beats) {
     fail(record, 'align_unresolvable', `"${ref.kind}:${ref.index}" needs global.beats`, 'add global.beats');
+  }
+
+  // Partials expand before the music is analyzed, so an align needs the grid written out.
+  if (isAnalysisRequest(global.beats)) {
+    fail(
+      record,
+      'align_unresolvable',
+      'align cannot wait for global.beats { analyze: "music" }',
+      'precompute the grid with `leclap beats <audio> --json` or the analyze_music MCP tool'
+    );
   }
 
   const at = ref.kind === 'beat' ? beatTime(global.beats, ref.index) : barTime(global.beats, ref.index);

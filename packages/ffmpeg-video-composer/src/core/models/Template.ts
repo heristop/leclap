@@ -18,7 +18,8 @@ class Template {
   private readonly validator: BaseTemplateValidator;
 
   constructor() {
-    this.validator = new BaseTemplateValidator();
+    // Template is the browser / on-device validation path: those engines cannot analyze music.
+    this.validator = new BaseTemplateValidator({ beatsAnalysis: false });
   }
 
   init = (): void => {

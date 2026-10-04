@@ -22,19 +22,51 @@ import type { QcOption, QcReport } from './qc/types';
 import type { MotionTokens } from '../schemas/motion.schemas';
 import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
+import type { SectionLayout } from '../schemas/layout.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
-import type { Beats } from './timing/timeline';
-export type { Beats } from './timing/timeline';
+import type { Subtitles } from '../schemas/subtitles.schemas';
+import type { AutomationKeyInput, SfxCue, VoicePreset } from '../schemas/audio.schemas';
+export type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';
+import type { Beats, BeatsSpec } from './timing/timeline';
+import type { SectionRole } from '../schemas/section-intent.schemas';
+export type { Beats, BeatsSpec } from './timing/timeline';
+import type { TemplateFormats } from '../schemas/formats.schemas';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
 export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
+export type * from './descriptor-footage';
+import type {
+  ClipRange,
+  FitFill,
+  Focus,
+  FootageFit,
+  Freeze,
+  LookInput,
+  ProbedTraits,
+  SectionTakeFields,
+  SpeedRamp,
+  TakeBuildInfos,
+  TakeOptions,
+} from './descriptor-footage';
 // Filtergraph primitives (input/filter/map + shape recipe) also live in a sibling for the budget;
 // the public ones are re-exported, and Filter/Input/Map imported back for the section declarations below.
-export type { ShapeSpec, Map, Filter, FilterValues, MapAnimationInput, OverlayFit, OverlayFlip } from './filter-types';
-import type { Filter, Input, Map, Translation, OverlayFit, OverlayFlip } from './filter-types';
+export type {
+  ShapeSpec,
+  Map,
+  Filter,
+  FilterGraphChain,
+  FilterValues,
+  MapAnimationInput,
+  OverlayFit,
+  OverlayFlip,
+} from './filter-types';
+import type { Filter, Input, Map, Translation } from './filter-types';
+// Whole-video overlays (global.overlays / animations / watermark) live in a sibling for the budget too.
+export type { GlobalTextOverlay, GlobalAnimation, WatermarkPosition, Watermark } from './descriptor-global';
+import type { GlobalTextOverlay, GlobalAnimation, Watermark } from './descriptor-global';
 
 export type LogParams = Record<string, unknown>;
 
@@ -82,6 +114,8 @@ export type ProjectConfig = {
   // Node only. Directory of the per-section render cache: a section whose FFmpeg command, input files,
   // FFmpeg build and engine version all match a previous render is copied instead of re-encoded.
   cacheDir?: string;
+  // Format to render (core/formats: `formats[format]` + `$format` values); default: the own orientation.
+  format?: 'landscape' | 'portrait' | 'square';
 };
 
 export type MusicConfig = {
@@ -98,7 +132,7 @@ type AudioConfig = { sampleRate?: number; channelLayout?: string };
 
 export type VideoConfig = { orientation?: string; scale?: string; setsar?: string; fps?: number };
 
-export type ProjectBuildInfos = {
+export type ProjectBuildInfos = TakeBuildInfos & {
   totalSegments: number;
   totalLength: number;
   currentLength: number;
@@ -108,6 +142,9 @@ export type ProjectBuildInfos = {
   // Per project_video section: whether its source clip has an audio stream. Probed once by the
   // director; false lets the segment add a silent track so transition acrossfade always has audio.
   sourceHasAudio: Record<string, boolean>;
+  // Per probed clip: its full source length, before footage edits (clip range / ramp / freeze), which
+  // `durations` already account for. Optional so hand-built build infos (tests) stay valid.
+  sourceDurations?: Record<string, number>;
   videoInputs: string[];
   musicInputs: string[];
   musicFilters: string[];
@@ -120,12 +157,18 @@ export interface TemplateDescriptor {
   meta?: TemplateMeta;
   global?: TemplateDescriptorGlobal;
   sections?: DescriptorSection[];
+  /** Per-format compositions of the same story: patches applied when that orientation renders (core/formats). */
+  formats?: TemplateFormats;
 }
 
 interface TemplateMeta {
   name?: string;
   description?: string;
   creativeDirection?: string;
+  /** The production brief (one-liner or path); opts into the section_without_purpose advisory. */
+  brief?: string;
+  /** Ask every rendering section for a `purpose` (advisory). */
+  requirePurpose?: boolean;
   /** Skip the nondeterministic_expression validation (wall clock / unseeded random in raw filters). */
   allowNondeterministic?: boolean;
 }
@@ -135,84 +178,36 @@ export interface TemplateDescriptorGlobal {
   orientation?: string;
   /** Delivery platform id or alias (core/platforms.ts): orientation default, safe zones, loudness. */
   platform?: PlatformName;
+  /** Colour emoji in drawn text: composited bundled images (default), stripped, or a validation error. */
+  emoji?: 'image' | 'strip' | 'error';
   /** Root seed (uint32) for procedural effects; each element derives hash(seed, path). Default 0. */
   seed?: number;
   /** Motion tokens + energy, see schemas/motion.schemas.ts. */
   motion?: MotionTokens;
   /** Theme: a built-in name or { extends, colors, fonts, radius, motion }, see schemas/theme.schemas.ts. */
   theme?: Theme;
-  /** Beat grid of the whole video for "beat:n" / "bar:n" time references (core/timing/timeline.ts). */
-  beats?: Beats;
+  /**
+   * Beat grid of the whole video for "beat:n" / "bar:n" time references (core/timing/timeline.ts), or
+   * `{ analyze: 'music' }`, measured from the music track by the Node compile before references resolve.
+   */
+  beats?: BeatsSpec;
   fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;
   transition?: SectionTransition;
   audio?: GlobalAudio;
+  /** Sound effects on the whole-video timeline. */
+  sfx?: SfxCue[];
   music?: MusicConfig;
   animations?: GlobalAnimation[];
   overlays?: GlobalTextOverlay[];
   watermark?: Watermark;
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   allowedMusic?: string[];
   allowUploadMusic?: boolean;
   allowedBackgrounds?: string[];
   allowUploadBackground?: boolean;
-}
-
-// A whole-video text overlay (global.overlays) composited onto every section (or a named subset).
-export interface GlobalTextOverlay {
-  text: Translation;
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'top' | 'bottom' | 'center';
-  font?: FontInput;
-  size?: number;
-  color?: string;
-  opacity?: number;
-  reveal?: Reveal;
-  effect?: TextEffect;
-  sections?: string[];
-}
-
-// A whole-video animation overlay (global.animations) composited over the final joined video.
-export interface GlobalAnimation {
-  url: string;
-  position?: string;
-  scale?: string;
-  /** Aspect handling within the "w:h" scale box; 'stretch' (or omitted) scales freely. */
-  fit?: OverlayFit;
-  opacity?: number;
-  /** Clockwise rotation in degrees applied to the overlay before compositing. 0 (or omitted) = upright. */
-  rotation?: number;
-  /** Mirror the overlay before compositing: left-right, top-bottom, or both. */
-  flip?: OverlayFlip;
-  loop?: boolean;
-  /** Finite play count; takes precedence over loop. */
-  loops?: number;
-  /** Seconds the overlay plays before it ends; takes precedence over loops/loop. */
-  duration?: number;
-  /** Seconds to delay the overlay before it appears (via -itsoffset); 0/omitted starts at the beginning. */
-  start?: number;
-  persistent?: boolean;
-  /** Animated entrance (rise/slide/fade), same lowering as the per-section overlay path. */
-  motion?: Reveal;
-}
-
-// The corner a `global.watermark` anchors to; also the position-lowering lookup key in
-// editor/presets/watermark.ts (POSITION_EXPRESSIONS).
-export type WatermarkPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-
-// A still-image watermark composited over the whole video (global.watermark) — pure sugar, lowered by
-// watermarkToAnimation (editor/presets/watermark.ts) into a GlobalAnimation entry so it reuses the
-// whole-video overlay pipeline untouched.
-export interface Watermark {
-  url: string;
-  position?: WatermarkPosition;
-  /** Watermark width as a fraction of the output width, 0.02..0.5 (default 0.12). */
-  scale?: number;
-  /** Watermark alpha, 0..1 (default 0.8). */
-  opacity?: number;
-  /** Inset from the frame edges in output pixels, 0..200 (default 24). */
-  margin?: number;
 }
 
 interface SectionTransition {
@@ -235,6 +230,10 @@ interface GlobalAudio {
   normalize?: 'loudnorm' | 'dynaudnorm';
   ducking?: boolean | DuckingConfig;
   musicFade?: number;
+  /** Music-bed volume automation on the whole-video timeline (core/audio/automation.ts). */
+  automation?: AutomationKeyInput[];
+  /** 'auto' places sound effects from the motion (core/audio/auto-sfx.ts). */
+  sfx?: 'auto';
 }
 
 export interface Variables {
@@ -243,7 +242,7 @@ export interface Variables {
 
 type DescriptorSection = Section | PartialSection;
 
-export interface Section {
+export interface Section extends SectionTakeFields {
   effect?: EffectReference;
   name: string;
   type: string;
@@ -262,11 +261,21 @@ export interface Section {
   graphics?: Graphic[];
   /** Named moments in seconds from the section start, referenced as "cue:<name>" in time fields. */
   cues?: Record<string, number>;
-  look?: string;
+  /** Word-timed captions (cues, SRT or word timings) drawn in a caption DNA with optional karaoke. */
+  subtitles?: Subtitles;
+  /** Sound effects placed in this section (section time). */
+  sfx?: SfxCue[];
+  look?: LookInput;
   grade?: GradeConfig;
   letterbox?: Letterbox;
   motion?: MotionEffect[];
   chromaKey?: ChromaKey;
+  /** Split screen / before-after wipe (schemas/layout.schemas.ts). */
+  layout?: SectionLayout;
+  /** Why the section exists; authoring metadata, never rendered. */
+  purpose?: string;
+  /** Narrative role (hook, problem, product-intro, reveal, proof, cta, outro, bridge); never rendered. */
+  role?: SectionRole;
 }
 
 export interface PartialSection {
@@ -280,7 +289,7 @@ export interface PartialSection {
   description?: Translation;
   transition?: SectionTransition;
   caption?: Caption;
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   motion?: MotionEffect[];
   ref?: string;
@@ -298,14 +307,22 @@ interface AudioFade {
   curve?: string;
 }
 
-export interface SectionOptions {
+export interface SectionOptions extends TakeOptions {
   upperCase?: boolean;
   lowerCase?: boolean;
   useVideoSection?: string;
+  /**
+   * Seconds. A template may author `{ beats }` / `{ bars }` (schemas/time.schemas.ts BeatDuration); the
+   * time-reference pass turns it into seconds before anything is lowered (core/timing/durations.ts).
+   */
   duration?: number;
   musicVolume?: number;
   audioFade?: { in?: AudioFade; out?: AudioFade };
   audioEffect?: 'echo' | 'telephone' | 'muffled';
+  /** Voice clean-up preset for the clip's own sound (video / project_video). */
+  voice?: VoicePreset;
+  /** Volume automation of the clip's own sound (section time). */
+  audioAutomation?: AutomationKeyInput[];
   fields?: Field[];
   speed?: number;
   muteSection?: boolean;
@@ -318,6 +335,15 @@ export interface SectionOptions {
   backgroundColor?: string;
   forceAspectRatio?: boolean;
   forceOriginalAspectRatio?: boolean;
+  // Reframing (schemas/footage.schemas.ts): fit overrides the two aspect flags above.
+  fit?: FootageFit;
+  fill?: FitFill;
+  focus?: Focus;
+  // video / project_video footage edits: source in/out points, speed ramp, freeze frames.
+  clip?: ClipRange;
+  speedRamp?: SpeedRamp;
+  rampAudio?: 'stretch' | 'mute';
+  freeze?: Freeze[];
   // color_background extension
   layers?: BackgroundLayer[];
   // project_video extension
@@ -339,20 +365,7 @@ interface Field {
   label: Translation;
 }
 
-export type Media = {
-  name: string;
-  url?: string;
-  path?: string;
-  extension?: string;
-};
-
-export type TemplateAssets = {
-  fonts: Record<string, string>;
-  musics: Record<string, string>;
-  inputs: string[];
-};
-
-export type FFMpegInfos = {
+export type FFMpegInfos = ProbedTraits & {
   duration: number | null;
   videoCodec: string | null;
   audioCodec: string | null;

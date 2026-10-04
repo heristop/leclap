@@ -7,6 +7,8 @@ import { registerGetTemplateSchema } from './tools/getTemplateSchema.js';
 import { registerGetMotionCatalog } from './tools/getMotionCatalog.js';
 import { registerCompose } from './tools/composeVideo.js';
 import { registerProbe } from './tools/probeMedia.js';
+import { registerExtractStyle } from './tools/extractStyle.js';
+import { registerAnalyzeMusic } from './tools/analyzeMusic.js';
 import { registerGetCapabilities } from './tools/getCapabilities.js';
 import { registerValidateTemplate } from './tools/validateTemplate.js';
 import { registerRenderRemotionClip } from './tools/renderRemotionClip.js';
@@ -86,6 +88,8 @@ export function createServer(input: McpConfig): McpServer {
     await validateEffects(template, config, signal);
   });
   registerProbe(server, config);
+  registerExtractStyle(server, config);
+  registerAnalyzeMusic(server, config);
   registerGetCapabilities(server);
 
   // render_remotion_clip bundles + executes a caller-supplied entry (arbitrary local JS) — an RCE

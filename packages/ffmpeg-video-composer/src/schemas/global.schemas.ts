@@ -1,13 +1,15 @@
 import { z } from 'zod';
 import { MAX_SEED } from '../core/determinism/contract';
+import { EMOJI_MODES } from '../core/emoji-assets';
 import { MotionTokensSchema } from './motion.schemas';
 import { ThemeSchema } from './theme.schemas';
 import { BeatsSchema } from './time.schemas';
+import { GlobalSfxSchema } from './audio.schemas';
 import {
   TransitionSchema,
   GlobalAudioSchema,
   GradeSchema,
-  LOOK_PRESETS,
+  LookSchema,
   OverlayFitSchema,
   OverlayFlipSchema,
   RevealSchema,
@@ -203,6 +205,17 @@ export const GlobalConfigSchema = z
     ),
     orientation: OrientationSchema.optional(),
     platform: PlatformSchema.optional(),
+    emoji: z
+      .enum(EMOJI_MODES)
+      .optional()
+      .describe(
+        'How colour emoji in drawn text render (drawtext itself only draws monochrome outlines). "image" ' +
+          '(default): each emoji leaves the text, a measured gap takes its place and a bundled colour image ' +
+          "(~250 common emoji, skin tones and flags included) is composited there, sharing the text's timing, " +
+          'motion and fades; an emoji with no bundled image is stripped with an emoji_missing_asset warning, and ' +
+          'at most 24 images are composited per section. "strip": remove emoji silently (warning only). "error": ' +
+          'fail validation with emoji_unsupported.'
+      ),
     seed: z
       .number()
       .int()
@@ -235,6 +248,7 @@ export const GlobalConfigSchema = z
       'Default transition applied between sections when no per-section transition is set.'
     ),
     audio: GlobalAudioSchema.optional().describe('Global audio mix settings (volumes, normalisation, ducking).'),
+    sfx: GlobalSfxSchema.optional(),
     music: MusicConfigSchema.optional().describe('Default background music track for the template.'),
     animations: z
       .array(GlobalAnimationSchema)
@@ -247,10 +261,9 @@ export const GlobalConfigSchema = z
     watermark: WatermarkSchema.optional().describe(
       'A still-image watermark (e.g. a logo) composited over the whole video, authored once per template.'
     ),
-    look: z
-      .enum(LOOK_PRESETS)
-      .optional()
-      .describe('Colour-grade preset applied across every section (whole-video look).'),
+    look: LookSchema.optional().describe(
+      'Colour-grade preset applied across every section (whole-video look); string or { preset, strength }.'
+    ),
     grade: GradeSchema.optional().describe('Fine-grained colour grade applied across every section.'),
     allowedMusic: z
       .array(z.string())

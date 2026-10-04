@@ -66,9 +66,11 @@ function textShaping(ctx: ProbeContext): FeatureStatus {
   const harfbuzz = ctx.buildconf.has('libharfbuzz');
   const fribidi = ctx.buildconf.has('libfribidi');
 
-  if (harfbuzz) return { usable: 'yes', detail: `built with libharfbuzz${fribidi ? ' and libfribidi' : ''}` };
+  // drawtext's `text_shaping` option exists only in builds linking libfribidi (filter-compat.ts keys the
+  // engine's textShaping capability off the same flag), so that is what decides.
+  if (fribidi) return { usable: 'yes', detail: `built with libfribidi${harfbuzz ? ' and libharfbuzz' : ''}` };
 
-  return { usable: 'no', detail: `built without libharfbuzz${fribidi ? ' (libfribidi only)' : ''}`, fix: '' };
+  return { usable: 'no', detail: `built without libfribidi${harfbuzz ? ' (libharfbuzz only)' : ''}`, fix: '' };
 }
 
 function x264ColorParams(ctx: ProbeContext): FeatureStatus | null {

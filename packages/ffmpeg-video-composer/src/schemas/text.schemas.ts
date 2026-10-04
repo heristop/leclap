@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { RevealSchema, TextEffectSchema } from './effects.schemas';
 import { TranslationSchema, FontInputSchema } from './global.schemas';
+import { MotionRoleSchema } from './motion.schemas';
 
 // Author-facing text sugar — caption, title card and lower third. Each lowers to drawtext/drawbox/fade
 // filters via the text presets (editor/presets/captions.ts, text-blocks.ts), so authors describe intent
@@ -38,6 +39,27 @@ export const CaptionSchema = z
     boxOpacity: z.number().min(0).max(1).optional().describe('Box opacity 0..1 when the box is on.'),
     reveal: RevealSchema.optional().describe('Animated entrance for the caption (fade/rise/slide); default none.'),
     effect: TextEffectSchema.optional().describe('Drop shadow / outline for legibility over busy footage.'),
+    wrap: z
+      .enum(['greedy', 'balanced'])
+      .optional()
+      .describe(
+        'Wrap the caption to the frame (bundled fonts only), one drawtext per line. greedy fills each line; ' +
+          'balanced keeps the line count but evens line widths and avoids ending a line on an article or ' +
+          'preposition. Default: no wrapping (a single line).'
+      ),
+    fit: z
+      .object({
+        minSize: z
+          .number()
+          .min(8)
+          .max(400)
+          .optional()
+          .describe('Smallest font size to shrink to (default 75% of the size).'),
+        maxLines: z.number().int().min(1).max(4).optional().describe('Most lines the caption may take (default 2).'),
+      })
+      .strict()
+      .optional()
+      .describe('Shrink the font until the wrapped caption fits maxLines lines (implies wrap, greedy by default).'),
   })
   .strict()
   .describe('A styled lower-third / overlay caption rendered as a drawtext filter.');
@@ -77,6 +99,7 @@ export const TitleCardSchema = z
     align: z.enum(['left', 'center']).optional().describe('Horizontal alignment of the card (default left).'),
     background: z.string().optional().describe('Fade colour; defaults to the section background colour.'),
     reveal: RevealSchema.optional().describe('Entrance for the lines, staggered top-to-bottom (default "rise").'),
+    role: MotionRoleSchema.optional(),
     stagger: z
       .number()
       .min(0)
@@ -100,6 +123,18 @@ export const TitleCardSchema = z
 
 // ── lower third ────────────────────────────────────────────────────────────────
 
+export const LOWER_THIRD_STYLES = ['clean-bar', 'side-rule', 'kicker', 'stack-bars', 'pill'] as const;
+export type LowerThirdStyle = (typeof LOWER_THIRD_STYLES)[number];
+
+/** The reveal each lower-third style's lines use when the block sets none (lowering and timeline agree). */
+export const LOWER_THIRD_STYLE_REVEALS: Record<LowerThirdStyle, 'fade' | 'rise' | 'slide-right'> = {
+  'clean-bar': 'slide-right',
+  'side-rule': 'slide-right',
+  kicker: 'rise',
+  'stack-bars': 'slide-right',
+  pill: 'fade',
+};
+
 // A title/subtitle band composited over a clip. Lowered by the lowerThird preset
 // (editor/presets/text-blocks.ts) into the drawbox/drawtext filters that used to require inputs/maps/@name.
 export const LowerThirdSchema = z
@@ -118,8 +153,18 @@ export const LowerThirdSchema = z
       .optional()
       .describe('Legibility band opacity 0..1 (default 0.6; 0 = no band).'),
     position: z.enum(['bottom', 'top']).optional().describe('Vertical anchor of the band (default bottom).'),
+    style: z
+      .enum(LOWER_THIRD_STYLES)
+      .optional()
+      .describe(
+        'Layout and animation (default: the full-width band). clean-bar: tight boxes behind each line under an accent rule that draws itself. ' +
+          'side-rule: no band, a vertical accent rule grows beside the lines. kicker: the subtitle becomes an accent label above the title, ' +
+          'underlined by a drawn rule. stack-bars: an accent box for the title and a band box for the subtitle, sliding in one after the other. ' +
+          'pill: a rounded pill grows from a dot and the lines fade in inside it. Each style has its own default reveal.'
+      ),
     badge: TranslationSchema.optional().describe('Optional right-aligned pill (price, step number, badge).'),
     reveal: RevealSchema.optional().describe('Entrance for the lines, staggered (default "rise").'),
+    role: MotionRoleSchema.optional(),
     effect: TextEffectSchema.optional().describe(
       'Drop shadow / outline applied to the title + subtitle for legibility.'
     ),

@@ -75,6 +75,11 @@ export function fontCovers(file: string, codePoint: number): boolean {
   return false;
 }
 
+/** A coverage predicate for a bundled font (`font` as a drawtext fontfile), or undefined when unknown. */
+export function coverageFor(font: unknown): ((codePoint: number) => boolean) | undefined {
+  return typeof font === 'string' && isCoverageKnown(font) ? (codePoint) => fontCovers(font, codePoint) : undefined;
+}
+
 /** The bundled fonts that have a glyph for every one of `chars`. */
 export function fontsCovering(chars: string[]): FontEntry[] {
   return FONTS.filter((font) => chars.every((char) => fontCovers(font.file, char.codePointAt(0) as number)));
@@ -92,7 +97,10 @@ export function isInvisible(char: string): boolean {
 
 const COMBINING_KEYCAP = 0x20e3;
 
-/** Pictographic emoji and their building blocks (skin tones, flags, the keycap mark). */
+/**
+ * Pictographic emoji and their building blocks (skin tones, flags, the keycap mark), one code point at
+ * a time. Whole emoji clusters (ZWJ sequences, flags, keycaps, skin tones) come from core/emoji-clusters.
+ */
 export function isEmoji(char: string): boolean {
   return (
     /^[\p{Extended_Pictographic}\p{Emoji_Modifier}\p{Regional_Indicator}]$/u.test(char) ||

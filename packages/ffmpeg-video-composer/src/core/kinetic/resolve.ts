@@ -6,6 +6,7 @@ import { isLegacyEasing, parseEasing, type EasingSpec } from '../motion/easing';
 import { seededRandom } from '../determinism/hash';
 import { findFont } from '../fonts';
 import { seconds } from '../timing/seconds';
+import { needsShaping } from '../text-scripts';
 import { KINETIC_PRESET_DEFAULTS } from './presets';
 import type { KineticAlign, KineticUnit, LayoutPiece } from './layout';
 
@@ -39,6 +40,8 @@ export interface ResolvedKinetic {
   x: number;
   maxWidth: number;
   lineHeight: number;
+  /** Line breaking: greedy (default) or balanced. */
+  wrap: 'greedy' | 'balanced';
   delay: number;
   stagger: number;
   duration: number;
@@ -79,7 +82,7 @@ function anchorX(block: KineticBlock, align: KineticAlign, frame: KineticFrame):
 function resolveType(
   block: KineticBlock,
   frame: KineticFrame
-): Pick<ResolvedKinetic, 'font' | 'size' | 'color' | 'align' | 'x' | 'maxWidth' | 'lineHeight'> {
+): Pick<ResolvedKinetic, 'font' | 'size' | 'color' | 'align' | 'x' | 'maxWidth' | 'lineHeight' | 'wrap'> {
   const size = block.size ?? Math.round(frame.height * 0.11);
   const align = block.align ?? 'center';
 
@@ -91,12 +94,23 @@ function resolveType(
     x: anchorX(block, align, frame),
     maxWidth: block.maxWidth ?? frame.width * (1 - 2 * SAFE_MARGIN),
     lineHeight: (block.lineHeight ?? 1.05) * size,
+    wrap: block.wrap ?? 'greedy',
   };
 }
 
-export function resolveKinetic(block: KineticBlock, frame: KineticFrame): ResolvedKinetic {
+/**
+ * True when the block's copy is in a script that joins or reorders glyphs (Arabic, Hebrew, Devanagari…)
+ * and would animate per word or glyph: drawing those pieces apart breaks every join and the right-to-
+ * left order, so the block is drawn a whole line at a time instead (`kinetic_unit_coarsened`).
+ */
+export function coarsenedForScript(block: KineticBlock, text: string): boolean {
+  return (block.unit ?? KINETIC_PRESET_DEFAULTS[block.preset].unit) !== 'line' && needsShaping(text);
+}
+
+/** Settings for the block; `text` (the resolved copy) coarsens shaped scripts to whole lines. */
+export function resolveKinetic(block: KineticBlock, frame: KineticFrame, text = ''): ResolvedKinetic {
   const preset = KINETIC_PRESET_DEFAULTS[block.preset];
-  const unit = block.unit ?? preset.unit;
+  const unit = coarsenedForScript(block, text) ? 'line' : (block.unit ?? preset.unit);
   const type = resolveType(block, frame);
   const ease = block.ease ?? preset.ease;
 

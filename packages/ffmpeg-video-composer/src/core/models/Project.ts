@@ -3,7 +3,8 @@ import type { ProjectBuildInfos, ProjectConfig } from '../types';
 import DefaultConfig from '../default.config';
 import type { LoudnessReport, QcExpectations } from '../qc/types';
 import type { CommandInterceptor } from '../determinism/command-tap';
-import type { ProbedCapabilities } from '../capabilities';
+import type { FootageAnalyzer } from '../footage/analyzer';
+import type { EngineFeatures } from '../capabilities';
 
 @singleton()
 class Project {
@@ -16,6 +17,7 @@ class Project {
     currentIncrement: 0,
     durations: {},
     sourceHasAudio: {},
+    sourceDurations: {},
     videoInputs: [],
     musicInputs: [],
     musicFilters: [],
@@ -38,10 +40,13 @@ class Project {
   // Set by the Node compile() after config(): the detected FFmpeg version (colour-tag flags, see
   // core/encoding.ts) and the section-cache hook the command tap routes through (null elsewhere).
   public ffmpegVersion: string | null = null;
+  // What the probed binary can run (editor/utils/filter-compat.ts): its text libraries (`-buildconf`,
+  // driving drawtext `text_shaping`) and, from the Node capability probe, the filters it lacks (dropped
+  // with a warning, designed transitions cut). Null where nothing was probed (browser, device).
+  public engineFeatures: EngineFeatures | null = null;
   public commandInterceptor: CommandInterceptor | null = null;
-  // Set by the Node compile() from the cached FFmpeg capability probe: filters this build cannot run are
-  // dropped (and designed transitions cut) with a warning instead of failing the render. Null elsewhere.
-  public capabilities: ProbedCapabilities | null = null;
+  // Set by the Node compile() too: silencedetect + filter-list analysis for footage edits (null elsewhere).
+  public footageAnalyzer: FootageAnalyzer | null = null;
 
   constructor() {
     this.init();
@@ -56,6 +61,7 @@ class Project {
       currentIncrement: 0,
       durations: {},
       sourceHasAudio: {},
+      sourceDurations: {},
       videoInputs: [],
       musicInputs: [],
       musicFilters: [],
@@ -81,12 +87,15 @@ class Project {
     bi.videoInputs.length = bi.musicInputs.length = bi.musicFilters.length = bi.transitions.length = 0;
     bi.durations = {};
     bi.sourceHasAudio = {};
+    bi.footage = {};
+    bi.sourceDurations = {};
     // loadMusic leaves musicPath untouched when no track resolves, and it may still hold the last build's loop copy.
     bi.musicPath = '';
     this.errors.length = 0;
     this.ffmpegCommands.length = 0;
     this.finalVideo = '';
-    this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = null;
+    this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = this.footageAnalyzer = null;
+    this.engineFeatures = null;
     this.output = { staging: '', final: '' };
   };
 

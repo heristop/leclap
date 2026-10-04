@@ -1,6 +1,7 @@
 // What the Node compile() prepares between configuring the director and running it: refuse an output
-// that would overwrite one of the render's own inputs, identify the FFmpeg build (its colour-tag flags
-// and every cache key depend on it) and, when the host passed `cacheDir`, install the section cache.
+// that would overwrite one of the render's own inputs, register the music analyzer, identify the FFmpeg
+// build (its colour-tag flags and every cache key depend on it) and, when the host passed `cacheDir`,
+// install the section cache.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -9,13 +10,15 @@ import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type Project from '../core/models/Project';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type { ProjectConfig } from '@/core/types';
-import { ffmpegVersionLine, versionFromLine } from '../platform/ffmpeg/analyze-node';
+import { ffmpegTextFeatures, ffmpegVersionLine, versionFromLine } from '../platform/ffmpeg/analyze-node';
 import { createSectionCache, type SectionCache } from './section-cache-node';
 import { probeCapabilities } from '../platform/ffmpeg/capability-probe-node';
-import { probedCapabilities, type CapabilityReport } from '@/core/capabilities';
+import { probedCapabilities, type CapabilityReport, type EngineFeatures } from '@/core/capabilities';
 import type AbstractLogger from '../platform/logging/AbstractLogger';
 import { capabilityFindings } from './capability-validation';
+import { createFootageAnalyzer } from './footage-analysis-node';
 import { descriptorAssetFiles, renderRoots } from './render-manifest-node';
+import { registerBeatsAnalyzer } from './beats-analysis-node';
 
 export interface NodeRenderContext {
   /** First line of `ffmpeg -version`, or null when the adapter runs no binary (or it could not run). */
@@ -68,10 +71,15 @@ export function assertOutputIsNotInput(buildDir: string, config: ProjectConfig, 
 
 export async function prepareNodeRender(setup: NodeRenderSetup): Promise<NodeRenderContext> {
   assertOutputIsNotInput(setup.buildDir, setup.config, setup.descriptor);
+  // The director measures `global.beats: { analyze: 'music' }` with it once the music is on disk.
+  registerBeatsAnalyzer();
 
   const binary = setup.adapter.binaries?.ffmpeg;
   const versionLine = binary ? await ffmpegVersionLine(binary) : null;
   setup.project.ffmpegVersion = versionFromLine(versionLine);
+  // What this binary can run: one capability probe (text libraries + missing filters), else -buildconf.
+  const { capabilities, features } = await probeBinary(binary, versionLine);
+  setup.project.engineFeatures = features;
 
   // The cache key names the exact FFmpeg build; without one, nothing can be reused safely.
   const cache =
@@ -84,13 +92,27 @@ export async function prepareNodeRender(setup: NodeRenderSetup): Promise<NodeRen
         })
       : null;
   setup.project.commandInterceptor = cache?.intercept ?? null;
-
-  // Filters the binary cannot run are dropped with a warning (filter-compat.ts) instead of failing.
-  const probe = binary && versionLine && process.env.FVC_CAPABILITY_PROBE !== '0';
-  const capabilities = probe ? await probeCapabilities({ binary }) : null;
-  setup.project.capabilities = capabilities ? probedCapabilities(capabilities) : null;
+  setup.project.footageAnalyzer = binary ? createFootageAnalyzer(binary) : null;
 
   return { ffmpegVersionLine: versionLine, cache, capabilities };
+}
+
+// The capability probe of the binary (cached per path and version): filters it cannot run are dropped
+// with a warning (filter-compat.ts) and its text libraries drive text_shaping. Without the probe
+// (FVC_CAPABILITY_PROBE=0) only the `-buildconf` text libraries are read.
+async function probeBinary(
+  binary: string | undefined,
+  versionLine: string | null
+): Promise<{ capabilities: CapabilityReport | null; features: EngineFeatures | null }> {
+  if (!binary) return { capabilities: null, features: null };
+
+  if (!versionLine || process.env.FVC_CAPABILITY_PROBE === '0') {
+    return { capabilities: null, features: await ffmpegTextFeatures(binary) };
+  }
+
+  const capabilities = await probeCapabilities({ binary });
+
+  return { capabilities, features: probedCapabilities(capabilities) };
 }
 
 // The compile-time face of `feature_unavailable`: what this render will drop or cut, said up front.

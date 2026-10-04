@@ -67,6 +67,30 @@ export function ffmpegVersionLine(ffmpeg: string): Promise<string | null> {
   return pending;
 }
 
+const buildFeatures = new Map<string, Promise<{ fribidi: boolean; harfbuzz: boolean } | null>>();
+
+/** The text libraries a `-buildconf` (or `-version`) dump says the binary was configured with. */
+export function textFeaturesFromBuildconf(buildconf: string): { fribidi: boolean; harfbuzz: boolean } {
+  return { fribidi: buildconf.includes('--enable-libfribidi'), harfbuzz: buildconf.includes('--enable-libharfbuzz') };
+}
+
+/**
+ * Whether `<ffmpeg>` links libfribidi/libharfbuzz, from `-buildconf`; probed once per binary and cached.
+ * Null when the binary can't be run, so the caller falls back to the conservative capability defaults.
+ */
+export function ffmpegTextFeatures(ffmpeg: string): Promise<{ fribidi: boolean; harfbuzz: boolean } | null> {
+  const cached = buildFeatures.get(ffmpeg);
+
+  if (cached) return cached;
+
+  const pending = runMeasurement(ffmpeg, ['-hide_banner', '-buildconf'])
+    .then(({ stdout }) => textFeaturesFromBuildconf(stdout))
+    .catch(() => null);
+  buildFeatures.set(ffmpeg, pending);
+
+  return pending;
+}
+
 /** The version number from a `-version` first line (`7.1.1`, `n7.1`, `N-11834-g…`), or null. */
 export function versionFromLine(line: string | null): string | null {
   return /ffmpeg version (\S+)/.exec(line ?? '')?.[1] ?? null;

@@ -101,10 +101,8 @@ describe('probeCapabilitiesUncached (mocked FFmpeg)', () => {
     expect(report.features.drawtext.usable).toBe('no');
     expect(report.features.drawtext.detail).toContain('Cannot find a valid font');
     expect(report.features.drawtext.fix).toContain('captions');
-    expect(report.features.textShaping).toMatchObject({
-      usable: 'no',
-      detail: 'built without libharfbuzz (libfribidi only)',
-    });
+    // text_shaping exists in builds linking libfribidi, whatever HarfBuzz says.
+    expect(report.features.textShaping).toMatchObject({ usable: 'yes', detail: 'built with libfribidi' });
     expect(report.features.libass.usable).toBe('yes');
     expect(report.features.gpl.usable).toBe('yes');
     expect(report.features.x264ColorParams.usable).toBe('no');
@@ -142,9 +140,9 @@ describe('probeCapabilitiesUncached (mocked FFmpeg)', () => {
     const report = await probeCapabilitiesUncached({ run: fakeRunner({ drawtextFails: true }), fontFile: null });
     const probed = probedCapabilities(report);
 
-    expect([...probed.missingFilters].sort()).toEqual(['drawtext', 'zscale']);
+    expect([...(probed.missingFilters ?? [])].sort((a, b) => a.localeCompare(b))).toEqual(['drawtext', 'zscale']);
     expect(probed.gpl).toBe(true);
-    expect(probed.textShaping).toBe(false);
+    expect(probed).toMatchObject({ fribidi: true, harfbuzz: false });
   });
 });
 

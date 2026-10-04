@@ -93,8 +93,34 @@ function filterSlots(accept: Accept, filter: Bag, path: string): RawSlot[] {
   ];
 }
 
+// Footage edits (options.speedRamp keys, freeze frames, focus keyframes): section-time fields. A preset
+// ramp or an anchor focus is a string that is not a list, so it holds no slot.
+function footageSlots(accept: Accept, options: Bag | undefined): RawSlot[] {
+  return [
+    ...list(options?.speedRamp).flatMap((key, k) => slot(accept, key, 'at', `options.speedRamp[${k}]`)),
+    ...list(options?.freeze).flatMap((freeze, k) => slot(accept, freeze, 'at', `options.freeze[${k}]`)),
+    ...list(options?.focus).flatMap((key, k) => slot(accept, key, 't', `options.focus[${k}]`)),
+  ];
+}
+
+// Audio and captions placed in section time: subtitle cues, cutaways, sfx and volume automation keys.
+function cueSlots(accept: Accept, section: Bag): RawSlot[] {
+  return [
+    ...list(bag(section.subtitles)?.cues).flatMap((cue, i) => [
+      ...slot(accept, cue, 'at', `subtitles.cues[${i}]`),
+      ...slot(accept, cue, 'end', `subtitles.cues[${i}]`),
+    ]),
+    ...list(section.cutaways).flatMap((cutaway, i) => slot(accept, cutaway, 'at', `cutaways[${i}]`)),
+    ...list(section.sfx).flatMap((cue, i) => slot(accept, cue, 'at', `sfx[${i}]`)),
+    ...list(bag(section.options)?.audioAutomation).flatMap((key, i) =>
+      slot(accept, key, 'at', `options.audioAutomation[${i}]`)
+    ),
+  ];
+}
+
 function collectSlots(section: Bag, accept: Accept): RawSlot[] {
   return [
+    ...footageSlots(accept, bag(section.options)),
     ...list(section.kinetic).flatMap((block, i) => [
       ...slot(accept, block, 'delay', `kinetic[${i}]`, idOf(block)),
       ...slot(accept, bag(block.exit), 'at', `kinetic[${i}].exit`),
@@ -105,6 +131,7 @@ function collectSlots(section: Bag, accept: Accept): RawSlot[] {
     ]),
     ...cameraSlots(accept, bag(section.camera)),
     ...list(section.filters).flatMap((filter, i) => filterSlots(accept, filter, `filters[${i}]`)),
+    ...cueSlots(accept, section),
   ];
 }
 

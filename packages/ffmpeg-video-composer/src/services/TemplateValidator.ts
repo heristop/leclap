@@ -6,6 +6,7 @@ import { findPaletteDrift, paletteAdvisories } from '@/core/theme/palette';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
 import { emojiAdvisories } from './emoji-advisories';
+import { subtitleAdvisories } from './subtitles-advisories';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -92,14 +93,16 @@ export class TemplateValidator extends BaseTemplateValidator {
   // Advisory, like getGeometryWarnings: pacing findings read off the motion timeline (ease monotony,
   // front-loaded sections, dead air, flat tempo…) plus assertions that can't be measured render-free.
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
-  // The theme advisories (one accent per idea, palette drift) and the emoji advisories (missing bundled
-  // image, per-section cap, strip mode) ride along, so every surface that shows pacing feedback shows them.
+  // The theme advisories (one accent per idea, palette drift), the emoji advisories (missing bundled image,
+  // per-section cap, strip mode) and the subtitle advisories (split, shrunk, past the end) ride along, so
+  // every surface that shows pacing feedback shows them.
   getMotionWarnings(template: unknown): MotionWarning[] {
     return [
       ...collectMotionWarnings(template),
       ...accentAdvisories(template),
       ...paletteAdvisories(template),
       ...emojiAdvisories(template),
+      ...subtitleAdvisories(template),
     ];
   }
 }

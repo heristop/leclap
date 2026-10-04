@@ -12,6 +12,7 @@ import { emojiMode } from '@/core/emoji-assets';
 import { kineticFontFile } from '@/core/kinetic/resolve';
 import type { TemplateDescriptor } from '../schemas/template.schemas';
 import { canvasFor, isRenderableSection, lowerTemplate, type LoweredSection } from './geometry/text-boxes';
+import { subtitleSources } from './glyph-coverage-subtitles';
 
 /** Structurally a ValidationError, plus an optional remedy. */
 export interface GlyphFinding {
@@ -176,6 +177,10 @@ function glyphHint(chars: string[], path: string): string {
     return `${NO_BUNDLED_FONT} Kinetic blocks need a bundled font; draw this copy as a caption or title card with a font named by family instead.`;
   }
 
+  if (path.includes('.subtitles.')) {
+    return `${NO_BUNDLED_FONT} Subtitles are laid out with a bundled font; draw this copy as a caption with a font named by family instead.`;
+  }
+
   return `${NO_BUNDLED_FONT} Name a font by family that does, e.g. { "family": "Noto Sans JP" } (resolved on Node and on device; the browser refuses family fonts).`;
 }
 
@@ -239,7 +244,8 @@ function onceEach<T>(items: T[], key: (item: T) => string): T[] {
 /** Every string the template draws, per locale. A global overlay is lowered once per section; kept once. */
 export function drawnTexts(template: TemplateDescriptor): DrawnText[] {
   const variables = template.global?.variables as Variables;
-  const texts = [...drawLayerSources(template), ...kineticSources(template)].flatMap((source) =>
+  const sources = [...drawLayerSources(template), ...kineticSources(template), ...subtitleSources(template.sections)];
+  const texts = sources.flatMap((source) =>
     localeTexts(source.text, source.path).map((entry) => ({
       path: entry.path,
       label: source.label,

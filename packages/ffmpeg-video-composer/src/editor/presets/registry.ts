@@ -4,6 +4,7 @@ import { captionToFilters } from './captions';
 import { titleCardToFilters, globalTextOverlayToFilters } from './text-blocks';
 import { lowerThirdFilters } from './lower-third-styles';
 import { kineticBlocksToFilters } from './kinetic';
+import { subtitlesToFilters } from './subtitles';
 import { cameraBackground } from './camera';
 import { graphicsToFilters } from './graphics';
 
@@ -98,6 +99,12 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     order: 60,
     layer: 'overlay',
     compile: (section, ctx) => kineticBlocksToFilters(section.kinetic, ctx),
+  },
+  {
+    key: 'subtitles',
+    order: 65,
+    layer: 'overlay',
+    compile: (section, ctx) => subtitlesToFilters(section.subtitles, ctx),
   },
   {
     key: 'graphics-above',

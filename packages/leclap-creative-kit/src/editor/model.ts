@@ -185,6 +185,9 @@ export interface EditorCaption {
   reveal?: Reveal;
   // Drop shadow / outline for legibility; stored as the descriptor shape (pass-through).
   effect?: TextEffect;
+  // Opt-in wrapping to the frame (greedy / balanced) and shrink-to-fit; carried through untouched.
+  wrap?: DescriptorCaption['wrap'];
+  fit?: DescriptorCaption['fit'];
 }
 
 export interface VisualCaption {

@@ -79,4 +79,6 @@ export interface Caption {
   boxOpacity?: number;
   reveal?: Reveal;
   effect?: TextEffect;
+  wrap?: 'greedy' | 'balanced';
+  fit?: { minSize?: number; maxLines?: number };
 }

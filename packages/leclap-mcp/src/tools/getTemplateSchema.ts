@@ -30,6 +30,13 @@ const GUIDE = [
     'broadcast graphics (progress, ticker, bars-chart); designed transitions include whip-left/right/up/down; ' +
     '`lowerThird.style` picks clean-bar, side-rule, kicker, stack-bars or pill. ' +
     'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
+  'Word-timed captions: section `subtitles` takes speech-to-text `words` [{text,start,end}] (grouped into phrases ' +
+    'by `group`: pauses, sentence ends, maxWords, maxSeconds), authored `cues` [{at,end,text,words?}] or an inline ' +
+    '`srt`. A caption DNA `style` (clean, loud, keynote, documentary, boxed, neon) sets font, colours, case, ' +
+    'legibility and `karaoke` (word, fill, pop or false); each cue is shrunk to fit `maxLines` balanced lines, ' +
+    'split when it still overflows, held for `minDuration`, and kept inside the global.platform safe zones. ' +
+    '`crown` ("auto" or a phrase) enlarges the one payoff line. validate_template reports caption_split / ' +
+    'caption_shrunk / subtitle_past_end in motionWarnings. The caption sugar also accepts wrap ("balanced") and fit.',
   'Delivery platforms: set global.platform (tiktok, reels/ig, shorts/yt-shorts, youtube, x/twitter, linkedin, ' +
     'facebook, square-feed) when the video has a destination. It defaults the orientation (portrait for ' +
     'tiktok/reels/shorts), lifts the default caption above the app UI, aims loudnorm at the platform loudness, ' +

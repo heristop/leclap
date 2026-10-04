@@ -100,13 +100,17 @@
     "replace": "Reemplazar borrador",
     "keep": "Seguir editando",
     "regenerate": "Generar otra",
-    "details": "Detalles técnicos"
+    "details": "Detalles técnicos",
+    "writeTemplate": "Escribir plantilla",
+    "startOver": "Empezar de nuevo"
   },
   "steps": {
     "thinking": "Pensando",
     "validating": "Validando",
     "repairing": "Reparando",
-    "ready": "Lista"
+    "ready": "Lista",
+    "planning": "Planificación",
+    "polishing": "Pulido"
   },
   "status": {
     "thinking": "Pensando…",
@@ -114,7 +118,10 @@
     "validating": "Validando…",
     "repairing": "Reparando (ronda {{round}}): corrigiendo {{count}} problema(s)…",
     "ready": "Lista",
-    "cancelled": "Cancelado. No se ha cambiado nada."
+    "cancelled": "Cancelado. No se ha cambiado nada.",
+    "planning": "Planificando conceptos y escenas…",
+    "planReady": "Plan listo. Ajústalo si quieres y luego escribe la plantilla.",
+    "polishing": "Puliendo {{count}} nota(s) de dirección de arte…"
   },
   "result": {
     "scenes_one": "{{count}} escena",
@@ -125,7 +132,10 @@
     "durationEstimate": "~{{seconds}} s + clips",
     "effects": "Efectos",
     "noEffects": "Sin efectos — cortes directos.",
-    "replaceWarning": "Esto reemplaza el borrador actual. Tus plantillas guardadas no se tocan, y Deshacer recupera el borrador."
+    "replaceWarning": "Esto reemplaza el borrador actual. Tus plantillas guardadas no se tocan, y Deshacer recupera el borrador.",
+    "advisories_one": "{{count}} nota de dirección de arte",
+    "advisories_other": "{{count}} notas de dirección de arte",
+    "noAdvisories": "El motor no dejó notas de dirección de arte."
   },
   "errors": {
     "auth": "{{provider}} rechazó la clave. Comprueba que se copió completa y que sigue activa.",
@@ -140,6 +150,33 @@
     "http": "{{provider}} devolvió un error. Vuelve a intentarlo.",
     "invalid": "El modelo no logró una plantilla válida tras {{rounds}} intentos. Prueba un brief más sencillo o más concreto.",
     "unknown": "Algo salió mal. Vuelve a intentarlo."
+  },
+  "plan": {
+    "planFirst": "Planificar primero",
+    "planFirstHint": "Propone tres conceptos y un guion de escenas antes de escribir. Una llamada extra, rápida.",
+    "review": "Revisar el plan",
+    "reviewHint": "Se detiene en el plan para que lo edites. Desactivado: continúa directamente.",
+    "title": "Plan",
+    "intro": "Edita los textos, los verbos o los tiempos, o elige otro concepto. La plantilla sigue este plan.",
+    "strategy": "Estrategia",
+    "concepts": "Concepto",
+    "typicality": {
+      "expected": "Previsible",
+      "fresh": "Fresco",
+      "unusual": "Inusual"
+    },
+    "beats": "Escenas",
+    "role": "Rol",
+    "verb": "Verbo",
+    "onScreen": "En pantalla",
+    "seconds": "Duración",
+    "verbLabel": "Verbo de la escena {{row}}",
+    "onScreenLabel": "Texto en pantalla de la escena {{row}}",
+    "secondsLabel": "Duración de la escena {{row}} en segundos",
+    "footage": "Vídeo, sin texto",
+    "facts": "Detalles del plan",
+    "transitions": "Transiciones: {{primary}}",
+    "transitionsWithAccents": "Transiciones: {{primary}} + {{accents}}"
   },
   "reference": {
     "label": "Inspirarse en una referencia",

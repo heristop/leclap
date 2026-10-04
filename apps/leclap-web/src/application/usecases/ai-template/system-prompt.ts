@@ -3,7 +3,14 @@
 // space that is left (clipping its descriptions as needed); samples are dropped last-first if the
 // total would still overflow. The order puts the stable, cacheable material first.
 import type { SampleDetail } from 'ffmpeg-video-composer/src/samples/types.ts';
-import { ART_DIRECTION, BUILDER_CONSTRAINTS, ENERGY_WORDS, OUTPUT_CONTRACT } from './art-direction';
+import {
+  artDirection,
+  BUILDER_CONSTRAINTS,
+  ENERGY_WORDS,
+  LAZY_DEFAULTS,
+  OUTPUT_CONTRACT,
+  STORY_SPINE,
+} from './art-direction';
 import { formatCatalog, type EngineCatalog } from './engine-catalog';
 import { sampleJson } from './sample-picker';
 import { fitSchema } from './schema-digest';
@@ -56,7 +63,8 @@ export const REFERENCE_STYLE_HEADING =
   'Reference style guide (BINDING visual rules: they override the art direction and any theme hint where they ' +
   'conflict. They carry the reference\u2019s palette and pacing only: never reproduce its subjects, logos or text):';
 
-function referenceBlock(rules: string | undefined): string[] {
+/** The binding reference-style block (empty without rules), shared by the plan and template prompts. */
+export function referenceBlock(rules: string | undefined): string[] {
   const trimmed = rules?.trim();
 
   return trimmed ? [`${REFERENCE_STYLE_HEADING}\n${trimmed}`] : [];
@@ -66,7 +74,9 @@ function fixedBlocks(input: PromptInput): string[] {
   return [
     OUTPUT_CONTRACT,
     BUILDER_CONSTRAINTS,
-    ART_DIRECTION,
+    artDirection(input.hints),
+    STORY_SPINE,
+    LAZY_DEFAULTS,
     `Engine catalog:\n${formatCatalog(input.catalog, input.hints.genre)}`,
     ...referenceBlock(input.referenceStyle),
   ];
@@ -124,9 +134,11 @@ function hintLines(hints: GenerationHints): string[] {
   return lines;
 }
 
-export function buildUserBrief(prompt: string, hints: GenerationHints): string {
+export const TEMPLATE_REQUEST = 'Return the template JSON object now.';
+
+export function buildUserBrief(prompt: string, hints: GenerationHints, request = TEMPLATE_REQUEST): string {
   const lines = hintLines(hints);
   const extra = lines.length > 0 ? `\n\n${lines.join('\n')}` : '';
 
-  return `Brief: ${prompt.trim()}${extra}\n\nReturn the template JSON object now.`;
+  return `Brief: ${prompt.trim()}${extra}\n\n${request}`;
 }

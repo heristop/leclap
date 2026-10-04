@@ -73,6 +73,8 @@ function makeProject() {
     progress: 0,
     errors: [] as string[],
     finalVideo: '',
+    output: { staging: '', final: '' },
+    qcExpectations: null as unknown,
     applyDefault: vi.fn(),
     buildInfos: {
       totalSegments: 0,

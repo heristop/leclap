@@ -13,9 +13,9 @@ import type { ProjectConfig } from '@/core/types';
 // Encoder args for a re-encoded video segment (bumper / videoUrl / useVideoSection). Routes through
 // the shared codec resolution so the on-device LGPL engine uses libopenh264 — NOT libx264 (GPL),
 // which `typeof window !== 'undefined'` wrongly selected on React Native (Hermes defines `window`).
-function videoSegmentEncoding(config: ProjectConfig): string {
+function videoSegmentEncoding(config: ProjectConfig, ffmpegVersion: string | null): string {
   // Tag every re-encoded segment Rec.709/limited-range; the stream-copy concat inherits it.
-  const colorArgs = buildColorMetadataArgs();
+  const colorArgs = buildColorMetadataArgs(config, ffmpegVersion);
 
   if (usesLgplEngine(config)) {
     return `${buildVideoEncoderArgs(config)} -c:a aac -ac 2 ${buildPixFmtArg(config)} ${colorArgs} -movflags +faststart`;
@@ -56,7 +56,7 @@ class Video extends SegmentBuilder {
 
     this.filters += ' -map 0:a? ';
 
-    const encodingParams = videoSegmentEncoding(this.project.config);
+    const encodingParams = videoSegmentEncoding(this.project.config, this.project.ffmpegVersion);
 
     const audioFadeArg = this.buildAudioFadeArg();
 

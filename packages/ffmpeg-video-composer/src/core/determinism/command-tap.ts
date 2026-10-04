@@ -71,9 +71,19 @@ export function applyDeterministicProfile(command: string): string {
   return injectOutputArgs(command, `${BITEXACT_OUTPUT_ARGS}${threads}`);
 }
 
+/**
+ * Wraps the execution of one (already profiled and recorded) command, e.g. the Node section cache,
+ * which can satisfy a segment render from a previous identical one instead of running FFmpeg.
+ */
+export type CommandInterceptor = (
+  command: string,
+  run: (command: string) => Promise<{ rc: number }>
+) => Promise<{ rc: number }>;
+
 export interface CommandTapOptions {
   deterministic: boolean;
   onCommand: (command: string) => void;
+  intercept?: CommandInterceptor | null;
 }
 
 /**
@@ -89,7 +99,7 @@ export function tapFFmpegCommands(adapter: AbstractFFmpeg, options: CommandTapOp
     const effective = options.deterministic ? applyDeterministicProfile(command) : command;
     options.onCommand(effective);
 
-    return original(effective);
+    return options.intercept ? options.intercept(effective, original) : original(effective);
   };
 
   return () => {

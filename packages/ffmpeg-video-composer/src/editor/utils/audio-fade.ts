@@ -43,8 +43,12 @@ function buildFadeOutPart(fade: SectionOptions['audioFade'], duration: number): 
  * neither is configured or the section is muted (processing a silent track is pointless).
  * Chain order: effect before fades, so echo/telephone/muffled shape the raw signal first and
  * the fades still ramp the final (already-effected) level in and out.
+ *
+ * `pad` appends `apad` for a clip's own (finite) audio encoded with `-shortest`: a phone clip whose
+ * audio ends a few frames before its video would otherwise end the segment early, dropping those video
+ * frames. Padded with silence, the audio never ends first, so `-shortest` (and `-t`) cut at the video.
  */
-export function buildAudioFadeArg(opts: SectionOptions | undefined): string {
+export function buildAudioFadeArg(opts: SectionOptions | undefined, pad = false): string {
   if (opts?.muteSection === true) {
     return '';
   }
@@ -54,6 +58,7 @@ export function buildAudioFadeArg(opts: SectionOptions | undefined): string {
     ...(effect ? [AUDIO_EFFECT_FILTERS[effect]] : []),
     ...buildFadeInPart(opts?.audioFade),
     ...buildFadeOutPart(opts?.audioFade, opts?.duration ?? 0),
+    ...(pad ? ['apad'] : []),
   ];
 
   if (parts.length === 0) {

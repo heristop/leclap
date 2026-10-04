@@ -1,6 +1,8 @@
 import { singleton } from 'tsyringe';
 import type { ProjectBuildInfos, ProjectConfig } from '../types';
 import DefaultConfig from '../default.config';
+import type { LoudnessReport, QcExpectations } from '../qc/types';
+import type { CommandInterceptor } from '../determinism/command-tap';
 
 @singleton()
 class Project {
@@ -26,6 +28,16 @@ class Project {
   // Every FFmpeg command the current build ran (after the deterministic profile), for the render
   // manifest. Filled by director/prepare-build.ts, cleared with the rest of the build state.
   public ffmpegCommands: string[] = [];
+  // Read by the Node epilogue after the director returns, so they live outside buildInfos (which clean()
+  // resets): the output QC's expectations and the loudness normalisation actually applied.
+  public qcExpectations: QcExpectations | null = null;
+  public loudness: LoudnessReport | null = null;
+  // Where the final passes write and where the result is published (director/output-staging.ts).
+  public output = { staging: '', final: '' };
+  // Set by the Node compile() after config(): the detected FFmpeg version (colour-tag flags, see
+  // core/encoding.ts) and the section-cache hook the command tap routes through (null elsewhere).
+  public ffmpegVersion: string | null = null;
+  public commandInterceptor: CommandInterceptor | null = null;
 
   constructor() {
     this.init();
@@ -70,6 +82,8 @@ class Project {
     this.errors.length = 0;
     this.ffmpegCommands.length = 0;
     this.finalVideo = '';
+    this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = null;
+    this.output = { staging: '', final: '' };
   };
 
   // Per-block merge: a caller-provided block only overrides the fields it names, every other

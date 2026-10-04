@@ -107,7 +107,7 @@ class SegmentBuilder {
 
   /** Rec.709/limited-range colour tags for re-encoded segments — see `buildColorMetadataArgs`. */
   protected colorMetadataArgs(): string {
-    return buildColorMetadataArgs();
+    return buildColorMetadataArgs(this.project.config, this.project.ffmpegVersion);
   }
 
   /** Output fps for this segment's `-r` — the director-resolved `videoConfig.fps`, else the default. */

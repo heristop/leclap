@@ -1,6 +1,8 @@
 import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
 import { assertSafeArgToken } from '@/core/arg-guard';
+import { usesLgplEngine } from '@/core/encoding';
+import { buildAudioFadeArg } from '../utils/audio-fade';
 
 @injectable()
 class ProjectVideo extends SegmentBuilder {
@@ -20,6 +22,13 @@ class ProjectVideo extends SegmentBuilder {
     const hasAudio = this.project.buildInfos.sourceHasAudio[this.section.name] as boolean | undefined;
 
     return !muted && hasAudio === false;
+  }
+
+  // The clip's own audio is padded (utils/audio-fade.ts) so `-shortest` can never end the segment before
+  // its video. Not on the LGPL on-device engine, whose filter set has no `apad`; a muted section or a
+  // video-only clip already maps an endless silent source.
+  private padsSourceAudio(noSourceAudio: boolean): boolean {
+    return this.section.options?.muteSection !== true && !noSourceAudio && !usesLgplEngine(this.project.config);
   }
 
   override configure = (): void => {
@@ -63,7 +72,7 @@ class ProjectVideo extends SegmentBuilder {
       ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ${silentInput} ` +
       ` -r ${this.fps()} ${duration} ` +
       ` ${this.videoEncoderArgs()} -c:a aac -ac 2 ${this.pixFmtArg()} ${this.colorMetadataArgs()} -movflags +faststart -shortest ` +
-      ` ${this.filters} ${audioMap} ${this.buildAudioFadeArg()}${this.destination} `;
+      ` ${this.filters} ${audioMap} ${buildAudioFadeArg(this.section.options, this.padsSourceAudio(noSourceAudio))}${this.destination} `;
   };
 }
 

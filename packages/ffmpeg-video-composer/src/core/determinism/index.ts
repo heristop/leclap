@@ -11,6 +11,11 @@ export {
   graphDigest,
   normalizeCommand,
   templateDigest,
+  type ManifestExtras,
   type ManifestRoots,
   type RenderManifest,
 } from './manifest';
+export { PLAN_HASH_SCHEMA, computePlanHash, type PlanHashInput } from './plan-hash';
+export type { CommandInterceptor } from './command-tap';
+// The output QC report a Node render carries in its manifest (core/qc).
+export type { LoudnessReport, QcExpectations, QcFinding, QcKind, QcOption, QcReport, QcStatus } from '../qc/types';

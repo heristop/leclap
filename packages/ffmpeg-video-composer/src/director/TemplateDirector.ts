@@ -8,12 +8,20 @@ import type { IEventEmitter } from '../platform/AbstractEventManager';
 import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
-import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import { fetchSectionInfos, segmentOutputPath } from './section-infos';
 import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
-import { prepareMotion, recordBuildCommands, resolveBuildVideoConfig } from './prepare-build';
+import {
+  boundaryTransitions,
+  discardOutput,
+  prepareMotion,
+  publishOutput,
+  qcExpectations,
+  recordBuildCommands,
+  resolveBuildVideoConfig,
+  resolveOutputPaths,
+} from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import { expandPartialsSafe, assertEffectsResolved } from '@/core/partials';
@@ -140,12 +148,10 @@ class TemplateDirector {
       const finalPath = await this.compileVideoSegments();
 
       if (!this.stopBuild) {
-        return finalPath;
+        return await publishOutput(this.filesystemAdapter, this.project.output, finalPath);
       }
     } catch (error) {
       this.fireError(error);
-
-      return null;
     } finally {
       restoreAdapter();
       // The browser / React Native event manager hands every compile the SAME emitter, so drop this
@@ -153,11 +159,15 @@ class TemplateDirector {
       this.emitter.off?.('task-cancelled', this.onTaskCancelled);
     }
 
+    // Failed or cancelled: never leave a half-written output behind (director/output-staging.ts).
+    await discardOutput(this.filesystemAdapter, this.project.output);
+
     return null;
   };
 
   init = async (): Promise<void> => {
     this.project.buildInfos.fileConcatPath = `${this.filesystemAdapter.getBuildDir()}/segments.list`;
+    this.project.output = resolveOutputPaths(this.filesystemAdapter.getBuildDir() ?? 'build', this.ffmpegAdapter);
 
     await this.musicComposer.loadMusic();
 
@@ -187,6 +197,9 @@ class TemplateDirector {
     assertCanProbe(this.ffmpegAdapter, needs, videoSegments);
     await timer.span('director:calculateTotalLength', () => this.calculateTotalLength(videoSegments));
 
+    const { global } = this.template.descriptor;
+    const fps = this.project.config.videoConfig?.fps ?? 30;
+    this.project.qcExpectations = qcExpectations(videoSegments, this.project.buildInfos, global, fps);
     this.logger.info(`[TemplateDirection] Length: ${this.project.buildInfos.totalLength}`);
     this.project.buildInfos.totalSegments = videoSegments.length;
 
@@ -207,22 +220,9 @@ class TemplateDirector {
    * consumed by MusicComposer (xfade-aware windows) and the final-assembly path selection.
    */
   private readonly buildTransitions = (segments: Section[]): void => {
-    const globalTransition = this.template.descriptor.global?.transition;
     const transitions = this.project.buildInfos.transitions;
     transitions.length = 0;
-
-    for (let i = 0; i < segments.length - 1; i++) {
-      const declared = segments[i].transition ?? globalTransition;
-
-      if (!declared || declared.type === 'cut') {
-        transitions.push({ type: 'cut', duration: 0 });
-
-        continue;
-      }
-
-      const duration = declared.duration ?? globalTransition?.duration ?? DEFAULT_TRANSITION_DURATION;
-      transitions.push({ type: declared.type, duration, ease: declared.ease });
-    }
+    transitions.push(...boundaryTransitions(segments, this.template.descriptor.global?.transition));
   };
 
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
@@ -331,7 +331,7 @@ class TemplateDirector {
       musicWillRun,
       normalizeWillRun: !global?.musicEnabled && this.musicComposer.hasNormalization(),
       disableFold: Boolean(process.env.FVC_DISABLE_CONCAT_FOLD),
-      finalPath: `${buildDir}/output.mp4`,
+      finalPath: this.project.output.staging || `${buildDir}/output.mp4`,
       listPath: this.project.buildInfos.fileConcatPath,
       setFinalVideo: (path) => {
         this.project.finalVideo = path;

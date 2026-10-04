@@ -9,7 +9,6 @@ export {
   resolveMotionVersion,
   resolveSeed,
   resolveDeterministic,
-  timeVariable,
   type MotionVersion,
 } from './contract';
 export { findNondeterministicExpressions, type NondeterministicFinding } from './hygiene';

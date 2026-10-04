@@ -4,6 +4,7 @@ import type Project from '../core/models/Project';
 import { tapFFmpegCommands } from '@/core/determinism/command-tap';
 import { resolveDeterministic } from '@/core/determinism/contract';
 import { resolveFps, resolveOrientationScale } from './resolve-video-config';
+import { resolveMotionDescriptor } from '@/core/motion/tokens';
 
 // Per-build preparation the director runs once per compile, kept out of TemplateDirector for its line
 // and dependency budgets.
@@ -30,4 +31,12 @@ export function recordBuildCommands(
     deterministic: resolveDeterministic(descriptor, project.config.deterministic),
     onCommand: (command) => project.ffmpegCommands.push(command),
   });
+}
+
+/**
+ * motionVersion 2 descriptors with every `$token` resolved and travel scaled by `global.motion.energy`
+ * (core/motion/tokens.ts); v1 descriptors pass through untouched.
+ */
+export function prepareMotion<T extends { meta?: unknown; global?: unknown; sections?: unknown }>(descriptor: T): T {
+  return resolveMotionDescriptor(descriptor);
 }

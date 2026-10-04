@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TranslationSchema } from './global.schemas';
 import { RevealSchema, ExitSchema } from './effects.schemas';
+import { AnimateSchema } from './motion.schemas';
 
 // ── filter schemas ─────────────────────────────────────────────────────────────
 
@@ -87,6 +88,7 @@ export const FilterSchema = z
     exit: ExitSchema.optional().describe(
       'Animated exit for a drawtext filter; baked alongside the entrance at compile.'
     ),
+    animate: AnimateSchema.optional(),
   })
   .describe('A single FFmpeg filter applied to the section or input stream.');
 

@@ -3,6 +3,7 @@
 // from `./types` so `@/core/types` stays the single entry point.
 import type { Reveal, Exit } from './descriptor-text';
 import type { FontRef } from './fonts';
+import type { Animate } from '../schemas/motion.schemas';
 
 /** How an overlay maps into its "w:h" scale box: free stretch, letterbox inside, or fill + centre-crop. */
 export type OverlayFit = 'stretch' | 'contain' | 'cover';
@@ -87,6 +88,8 @@ export interface Filter {
   reveal?: Reveal;
   // Animated exit (fade/slide out after a time) baked alongside the entrance onto the same drawtext.
   exit?: Exit;
+  // Keyframe tracks (motionVersion 2), lowered by core/motion/tracks.ts; override reveal/exit per property.
+  animate?: Animate;
 }
 
 export interface FilterValues {

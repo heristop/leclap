@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EasingSpecSchema } from './motion.schemas';
 
 // ── reveal / exit (animated text entrance + exit) ────────────────────────────────
 //
@@ -21,12 +22,9 @@ export const RevealObjectSchema = z
     delay: z.number().min(0).optional().describe('Seconds before the entrance starts (default 0.3).'),
     duration: z.number().positive().optional().describe('Seconds the entrance takes (default 0.6).'),
     distance: z.number().positive().optional().describe('Pixels the text travels for rise/slide (default 60).'),
-    easing: z
-      .enum(REVEAL_EASINGS)
-      .optional()
-      .describe(
-        'Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).'
-      ),
+    easing: EasingSpecSchema.optional().describe(
+      'Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).'
+    ),
   })
   .strict()
   .describe('Animated entrance for sugar text, with optional timing overrides.');
@@ -40,10 +38,9 @@ export const RevealSchema = z
 export const ExitObjectSchema = z
   .object({
     type: z.enum(REVEAL_TYPES).describe('Exit style: none, fade, rise (up/out), slide-left, slide-right.'),
-    easing: z
-      .enum(REVEAL_EASINGS)
-      .optional()
-      .describe('Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.'),
+    easing: EasingSpecSchema.optional().describe(
+      'Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.'
+    ),
     after: z
       .number()
       .min(0)

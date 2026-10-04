@@ -23,6 +23,7 @@ leclap validate <template> # check a template without rendering (schema + text l
 leclap samples list       # discover showcase samples (also --category, --backend, --query, --json)
 leclap samples show <id>  # inspect direction and requirements (also --json)
 leclap samples export <id> # raw descriptor JSON to stdout (or --output <new-file>)
+leclap verify <manifest>  # check a video against its render manifest (--rerender to re-render and compare)
 leclap diagnose           # check your FFmpeg setup
 leclap --help             # usage (per-command help with `leclap <command> --help`)
 leclap --version
@@ -46,6 +47,21 @@ Use the descriptor's effective section and field names. Repeat `--video` and `--
 multiple inputs; later values win for the same key. All relative file/directory paths resolve from
 the working directory. `--orientation` overrides `template.global.orientation`, while frame rate
 comes from `global.fps`. `--output` copies the finished video after successful compilation.
+
+Renders use the deterministic encoder profile by default (bit-exact muxing, pinned encoder threads):
+the same template, assets and FFmpeg build always produce the same bytes. `--no-deterministic` turns
+it off. `--manifest` writes `<output>.manifest.json` next to the video, with the template, asset,
+filtergraph and output digests.
+
+```bash
+leclap render template.json --output out.mp4 --manifest
+leclap verify out.mp4.manifest.json             # is out.mp4 still that render?
+leclap verify out.mp4.manifest.json --rerender  # render the recorded template again; compare every digest
+```
+
+`verify --rerender` takes `--assets`, `--build` and repeatable `--input section=path` for
+`project_video` clips. It exits 1 on any mismatch and prints the first filtergraph command that
+differs. Use `--json` for machine-readable checks.
 
 Codec, quality tier and segment concurrency are configured through the library's `ProjectConfig`;
 the published CLI has no flags for those fields. MCP server flags belong to `leclap-mcp`, not

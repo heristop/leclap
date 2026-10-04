@@ -14,6 +14,7 @@ export type {
 import type { Reveal, TextEffect, TitleCard, LowerThird, ChromaKey, Caption } from './descriptor-text';
 import type { FontInput } from './fonts';
 import type { RenderManifest } from './determinism/manifest';
+import type { MotionTokens } from '../schemas/motion.schemas';
 import type { EffectReference } from '../schemas/effect-reference.schema';
 export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
@@ -115,6 +116,8 @@ export interface TemplateDescriptorGlobal {
   orientation?: string;
   /** Root seed (uint32) for procedural effects; each element derives hash(seed, path). Default 0. */
   seed?: number;
+  /** Motion tokens + energy (motionVersion 2), see schemas/motion.schemas.ts. */
+  motion?: MotionTokens;
   fps?: number;
   colorsList?: string[];
   musicEnabled?: boolean;

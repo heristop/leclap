@@ -19,6 +19,23 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 4000
+        },
+        "motionVersion": {
+          "description": "Pins motion semantics (default 1 = historical output, unchanged). 2 opts into the v2 motion system: motion tokens, spring/bezier easing, `animate` keyframe tracks, frame-indexed time, seeded procedural filters and the deterministic encoder profile. Preset retunes ship behind a new version, so a pinned template never changes output.",
+          "anyOf": [
+            {
+              "type": "number",
+              "const": 1
+            },
+            {
+              "type": "number",
+              "const": 2
+            }
+          ]
+        },
+        "allowNondeterministic": {
+          "description": "Opt out of the nondeterministic_expression check (wall-clock `%{localtime}`/`time(0)` or unseeded `random()` in raw filters). Default false: such templates fail validation.",
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -51,6 +68,89 @@
           "type": "string",
           "enum": ["landscape", "portrait", "square"],
           "description": "Output video orientation; controls the resolution preset — landscape 1280x720, portrait 720x1280, square 1080x1080 (default: landscape)."
+        },
+        "seed": {
+          "description": "Root seed (uint32, default 0) for every procedural effect: each element derives its own stream as hash(seed, element path), so the same seed always renders the same shake, grain and scramble.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "motion": {
+          "type": "object",
+          "properties": {
+            "energy": {
+              "description": "Global motion intensity (0..1.5, default 1): scales every reveal/exit/overlay travel distance and relative keyframe offset. 0 is a reduced-motion cut (fades only).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.5
+            },
+            "springs": {
+              "description": "Named springs, referenced as $name.",
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,31}$"
+              },
+              "additionalProperties": {
+                "type": "object",
+                "properties": {
+                  "stiffness": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 2000,
+                    "description": "Spring stiffness k (1..2000). Higher is snappier."
+                  },
+                  "damping": {
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 200,
+                    "description": "Damping c (1..200). Lower bounces more."
+                  },
+                  "mass": {
+                    "description": "Mass m (0.1..20, default 1). Heavier is slower.",
+                    "type": "number",
+                    "minimum": 0.1,
+                    "maximum": 20
+                  },
+                  "velocity": {
+                    "description": "Initial velocity toward the target, in distances per second (default 0).",
+                    "type": "number",
+                    "minimum": -50,
+                    "maximum": 50
+                  }
+                },
+                "required": ["stiffness", "damping"],
+                "additionalProperties": false,
+                "description": "A physical spring; its duration is derived (time to settle within 0.1%) unless one is authored."
+              }
+            },
+            "curves": {
+              "description": "Named easing curves, referenced as $name.",
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,31}$"
+              },
+              "additionalProperties": {
+                "$ref": "#/$defs/EasingSpec"
+              }
+            },
+            "durations": {
+              "description": "Named durations in seconds, referenced from keyframe times as \"$name\" or \"+$name\".",
+              "type": "object",
+              "propertyNames": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{0,31}$"
+              },
+              "additionalProperties": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 30
+              }
+            }
+          },
+          "additionalProperties": false,
+          "description": "Motion tokens: one design system for time, shared by every animated field (motionVersion 2)."
         },
         "fps": {
           "description": "Output frame rate for the rendered video (integer 1..120, default 30).",
@@ -331,9 +431,8 @@
                         "exclusiveMinimum": 0
                       },
                       "easing": {
-                        "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                        "type": "string",
-                        "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                        "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                        "$ref": "#/$defs/EasingSpec"
                       }
                     },
                     "required": ["type"],
@@ -447,9 +546,8 @@
                         "exclusiveMinimum": 0
                       },
                       "easing": {
-                        "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                        "type": "string",
-                        "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                        "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                        "$ref": "#/$defs/EasingSpec"
                       }
                     },
                     "required": ["type"],
@@ -899,9 +997,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -1151,9 +1248,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -1178,9 +1274,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -1203,6 +1298,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -1474,9 +1572,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -1501,9 +1598,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -1526,6 +1622,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -1788,9 +1887,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -1815,9 +1913,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -1840,6 +1937,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -2068,9 +2168,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -2223,9 +2322,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -3022,9 +3120,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -3274,9 +3371,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -3301,9 +3397,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -3326,6 +3421,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -3597,9 +3695,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -3624,9 +3721,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -3649,6 +3745,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -3911,9 +4010,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -3938,9 +4036,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -3963,6 +4060,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -4191,9 +4291,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -4346,9 +4445,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -5188,9 +5286,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -5440,9 +5537,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -5467,9 +5563,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -5492,6 +5587,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -5763,9 +5861,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -5790,9 +5887,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -5815,6 +5911,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -6077,9 +6176,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -6104,9 +6202,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -6129,6 +6226,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -6357,9 +6457,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -6512,9 +6611,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -7338,9 +7436,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -7590,9 +7687,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -7617,9 +7713,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -7642,6 +7737,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -7913,9 +8011,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -7940,9 +8037,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -7965,6 +8061,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -8227,9 +8326,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -8254,9 +8352,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -8279,6 +8376,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -8507,9 +8607,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -8662,9 +8761,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -9461,9 +9559,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -9713,9 +9810,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -9740,9 +9836,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -9765,6 +9860,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -10036,9 +10134,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -10063,9 +10160,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -10088,6 +10184,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -10350,9 +10449,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -10377,9 +10475,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -10402,6 +10499,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -10630,9 +10730,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -10785,9 +10884,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -11455,9 +11553,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -11879,9 +11976,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -12052,9 +12148,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -12304,9 +12399,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -12331,9 +12425,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -12356,6 +12449,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -12627,9 +12723,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -12654,9 +12749,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -12679,6 +12773,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -12941,9 +13038,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -12968,9 +13064,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -12993,6 +13088,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -13221,9 +13319,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -13376,9 +13473,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -14175,9 +14271,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -14427,9 +14522,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -14454,9 +14548,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -14479,6 +14572,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -14750,9 +14846,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -14777,9 +14872,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -14802,6 +14896,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -15064,9 +15161,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -15091,9 +15187,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -15116,6 +15211,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -15344,9 +15442,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -15499,9 +15596,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -16298,9 +16394,8 @@
                                   "exclusiveMinimum": 0
                                 },
                                 "easing": {
-                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                  "type": "string",
-                                  "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                  "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                  "$ref": "#/$defs/EasingSpec"
                                 }
                               },
                               "required": ["type"],
@@ -16550,9 +16645,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -16577,9 +16671,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -16602,6 +16695,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -16873,9 +16969,8 @@
                                     "exclusiveMinimum": 0
                                   },
                                   "easing": {
-                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                                    "$ref": "#/$defs/EasingSpec"
                                   }
                                 },
                                 "required": ["type"],
@@ -16900,9 +16995,8 @@
                                     "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                                   },
                                   "easing": {
-                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                                    "type": "string",
-                                    "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                                    "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                                    "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
                                     "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -16925,6 +17019,9 @@
                                 "description": "Animated exit for sugar text, with optional timing overrides."
                               }
                             ]
+                          },
+                          "animate": {
+                            "$ref": "#/$defs/Animate"
                           }
                         },
                         "required": ["type"],
@@ -17187,9 +17284,8 @@
                               "exclusiveMinimum": 0
                             },
                             "easing": {
-                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                              "$ref": "#/$defs/EasingSpec"
                             }
                           },
                           "required": ["type"],
@@ -17214,9 +17310,8 @@
                               "description": "Exit style: none, fade, rise (up/out), slide-left, slide-right."
                             },
                             "easing": {
-                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1.",
-                              "type": "string",
-                              "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                              "description": "Exit curve (default linear). ease-out-back overshoots travel by about 10%; text alpha stays in 0..1. With meta.motionVersion 2: any easing spec or $token.",
+                              "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
                               "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
@@ -17239,6 +17334,9 @@
                           "description": "Animated exit for sugar text, with optional timing overrides."
                         }
                       ]
+                    },
+                    "animate": {
+                      "$ref": "#/$defs/Animate"
                     }
                   },
                   "required": ["type"],
@@ -17467,9 +17565,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -17622,9 +17719,8 @@
                             "exclusiveMinimum": 0
                           },
                           "easing": {
-                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. Ignored by an overlay fade motion (the fade filter is linear only).",
-                            "type": "string",
-                            "enum": ["linear", "ease-out", "ease-in-out", "ease-out-back"]
+                            "description": "Progress curve for the entrance (default linear). ease-out decelerates; ease-in-out ramps up and settles; ease-out-back overshoots travel by about 10% and settles, with text alpha clamped to 0..1. With meta.motionVersion 2: springs (duration derived when omitted), cubic-bezier, the named curves and $tokens. Ignored by an overlay fade motion (the fade filter is linear only).",
+                            "$ref": "#/$defs/EasingSpec"
                           }
                         },
                         "required": ["type"],
@@ -18337,6 +18433,109 @@
   "additionalProperties": false,
   "description": "Root descriptor of a video composition template; all fields are optional so partial descriptors can be validated incrementally.",
   "$defs": {
+    "EasingSpec": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        {
+          "type": "object",
+          "properties": {
+            "points": {
+              "minItems": 2,
+              "maxItems": 64,
+              "type": "array",
+              "items": {
+                "type": "array",
+                "prefixItems": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  {
+                    "type": "number",
+                    "minimum": -2,
+                    "maximum": 3
+                  }
+                ]
+              },
+              "description": "Curve control points [progress, value] from [0,0] to [1,1], non-decreasing in progress."
+            }
+          },
+          "required": ["points"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "Easing: linear | ease-out | ease-in-out | ease-out-back (historical); with meta.motionVersion 2 also ease | ease-in | ease-out-expo | ease-in-out-sine | ease-out-elastic | ease-out-bounce | … , cubic-bezier(x1,y1,x2,y2), spring(stiffness,damping[,mass[,velocity]]), steps(n[,start|end]), a $token from global.motion or the built-ins ($snappy, $gentle, $bouncy, $wobbly, $smooth, $juicy, $expo, $anticipate), or { points: [[p,value],…] }."
+    },
+    "Animate": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "description": "Horizontal position track (drawtext x).",
+          "$ref": "#/$defs/KeyframeTrack"
+        },
+        "y": {
+          "description": "Vertical position track (drawtext y).",
+          "$ref": "#/$defs/KeyframeTrack"
+        },
+        "opacity": {
+          "description": "Opacity track (drawtext alpha), clamped to 0..1.",
+          "$ref": "#/$defs/KeyframeTrack"
+        },
+        "scale": {
+          "description": "Scale track: multiplies a numeric fontsize, re-rasterized every frame.",
+          "$ref": "#/$defs/KeyframeTrack"
+        }
+      },
+      "additionalProperties": false,
+      "description": "Keyframe tracks for a positioned drawtext (motionVersion 2). Each key eases into the next; a track overrides the same property from reveal/exit."
+    },
+    "KeyframeTrack": {
+      "minItems": 1,
+      "maxItems": 32,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "t": {
+            "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0
+              },
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40
+              }
+            ]
+          },
+          "v": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^[+-]\\d+(?:\\.\\d+)?$"
+              }
+            ],
+            "description": "Value at this key. x/y: pixels, or \"+80\"/\"-40\" relative to the resting position (scaled by energy). opacity: 0..1. scale: a multiplier of the font size."
+          },
+          "ease": {
+            "description": "Curve INTO this key from the previous one (default linear).",
+            "$ref": "#/$defs/EasingSpec"
+          }
+        },
+        "required": ["v"],
+        "additionalProperties": false
+      }
+    },
     "__schema0": {
       "anyOf": [
         {

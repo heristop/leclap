@@ -27,6 +27,18 @@ The underlying people, locations and physical props are source footage. LeClap c
 
 [`type-impact.json`](./type-impact.json) is a new three-scene native typography study: opposing headline arrivals, a pink counterpoint and a stable final invitation. Its creative direction calls for fast entrances followed by readable holds. Configure `reveal` / `exit` duration, distance, easing and delay on each text filter; the final title card exposes line stagger. It uses bundled Bebas Neue and Oswald fonts and needs no footage. Watch it in the web app at `/showcase?sample=type-impact`.
 
+## Spring kinetics (motion system v2)
+
+[`spring-kinetics.json`](./spring-kinetics.json) is a two-scene study of `meta.motionVersion: 2`. The headline lands on an authored `$land` spring while its `scale` track settles on `$bouncy`. The support line slides in on `$snappy` with no duration authored, so the spring's own settle time sets it. The counterpoint enters on the app's `$expo` curve and leaves with `ease-in-back` anticipation. `global.motion` defines the tokens and the energy dial, and `global.seed` fixes the grain. It is asset-free (bundled Bebas Neue) and renders byte-identically on a given platform:
+
+```bash
+leclap render examples/motion-design/spring-kinetics.json \
+  --assets packages/leclap-creative-kit/src/library --output spring-kinetics.mp4 --manifest
+leclap verify spring-kinetics.mp4.manifest.json --rerender --assets packages/leclap-creative-kit/src/library
+```
+
+Set `global.motion.energy` to `0` for the reduced-motion cut (fades only) or `1.5` for more travel. See [motion system v2](../../docs/template-configuration.md#motion-system-v2).
+
 ## Native controls
 
 [`native-timing.json`](./native-timing.json) is a landscape, asset-free demonstration with bundled fonts. It includes a broadcast-inspired frame, a title card with configurable line stagger, and coordinated exits on positioned text.

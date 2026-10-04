@@ -30,6 +30,7 @@ All fields are optional in the type. `Project.applyDefault()` merges defaults fo
 | `currentLocale`  | `string`                                                                       | `en`; selects localized copy                                                                                 |
 | `qualityTier`    | `'draft' \| 'standard' \| 'high'`                                              | `standard`; encoder-family-specific quality settings                                                         |
 | `skipValidation` | `boolean`                                                                      | `false`; trusted Node callers only                                                                           |
+| `deterministic`  | `boolean`                                                                      | On for `meta.motionVersion: 2` templates, off otherwise; the CLI and MCP turn it on                          |
 | `codecConfig`    | `{ videoCodec?: string; audioCodec?: string }`                                 | Empty codec strings use the engine's encoder fallbacks                                                       |
 | `hardwareConfig` | `{ hwaccel?: string \| null; preset?: string; maxRenderConcurrency?: number }` | `hwaccel: null`, `preset: 'ultrafast'`; concurrency depends on the adapter                                   |
 | `audioConfig`    | `{ sampleRate?: number; channelLayout?: string }`                              | `44100`, `stereo`                                                                                            |
@@ -61,6 +62,12 @@ Replace the example field and section names with those declared by your descript
 `'draft' | 'standard' | 'high'` — a named render-quality tier resolved by `resolveTier` in `core/encoding.ts`. An unrecognised or unset value (including a bad JSON-sourced string) falls back to `'standard'` via an `isQualityTier` guard, rather than key-missing into the tier tables and producing `-crf undefined`. `'standard'` reproduces the historical hardcoded encoder args byte-for-byte, so existing callers see unchanged output.
 
 Templates never carry crf/preset/bitrate directly — encoder numbers stay an app/host concern, resolved per tier (see [Encoder selection & tiers](#encoder-selection--tiers)).
+
+### `deterministic`
+
+`boolean`: the deterministic encoder profile. When it is on, every FFmpeg command of the build is rewritten to carry `-fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1`; libx264 commands also get a fixed `-threads 4`, because x264 splits work by thread count and `auto` follows the CPU count. One adapter-level tap applies it (`core/determinism/command-tap.ts`), so segments, assembly, the music mix and whole-video animations all carry it on Node, WASM and on-device. By default it is on for `meta.motionVersion: 2` templates and off for v1 (historical bytes); `leclap render` and MCP `compose_video` turn it on. Disable it with `--no-deterministic`.
+
+The Node `compile()` reporter accepts `onManifest(manifest)`. After a successful render it receives the render manifest: engine and FFmpeg versions, the template digest and canonical descriptor, asset digests, the normalized and sorted command list with its digest, and the output digest. Machine paths are normalized to `$BUILD`, `$ASSETS`, `$TMP` and `$VIDEO{section}`, so two machines produce the same graph digest.
 
 ### `skipValidation`
 

@@ -9,7 +9,6 @@ import {
   resolveSeed,
   seededRandom,
   sha256Hex,
-  timeVariable,
 } from '@/core/determinism';
 import { ENGINE_VERSION } from '@/core/version';
 import pkg from '../package.json' with { type: 'json' };
@@ -78,11 +77,6 @@ describe('contract switches', () => {
     expect(resolveDeterministic({ meta: { motionVersion: 2 } }, undefined)).toBe(true);
     expect(resolveDeterministic({ meta: { motionVersion: 2 } }, false)).toBe(false);
     expect(resolveDeterministic({}, true)).toBe(true);
-  });
-
-  it('reads time from the frame index under v2 only', () => {
-    expect(timeVariable(1, 30)).toBe('t');
-    expect(timeVariable(2, 30)).toBe('(n/30)');
   });
 });
 

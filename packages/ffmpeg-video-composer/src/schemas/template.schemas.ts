@@ -24,6 +24,7 @@ export * from './global.schemas';
 export * from './filter.schemas';
 export * from './section.schemas';
 export * from './partial.schemas';
+export * from './motion.schemas';
 
 // ── JSON Schema export ─────────────────────────────────────────────────────────
 

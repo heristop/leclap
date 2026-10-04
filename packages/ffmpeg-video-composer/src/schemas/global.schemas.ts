@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { MAX_SEED } from '../core/determinism/contract';
+import { MotionTokensSchema } from './motion.schemas';
 import {
   TransitionSchema,
   GlobalAudioSchema,
@@ -196,6 +197,7 @@ export const GlobalConfigSchema = z
         'Root seed (uint32, default 0) for every procedural effect: each element derives its own stream as ' +
           'hash(seed, element path), so the same seed always renders the same shake, grain and scramble.'
       ),
+    motion: MotionTokensSchema.optional(),
     fps: z
       .number()
       .int()

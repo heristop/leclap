@@ -13,7 +13,7 @@ import { fetchSectionInfos, segmentOutputPath } from './section-infos';
 import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
-import { recordBuildCommands, resolveBuildVideoConfig } from './prepare-build';
+import { prepareMotion, recordBuildCommands, resolveBuildVideoConfig } from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import { expandPartialsSafe, assertEffectsResolved } from '@/core/partials';
@@ -101,7 +101,8 @@ class TemplateDirector {
       this.logger.warn(`[Director] partial expansion failed: ${expansion.error.message}`);
     }
 
-    this.template.descriptor = assertEffectsResolved(expansion.ok ? expansion.data : clonedDescriptor);
+    // motionVersion 2: resolve $tokens and scale travel by energy once, before any lowering (prepare-build.ts).
+    this.template.descriptor = prepareMotion(assertEffectsResolved(expansion.ok ? expansion.data : clonedDescriptor));
     this.project.config = projectConfig;
 
     // Reset ALL build-accumulated state at the start of every compile() (config() runs first), so

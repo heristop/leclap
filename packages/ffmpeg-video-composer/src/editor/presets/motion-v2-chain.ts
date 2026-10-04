@@ -28,9 +28,10 @@ interface ChainSource {
 }
 
 /**
- * The section chain under motionVersion 2: a leading CFR `fps` conform, because v2 animates on the frame
- * index (`n/FPS`, core/determinism/contract.ts) and that is only exact once every frame sits on the
- * output grid; and seeded `noise`. Version 1 chains are returned untouched (historical output).
+ * The section chain under motionVersion 2: a leading CFR `fps` conform, so every frame sits on the
+ * output grid and `t` in an animated expression is always an exact frame time (variable-frame-rate
+ * phone footage can't shift a keyframe by a frame), and seeded `noise`. Version 1 chains are returned
+ * untouched (historical output).
  */
 export function conformMotionV2Chain(
   filters: Filter[],

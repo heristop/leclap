@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Determinism contract. `meta.motionVersion` pins motion semantics (1 = historical output; 2 = the v2 motion
+  system), and `global.seed` roots every procedural effect. A deterministic encoder profile (bit-exact
+  muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on for v2
+  templates and controlled by `ProjectConfig.deterministic`. A render manifest is delivered through
+  `CompileReporter.onManifest`. Raw filters that read the wall clock or `random()` fail validation
+  (`nondeterministic_expression`).
+- Motion system v2 (`meta.motionVersion: 2`): physical springs, cubic-bezier, the named curve set,
+  `steps()` and point curves, all lowered to piecewise polynomials in `t` within 0.1%. `global.motion`
+  tokens (springs, curves, durations, energy) and built-ins mirror the app's motion curves. `animate`
+  keyframe tracks (`x`, `y`, `opacity`, `scale`) on positioned `drawtext`. The energy dial scales every
+  travel distance. Under v2 each section chain is conformed to CFR and `noise` filters are seeded.
+- Exports: `core/determinism` (hashing, seeds, manifest), `core/motion` (curves, easing, tokens, tracks),
+  `ENGINE_VERSION`, `digestRenderedFile`.
+
 ## [2.5.0] - 2026-10-03
 
 ### Added

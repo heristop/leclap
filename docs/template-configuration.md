@@ -418,7 +418,7 @@ Every text sugar (`caption`, `titleCard`, `lowerThird`, `global.overlays`) takes
 | `slide-left`  | Enters from the right (+fade).                       |
 | `slide-right` | Enters from the left (+fade).                        |
 
-`delay` (s, default 0.3, ≥0), `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only). Optional `easing` is `linear` (default), `ease-out` (cubic-out), `ease-in-out` (smoothstep), or `ease-out-back` (about 10% travel overshoot). It curves text travel and alpha; back easing clamps alpha to 0..1 while allowing position to overshoot. In `titleCard`/`lowerThird` the lines enter top-to-bottom. Title cards accept `stagger` (seconds, 0..1, default 0.15) between non-empty lines; zero reveals them together. Empty lines consume no stagger slot, and the accent bar follows its associated emitted line. Lower thirds retain the fixed 0.15-second stagger.
+`delay` (s, default 0.3, ≥0), `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only). Optional `easing` is `linear` (default), `ease-out` (cubic-out), `ease-in-out` (smoothstep), or `ease-out-back` (about 10% travel overshoot). With `meta.motionVersion: 2`, any [motion v2 easing](#easing) is also accepted: springs, cubic-bezier, the named set, or tokens. It curves text travel and alpha; back easing clamps alpha to 0..1 while allowing position to overshoot. In `titleCard`/`lowerThird` the lines enter top-to-bottom. Title cards accept `stagger` (seconds, 0..1, default 0.15) between non-empty lines; zero reveals them together. Empty lines consume no stagger slot, and the accent bar follows its associated emitted line. Lower thirds retain the fixed 0.15-second stagger.
 
 ## Exit
 
@@ -430,6 +430,81 @@ A positioned text overlay (a `drawtext` filter on a section, as the builder emit
 ```
 
 The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The one extra field is **`after`** — seconds from the section start when the exit begins; omit it and the engine times the exit to **end at the section's end**. `duration` (s, default 0.6, >0), `distance` (px, default 60, >0, rise/slide only) and `easing` (`linear`/`ease-out`/`ease-in-out`/`ease-out-back`, default `linear`) behave as for `reveal`. `after` must be ≥0. Rise exits travel upward, slide-left exits travel left and slide-right exits travel right. Omitted easing preserves historical output. Exits remain positioned `drawtext` controls; caption/titleCard/lowerThird blocks do not gain an `exit` field.
+
+## Motion system v2
+
+Set `meta.motionVersion: 2` to opt into the v2 motion system. Version 1 (the default) is pinned: its output never changes. Version 2 adds motion tokens, physical springs, CSS-style curves, keyframe tracks and an energy dial. It also switches on the [determinism contract](#determinism) (frame-grid conform, seeded noise, bit-exact muxing). Everything compiles to plain FFmpeg expression arithmetic, so it renders identically on Node, WASM and on-device. The study [`examples/motion-design/spring-kinetics.json`](../examples/motion-design/spring-kinetics.json) uses every feature.
+
+### Easing
+
+Every `easing` (reveal, exit, overlay `motion`) and every keyframe `ease` accepts:
+
+| Spec                                                                                                                                                                                                                                                             | Behaviour                                                                                                                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `linear`, `ease-out`, `ease-in-out`, `ease-out-back`                                                                                                                                                                                                             | The historical curves. They are valid in v1 too and lower to the exact historical expressions.                                                                                                                                                                                   |
+| `ease`, `ease-in`                                                                                                                                                                                                                                                | CSS keyword curves.                                                                                                                                                                                                                                                              |
+| `ease-in-cubic`, `ease-out-cubic`, `ease-in-out-cubic`, `ease-out-quart`, `ease-out-quint`, `ease-out-expo`, `ease-in-out-expo`, `ease-out-sine`, `ease-in-out-sine`, `ease-out-circ`, `ease-in-back`, `ease-in-out-back`, `ease-out-elastic`, `ease-out-bounce` | The named set.                                                                                                                                                                                                                                                                   |
+| `cubic-bezier(x1, y1, x2, y2)`                                                                                                                                                                                                                                   | CSS cubic-bezier. `x1`/`x2` must be in 0..1; `y1`/`y2` may overshoot (-5..5).                                                                                                                                                                                                    |
+| `spring(stiffness, damping[, mass[, velocity]])`                                                                                                                                                                                                                 | A closed-form damped harmonic oscillator. Stiffness is 1..2000, damping 1..200, mass 0.1..20, velocity -50..50, and the damping ratio must be at least 0.1. **When no `duration` is authored, the spring takes its own settle time** (until it stays within 0.1% of its target). |
+| `steps(n[, start\|end])`                                                                                                                                                                                                                                         | Stop-motion steps, lowered exactly.                                                                                                                                                                                                                                              |
+| `{ "points": [[0,0],[0.4,1.08],[1,1]] }`                                                                                                                                                                                                                         | A custom curve through control points, from p=0 to p=1.                                                                                                                                                                                                                          |
+| `$name`                                                                                                                                                                                                                                                          | A [motion token](#motion-tokens).                                                                                                                                                                                                                                                |
+
+Each curve is lowered at compile time to a piecewise cubic polynomial in `t`. Segmentation is adaptive and stays within 0.1% of the true curve, so a spring costs a few multiply-adds per frame. Position may overshoot, but alpha is always clamped to 0..1.
+
+### Motion tokens
+
+`global.motion` is one design system for time:
+
+```jsonc
+"global": {
+  "motion": {
+    "energy": 0.8,                                              // 0..1.5, default 1
+    "springs": { "land": { "stiffness": 260, "damping": 17 } }, // referenced as "$land"
+    "curves": { "brand": "cubic-bezier(0.2, 0, 0, 1)" },        // referenced as "$brand"
+    "durations": { "beat": 0.5 }                                // keyframe times: "$beat", "+$beat"
+  }
+}
+```
+
+The built-in tokens are always available and can be overridden by name:
+
+- Springs: `$snappy` (420/30), `$gentle` (170/26), `$bouncy` (300/14), `$wobbly` (180/12).
+- Curves: `$smooth`, `$juicy` and `$expo`, which are the web app's own `--ease-smooth`, `--ease-spring` and `--ease-out-expo`, plus `$anticipate`.
+- Durations: `$stagger` 0.06, `$micro` 0.18, `$short` 0.35, `$base` 0.6, `$long` 1.1, `$hold` 2.5.
+
+**Energy** scales every rise/slide travel distance (reveal, exit, overlay motion, global overlays) and every relative keyframe offset. `0` gives a reduced-motion cut (fades only); `1.5` is the hype cut. Camera `motion` arrays are not scaled.
+
+### Keyframe tracks (`animate`)
+
+A positioned `drawtext` filter takes `animate` tracks for `x`, `y`, `opacity` and `scale`. Each key eases **into** itself from the previous key:
+
+```jsonc
+{
+  "type": "drawtext",
+  "values": { "text": { "en": "PHYSICS," }, "fontfile": "BebasNeue.ttf", "fontsize": 200, "x": 80, "y": 150 },
+  "animate": {
+    "y": [
+      { "t": 0.1, "v": "+140" },
+      { "v": "+0", "ease": "$land" },
+    ],
+    "opacity": [
+      { "t": 0.1, "v": 0 },
+      { "t": "+$micro", "v": 1 },
+    ],
+    "scale": [
+      { "t": 0.1, "v": 0.86 },
+      { "t": "+$long", "v": 1, "ease": "$bouncy" },
+    ],
+  },
+}
+```
+
+- `t`: seconds from the section start, `"+0.3"` relative to the previous key, or a duration token. If omitted, the first key is at 0 and later keys wait for the previous key plus the ease's natural duration (a spring's settle time, else 0.6 s).
+- `v`: for `x`/`y`, pixels, or `"+80"`/`"-40"` relative to the resting position from `values.x`/`values.y`. For `opacity`, 0..1. For `scale`, a multiplier of a **numeric** `values.fontsize`; the text is re-rasterized every frame, so it stays crisp.
+- A track overrides the same property from `reveal`/`exit`. Other properties keep their entrance and exit.
+
+Validation codes: `motion_v2_required` (a v2 feature in a v1 template), `unknown_motion_token`, `invalid_motion_token`, `invalid_easing`, and `invalid_keyframes` (keys out of order, relative opacity/scale, scale without a numeric fontsize, tracks on anything but `drawtext`). Grammar errors in an easing string fail at the schema with the reason, e.g. `unknown easing "ease-outt"`.
 
 ## Title cards
 
@@ -766,6 +841,19 @@ A complete, valid descriptor exercising the structured-sugar layer: a layered ti
 ## Validating
 
 Run a descriptor through `TemplateValidator` (zod + the cross-field rules above). On failure, zod reports the exact path/field — fix the JSON to match the schema. Cross-field rules also flag: a whole-video animation with no url (`global_animation_missing_url`) and a `caption`/`global.overlays` `font` string that is neither a bundled id nor a `.ttf` filename (`unknown_font` — a typo would otherwise silently fall back to the default font; the `{ family }` object form is checked at render time instead, see [Fonts](#fonts)). After editing any `.json`, run `pnpm fmt`. To regenerate the machine-readable schema after a zod change: `pnpm --filter ffmpeg-video-composer generate:schema`.
+
+## Determinism
+
+The same template, assets, seed and platform profile always render the same bytes:
+
+- **`meta.motionVersion`** pins motion semantics. Preset retunes ship behind a new version, so a pinned template never changes output.
+- **`global.seed`** (uint32, default 0) is the root of every procedural effect. Each element derives `hash(seed, element path)`; under v2, every `noise` filter (grain, glitch) gets its own `all_seed`. Change the seed to reshuffle grain without touching anything else.
+- **Frame grid**: under v2, each section chain starts with a CFR `fps` conform, so `t` in every animated expression is an exact frame time.
+- **Raw-filter hygiene**: `%{localtime}`, `%{gmtime}`, `time(…)` and `random(…)` in raw filters fail validation (`nondeterministic_expression`). Set `meta.allowNondeterministic: true` to opt out.
+- **Deterministic encoder profile**: bit-exact muxing, no inherited metadata and pinned libx264 threads. It is on for v2 templates, in the CLI and in MCP renders; `ProjectConfig.deterministic` overrides it (see [engine configuration](./engine-configuration.md#deterministic)).
+- **Render manifest**: `compile(config, template, { onManifest })` (or `leclap render --manifest`) records the template, asset, normalized-filtergraph and output digests. `leclap verify <video>.manifest.json [--rerender]` checks a video against it.
+
+Encoders differ per platform (x264, OpenH264, VideoToolbox), so bytes match **per platform profile**. The normalized filtergraph is the invariant across platforms. It is snapshotted for every kit template in `packages/ffmpeg-video-composer/tests/__goldens__`.
 
 ## Migrating older templates
 

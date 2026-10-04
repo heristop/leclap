@@ -1,0 +1,137 @@
+import { z } from 'zod';
+import { easingError } from '../core/motion/easing';
+
+// ── v2 motion system schemas (docs/plans/motion-system-v2.md §2–3) ─────────────────────────────────
+//
+// Shapes only. The grammar of an easing string, token references and keyframe ordering are checked by
+// the motion rules in services/motion-validation.ts, which report precise paths and messages (a zod
+// regex would only say "invalid string"). Everything here requires `meta.motionVersion: 2` except the
+// four historical easing names.
+
+export const EASING_SPEC_DESCRIPTION =
+  'Easing: linear | ease-out | ease-in-out | ease-out-back (historical); with meta.motionVersion 2 also ' +
+  'ease | ease-in | ease-out-expo | ease-in-out-sine | ease-out-elastic | ease-out-bounce | … , ' +
+  'cubic-bezier(x1,y1,x2,y2), spring(stiffness,damping[,mass[,velocity]]), steps(n[,start|end]), ' +
+  'a $token from global.motion or the built-ins ($snappy, $gentle, $bouncy, $wobbly, $smooth, $juicy, $expo, ' +
+  '$anticipate), or { points: [[p,value],…] }.';
+
+// Grammar is checked here so a typo fails at the schema, with the reason; a `$token` only has to be
+// well formed, because whether it exists depends on the template's global.motion (a descriptor rule).
+function easingGrammarIssue(spec: string): string | null {
+  if (spec.startsWith('$')) return /^\$[a-z][a-z0-9-]{0,31}$/.test(spec) ? null : `malformed motion token "${spec}"`;
+
+  return easingError(spec);
+}
+
+const EasingStringSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(200)
+  .superRefine((spec, ctx) => {
+    const issue = easingGrammarIssue(spec);
+
+    if (issue) ctx.addIssue({ code: 'custom', message: issue });
+  });
+
+export const EasingSpecSchema = z
+  .union([
+    EasingStringSchema,
+    z
+      .object({
+        points: z
+          .array(z.tuple([z.number().min(0).max(1), z.number().min(-2).max(3)]))
+          .min(2)
+          .max(64)
+          .describe('Curve control points [progress, value] from [0,0] to [1,1], non-decreasing in progress.'),
+      })
+      .strict(),
+  ])
+  .describe(EASING_SPEC_DESCRIPTION)
+  // An id emits this once under $defs in the JSON Schema and references it from every easing field.
+  .meta({ id: 'EasingSpec' });
+
+const TOKEN_NAME = /^[a-z][a-z0-9-]{0,31}$/;
+const TokenNameSchema = z.string().regex(TOKEN_NAME, 'token names are lower-kebab-case, 1..32 characters');
+
+export const SpringTokenSchema = z
+  .object({
+    stiffness: z.number().min(1).max(2000).describe('Spring stiffness k (1..2000). Higher is snappier.'),
+    damping: z.number().min(1).max(200).describe('Damping c (1..200). Lower bounces more.'),
+    mass: z.number().min(0.1).max(20).optional().describe('Mass m (0.1..20, default 1). Heavier is slower.'),
+    velocity: z
+      .number()
+      .min(-50)
+      .max(50)
+      .optional()
+      .describe('Initial velocity toward the target, in distances per second (default 0).'),
+  })
+  .strict()
+  .describe('A physical spring; its duration is derived (time to settle within 0.1%) unless one is authored.');
+
+export const MotionTokensSchema = z
+  .object({
+    energy: z
+      .number()
+      .min(0)
+      .max(1.5)
+      .optional()
+      .describe(
+        'Global motion intensity (0..1.5, default 1): scales every reveal/exit/overlay travel distance and ' +
+          'relative keyframe offset. 0 is a reduced-motion cut (fades only).'
+      ),
+    springs: z.record(TokenNameSchema, SpringTokenSchema).optional().describe('Named springs, referenced as $name.'),
+    curves: z
+      .record(TokenNameSchema, EasingSpecSchema)
+      .optional()
+      .describe('Named easing curves, referenced as $name.'),
+    durations: z
+      .record(TokenNameSchema, z.number().min(0).max(30))
+      .optional()
+      .describe('Named durations in seconds, referenced from keyframe times as "$name" or "+$name".'),
+  })
+  .strict()
+  .describe('Motion tokens: one design system for time, shared by every animated field (motionVersion 2).');
+
+// ── animate: keyframe tracks ───────────────────────────────────────────────────
+
+export const KeyframeSchema = z
+  .object({
+    t: z
+      .union([z.number().min(0), z.string().trim().min(1).max(40)])
+      .optional()
+      .describe(
+        'When this key is reached: seconds from the section start (1.2), relative to the previous key ' +
+          '("+0.3"), or a duration token ("$base", "+$short"). Omitted: the previous key plus this ease\'s ' +
+          'natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.'
+      ),
+    v: z
+      .union([z.number(), z.string().regex(/^[+-]\d+(?:\.\d+)?$/, 'relative values look like "+80" or "-40"')])
+      .describe(
+        'Value at this key. x/y: pixels, or "+80"/"-40" relative to the resting position (scaled by energy). ' +
+          'opacity: 0..1. scale: a multiplier of the font size.'
+      ),
+    ease: EasingSpecSchema.optional().describe('Curve INTO this key from the previous one (default linear).'),
+  })
+  .strict();
+
+const TrackSchema = z.array(KeyframeSchema).min(1).max(32).meta({ id: 'KeyframeTrack' });
+
+export const AnimateSchema = z
+  .object({
+    x: TrackSchema.optional().describe('Horizontal position track (drawtext x).'),
+    y: TrackSchema.optional().describe('Vertical position track (drawtext y).'),
+    opacity: TrackSchema.optional().describe('Opacity track (drawtext alpha), clamped to 0..1.'),
+    scale: TrackSchema.optional().describe('Scale track: multiplies a numeric fontsize, re-rasterized every frame.'),
+  })
+  .strict()
+  .describe(
+    'Keyframe tracks for a positioned drawtext (motionVersion 2). Each key eases into the next; a track ' +
+      'overrides the same property from reveal/exit.'
+  )
+  .meta({ id: 'Animate' });
+
+export type EasingSpecInput = z.infer<typeof EasingSpecSchema>;
+export type MotionTokens = z.infer<typeof MotionTokensSchema>;
+export type Keyframe = z.infer<typeof KeyframeSchema>;
+export type Animate = z.infer<typeof AnimateSchema>;

@@ -6,6 +6,7 @@ import type { Filter } from '@/core/types';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import { applyFilterCompat, engineCapabilities } from '../utils/filter-compat';
 import { applyAnimation } from '../presets/text';
+import { applyTracks } from '@/core/motion/tracks';
 import type FormatterManager from './FormatterManager';
 
 // A drawtext base coordinate may be authored as a number or an expression string; anything else
@@ -71,8 +72,10 @@ class FilterManager {
   // Animated entrance/exit: a drawtext with a `reveal` and/or `exit` gets alpha + kinetic x/y baked
   // from its base x/y (the same vocabulary as the caption/lowerThird sugar), so positioned text
   // overlays animate in and out. The exit is timed against the section duration.
+  // `animate` keyframe tracks (motionVersion 2) are applied last and override whatever reveal/exit baked
+  // for the same property (core/motion/tracks.ts).
   private readonly bakeTextAnimation = (filter: Filter): Filter => {
-    if (filter.type !== 'drawtext' || (!filter.reveal && !filter.exit) || !filter.values) {
+    if (filter.type !== 'drawtext' || (!filter.reveal && !filter.exit && !filter.animate) || !filter.values) {
       return filter;
     }
 
@@ -82,6 +85,8 @@ class FilterManager {
     // Coercing a number to '0' would anchor the animation to the frame origin.
     const base = { x: baseCoordinate(values.x), y: baseCoordinate(values.y) };
     applyAnimation(values, filter.reveal, filter.exit, base, duration);
+
+    if (filter.animate) applyTracks(values, filter.animate, base);
 
     return { ...filter, values };
   };

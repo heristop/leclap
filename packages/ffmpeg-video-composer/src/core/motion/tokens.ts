@@ -4,12 +4,16 @@
 
 import type { EasingSpec } from './easing';
 import type { SpringParams } from './curves';
+import { roleTokens, type MotionRoleDefinition } from './roles';
+import { applyMotionRoles } from './roles-apply';
 
 export interface MotionTokenSet {
   springs?: Record<string, SpringParams>;
   curves?: Record<string, EasingSpec>;
   durations?: Record<string, number>;
   energy?: number;
+  /** Motion roles (roles.ts), referenced as `$role.<name>` and applied to elements that declare `role`. */
+  roles?: Partial<Record<string, MotionRoleDefinition>>;
 }
 
 /**
@@ -17,7 +21,7 @@ export interface MotionTokenSet {
  * own (apps/leclap-web index.css: --ease-smooth, --ease-spring, --ease-out-expo), so a video moves like the
  * app that made it.
  */
-export const BUILTIN_MOTION_TOKENS: Required<Omit<MotionTokenSet, 'energy'>> = {
+export const BUILTIN_MOTION_TOKENS: Required<Omit<MotionTokenSet, 'energy' | 'roles'>> = {
   springs: {
     snappy: { stiffness: 420, damping: 30 },
     gentle: { stiffness: 170, damping: 26 },
@@ -51,9 +55,12 @@ export function resolveTokens(motion: MotionTokenSet | undefined): ResolvedToken
 
   for (const [name, spring] of Object.entries(springs)) easings[name] = springSpec(spring);
 
+  const durations = { ...BUILTIN_MOTION_TOKENS.durations, ...motion?.durations };
+  const roles = roleTokens(motion?.roles, easings, durations);
+
   return {
-    easings,
-    durations: { ...BUILTIN_MOTION_TOKENS.durations, ...motion?.durations },
+    easings: { ...easings, ...roles.easings },
+    durations: { ...durations, ...roles.durations },
     energy: motion?.energy ?? 1,
   };
 }
@@ -69,7 +76,7 @@ export function resolveEasingRef(spec: EasingSpec, tokens: ResolvedTokens): Easi
 export function resolveTimeRef(time: number | string | undefined, tokens: ResolvedTokens): number | string | undefined {
   if (typeof time !== 'string') return time;
 
-  const match = /^(\+?)\$([a-z][a-z0-9-]*)$/.exec(time.trim());
+  const match = /^(\+?)\$((?:role\.)?[a-z][a-z0-9-]*)$/.exec(time.trim());
 
   if (!match || !Object.hasOwn(tokens.durations, match[2])) return time;
 
@@ -169,6 +176,6 @@ export function resolveMotionDescriptor<T extends { meta?: unknown; global?: unk
   return {
     ...descriptor,
     global: resolveNode(descriptor.global, tokens, 'global'),
-    sections: resolveNode(descriptor.sections, tokens, 'sections'),
+    sections: resolveNode(applyMotionRoles(descriptor.sections, tokens), tokens, 'sections'),
   };
 }

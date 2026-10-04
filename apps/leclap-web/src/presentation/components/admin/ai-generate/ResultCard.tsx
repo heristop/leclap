@@ -1,19 +1,49 @@
 // The ready state: what was generated, at a glance — name, one-line description, scene and clip
-// counts, length and format, and the effects it uses — plus any warnings from the run.
+// counts, length and format, and the effects it uses — plus any warnings from the run and the
+// engine's art-direction notes (pacing, accent, palette lint), counted and expandable.
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import type { DescriptorSummary } from '@/application/usecases/ai-template/descriptor-summary';
+import type { Advisory } from '@/application/usecases/ai-template/validate-generated';
 import { Info } from '@/presentation/components/icons';
 
 interface ResultCardProps {
   summary: DescriptorSummary;
   warnings: string[];
+  advisories?: Advisory[];
 }
 
 const FACT = 'rounded-md bg-foreground/[0.06] px-2 py-0.5 text-xs font-medium tabular-nums text-foreground/90';
 
-export const ResultCard = ({ summary, warnings }: ResultCardProps) => {
+const AdvisoryList = ({ advisories }: { advisories: Advisory[] }) => {
+  const { t } = useTranslation('ai');
+
+  if (advisories.length === 0) {
+    return <p className="text-xs text-muted-foreground">{t('result.noAdvisories')}</p>;
+  }
+
+  return (
+    <details className="text-xs">
+      <summary className="cursor-pointer rounded font-medium text-foreground/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40">
+        {t('result.advisories', { count: advisories.length })}
+      </summary>
+      <ul className="mt-2 grid gap-2 pl-4">
+        {advisories.map((advisory) => (
+          <li key={`${advisory.code}:${advisory.path}:${advisory.message}`} className="grid gap-0.5">
+            <span className="text-pretty text-foreground/90">
+              <code className="mr-1.5 font-mono text-[0.7rem] text-muted-foreground">{advisory.code}</code>
+              {advisory.message}
+            </span>
+            {advisory.hint && <span className="text-pretty text-muted-foreground">{advisory.hint}</span>}
+          </li>
+        ))}
+      </ul>
+    </details>
+  );
+};
+
+export const ResultCard = ({ summary, warnings, advisories = [] }: ResultCardProps) => {
   const { t } = useTranslation('ai');
   const ref = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
@@ -54,6 +84,7 @@ export const ResultCard = ({ summary, warnings }: ResultCardProps) => {
           {summary.effects.length > 0 ? summary.effects.join(' · ') : t('result.noEffects')}
         </p>
       </div>
+      <AdvisoryList advisories={advisories} />
       {warnings.length > 0 && (
         <ul className="grid gap-1">
           {warnings.map((warning) => (

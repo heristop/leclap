@@ -1,5 +1,6 @@
-// The dialog's single primary action changes with the run: Generate → Cancel while working → Open
-// in builder when ready → Replace draft (with the reason spelled out) when that would replace edits.
+// The dialog's single primary action changes with the run: Generate → Cancel while working → Write
+// template on a plan under review → Open in builder when ready → Replace draft (with the reason
+// spelled out) when that would replace edits.
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, ArrowRight, Sparkles } from '@/presentation/components/icons';
 import type { ReactNode } from 'react';
@@ -20,6 +21,9 @@ interface DialogFooterActionsProps {
   onConfirmReplace: () => void;
   onKeepEditing: () => void;
   onRegenerate: () => void;
+  // The plan review step: continue to the template (disabled while the plan is incomplete).
+  onWritePlan?: () => void;
+  canWritePlan?: boolean;
 }
 
 // Pinned to the bottom of the scrolling sheet so the primary action is always in reach.
@@ -68,6 +72,22 @@ export const DialogFooterActions = (props: DialogFooterActionsProps) => {
         <DialogFooter className="mt-0">
           <Button variant="secondary" onClick={props.onCancel}>
             {t('actions.cancel')}
+          </Button>
+        </DialogFooter>
+      </FooterBar>
+    );
+  }
+
+  if (status.kind === 'plan-ready') {
+    return (
+      <FooterBar status={props.statusSlot}>
+        <DialogFooter className="mt-0">
+          <Button variant="ghost" onClick={props.onRegenerate}>
+            {t('actions.startOver')}
+          </Button>
+          <Button disabled={props.canWritePlan === false} onClick={props.onWritePlan}>
+            {t('actions.writeTemplate')}
+            <ArrowRight aria-hidden />
           </Button>
         </DialogFooter>
       </FooterBar>

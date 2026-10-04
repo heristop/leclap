@@ -14,6 +14,7 @@ import {
   type CaptionStyleValues,
 } from './caption-layout';
 import { applyReveal, applyTextEffect, hasText, resolveFontFile } from './text';
+import { wrappedCaptionFilters } from './caption-wrap';
 import type { SugarContext } from './sugar-context';
 
 // ---------------------------------------------------------------------------
@@ -94,9 +95,15 @@ function captionY(caption: Caption, ctx: Pick<SugarContext, 'scale' | 'platform'
  * resolves the active locale, substitutes {{ variables }}, and escapes the string
  * downstream (the same text path every drawtext filter goes through).
  *
- * `ctx` (output scale + `global.platform`) only matters to the default position: see captionY.
+ * `ctx` (output scale + `global.platform`) only matters to the default position: see captionY. With
+ * `wrap` / `fit`, the caption is wrapped to the frame instead, one drawtext per line (caption-wrap.ts),
+ * which needs the motion context's text resolution; it falls back to the single line when it can't
+ * measure the font.
  */
-export function captionToFilters(caption?: Caption, ctx?: Pick<SugarContext, 'scale' | 'platform'>): Filter[] {
+export function captionToFilters(
+  caption?: Caption,
+  ctx?: Pick<SugarContext, 'scale' | 'platform'> & Partial<Pick<SugarContext, 'motion'>>
+): Filter[] {
   if (!caption || !hasText(caption.text)) {
     return [];
   }
@@ -114,6 +121,13 @@ export function captionToFilters(caption?: Caption, ctx?: Pick<SugarContext, 'sc
     fontcolor: caption.color ?? preset.fontcolor,
     ...resolveBox(caption, preset),
   };
+
+  if (caption.wrap !== undefined || caption.fit !== undefined) {
+    const { text: _text, y: _y, ...shared } = values;
+    const wrapped = wrappedCaptionFilters(caption, ctx, { values: shared, x, size: values.fontsize as number });
+
+    if (wrapped) return wrapped;
+  }
 
   applyTextEffect(values, caption.effect);
 

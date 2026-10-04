@@ -1,12 +1,17 @@
 import type { Filter, Section, TemplateDescriptorGlobal } from '@/core/types';
 import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letterboxToFilters } from './looks';
 import { captionToFilters } from './captions';
-import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
+import { titleCardToFilters, globalTextOverlayToFilters } from './text-blocks';
+import { lowerThirdFilters } from './lower-third-styles';
 import { kineticBlocksToFilters } from './kinetic';
+import { subtitlesToFilters } from './subtitles';
 import { cameraBackground } from './camera';
-import { graphicsToFilters } from './graphics';
+import { freezeFlashFilters, graphicsToFilters } from './graphics';
 
 export type { SugarContext, KineticSugarContext } from './sugar-context';
+// Emoji leave the lowered text right after the sugar compiles (editor/emoji); re-exported so the builder
+// stages both from one place.
+export { createEmojiPlan, type EmojiPlan } from '../emoji/EmojiPlan';
 import type { SugarContext } from './sugar-context';
 
 // Where a sugar's filters sit relative to an animation/gradient overlay graph:
@@ -80,7 +85,8 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     key: 'lowerThird',
     order: 58,
     layer: 'overlay',
-    compile: (section, ctx) => lowerThirdToFilters(section.lowerThird, { scale: ctx.scale }),
+    compile: (section, ctx) =>
+      lowerThirdFilters(section.lowerThird, { scale: ctx.scale, fps: ctx.fps, resolveText: ctx.motion?.resolveText }),
   },
   {
     key: 'graphics',
@@ -95,10 +101,23 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     compile: (section, ctx) => kineticBlocksToFilters(section.kinetic, ctx),
   },
   {
+    key: 'subtitles',
+    order: 65,
+    layer: 'overlay',
+    compile: (section, ctx) => subtitlesToFilters(section.subtitles, ctx),
+  },
+  {
     key: 'graphics-above',
     order: 70,
     layer: 'overlay',
     compile: (section, ctx) => graphicsToFilters(section, ctx, true),
+  },
+  {
+    // A freeze frame's optional flash hit (options.freeze[].flash), on top of everything like a flash graphic.
+    key: 'freeze-flash',
+    order: 75,
+    layer: 'overlay',
+    compile: (section, ctx) => freezeFlashFilters(section, ctx),
   },
 ];
 

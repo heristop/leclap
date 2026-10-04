@@ -5,14 +5,19 @@
 import type { KineticBlock } from '../../schemas/kinetic.schemas';
 import { layoutKinetic, type KineticUnit, type Layout } from './layout';
 import { resolveKinetic, staggerRanks, type KineticFrame, type ResolvedKinetic } from './resolve';
+import { wrapText } from '../captions/wrap';
 
 /** Upper bound of independently animated units per block (each is a drawtext). */
 export const MAX_KINETIC_UNITS = 64;
 const COARSER: Record<KineticUnit, KineticUnit> = { glyph: 'word', word: 'line', line: 'line' };
 
 /** The block laid out at its unit, stepping up to coarser units until it fits the budget. */
-export function layoutWithin(settings: ResolvedKinetic, text: string): { layout: Layout; unit: KineticUnit } | null {
+export function layoutWithin(settings: ResolvedKinetic, source: string): { layout: Layout; unit: KineticUnit } | null {
   let unit = settings.unit;
+  // Balanced lines are pre-broken with explicit newlines; each already fits, so layout keeps them.
+  const balanced =
+    settings.wrap === 'balanced' ? wrapText(source, settings.font, settings.size, settings.maxWidth, 'balanced') : null;
+  const text = balanced ? balanced.join('\n') : source;
 
   for (;;) {
     const layout = layoutKinetic({ ...settings, unit, text, y: 0 });

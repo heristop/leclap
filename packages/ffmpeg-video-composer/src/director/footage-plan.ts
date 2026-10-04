@@ -147,3 +147,23 @@ export async function planFootage(
     footage[sections[index].name] = plan;
   }
 }
+
+/**
+ * Runs the take plans after the clip/ramp/freeze lengths are recorded: each section's current length is
+ * its source length (take edits never combine with clip/ramp/freeze), and a kept-windows length replaces
+ * it in buildInfos.durations and totalLength.
+ */
+export async function applyTakePlans(
+  deps: FootagePlanDeps,
+  sections: readonly Section[],
+  buildInfos: ProjectBuildInfos
+): Promise<void> {
+  const durations = sections.map((section) => buildInfos.durations[section.name] ?? 0);
+  const before = durations.reduce((sum, value) => sum + value, 0);
+
+  await planFootage(deps, sections, durations, buildInfos);
+
+  for (const [index, section] of sections.entries()) buildInfos.durations[section.name] = durations[index];
+
+  buildInfos.totalLength += durations.reduce((sum, value) => sum + value, 0) - before;
+}

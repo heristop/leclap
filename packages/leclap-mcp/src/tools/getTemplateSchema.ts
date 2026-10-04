@@ -26,22 +26,56 @@ const GUIDE = [
     'split, fade) with accents and exits; easings add springs (spring(k,c)), cubic-bezier, named curves and ' +
     '$tokens ($snappy, $bouncy, $expo…); `animate` keyframe tracks drive x/y/opacity/scale on drawtext filters; ' +
     'global.motion holds tokens and the energy dial; global.seed makes every random-looking choice repeatable. ' +
+    'Kinetic `trail` adds echo smears; section `graphics` add hits (flash, glitch, focus), shapes and data / ' +
+    'broadcast graphics (progress, ticker, bars-chart); designed transitions include whip-left/right/up/down; ' +
+    '`lowerThird.style` picks clean-bar, side-rule, kicker, stack-bars or pill. ' +
     'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
+  'Word-timed captions: section `subtitles` takes speech-to-text `words` [{text,start,end}] (grouped into phrases ' +
+    'by `group`: pauses, sentence ends, maxWords, maxSeconds), authored `cues` [{at,end,text,words?}] or an inline ' +
+    '`srt`. A caption DNA `style` (clean, loud, keynote, documentary, boxed, neon) sets font, colours, case, ' +
+    'legibility and `karaoke` (word, fill, pop or false); each cue is shrunk to fit `maxLines` balanced lines, ' +
+    'split when it still overflows, held for `minDuration`, and kept inside the global.platform safe zones. ' +
+    '`crown` ("auto" or a phrase) enlarges the one payoff line. validate_template reports caption_split / ' +
+    'caption_shrunk / subtitle_past_end in motionWarnings. The caption sugar also accepts wrap ("balanced") and fit.',
+  'Motion roles: tag elements with `role` (micro, panel, camera, headline, accent, mascot) on kinetic blocks, ' +
+    'graphics, drawtext filters, titleCard, lowerThird and camera instead of hand-picking eases; the role fills ' +
+    'the ease (and duration) the element leaves unset, global.motion.roles overrides a role, and `$role.<name>` ' +
+    'works as an ease or keyframe-duration token. Give each section a one-sentence `purpose` and a narrative ' +
+    '`role` (hook, problem, product-intro, reveal, proof, cta, outro, bridge): metadata, never rendered; ' +
+    'meta.brief or meta.requirePurpose makes validate_template warn section_without_purpose.',
+  'Footage editing (video / project_video): options.fit cover|letterbox|blur|off (blur keeps the whole picture ' +
+    'over a blurred, dimmed copy; options.fill tunes it), options.focus anchors a cover crop (left/right/top/' +
+    'bottom, {x,y}, or keyframes that pan), options.clip {from,to} picks the in/out points in SOURCE seconds, ' +
+    'options.speedRamp takes a preset (hero, montage, bullet, flash-in, flash-out) or [{at,speed,ease}] keys, ' +
+    'options.freeze [{at,hold,flash}] holds frames. Ramps and freezes change the section length. ' +
+    'get_motion_catalog lists footage presets and rules.',
   'Delivery platforms: set global.platform (tiktok, reels/ig, shorts/yt-shorts, youtube, x/twitter, linkedin, ' +
     'facebook, square-feed) when the video has a destination. It defaults the orientation (portrait for ' +
     'tiktok/reels/shorts), lifts the default caption above the app UI, aims loudnorm at the platform loudness, ' +
     'and validate_template then warns platform_ui_overlap (text under the app UI, per-edge safe zones such as ' +
     "TikTok's bottom 22%), platform_duration_exceeded and platform_fps_mismatch. get_motion_catalog lists " +
     'platforms[] with safe zones, max duration and loudness.',
+  'Emoji in any drawn text (captions, title cards, lower thirds, kinetic blocks, drawtext filters) render as ' +
+    'bundled colour images composited into a measured gap, sharing the text timing, motion and fades ' +
+    '(global.emoji "image", the default). About 250 common emoji ship (faces, hands, hearts, symbols, arrows, ' +
+    'flags, keycaps, skin tones); validate_template warns emoji_missing_asset for one without an image (it is ' +
+    'stripped) and emoji_overlay_cap past 24 per section. global.emoji "strip" drops them, "error" rejects them.',
   'Text reveal easing accepts linear, ease-out, ease-in-out and ease-out-back. Back easing overshoots travel by ' +
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +
     'with get_effect_schema. These registered Remotion modes need a Node worker, not the portable native path.',
+  'Audio polish: `options.voice` (clean, broadcast, warm, rumble-cut, room-gate) cleans recorded speech on ' +
+    'video/project_video sections; `options.audioAutomation` and `global.audio.automation` ([{ at, volume, ease? }], ' +
+    'time references allowed) shape the clip sound and the music bed (music automation runs before ducking); ' +
+    'section `sfx` / `global.sfx` ([{ id, at, volume? }]) place bundled sound effects (whoosh, swoosh-short, hit, ' +
+    'boom, riser, click, tick, pop, shutter, ding; a riser ends at `at`) and `global.audio.sfx: "auto"` places ' +
+    'them from the motion. get_motion_catalog lists audio.sfx with when to use each sound.',
   'Recorded footage (video/project_video): look accepts { preset, strength } for the LUT looks; grade.lut ' +
     '{ url, strength? } applies a user .cube (e.g. Log → Rec.709) first; options.trimSilence cuts silent edges ' +
     'and long pauses (Node analysis; elsewhere pass options.keep [[from,to],…]); cutaways[] overlay B-roll ' +
-    '({ url, at, duration, from?, audio: a|b|mix, fit }) while the main clip keeps running. probe_media reports ' +
-    'hdr/vfr/rotation; get_motion_catalog lists footage rules.',
+    '({ url, at, duration, from?, audio: a|b|mix, fit }) while the main clip keeps running (keep/trimSilence/' +
+    'cutaways do not combine with clip/speedRamp/freeze). probe_media reports hdr/vfr/rotation; ' +
+    'get_motion_catalog lists footage.take rules.',
   'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +
     'cut-only templates use a fast stream-copy concat.',
   'Strings may contain `{{ variables }}` (from global.variables), `{{ colorN }}` (1-indexed from ' +

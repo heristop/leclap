@@ -295,7 +295,7 @@ export {
   partialsById,
   type PartialExpansion,
 } from './core/partials';
-export type { ProjectConfig, TemplateDescriptor, CompileReporter } from './core/types';
+export type { ProjectConfig, TemplateDescriptor, CompileReporter, MediaTraits } from './core/types';
 export {
   TemplateValidator,
   type ValidationResult,
@@ -360,12 +360,23 @@ export * from './core/determinism';
 export { ENGINE_VERSION } from './core/version';
 // Probed source traits (HDR transfer, bit depth, VFR, rotation), shared with the MCP probe_media tool.
 export { mediaTraits, type ProbeVideoStream } from './core/footage/media-traits';
-export type { MediaTraits } from './core/types';
 // Node entry only: digest a rendered file for `leclap verify`.
 export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
 export * from './core/platforms';
 export * from './core/theme';
+// Reference-style analysis (pure) and its Node frame decoder: palette, texture and pacing as a theme.
+export * from './core/style';
+export {
+  analyzeStyleFile,
+  extractStyleFrames,
+  resolveStyleFfmpeg,
+  STYLE_FRAME_WIDTH,
+  STYLE_MAX_FRAMES,
+  STYLE_SAMPLE_INTERVAL,
+  type StyleFrames,
+  type StyleFramesOptions,
+} from './services/style-frames-node';
 export {
   motionTimeline,
   type MotionBox,

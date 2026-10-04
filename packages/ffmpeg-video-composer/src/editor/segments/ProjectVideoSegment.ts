@@ -3,7 +3,8 @@ import SegmentBuilder from '../SegmentBuilder';
 import { assertSafeArgToken } from '@/core/arg-guard';
 import { usesLgplEngine } from '@/core/encoding';
 import { buildAudioFadeArg, buildAudioFadeChain } from '../utils/audio-fade';
-import { footageArgs, type FootageHost } from '../footage/section-footage';
+import { footageArgs, keepAwareRetime, type FootageHost } from '../footage/section-footage';
+import { footageAudio } from '../utils/footage-section';
 
 @injectable()
 class ProjectVideo extends SegmentBuilder {
@@ -30,6 +31,11 @@ class ProjectVideo extends SegmentBuilder {
   // video-only clip already maps an endless silent source.
   private padsSourceAudio(noSourceAudio: boolean): boolean {
     return this.section.options?.muteSection !== true && !noSourceAudio && !usesLgplEngine(this.project.config);
+  }
+
+  // The mapped audio is the clip's own sound (not muted, not a synthesized silent track).
+  private mapsClipSound(noSourceAudio: boolean): boolean {
+    return this.section.options?.muteSection !== true && !noSourceAudio;
   }
 
   override configure = (): void => {
@@ -83,22 +89,34 @@ class ProjectVideo extends SegmentBuilder {
     const audioMap = noSourceAudio ? `-map ${audioIn}` : '-map 0:a?';
     const inputs = ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ${silentInput} `;
     const pad = this.padsSourceAudio(noSourceAudio);
-    const host: FootageHost = {
+    // Clip range / ramp / freeze retime the clip's own sound; `-t … -shortest` then ends the segment
+    // on the edited picture (utils/footage-section.ts).
+    const retime = footageAudio(this.section, {
+      config: this.project.config,
+      buildInfos: this.project.buildInfos,
+      clipSound: this.mapsClipSound(noSourceAudio),
+    });
+    // Keep windows / trimSilence, HDR tone-map and cutaways fold the audio map and -af into one graph.
+    const footage = footageArgs(this.footageHost(), this.command, inputs, {
+      input: audioIn,
+      chain: (options) => buildAudioFadeChain(options, false, this.project.config, keepAwareRetime(options, retime)),
+      pad,
+    });
+    const audioArg = buildAudioFadeArg(this.section.options, pad, this.project.config, retime);
+
+    return {
+      inputs: footage?.inputs ?? inputs,
+      outputs: footage?.filters ?? ` ${this.filters} ${audioMap} ${audioArg}`,
+    };
+  }
+
+  private footageHost(): FootageHost {
+    return {
       section: this.section,
       project: this.project,
       segment: this.segment,
       assetManager: this.assetManager,
       videoIn: this.videoInputIndex(),
-    };
-    const footage = footageArgs(host, this.command, inputs, {
-      input: audioIn,
-      chain: (options) => buildAudioFadeChain(options),
-      pad,
-    });
-
-    return {
-      inputs: footage?.inputs ?? inputs,
-      outputs: footage?.filters ?? ` ${this.filters} ${audioMap} ${buildAudioFadeArg(this.section.options, pad)}`,
     };
   }
 }

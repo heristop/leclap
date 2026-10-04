@@ -38,3 +38,38 @@ export interface MediaTraits {
   /** Display rotation FFmpeg's autorotation applies, normalised to 0/90/180/270. */
   rotation: number;
 }
+
+/** What the director resolved for one section's footage before it renders (director/footage-plan.ts). */
+export interface SectionFootage {
+  /** Source windows kept (explicit options.keep, or computed by trimSilence), in source seconds. */
+  keep?: KeepRange[];
+  /** Tone-map an HDR source to SDR in the section graph. */
+  tonemap?: boolean;
+  traits?: MediaTraits;
+  /** False when the probed source has no audio stream. */
+  hasAudio?: boolean;
+}
+
+/** Take-editing options of video / project_video sections (merged into SectionOptions). */
+export interface TakeOptions {
+  trimSilence?: TrimSilence;
+  keep?: KeepRange[];
+}
+
+/** Section-level take fields (merged into Section). */
+export interface SectionTakeFields {
+  /** B-roll clips overlaid on a video/project_video section's footage for a window. */
+  cutaways?: Cutaway[];
+}
+
+/** Build infos the take plan fills (merged into ProjectBuildInfos). */
+export interface TakeBuildInfos {
+  /** Per video/project_video section: the take plan resolved at probe time (director/footage-plan.ts). */
+  footage?: Record<string, SectionFootage>;
+}
+
+/** Probe traits an adapter may add to FFMpegInfos. */
+export interface ProbedTraits {
+  /** Colour/timing traits of the video stream, when the adapter reports them. */
+  traits?: MediaTraits;
+}

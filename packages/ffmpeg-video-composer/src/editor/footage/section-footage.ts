@@ -52,6 +52,14 @@ function resolveCutaways(cutaways: Cutaway[], firstInput: number): ResolvedCutaw
   }));
 }
 
+// How the main clip is framed under a cutaway: `fit` wins (letterbox → contain; cover, blur and off frame
+// as cover), else the legacy forceOriginalAspectRatio flag.
+function frameFitOf(options: SectionOptions | undefined): 'cover' | 'contain' {
+  if (options?.fit !== undefined) return options.fit === 'letterbox' ? 'contain' : 'cover';
+
+  return options?.forceOriginalAspectRatio ? 'contain' : 'cover';
+}
+
 function audioFormat(config: ProjectConfig): FootageAudioFormat {
   return {
     sampleRate: config.audioConfig?.sampleRate ?? DefaultConfig.SAMPLE_RATE,
@@ -76,6 +84,17 @@ function footageAudioOptions(host: FootageHost): SectionOptions | undefined {
   if (!footagePlan(host)?.keep || length === undefined) return host.section.options;
 
   return { ...host.section.options, duration: length };
+}
+
+/**
+ * The clip-range/ramp/freeze audio prefix (utils/footage-section.ts) with the fade-out timed on the
+ * kept-windows length when the section keeps windows (the two edits never combine, see validation).
+ */
+export function keepAwareRetime(
+  options: SectionOptions | undefined,
+  retime: { head: string[]; duration?: number }
+): { head: string[]; duration?: number } {
+  return options?.keep ? { ...retime, duration: options.duration } : retime;
 }
 
 /**
@@ -106,7 +125,7 @@ export function footageArgs(
     tonemap: plan?.tonemap,
     cutaways: resolveCutaways(cutaways, countInputs(`${before} ${inputs}`)),
     scale: config.videoConfig?.scale ?? DefaultConfig.SCALE,
-    frameFit: host.section.options?.forceOriginalAspectRatio ? 'contain' : 'cover',
+    frameFit: frameFitOf(host.section.options),
     audioFormat: audioFormat(config),
     audioChain: audio.chain(footageAudioOptions(host)),
     padAudio: audio.pad ?? false,

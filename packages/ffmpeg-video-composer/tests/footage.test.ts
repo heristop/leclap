@@ -439,6 +439,18 @@ describe('footage validation', () => {
     expect(codes([{ ...clip({}), type: 'color_background', cutaways: [] }])).toContain('unknown_key');
   });
 
+  it('rejects take edits combined with clip / speedRamp / freeze', () => {
+    expect(codes([clip({ options: { duration: 4, keep: [[0, 1]], clip: { from: 1 } } })])).toContain(
+      'take_edit_combination'
+    );
+    expect(
+      codes([clip({ options: { duration: 4, speedRamp: 'hero' }, cutaways: [{ url: 'a.mp4', at: 1, duration: 1 }] })])
+    ).toContain('take_edit_combination');
+    expect(codes([clip({ options: { duration: 4, keep: [[0, 1]], fit: 'blur' } })])).not.toContain(
+      'take_edit_combination'
+    );
+  });
+
   it('makes a beat reference after a trimmed take unresolvable', () => {
     const found = codes(
       [

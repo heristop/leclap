@@ -1,21 +1,45 @@
 // Motion fields the builder has no controls for yet (kinetic typography, the section camera, animated
-// graphics, designed-transition easing, global.seed, global.motion tokens and the global.theme). The editor carries them
+// graphics, word-timed subtitles, sound effects, designed-transition easing, global.seed, global.motion
+// tokens and the global.theme). The editor carries them
 // through in descriptor shape, so opening a template in the builder and saving it never strips them.
 
-import type { TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
+import type { SectionOptions, TemplateDescriptor } from 'ffmpeg-video-composer/src/core/types.d.ts';
 import type { KineticBlock } from 'ffmpeg-video-composer/src/schemas/kinetic.schemas.ts';
 import type { Camera } from 'ffmpeg-video-composer/src/schemas/camera.schemas.ts';
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import type { EasingSpecInput, MotionTokens } from 'ffmpeg-video-composer/src/schemas/motion.schemas.ts';
 import type { Theme } from 'ffmpeg-video-composer/src/schemas/theme.schemas.ts';
+import type { Subtitles } from 'ffmpeg-video-composer/src/schemas/subtitles.schemas.ts';
+import type { AutomationKeyInput, SfxCue } from 'ffmpeg-video-composer/src/schemas/audio.schemas.ts';
+import type { VoicePreset } from 'ffmpeg-video-composer/src/core/audio/voice-presets.ts';
+import type { SectionRole } from 'ffmpeg-video-composer/src/schemas/section-intent.schemas.ts';
 
 export type MotionEase = EasingSpecInput;
 
-/** Per-section motion blocks. */
+/** Template meta the editor carries verbatim (creative direction, brief, purpose requirement). */
+export type EditorMeta = Pick<
+  NonNullable<TemplateDescriptor['meta']>,
+  'creativeDirection' | 'brief' | 'requirePurpose'
+>;
+
+// Footage edits the builder has no controls for yet (blur fill tuning, crop focus, clip range, speed
+// ramp, freeze frames): carried through in descriptor shape (options.*) so opening a template in the
+// builder and saving it never strips them. Image sections only ever hold fill/focus.
+export type FootageEdits = Pick<SectionOptions, 'fill' | 'focus' | 'clip' | 'speedRamp' | 'rampAudio' | 'freeze'>;
+
+/** Per-section motion blocks, plus the section intent (purpose, narrative role): never rendered, carried through. */
 export interface MotionBlocks {
   kinetic?: KineticBlock[];
   camera?: Camera;
   graphics?: Graphic[];
+  /** Word-timed captions (cues / SRT / word timings, caption DNA, karaoke), carried verbatim. */
+  subtitles?: Subtitles;
+  /** Section sound effects, carried verbatim. */
+  sfx?: SfxCue[];
+  /** Why the section exists (authoring metadata). */
+  purpose?: string;
+  /** Narrative role: hook, problem, product-intro, reveal, proof, cta, outro, bridge. */
+  role?: SectionRole;
 }
 
 /** Template-wide motion settings. */
@@ -26,11 +50,28 @@ export interface EditorMotion {
   theme?: Theme;
 }
 
+/** Section audio options the builder has no controls for yet, carried verbatim (options.voice / audioAutomation). */
+export interface ClipAudioPassthrough {
+  voice?: VoicePreset;
+  audioAutomation?: AutomationKeyInput[];
+}
+
+/** global.audio.automation / global.audio.sfx and global.sfx (as `cues`), carried verbatim. */
+export interface AudioMixPassthrough {
+  automation?: AutomationKeyInput[];
+  sfx?: 'auto';
+  cues?: SfxCue[];
+}
+
 export function motionBlocksOf(source: MotionBlocks): MotionBlocks {
   return {
     ...(source.kinetic ? { kinetic: source.kinetic } : {}),
     ...(source.camera ? { camera: source.camera } : {}),
     ...(source.graphics ? { graphics: source.graphics } : {}),
+    ...(source.subtitles ? { subtitles: source.subtitles } : {}),
+    ...(source.sfx ? { sfx: source.sfx } : {}),
+    ...(source.purpose?.trim() ? { purpose: source.purpose.trim() } : {}),
+    ...(source.role ? { role: source.role } : {}),
   };
 }
 

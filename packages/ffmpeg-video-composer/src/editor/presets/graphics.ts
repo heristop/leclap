@@ -1,48 +1,33 @@
 // Animated graphics → drawbox filters (docs/plans/motion-system-v2.md §4.4). Each type is a function from
 // eased progress p ∈ [0, 1] to rectangles; the animator samples it once per output frame and gates each
-// frame's boxes with an `enable` window, then holds the final state until `until`.
+// frame's boxes with an `enable` window, then holds the final state until `until`. Pixel effects and
+// data / broadcast graphics (graphics-fx.ts, graphics-chart.ts) lower themselves through `render`/`extras`.
 
 import type { Filter, Section } from '@/core/types';
 import type { Graphic } from '../../schemas/graphics.schemas';
 import { parseEasing, type EasingSpec } from '@/core/motion/easing';
-import { fmt } from '@/core/motion/hermite';
-import { resolvedTimes } from '@/core/timing/seconds';
+import { resolvedTimes, seconds } from '@/core/timing/seconds';
 import type { SugarContext } from './sugar-context';
+import {
+  BRAND,
+  INK,
+  MAX_FRAMES,
+  boxes,
+  windowExpr,
+  withAlpha,
+  type Base,
+  type Frame,
+  type GraphicEnv,
+  type Of,
+  type Rect,
+  type Spec,
+} from './graphics-spec';
+import { FX_SPECS } from './graphics-fx';
+import { CHART_SPECS } from './graphics-chart';
 
-export interface Rect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
+export type { Frame, GraphicEnv, Rect } from './graphics-spec';
 
-export interface Frame {
-  width: number;
-  height: number;
-  fps: number;
-}
-
-interface Spec {
-  duration: number;
-  ease: EasingSpec;
-  color: string;
-  above: boolean;
-  /** Rectangles at eased progress p. */
-  rects: (p: number) => Rect[];
-  /** Per-frame colour (flash decays its alpha); defaults to `color`. */
-  colorAt?: (p: number) => string;
-  /** False when nothing remains once the animation ends (flash, wipe). */
-  holds: boolean;
-}
-
-const BRAND = '#7C83FD';
-const INK = '#F5F3F7';
 const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
-const MAX_FRAMES = 90;
-
-function withAlpha(color: string, alpha: number): string {
-  return `${color.split('@')[0]}@${fmt(Math.max(0, Math.min(1, alpha)))}`;
-}
 
 function growFrom(origin: 'left' | 'center' | 'right', x: number, width: number, p: number): { x: number; w: number } {
   const w = width * p;
@@ -114,9 +99,6 @@ function panelRects(g: Extract<Graphic, { type: 'panel' }>, frame: Frame, p: num
 
   return [table[g.from ?? 'left']];
 }
-
-type Of<T extends Graphic['type']> = Extract<Graphic, { type: T }>;
-type Base = Pick<Spec, 'ease' | 'above' | 'holds'>;
 
 function flashSpec(g: Of<'flash'>, frame: Frame, base: Base): Spec {
   const color = g.color ?? '#FFFFFF';
@@ -204,6 +186,8 @@ const SPECS: { [T in Graphic['type']]: (g: Of<T>, frame: Frame, base: Base) => S
   corners: cornersSpec,
   wipe: wipeSpec,
   panel: panelSpec,
+  ...FX_SPECS,
+  ...CHART_SPECS,
 };
 
 function spec(g: Graphic, frame: Frame): Spec {
@@ -231,42 +215,33 @@ export function graphicTiming(
   return { duration: s.duration, ease: s.ease, holds: s.holds, bbox: { x, y, w, h } };
 }
 
-function boxes(rects: Rect[], color: string, enable: string): Filter[] {
-  // drawbox treats w/h of 0 as "full size", so empty rectangles are skipped, never emitted.
-  return rects
-    .filter((r) => r.w >= 1 && r.h >= 1)
-    .map((r) => ({
-      type: 'drawbox',
-      values: { x: fmt(r.x), y: fmt(r.y), w: fmt(r.w), h: fmt(r.h), color, t: 'fill', enable },
-    }));
-}
-
-function window(from: number, to: number | undefined): string {
-  return to === undefined ? `'gte(t,${fmt(from)})'` : `'gte(t,${fmt(from)})*lt(t,${fmt(to)})'`;
-}
-
 /** Seconds the graphic's animation takes (its authored duration or the type's default). */
 export function graphicDuration(g: Graphic, frame: Frame): number {
   return spec(g, frame).duration;
 }
 
-/** One graphic as drawbox filters, frame by frame, then its held final state. */
-export function graphicToFilters(graphic: Graphic, frame: Frame): Filter[] {
+const NO_SEED: GraphicEnv = { seed: 0 };
+
+/** One graphic as filters: drawbox frame by frame then its held final state, or the type's own lowering. */
+export function graphicToFilters(graphic: Graphic, frame: Frame, env: GraphicEnv = NO_SEED): Filter[] {
   const g = resolvedTimes(graphic);
   const s = spec(graphic, frame);
   const at = g.at ?? 0;
+
+  if (s.render) return s.render({ at, until: g.until }, env);
+
   const curve = parseEasing(s.ease).fn;
   const frames = Math.min(MAX_FRAMES, Math.max(1, Math.ceil(s.duration * frame.fps)));
   const animated = Array.from({ length: frames }, (_, f) => {
     const p = curve((f + 1) / frames);
 
-    return boxes(s.rects(p), s.colorAt?.(p) ?? s.color, window(at + f / frame.fps, at + (f + 1) / frame.fps));
+    return boxes(s.rects(p), s.colorAt?.(p) ?? s.color, windowExpr(at + f / frame.fps, at + (f + 1) / frame.fps));
   }).flat();
   const end = at + frames / frame.fps;
   const held =
-    s.holds && (g.until === undefined || g.until > end) ? boxes(s.rects(1), s.color, window(end, g.until)) : [];
+    s.holds && (g.until === undefined || g.until > end) ? boxes(s.rects(1), s.color, windowExpr(end, g.until)) : [];
 
-  return [...animated, ...held];
+  return [...animated, ...held, ...(s.extras?.({ at, until: g.until }, env) ?? [])];
 }
 
 function frameOf(ctx: SugarContext): Frame {
@@ -283,5 +258,27 @@ export function graphicsToFilters(section: Section, ctx: SugarContext, above: bo
 
   const frame = frameOf(ctx);
 
-  return graphics.filter((g) => spec(g, frame).above === above).flatMap((g) => graphicToFilters(g, frame));
+  const motion = ctx.motion;
+
+  return graphics.flatMap((g, index) =>
+    spec(g, frame).above === above ? graphicToFilters(g, frame, { seed: motion.seedFor(`graphics[${index}]`) }) : []
+  );
+}
+
+/**
+ * Freeze-frame flash hits (options.freeze[].flash on video / project_video): a white flash graphic on
+ * the frozen frame, landing on the output frame the hold starts at.
+ */
+export function freezeFlashFilters(section: Section, ctx: SugarContext): Filter[] {
+  if (section.type !== 'video' && section.type !== 'project_video') return [];
+
+  const frame = frameOf(ctx);
+
+  return (section.options?.freeze ?? [])
+    .filter((freeze) => freeze.flash)
+    .flatMap((freeze) => {
+      const at = Math.round((seconds(freeze.at) ?? 0) * ctx.fps) / ctx.fps;
+
+      return graphicToFilters({ type: 'flash', at }, frame);
+    });
 }

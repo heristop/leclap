@@ -13,6 +13,8 @@ import { resolveKeyTimes } from './tracks';
 import { DEFAULT_TRANSITION_EASE, isDesignedTransition } from './transitions';
 import { graphicEvent, kineticEvents } from './timeline-elements';
 import { drawtextEvents, sugarEvents } from './timeline-text';
+import { subtitleEvents } from './timeline-subtitles';
+import type { Subtitles } from '../../schemas/subtitles.schemas';
 import {
   easeKey,
   round,
@@ -50,6 +52,7 @@ interface LooseSection {
   camera?: Camera;
   kinetic?: KineticBlock[];
   graphics?: Graphic[];
+  subtitles?: Subtitles;
   filters?: unknown[];
   motion?: Array<{ type?: string }>;
 }
@@ -199,6 +202,7 @@ function sectionTimeline(input: SectionInput, base: Omit<ElementFrame, 'duration
     ...drawtextEvents(section.filters, frame),
     ...(section.kinetic ?? []).flatMap((block, k) => kineticEvents(block, k, frame)),
     ...(section.graphics ?? []).map((graphic, k) => graphicEvent(graphic, k, frame)),
+    ...subtitleEvents(section.subtitles, frame),
     ...cameraEvents(section, frame),
     ...(outgoing ? [transitionEvent(outgoing, Math.max(0, duration - outgoing.duration), duration, 'transition')] : []),
   ];

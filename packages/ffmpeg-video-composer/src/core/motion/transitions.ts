@@ -9,11 +9,12 @@
 //   [next] → in ‖ rest ────┘                           ├─ concat(head, mix, rest)
 //
 // Same timeline as xfade (offset + duration), so the audio crossfade and music windows are unchanged.
-// Only standard filters (split, trim, setpts, pad, overlay, crop, scale, zoompan, xfade, concat), all in
-// the on-device build.
+// Only standard filters (split, trim, setpts, pad, overlay, crop, scale, zoompan, xfade, concat, gblur),
+// all in the on-device build.
 
 import { parseEasing, type EasingSpec } from './easing';
 import { easedProgressExpr, fmt } from './hermite';
+import { whipBlur, WHIP_EASE } from './whip';
 
 export const DESIGNED_TRANSITIONS = [
   'push-left',
@@ -24,6 +25,10 @@ export const DESIGNED_TRANSITIONS = [
   'swipe-right',
   'zoom-through',
   'iris',
+  'whip-left',
+  'whip-right',
+  'whip-up',
+  'whip-down',
 ] as const;
 
 export type DesignedTransition = (typeof DESIGNED_TRANSITIONS)[number];
@@ -37,6 +42,10 @@ export const DESIGNED_TRANSITION_DESCRIPTIONS: Record<DesignedTransition, string
   'swipe-right': 'The next scene slides over from the left while the current one drifts right beneath it.',
   'zoom-through': 'The camera flies through the current scene into the next: scale up, cross, settle.',
   iris: 'A circle opens from the centre to reveal the next scene (linear; ease is ignored).',
+  'whip-left': 'A whip pan: the next scene pushes in from the right, motion-blurred along the travel at peak speed.',
+  'whip-right': 'A whip pan to the right: the next scene pushes in from the left, motion-blurred at peak speed.',
+  'whip-up': 'A vertical whip: the next scene pushes in from below, motion-blurred along the travel.',
+  'whip-down': 'A vertical whip: the next scene pushes in from above, motion-blurred along the travel.',
 };
 
 /** Default transition curve: a symmetric, Apple-like ease-in-out. */
@@ -68,7 +77,9 @@ interface Pads {
   mix: string;
 }
 
-function push(b: DesignedBoundary, p: Pads, e: string): string {
+type PushType = 'push-left' | 'push-right' | 'push-up' | 'push-down';
+
+function push(b: DesignedBoundary, p: Pads, e: string, type: PushType): string {
   const { width: w, height: h } = b;
   const table = {
     'push-left': [`pad=${2 * w}:${h}:0:0`, `x=${w}:y=0`, `x='${w}*(${e})':y=0`],
@@ -76,7 +87,7 @@ function push(b: DesignedBoundary, p: Pads, e: string): string {
     'push-up': [`pad=${w}:${2 * h}:0:0`, `x=0:y=${h}`, `x=0:y='${h}*(${e})'`],
     'push-down': [`pad=${w}:${2 * h}:0:${h}`, 'x=0:y=0', `x=0:y='${h}*(1-(${e}))'`],
   } as const;
-  const [pad, place, crop] = table[b.type as keyof typeof table];
+  const [pad, place, crop] = table[type];
 
   return `[${p.tail}]${pad}[${b.id}p];[${b.id}p][${p.in}]overlay=${place}[${b.id}s];[${b.id}s]crop=${w}:${h}:${crop}[${p.mix}]`;
 }
@@ -119,14 +130,27 @@ function iris(b: DesignedBoundary, p: Pads): string {
   return `[${p.tail}][${p.in}]xfade=transition=circleopen:duration=${fmt(b.duration)}:offset=0[${p.mix}]`;
 }
 
+// A whip is a push on a faster in-out curve, then a directional blur that follows its speed.
+function whip(b: DesignedBoundary, p: Pads): string {
+  const ease = b.ease ?? WHIP_EASE;
+  const e = easedProgressExpr(parseEasing(ease), { delay: 0, duration: b.duration });
+  const travel = b.type.replace('whip-', 'push-') as PushType;
+  const moved = `${b.id}w`;
+  const blur = whipBlur({ ease, duration: b.duration, fps: b.fps, width: b.width, height: b.height, type: b.type });
+
+  return `${push(b, { ...p, mix: moved }, e, travel)};[${moved}]${blur}[${p.mix}]`;
+}
+
 function compose(b: DesignedBoundary, p: Pads): string {
   if (b.type === 'zoom-through') return zoomThrough(b, p);
 
   if (b.type === 'iris') return iris(b, p);
 
+  if (b.type.startsWith('whip')) return whip(b, p);
+
   const e = easedProgressExpr(parseEasing(b.ease ?? DEFAULT_TRANSITION_EASE), { delay: 0, duration: b.duration });
 
-  return b.type.startsWith('push') ? push(b, p, e) : swipe(b, p, e);
+  return b.type.startsWith('push') ? push(b, p, e, b.type as PushType) : swipe(b, p, e);
 }
 
 /** The filtergraph fragment for one designed boundary: [left] + [right] → [out]. */

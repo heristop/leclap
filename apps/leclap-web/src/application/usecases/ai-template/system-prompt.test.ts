@@ -2,7 +2,38 @@ import { describe, expect, it } from 'vitest';
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
 import { compactSchema, fitSchema } from './schema-digest';
 import { generationContext, promptFor } from './generation-context';
-import { buildSystemPrompt, buildUserBrief, DEFAULT_PROMPT_BUDGET } from './system-prompt';
+import { buildSystemPrompt, buildUserBrief, DEFAULT_PROMPT_BUDGET, REFERENCE_STYLE_HEADING } from './system-prompt';
+import { artDirection, GENRE_FONTS } from './art-direction';
+import { buildPlanPrompt } from './plan-prompt';
+
+describe('art direction', () => {
+  it('ships the story spine and the lazy-defaults block, without pinned centring or a fixed font trio', () => {
+    const built = promptFor('30s product launch for a note-taking app', { genre: 'product-launch' });
+    const direction = artDirection({ genre: 'product-launch' });
+
+    expect(built.system).toContain('Story spine:');
+    expect(built.system).toContain('Lazy defaults to avoid');
+    expect(built.system).toContain('Everything centred.');
+    expect(built.system).toContain('Purple-to-blue neon gradients.');
+    expect(built.system).toContain('Every element entering at t=0');
+    expect(built.system).toContain('"Welcome to…"');
+    expect(built.system).toContain('slowest beat lasts at least 3× the fastest');
+    expect(built.system).toContain('value claim by beat 2');
+    expect(built.system).toContain('edge-anchored');
+    expect(built.system).not.toContain('Centre with x');
+    expect(built.system).not.toContain('BebasNeue, Anton, Oswald');
+    expect(direction).not.toContain('(w-text_w)/2');
+    expect(direction).toContain(GENRE_FONTS['product-launch']);
+  });
+
+  it('points at the theme tokens when a theme is set, and varies fonts by genre otherwise', () => {
+    expect(artDirection({ theme: 'editorial' })).toContain('"$font.display"');
+    expect(artDirection({ theme: 'editorial' })).toContain('"$color.accent"');
+    expect(artDirection({ genre: 'cinematic-trailer' })).toContain('PlayfairDisplay.ttf');
+    expect(artDirection({ genre: 'explainer' })).not.toContain('PlayfairDisplay.ttf');
+    expect(artDirection({})).toContain('pick by tone');
+  });
+});
 
 describe('schema digest', () => {
   it('shrinks the engine schema by an order of magnitude and stays valid JSON', () => {
@@ -108,5 +139,30 @@ describe('buildUserBrief', () => {
 
   it('omits the "none" platform', () => {
     expect(buildUserBrief('x', { platform: 'none' })).not.toContain('platform');
+  });
+});
+
+describe('reference style guide', () => {
+  const rules = 'Set global.theme to exactly: {"extends":"leclap","colors":{"bg":"#101830"}}\nAvoid:\n- Film grain';
+
+  it('adds the reference rules as a binding block', () => {
+    const built = promptFor('a launch video', {}, [], rules);
+
+    expect(built.system).toContain(REFERENCE_STYLE_HEADING);
+    expect(built.system).toContain('"bg":"#101830"');
+    expect(built.system).toContain('never reproduce its subjects, logos or text');
+    expect(built.system.length).toBeLessThanOrEqual(DEFAULT_PROMPT_BUDGET);
+  });
+
+  it('carries the reference rules into the planning prompt', () => {
+    const { catalog } = generationContext();
+
+    expect(buildPlanPrompt(catalog, {}, rules)).toContain(REFERENCE_STYLE_HEADING);
+    expect(buildPlanPrompt(catalog, {})).not.toContain(REFERENCE_STYLE_HEADING);
+  });
+
+  it('leaves the prompt unchanged without a reference', () => {
+    expect(promptFor('a launch video', {}, [], '   ').system).toBe(promptFor('a launch video', {}).system);
+    expect(promptFor('a launch video', {}).system).not.toContain(REFERENCE_STYLE_HEADING);
   });
 });

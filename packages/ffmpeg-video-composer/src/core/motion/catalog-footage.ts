@@ -37,7 +37,10 @@ export const FOOTAGE_GUIDE = {
         ],
       },
     },
-    rules: ['Source windows [from, to], ascending and non-overlapping; joined back to back on every backend.'],
+    rules: [
+      'Source windows [from, to], ascending and non-overlapping; joined back to back on every backend.',
+      'keep / trimSilence / cutaways do not combine with clip / speedRamp / freeze on one section.',
+    ],
   },
   cutaways: {
     example: { cutaways: [{ url: 'videos/broll.mp4', at: 'cue:product', duration: 2.5, audio: 'a', fit: 'cover' }] },

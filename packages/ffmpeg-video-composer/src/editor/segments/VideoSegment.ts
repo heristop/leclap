@@ -9,8 +9,9 @@ import {
   resolveSoftwareTier,
 } from '@/core/encoding';
 import type { ProjectConfig } from '@/core/types';
-import { buildAudioFadeChain } from '../utils/audio-fade';
-import { footageArgs, footagePlan, type FootageHost } from '../footage/section-footage';
+import { buildAudioFadeArg, buildAudioFadeChain } from '../utils/audio-fade';
+import { footageArgs, footagePlan, keepAwareRetime, type FootageHost } from '../footage/section-footage';
+import { footageAudio } from '../utils/footage-section';
 
 // Encoder args for a re-encoded video segment (bumper / videoUrl / useVideoSection). Routes through
 // the shared codec resolution so the on-device LGPL engine uses libopenh264 — NOT libx264 (GPL),
@@ -100,17 +101,24 @@ class Video extends SegmentBuilder {
 
     const encodingParams = videoSegmentEncoding(this.project.config, this.project.ffmpegVersion);
     const inputs = this.videoInputs();
-    // Footage edits (keep/trimSilence, HDR tone-map, cutaways) fold the audio map and -af into one graph.
-    const host = this.footageHost();
-    const footage = footageArgs(host, this.command, inputs, {
-      input: this.footageAudioInput(),
-      chain: (options) => buildAudioFadeChain(options),
+    // Clip range / ramp / freeze retime the clip's own sound when it is mapped (unmuted), and cap `-t` at
+    // the edited length; unedited sections keep their declared duration and fades.
+    const retime = footageAudio(this.section, {
+      config: this.project.config,
+      buildInfos: this.project.buildInfos,
+      clipSound: this.section.options?.muteSection === false,
     });
-    const outputs = footage?.filters ?? ` ${this.filters} ${this.buildAudioFadeArg()}`;
+    // Keep windows / trimSilence, HDR tone-map and cutaways fold the audio map and -af into one graph.
+    const footage = footageArgs(this.footageHost(), this.command, inputs, {
+      input: this.footageAudioInput(),
+      chain: (options) => buildAudioFadeChain(options, false, this.project.config, keepAwareRetime(options, retime)),
+    });
+    const audioFadeArg = buildAudioFadeArg(this.section.options, false, this.project.config, retime);
+    const outputs = footage?.filters ?? ` ${this.filters} ${audioFadeArg}`;
 
     this.command +=
       (footage?.inputs ?? inputs) +
-      ` -r ${this.fps()} -t ${this.section.options?.duration} ` +
+      ` -r ${this.fps()} -t ${retime.duration} ` +
       ` ${encodingParams} ` +
       `${outputs}${this.destination} `;
   };

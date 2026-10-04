@@ -261,6 +261,8 @@ function audioGlobal(audio: AudioMix): NonNullable<NonNullable<TemplateDescripto
     musicVolume: audio.musicVolume,
     ...(audio.normalize ? { normalize: audio.normalize } : {}),
     ...duckingField(audio.ducking),
+    ...(audio.automation ? { automation: audio.automation } : {}),
+    ...(audio.sfx ? { sfx: audio.sfx } : {}),
   };
 }
 
@@ -287,6 +289,7 @@ export function buildDescriptor(state: EditorState): TemplateDescriptor {
     ...motionGlobalFrom(state.motion),
     // Audio mix: source (recorded clip) volume and background-music volume, each 0..1 (0 = muted).
     audio: audioGlobal(state.audio),
+    ...(state.audio.cues && state.audio.cues.length > 0 ? { sfx: state.audio.cues } : {}),
     ...(state.globalAnimations.length > 0 ? { animations: state.globalAnimations.map(globalAnimationFrom) } : {}),
     // Whole-video text overlays (brand watermark, etc.) authored once and composited onto every section.
     ...globalOverlaysField(state.globalOverlays),

@@ -13,7 +13,7 @@ import type FilterManager from '../editor/managers/FilterManager';
 import type FormattersManager from '../editor/managers/FormatterManager';
 import { assertSafeArgToken } from '@/core/arg-guard';
 import { SectionError } from '@/core/errors/section-error';
-import { compileSugarLayers, compileGlobalDecorations } from './presets/registry';
+import { compileSugarLayers, compileGlobalDecorations, createEmojiPlan, type EmojiPlan } from './presets/registry';
 import {
   buildSingleFileAnimationSource,
   buildSingleFileImageSource,
@@ -30,7 +30,13 @@ import {
   buildColorMetadataArgs,
   buildColorMetadataFilter,
 } from '@/core/encoding';
-import { cameraEndOfChain, conformMotionChain, motionSugarContext } from './presets/motion-chain';
+import {
+  cameraEndOfChain,
+  conformMotionChain,
+  motionSugarContext,
+  reframeFilters,
+  sectionFootageHead,
+} from './presets/motion-chain';
 
 // Bag of all service-layer dependencies injected into SegmentBuilder.
 // A single token keeps the constructor within the max-params budget (5).
@@ -80,10 +86,15 @@ class SegmentBuilder {
   // Count of background-sugar filters prepended to section.filters — the splice point for overlay text
   // in the no-overlay-graph case (text sits above the grade, below the section's authored chain).
   private backgroundSugarCount = 0;
+  // Count of footage-edit filters (clip range / ramp / freeze) at the head of section.filters; the
+  // reframe scale is spliced right after them. Reset per section with the sugar guard.
+  private footageHeadCount = 0;
   // Guards stageBackgroundSugar so it folds the sugar exactly once per section: buildSegment stages it
   // before buildMaps (so overlay base legs pick up the grade), and buildFilters calls it too (a no-op
   // then) so buildFilters stays self-contained when driven directly. Reset per section in hydrate.
   private sugarStaged = false;
+  // The section's emoji images (editor/emoji): set by stageBackgroundSugar, null for a section not staged yet.
+  private emojiPlan: EmojiPlan | null = null;
 
   /** The video encoder name for this platform — `codecConfig.videoCodec` (h264_mediacodec on device) or `h264`. */
   protected videoCodec(): string {
@@ -142,6 +153,16 @@ class SegmentBuilder {
     // across segments, stretching the recorded clip.
   }
 
+  // Structured-sugar staging is per-section: clear the guard + carried sugar so the next section
+  // stages its own look/grade/motion afresh.
+  private resetSugarState(): void {
+    this.sugarStaged = false;
+    this.emojiPlan = null;
+    this.pendingOverlaySugar = [];
+    this.backgroundSugarCount = 0;
+    this.footageHeadCount = 0;
+  }
+
   hydrate = (section: Section): SegmentBuilder => {
     this.section = section;
     this.section.inputs ??= [];
@@ -157,11 +178,7 @@ class SegmentBuilder {
     this.segment.inputsAsset = [];
     this.segment.inputsMapCount = 0;
 
-    // Structured-sugar staging is per-section: clear the guard + carried sugar so the next section
-    // stages its own look/grade/motion afresh.
-    this.sugarStaged = false;
-    this.pendingOverlaySugar = [];
-    this.backgroundSugarCount = 0;
+    this.resetSugarState();
 
     this.assetManager.segment = this.segment;
     this.mapManager.segment = this.segment;
@@ -213,6 +230,7 @@ class SegmentBuilder {
       // are built, so an animation/gradient overlay's base leg (which bakes the section filters via
       // `useSectionFilters` during buildMaps) picks up the colour grade and motion.
       this.stageBackgroundSugar();
+      await this.emojiPlan?.prepare(this.filesystemAdapter);
 
       await timer.span('segment:maps', () => this.buildMaps());
       this.logger.info(`[${this.section.name}][Maps] built`);
@@ -230,6 +248,8 @@ class SegmentBuilder {
 
       await timer.span('segment:luts', () => this.assetManager.fetchLuts());
       this.logger.info(`[${this.section.name}][LUTs] fetched`);
+
+      await this.emojiPlan?.stage(this.filesystemAdapter);
     } catch (error) {
       const failure = new SectionError(this.section.name, error);
       this.logger.error(failure.message);
@@ -322,11 +342,16 @@ class SegmentBuilder {
     // filters), then the animation overlays on top — so the final mapped pad is an animation overlay,
     // not the gradient (which would otherwise overwrite the output and drop the overlays). The video
     // leg is normalized to the output scale before compositing so full-frame animations fill the frame.
-    this.buildGradientLayers(inputIndex, inputsAsset);
+    this.registerEmojiInputs(this.buildGradientLayers(inputIndex, inputsAsset), inputsAsset);
 
     for (const animation of pendingAnimations) {
       this.mapManager.addAnimationOverlay(animation.input, animation.index, videoScale);
     }
+  };
+
+  // Emoji images (pulled out of the section's text) follow every other input, from stream `firstIndex`.
+  private readonly registerEmojiInputs = (firstIndex: number, inputsAsset: InputsAssetMap): void => {
+    this.emojiPlan?.register(inputsAsset, firstIndex);
   };
 
   /**
@@ -376,7 +401,7 @@ class SegmentBuilder {
    * section filters folded into the first map) forces this overlay-after-filters order; the visual
    * difference is acceptable for v1.
    */
-  private readonly buildGradientLayers = (firstGradientIndex: number, inputsAsset: InputsAssetMap): void => {
+  private readonly buildGradientLayers = (firstGradientIndex: number, inputsAsset: InputsAssetMap): number => {
     const layers = this.section.options?.layers ?? [];
     const scale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
     const duration = this.section.options?.duration ?? 0;
@@ -397,6 +422,8 @@ class SegmentBuilder {
       this.mapManager.addGradientOverlay(layer, gradientIndex, `gradient_layer_${i}`, `${geometry.x}:${geometry.y}`);
       gradientIndex++;
     }
+
+    return gradientIndex;
   };
 
   buildFilters = async (): Promise<void> => {
@@ -420,11 +447,9 @@ class SegmentBuilder {
       this.section.filters.splice(this.backgroundSugarCount, 0, ...overlaySugar);
     }
 
-    // Force ratio (opts?.forceAspectRatio !== false is true when opts is undefined,
-    // so the RHS opts.forceOriginalAspectRatio is only reached when opts is defined).
-    if (opts?.forceAspectRatio !== false || opts.forceOriginalAspectRatio) {
-      this.prependScaleFilters(opts);
-    }
+    // Reframe (cover / letterbox / blur fill, focus), right after the footage edits staged ahead of
+    // everything (stageBackgroundSugar): frames are retimed before any of them is scaled or drawn on.
+    this.prependScaleFilters(opts);
 
     // Build simple filters
     for (const filter of this.section.filters) {
@@ -447,6 +472,9 @@ class SegmentBuilder {
     // instead, drawing on top of the overlay rather than being dropped.
     this.appendOverlayChain(hasOverlayGraph ? overlaySugar : []);
 
+    // Colour emoji composite above the text they were pulled out of (editor/emoji).
+    this.emojiPlan?.compose(this.segment, this.section.filters, `${this.videoInputIndex()}:v`);
+
     this.formatFilters();
   };
 
@@ -458,8 +486,12 @@ class SegmentBuilder {
     }
 
     const videoScale = this.project.config.videoConfig?.scale ?? DefaultConfig.SCALE;
-    this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale);
+    const head = this.footageHead().map((filter) => this.filterManager.addFilter(filter));
+    this.mapManager.addChromakeyComposite(this.section.chromaKey, this.videoInputIndex(), videoScale, head);
   };
+
+  // The footage edits' video head (core/footage/plan.ts), or none for an unedited section.
+  private readonly footageHead = (): Filter[] => sectionFootageHead(this.section, this.project.buildInfos, this.fps());
 
   /**
    * Chains overlay-class sugar (text) onto the final composited pad when the section has an overlay
@@ -495,8 +527,17 @@ class SegmentBuilder {
     const motion = motionSugarContext(this.template.descriptor, this.section.name);
 
     const platform = this.template.descriptor.global?.platform;
+    const theme = this.template.descriptor.global?.theme;
 
-    return { duration, scale, fps, isVideo, platform, motion: { ...motion, resolveText: this.resolveSugarText } };
+    return {
+      duration,
+      scale,
+      fps,
+      isVideo,
+      platform,
+      theme,
+      motion: { ...motion, resolveText: this.resolveSugarText },
+    };
   };
 
   // Final text for sugar that lays copy out itself (kinetic): locale, variables, fields, section case.
@@ -534,43 +575,55 @@ class SegmentBuilder {
     this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
     const authored = this.section.filters;
 
-    // CFR conform + seeded noise (presets/motion-chain.ts).
-    this.section.filters = conformMotionChain(
-      [...background, ...authored],
-      this.template.descriptor,
-      this.fps(),
-      this.section.name
-    );
+    // Footage edits retime the raw clip first, then the CFR conform + seeded noise (presets/motion-chain.ts).
+    const head = this.footageHead();
+    this.footageHeadCount = head.length;
+    this.section.filters = [
+      ...head,
+      ...conformMotionChain([...background, ...authored], this.template.descriptor, this.fps(), this.section.name),
+    ];
     // Everything ahead of the authored chain (background sugar, plus the CFR conform) — the splice point
     // for overlay text, which must draw after the conform so it animates on the frame grid.
     this.backgroundSugarCount = this.section.filters.length - authored.length;
+    this.stageEmoji(ctx);
+  };
+
+  // Pulls colour emoji out of every drawtext (sugar and authored); they come back as image overlays.
+  private readonly stageEmoji = (ctx: { scale: string; duration: number; fps: number }): void => {
+    const plan = createEmojiPlan({
+      global: this.template.descriptor.global,
+      section: this.section,
+      sugar: ctx,
+      locale: this.project.config.currentLocale ?? '',
+      substitute: (text) => this.variableManager.mapFields(this.variableManager.mapVariables(text)),
+      logger: this.logger,
+    });
+
+    this.pendingOverlaySugar = plan.rewrite(this.pendingOverlaySugar);
+    this.section.filters = plan.rewrite(this.section.filters ?? []);
+    this.emojiPlan = plan;
   };
 
   /**
-   * Builds the `-af` argument string for this section's audio effect (echo/telephone/muffled) and
-   * fades, or returns '' if neither is configured or the section is muted (processing a silent
-   * track is pointless). Delegates to the pure module-level buildAudioFadeArg to keep this class
-   * within line limits.
+   * Builds the `-af` argument string for this section's voice preset, audio effect, volume automation
+   * and fades, or returns '' if none is configured or the section is muted (processing a silent track
+   * is pointless). Delegates to the pure module-level buildAudioFadeArg to keep this class within line
+   * limits.
    */
-  protected buildAudioFadeArg = (): string => buildAudioFadeArg(this.section.options);
+  protected buildAudioFadeArg = (): string => buildAudioFadeArg(this.section.options, false, this.project.config);
 
+  // Default COVER (scale up until the frame is filled, crop the overflow) never stretches a source whose
+  // aspect differs from the output; letterbox keeps the whole frame with bars; blur fills the bars with
+  // a blurred copy; off skips scaling (utils/reframe.ts).
   private readonly prependScaleFilters = (opts: SectionOptions | undefined): void => {
-    const baseScale = this.project.config.videoConfig?.scale ?? '';
-    // Default (forceAspectRatio): COVER — scale up until the frame is filled, then crop the overflow, so
-    // a source whose aspect differs from the output (e.g. a portrait clip in a square template) fills the
-    // frame WITHOUT being stretched. A bare `scale=W:H` would deform it; this preserves the content ratio.
-    let scaleFilter = baseScale ? `${baseScale}:force_original_aspect_ratio=increase,crop=${baseScale}` : baseScale;
+    const reframe = reframeFilters(opts, {
+      scale: this.project.config.videoConfig?.scale ?? '',
+      setsar: this.project.config.videoConfig?.setsar,
+      fps: this.fps(),
+    });
 
-    if (opts?.forceOriginalAspectRatio) {
-      // CONTAIN — letterbox: keep the whole frame visible with bars instead of cropping.
-      scaleFilter = `${baseScale}:force_original_aspect_ratio=decrease,pad=${baseScale}:(ow-iw)/2:(oh-ih)/2`;
-    }
-
-    this.section.filters = [
-      { type: 'setsar', value: this.project.config.videoConfig?.setsar },
-      { type: 'scale', value: scaleFilter },
-      ...(this.section.filters ?? []),
-    ];
+    this.section.filters ??= [];
+    this.section.filters.splice(this.footageHeadCount, 0, ...reframe);
   };
 
   /**

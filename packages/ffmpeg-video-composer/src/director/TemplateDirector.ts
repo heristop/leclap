@@ -9,7 +9,7 @@ import type VideoEditor from '../editor/VideoEditor';
 import type MusicComposer from '../editor/MusicComposer';
 import type { FFMpegInfos, ProjectConfig, Section, TemplateDescriptor } from '@/core/types';
 import { fetchSectionInfos, segmentOutputPath } from './section-infos';
-import { planFootage, recordProbe, type FootagePlanDeps } from './footage-plan';
+import { applyTakePlans, recordProbe, type FootagePlanDeps } from './footage-plan';
 import { getPerfTimer } from '../utils/perf-timer';
 import { renderSegments } from './render-segments-concurrently';
 import { runFinalize } from './finalize-concat-fold';
@@ -25,6 +25,7 @@ import {
   timingOptions,
 } from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
+import { recordSectionLengths } from './footage-durations';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import { expandPartialsSafe, assertEffectsResolved } from '@/core/partials';
 import type Project from '../core/models/Project';
@@ -231,19 +232,20 @@ class TemplateDirector {
   };
 
   calculateTotalLength = async (segments: Section[]): Promise<void> => {
-    const resolveDuration = async (segment: Section): Promise<number> =>
-      segment.type === 'project_video' ? this.getVideoSectionDuration(segment) : (segment.options?.duration ?? 0);
+    const buildInfos = this.project.buildInfos;
+    const sourceDurations = (buildInfos.sourceDurations ??= {});
+    const probes = segments.filter((segment) => segment.type === 'project_video');
+    const probed = await Promise.all(probes.map((segment) => this.getVideoSectionDuration(segment)));
 
-    const durations = await Promise.all(segments.map(resolveDuration));
-    // Keep windows / silence trimming / HDR tone-map, resolved on the probed clips (director/footage-plan.ts).
-    await planFootage(this.footageDeps(), segments, durations, this.project.buildInfos);
-    const durMap = this.project.buildInfos.durations;
+    for (const [index, segment] of probes.entries()) sourceDurations[segment.name] = probed[index];
 
-    for (const [index, segment] of segments.entries()) {
-      const duration = durations[index] ?? 0;
-      this.project.buildInfos.totalLength += duration;
-      durMap[segment.name] = duration;
-    }
+    // Order: probed source → clip range / ramp / freeze (director/footage-durations.ts) → keep windows /
+    // trimSilence / HDR tone-map (director/footage-plan.ts). The two edit families never share a section.
+    const fps = this.project.config.videoConfig?.fps ?? 30;
+    recordSectionLengths(segments, buildInfos, fps, (note) => {
+      this.logger.warn(note);
+    });
+    await applyTakePlans(this.footageDeps(), segments, buildInfos);
 
     // Each non-cut boundary cross-dissolves, overlapping its two clips and shortening the rendered
     // timeline by the transition duration. Cut boundaries subtract 0.
@@ -332,7 +334,8 @@ class TemplateDirector {
       hasAnimations,
       musicEnabled: Boolean(global?.musicEnabled),
       musicWillRun,
-      normalizeWillRun: !global?.musicEnabled && this.musicComposer.hasNormalization(),
+      // Without a music mix, normalisation and sound effects need their own audio pass.
+      normalizeWillRun: !musicWillRun && this.musicComposer.hasStandaloneAudioPass(),
       disableFold: Boolean(process.env.FVC_DISABLE_CONCAT_FOLD),
       finalPath: this.project.output.staging || `${buildDir}/output.mp4`,
       listPath: this.project.buildInfos.fileConcatPath,

@@ -11,10 +11,19 @@ import { footageAdvisories } from './footage-advisories';
 import { beatGridAdvisories } from './beats-advisory';
 import { adviseEachFormat, adviseEachFormatSync, expandedForFormats } from './validation/format-validation';
 import { formatAdvisories } from '@/core/formats/advisories';
+import { takeAdvisories } from './take-validation';
+import { expandPartialsSafe } from '@/core/partials';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
 export type { GeometryWarning, FontLoader } from './geometry';
+
+// Footage advisories read the expanded sections, like the pacing lint, so paths index them.
+function takeWarnings(template: unknown): MotionWarning[] {
+  const expanded = expandPartialsSafe(template);
+
+  return expanded.ok ? takeAdvisories(expanded.data as TemplateDescriptor) : [];
+}
 
 // The full validator: everything BaseTemplateValidator checks, plus the advisory passes. Advisories
 // never enter `errors` nor flip `success` — a template that renders badly still renders.
@@ -101,7 +110,7 @@ export class TemplateValidator extends BaseTemplateValidator {
   // The theme advisories (one accent per idea, palette drift), the emoji advisories (missing bundled image,
   // per-section cap, strip mode), the subtitle advisories (split, shrunk, past the end), the footage
   // advisories (extreme ramp speeds, ignored focus, blur fit under overlays, a clip range shorter than the
-  // section) and the low-confidence beat grid advisory (beats-advisory.ts) ride along, so every surface
+  // section), the low-confidence beat grid advisory and the take advisories (take-validation.ts) ride along, so every surface
   // that shows pacing feedback shows them. Per format when the template declares several, plus the
   // whole-template format advisories (format_crop_only, format_story_diverges: core/formats/advisories.ts).
   getMotionWarnings(template: unknown): MotionWarning[] {
@@ -113,6 +122,7 @@ export class TemplateValidator extends BaseTemplateValidator {
       ...subtitleAdvisories(resolved),
       ...footageAdvisories(resolved),
       ...beatGridAdvisories(resolved),
+      ...takeWarnings(resolved),
     ]);
 
     return [...perFormat, ...formatAdvisories(expandedForFormats(template))];

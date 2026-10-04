@@ -160,6 +160,11 @@ export const ENGINE_EMITTED_FILTERS = [
   'dynaudnorm',
   'anullsrc',
   'aevalsrc',
+  // footage edits (editor/footage/): kept windows (trim/atrim + concat) and cutaways (overlay, volume,
+  // amix, anullsrc, aformat above). The HDR tone-map (zscale/tonemap) and silencedetect are host-only:
+  // the director requests them only through the Node FootageAnalyzer, never on the device engine.
+  'trim',
+  'concat',
   // section audio effect presets (audio-fade.ts AUDIO_EFFECT_FILTERS: echo/telephone/muffled) —
   // `telephone` chains highpass,lowpass in one -af value; listed as individual filter names since
   // this string isn't a FilterManager filter object and so isn't FILTER_COMPAT-routed.

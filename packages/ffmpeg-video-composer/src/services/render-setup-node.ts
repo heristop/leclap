@@ -12,6 +12,7 @@ import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type { ProjectConfig } from '@/core/types';
 import { ffmpegVersionLine, versionFromLine } from '../platform/ffmpeg/analyze-node';
 import { createSectionCache, type SectionCache } from './section-cache-node';
+import { createFootageAnalyzer } from './footage-analysis-node';
 import { descriptorAssetFiles, renderRoots } from './render-manifest-node';
 import { registerBeatsAnalyzer } from './beats-analysis-node';
 
@@ -82,6 +83,7 @@ export async function prepareNodeRender(setup: NodeRenderSetup): Promise<NodeRen
         })
       : null;
   setup.project.commandInterceptor = cache?.intercept ?? null;
+  setup.project.footageAnalyzer = binary ? createFootageAnalyzer(binary) : null;
 
   return { ffmpegVersionLine: versionLine, cache };
 }

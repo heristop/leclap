@@ -30,6 +30,9 @@ export function isAnalysisRequest(beats: unknown): beats is BeatsAnalysisRequest
   return typeof beats === 'object' && beats !== null && (beats as { analyze?: unknown }).analyze === 'music';
 }
 
+// The footage options that fix a clip's length before probing: clip/ramp/freeze edits and keep windows.
+type TakeLengthOptions = FootageOptions & { keep?: Array<[number, number]>; trimSilence?: unknown };
+
 interface TimelineTransition {
   type: string;
   duration?: number;
@@ -38,7 +41,7 @@ interface TimelineTransition {
 export interface TimelineSection {
   type: string;
   // `duration` may still be an unresolved `{ beats }` / `{ bars }` length (core/timing/durations.ts).
-  options?: Omit<FootageOptions, 'duration'> & { duration?: unknown };
+  options?: Omit<TakeLengthOptions, 'duration'> & { duration?: unknown };
   transition?: TimelineTransition;
 }
 
@@ -69,27 +72,34 @@ function editedLength(options: FootageOptions): number | undefined {
 
 /**
  * The section's length when it is known before any media is probed: its `options.duration`, except for a
- * recorded clip (`project_video`), whose length comes from the probe. A `video` section whose footage
- * edits fix its length (a clip range with an out-point) is capped at that edited length, timed on the
- * default frame grid.
+ * recorded clip (`project_video`), whose length comes from the probe, and a silence-trimmed take, whose
+ * length comes from the analysis. A `video` section whose footage edits fix its length (a clip range
+ * with an out-point, timed on the default frame grid, or explicit `keep` windows) is capped at it.
  */
 export function knownDuration(section: TimelineSection): number | undefined {
-  if (section.type === 'project_video') return undefined;
+  const options = section.options;
 
-  const raw = section.options?.duration;
+  if (section.type === 'project_video' || options?.trimSilence !== undefined) return undefined;
+
+  const declared = options?.duration;
 
   // A `{ beats }` / `{ bars }` length is only a number once core/timing/durations.ts resolved it.
-  if (raw !== undefined && typeof raw !== 'number') return undefined;
+  if (declared !== undefined && typeof declared !== 'number') return undefined;
 
-  const options: FootageOptions = { ...section.options, duration: raw };
+  const edited = section.type === 'video' ? videoEditedLength({ ...options, duration: declared }) : undefined;
 
-  if (section.type !== 'video' || !hasFootageEdits(options)) return raw;
+  if (edited === undefined) return declared;
 
-  const edited = editedLength(options);
+  return declared === undefined ? edited : Math.min(declared, edited);
+}
 
-  if (edited === undefined) return raw;
+// The length a `video` section's own edits fix: the kept windows' sum, or the clip-range edit.
+function videoEditedLength(options: TakeLengthOptions): number | undefined {
+  const keep = options.keep;
 
-  return raw === undefined ? edited : Math.min(raw, edited);
+  if (keep && keep.length > 0) return keep.reduce((sum, [from, to]) => sum + Math.max(0, to - from), 0);
+
+  return hasFootageEdits(options) ? editedLength(options) : undefined;
 }
 
 // How far the boundary after `previous` pulls the next section back: a transition overlaps both clips.

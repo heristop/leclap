@@ -104,7 +104,8 @@ function visualExtrasFrom(s: Section): VisualExtras {
   return {
     ...(s.transition ? { transitionAfter: s.transition } : {}),
     ...(caption ? { caption } : {}),
-    ...(s.look ? { look: s.look } : {}),
+    // The editor picks looks by name; a { preset, strength } look opens as its preset.
+    ...(s.look ? { look: typeof s.look === 'string' ? s.look : s.look.preset } : {}),
     ...(s.grade ? { grade: s.grade } : {}),
     ...(s.letterbox ? { letterbox: s.letterbox } : {}),
     ...(s.motion && s.motion.length > 0 ? { motion: s.motion } : {}),
@@ -353,7 +354,7 @@ export function toEditorState(template: EditableTemplate | null): EditorState {
     globalAnimations: globalAnimationsFrom(global),
     globalOverlays: globalOverlaysFrom(global),
     ...(watermark ? { watermark } : {}),
-    ...(global?.look ? { globalLook: global.look } : {}),
+    ...(global?.look ? { globalLook: typeof global.look === 'string' ? global.look : global.look.preset } : {}),
     ...(global?.grade ? { globalGrade: global.grade } : {}),
     ...(colorsList.length > 0 ? { colorsList } : {}),
   };

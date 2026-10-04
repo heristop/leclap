@@ -295,7 +295,7 @@ export {
   partialsById,
   type PartialExpansion,
 } from './core/partials';
-export type { ProjectConfig, TemplateDescriptor, CompileReporter } from './core/types';
+export type { ProjectConfig, TemplateDescriptor, CompileReporter, MediaTraits } from './core/types';
 export {
   TemplateValidator,
   type ValidationResult,

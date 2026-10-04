@@ -8,7 +8,7 @@ import {
   ChromaKeySchema,
   FramingGuideSchema,
   GradeSchema,
-  LOOK_PRESETS,
+  LookSchema,
   MotionEffectSchema,
   TransitionSchema,
 } from './effects.schemas';
@@ -21,7 +21,7 @@ import { CLIP_AUDIO_OPTION_FIELDS } from './audio.schemas';
 import { SECTION_INTENT_FIELDS } from './section-intent.schemas';
 import { TemplateMetaSchema } from './template-meta.schemas';
 export { TemplateMetaSchema } from './template-meta.schemas';
-import { FIT_OPTION_FIELDS, FOOTAGE_OPTION_FIELDS } from './footage.schemas';
+import { CutawaysSchema, FIT_OPTION_FIELDS, FOOTAGE_OPTION_FIELDS } from './footage.schemas';
 import { BeatDurationSchema } from './time.schemas';
 
 export {
@@ -151,10 +151,9 @@ export const BaseSectionSchema = z
     lowerThird: LowerThirdSchema.optional().describe('Title/subtitle band composited over the section clip.'),
     ...MOTION_SECTION_FIELDS,
     ...SECTION_INTENT_FIELDS,
-    look: z
-      .enum(LOOK_PRESETS)
-      .optional()
-      .describe('Named colour-grade preset applied to the section video (default: none).'),
+    look: LookSchema.optional().describe(
+      'Named colour-grade preset applied to the section video (default: none); string or { preset, strength }.'
+    ),
     grade: GradeSchema.optional().describe('Fine-grained colour-grade settings applied to the section video.'),
     letterbox: z
       .object({
@@ -183,6 +182,7 @@ export const VideoSectionSchema = BaseSectionSchema.extend({
     .strict()
     .optional()
     .describe('Playback, footage editing and compositing options for the video section.'),
+  cutaways: CutawaysSchema.optional(),
 }).describe('A section that plays a pre-recorded video clip or a user-uploaded video asset.');
 
 export const EffectSectionSchema = BaseSectionSchema.extend({
@@ -217,6 +217,7 @@ export const ProjectVideoSectionSchema = BaseSectionSchema.extend({
     .strict()
     .optional()
     .describe('Recording and compositing options for the project_video section.'),
+  cutaways: CutawaysSchema.optional(),
 }).describe('A section that records a new clip from the device camera; supports a framing guide overlay.');
 
 export const FormSectionSchema = BaseSectionSchema.extend({

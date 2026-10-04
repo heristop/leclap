@@ -4,6 +4,7 @@ import { promisify } from 'node:util';
 import type { FFMpegInfos } from '../../core/types';
 import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
+import { reportedTraits } from '../../core/footage/media-traits';
 import { parseCommand } from './parse-command';
 import { tailStderr } from './tail-stderr';
 import { measureLoudness } from './analyze-node';
@@ -72,6 +73,7 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
         videoCodec: videoStream?.codec_name ?? null,
         audioCodec: audioStream?.codec_name ?? null,
         sampleRate: audioStream?.sample_rate ? parseInt(audioStream.sample_rate, 10) : null,
+        ...reportedTraits(videoStream),
       };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };

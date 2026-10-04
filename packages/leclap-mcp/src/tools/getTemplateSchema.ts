@@ -82,6 +82,12 @@ const GUIDE = [
     'of the section playing then, so "beat:n", "bar:n" and "cue:drop" land on the music. Section lengths may ' +
     'be options.duration { beats: n } / { bars: n }. global.beats { analyze: "music" } measures the track at ' +
     'compose time on this Node server. When usable is false (calm or ambient music), pace by phrases instead of beats.',
+  'Recorded footage (video/project_video): look accepts { preset, strength } for the LUT looks; grade.lut ' +
+    '{ url, strength? } applies a user .cube (e.g. Log → Rec.709) first; options.trimSilence cuts silent edges ' +
+    'and long pauses (Node analysis; elsewhere pass options.keep [[from,to],…]); cutaways[] overlay B-roll ' +
+    '({ url, at, duration, from?, audio: a|b|mix, fit }) while the main clip keeps running (keep/trimSilence/' +
+    'cutaways do not combine with clip/speedRamp/freeze). probe_media reports hdr/vfr/rotation; ' +
+    'get_motion_catalog lists footage.take rules.',
   'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +
     'cut-only templates use a fast stream-copy concat.',
   'Strings may contain `{{ variables }}` (from global.variables), `{{ colorN }}` (1-indexed from ' +

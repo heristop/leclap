@@ -9,6 +9,7 @@ import type { Filter, FilterValues } from '@/core/types';
 import type VariableManager from './VariableManager';
 import { isFontRef, fontRefSlug, type FontInput } from '@/core/fonts';
 import { escapeDrawtextText } from '@/core/drawtext-text';
+import { lutFileStem } from '../presets/lut-spec';
 
 // The whole filtergraph is emitted as one double-quoted `-vf "…"` argv token, and parseCommand
 // toggles its quote state on any inner `"`. So a literal `"` (or a NUL) in a filter type/value would
@@ -83,16 +84,17 @@ class FormatterManager {
     return `scale=${scale}:force_original_aspect_ratio=decrease:force_divisible_by=2,pad=${scale}:(ow-iw)/2:(oh-ih)/2,setsar=1`;
   }
 
-  // A LUT look carries the LUT *name* as its value (e.g. "teal-orange"). Register it for staging (same
-  // role as tempFonts) and rewrite it to a lut3d reading the generated `.cube` from the build FS.
+  // A LUT look carries a LUT spec as its value (e.g. "teal-orange", "teal-orange@0.6", "url:…@1", see
+  // presets/lut-spec.ts). Register it for staging (same role as tempFonts) and rewrite it to a lut3d
+  // reading the staged `.cube` from the build FS; a bare preset name keeps its historical file name.
   private formatLut3d(name: string): string {
-    const safeName = stripFilterUnsafe(name);
+    const spec = stripFilterUnsafe(name);
 
-    if (!this.segment.tempLuts.includes(safeName)) {
-      this.segment.tempLuts.push(safeName);
+    if (!this.segment.tempLuts.includes(spec)) {
+      this.segment.tempLuts.push(spec);
     }
 
-    return `lut3d=file='${this.segment.lutsDir}/${safeName}.cube'`;
+    return `lut3d=file='${this.segment.lutsDir}/${lutFileStem(spec)}.cube'`;
   }
 
   private formatTextValue(key: string, values: ExtendedFilterValues): string | null {

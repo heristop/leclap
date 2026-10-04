@@ -96,20 +96,29 @@ export function buildAudioFadeArg(
   config?: ProjectConfig,
   footage: { head: string[]; duration?: number } = { head: [] }
 ): string {
+  const chain = buildAudioFadeChain(opts, pad, config, footage);
+
+  return chain === '' ? '' : ` -af "${chain}" `;
+}
+
+/**
+ * The bare chain buildAudioFadeArg wraps in `-af` ('' when none): the same parts, for a section that folds
+ * its audio processing into a complex filtergraph (editor/footage/).
+ */
+export function buildAudioFadeChain(
+  opts: SectionOptions | undefined,
+  pad = false,
+  config?: ProjectConfig,
+  footage: { head: string[]; duration?: number } = { head: [] }
+): string {
   if (opts?.muteSection === true) {
     return '';
   }
 
-  const parts: string[] = [
+  return [
     // Footage edits (utils/footage-lowering.ts) retime the clip sound before any processing or fade.
     ...footage.head,
     ...processingParts(opts, config, footage.duration ?? opts?.duration),
     ...(pad ? ['apad'] : []),
-  ];
-
-  if (parts.length === 0) {
-    return '';
-  }
-
-  return ` -af "${parts.join(',')}" `;
+  ].join(',');
 }

@@ -2,7 +2,8 @@ import { injectable } from 'tsyringe';
 import SegmentBuilder from '../SegmentBuilder';
 import { assertSafeArgToken } from '@/core/arg-guard';
 import { usesLgplEngine } from '@/core/encoding';
-import { buildAudioFadeArg } from '../utils/audio-fade';
+import { buildAudioFadeArg, buildAudioFadeChain } from '../utils/audio-fade';
+import { footageArgs, keepAwareRetime, type FootageHost } from '../footage/section-footage';
 import { footageAudio } from '../utils/footage-section';
 
 @injectable()
@@ -66,33 +67,58 @@ class ProjectVideo extends SegmentBuilder {
       duration = ` -t ${this.section.options?.duration} `;
     }
 
+    const { inputs, outputs } = this.ioArgs(sourceVideo);
+
+    this.command +=
+      inputs +
+      ` -r ${this.fps()} ${duration} ` +
+      ` ${this.videoEncoderArgs()} -c:a aac -ac 2 ${this.pixFmtArg()} ${this.colorMetadataArgs()} -movflags +faststart -shortest ` +
+      `${outputs}${this.destination} `;
+  };
+
+  // The input part and the filter/map/-af part of the command. Footage edits (keep/trimSilence, HDR
+  // tone-map, cutaways) add the cutaway inputs and fold the audio map and -af into one graph.
+  private ioArgs(sourceVideo: string): { inputs: string; outputs: string } {
     // A video-only source has no audio, so map a silent track instead. The blank input is APPENDED
     // after the source + asset inputs (it must NOT shift the video to input 1 — animation/overlay maps
     // reference the source as `[0:v]`). `-shortest` trims the infinite anullsrc to the video length.
     const noSourceAudio = this.sourceHasNoAudio();
     const silentInput = noSourceAudio ? this.addBlankAudio() : '';
     // Source video is input 0, asset inputs follow, the appended silent leg is the last input.
-    const audioMap = noSourceAudio ? `-map ${this.sources.length + 1}:a` : '-map 0:a?';
-    // Footage edits (clip range / ramp / freeze) retime the clip's own sound; `-t … -shortest` then ends
-    // the segment on the edited picture.
-    const footage = footageAudio(this.section, {
+    const audioIn = noSourceAudio ? `${this.sources.length + 1}:a` : '0:a';
+    const audioMap = noSourceAudio ? `-map ${audioIn}` : '-map 0:a?';
+    const inputs = ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ${silentInput} `;
+    const pad = this.padsSourceAudio(noSourceAudio);
+    // Clip range / ramp / freeze retime the clip's own sound; `-t … -shortest` then ends the segment
+    // on the edited picture (utils/footage-section.ts).
+    const retime = footageAudio(this.section, {
       config: this.project.config,
       buildInfos: this.project.buildInfos,
       clipSound: this.mapsClipSound(noSourceAudio),
     });
-    const audioArg = buildAudioFadeArg(
-      this.section.options,
-      this.padsSourceAudio(noSourceAudio),
-      this.project.config,
-      footage
-    );
+    // Keep windows / trimSilence, HDR tone-map and cutaways fold the audio map and -af into one graph.
+    const footage = footageArgs(this.footageHost(), this.command, inputs, {
+      input: audioIn,
+      chain: (options) => buildAudioFadeChain(options, false, this.project.config, keepAwareRetime(options, retime)),
+      pad,
+    });
+    const audioArg = buildAudioFadeArg(this.section.options, pad, this.project.config, retime);
 
-    this.command +=
-      ` ${this.hwaccelArg} ${sourceVideo} ${this.sources.join(' ')} ${silentInput} ` +
-      ` -r ${this.fps()} ${duration} ` +
-      ` ${this.videoEncoderArgs()} -c:a aac -ac 2 ${this.pixFmtArg()} ${this.colorMetadataArgs()} -movflags +faststart -shortest ` +
-      ` ${this.filters} ${audioMap} ${audioArg}${this.destination} `;
-  };
+    return {
+      inputs: footage?.inputs ?? inputs,
+      outputs: footage?.filters ?? ` ${this.filters} ${audioMap} ${audioArg}`,
+    };
+  }
+
+  private footageHost(): FootageHost {
+    return {
+      section: this.section,
+      project: this.project,
+      segment: this.segment,
+      assetManager: this.assetManager,
+      videoIn: this.videoInputIndex(),
+    };
+  }
 }
 
 export default ProjectVideo;

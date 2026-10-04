@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { EasingSpecSchema } from './motion.schemas';
 import { timeValue } from './time.schemas';
 import { SPEED_RAMP_PRESETS } from '../core/footage/presets';
+import { KeepRangesSchema, TrimSilenceSchema } from './take.schemas';
 
 // Footage editing options: how a clip is reframed into the output (fit / fill / focus, every visual
 // section) and how a video / project_video clip is cut in time (clip range, speed ramp, freeze frames).
@@ -133,7 +134,12 @@ export const FOOTAGE_OPTION_FIELDS = {
     .max(16)
     .optional()
     .describe('Freeze frames, in section-time order: each holds one frame for `hold` seconds.'),
+  // Take editing (schemas/take.schemas.ts): exclusive with clip / speedRamp / freeze (validation).
+  trimSilence: TrimSilenceSchema.optional(),
+  keep: KeepRangesSchema.optional(),
 };
+
+export { CutawaySchema, CutawaysSchema, KeepRangeSchema, KeepRangesSchema, TrimSilenceSchema } from './take.schemas';
 
 export type FootageFit = (typeof SECTION_FITS)[number];
 export type FitFill = z.infer<typeof FitFillSchema>;

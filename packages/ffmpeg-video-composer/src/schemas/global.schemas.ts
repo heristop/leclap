@@ -9,7 +9,7 @@ import {
   TransitionSchema,
   GlobalAudioSchema,
   GradeSchema,
-  LOOK_PRESETS,
+  LookSchema,
   OverlayFitSchema,
   OverlayFlipSchema,
   RevealSchema,
@@ -261,10 +261,9 @@ export const GlobalConfigSchema = z
     watermark: WatermarkSchema.optional().describe(
       'A still-image watermark (e.g. a logo) composited over the whole video, authored once per template.'
     ),
-    look: z
-      .enum(LOOK_PRESETS)
-      .optional()
-      .describe('Colour-grade preset applied across every section (whole-video look).'),
+    look: LookSchema.optional().describe(
+      'Colour-grade preset applied across every section (whole-video look); string or { preset, strength }.'
+    ),
     grade: GradeSchema.optional().describe('Fine-grained colour grade applied across every section.'),
     allowedMusic: z
       .array(z.string())

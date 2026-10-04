@@ -39,6 +39,8 @@ export type { EffectReference } from '../schemas/effect-reference.schema';
 // Visual grade / motion / background-layer config also lives in a sibling for the same budget reason.
 export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
+export type * from './descriptor-footage';
+import type { LookInput, ProbedTraits, SectionTakeFields, TakeBuildInfos, TakeOptions } from './descriptor-footage';
 // Filtergraph primitives (input/filter/map + shape recipe) also live in a sibling for the budget;
 // the public ones are re-exported, and Filter/Input/Map imported back for the section declarations below.
 export type { ShapeSpec, Map, Filter, FilterValues, MapAnimationInput, OverlayFit, OverlayFlip } from './filter-types';
@@ -108,7 +110,7 @@ type AudioConfig = { sampleRate?: number; channelLayout?: string };
 
 export type VideoConfig = { orientation?: string; scale?: string; setsar?: string; fps?: number };
 
-export type ProjectBuildInfos = {
+export type ProjectBuildInfos = TakeBuildInfos & {
   totalSegments: number;
   totalLength: number;
   currentLength: number;
@@ -178,7 +180,7 @@ export interface TemplateDescriptorGlobal {
   animations?: GlobalAnimation[];
   overlays?: GlobalTextOverlay[];
   watermark?: Watermark;
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   allowedMusic?: string[];
   allowUploadMusic?: boolean;
@@ -273,7 +275,7 @@ export interface Variables {
 
 type DescriptorSection = Section | PartialSection;
 
-export interface Section {
+export interface Section extends SectionTakeFields {
   effect?: EffectReference;
   name: string;
   type: string;
@@ -296,7 +298,7 @@ export interface Section {
   subtitles?: Subtitles;
   /** Sound effects placed in this section (section time). */
   sfx?: SfxCue[];
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   letterbox?: Letterbox;
   motion?: MotionEffect[];
@@ -318,7 +320,7 @@ export interface PartialSection {
   description?: Translation;
   transition?: SectionTransition;
   caption?: Caption;
-  look?: string;
+  look?: LookInput;
   grade?: GradeConfig;
   motion?: MotionEffect[];
   ref?: string;
@@ -332,7 +334,7 @@ interface AudioFade {
   curve?: string;
 }
 
-export interface SectionOptions {
+export interface SectionOptions extends TakeOptions {
   upperCase?: boolean;
   lowerCase?: boolean;
   useVideoSection?: string;
@@ -390,20 +392,9 @@ interface Field {
   label: Translation;
 }
 
-export type Media = {
-  name: string;
-  url?: string;
-  path?: string;
-  extension?: string;
-};
+export type { Media, TemplateAssets } from './asset-types';
 
-export type TemplateAssets = {
-  fonts: Record<string, string>;
-  musics: Record<string, string>;
-  inputs: string[];
-};
-
-export type FFMpegInfos = {
+export type FFMpegInfos = ProbedTraits & {
   duration: number | null;
   videoCodec: string | null;
   audioCodec: string | null;

@@ -2,6 +2,7 @@
 // source. One data structure serves MCP (`get_motion_catalog`), the CLI and the template builder's
 // prompt-to-template flow, so they always agree with the engine.
 
+import { fullFootageCatalog, type FullFootageCatalog } from './catalog-footage';
 import { CSS_BEZIERS, NAMED_CURVES } from './curves';
 import { LEGACY_EASINGS, MIN_DAMPING_RATIO } from './easing';
 import { BUILTIN_MOTION_TOKENS } from './tokens';
@@ -22,7 +23,6 @@ import {
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
 import { motionRolesCatalog, type MotionRolesCatalog } from './catalog-roles';
-import { footageCatalog, type FootageCatalog } from '../footage/presets';
 import { FORMATS_ART_DIRECTION, FORMATS_GUIDE } from '../formats/guide';
 
 export type { MotionGuide } from './catalog-guides';
@@ -138,8 +138,9 @@ export interface MotionCatalog {
   timing: typeof TIMING;
   /** Sound effects (with when to use each), voice presets, volume automation and how they mix. */
   audio: AudioCatalog;
-  /** Footage editing: fits, focus, speed-ramp presets, clip range and freeze frames. */
-  footage: FootageCatalog;
+  /** Footage editing: fits, focus, speed-ramp presets, clip range and freeze frames, plus take editing
+   * (look strength, user LUTs, trimSilence/keep, cutaways, probed traits) under `take`. */
+  footage: FullFootageCatalog;
   starter: typeof STARTER;
   /** One story, several formats: `formats` overrides, `$format` values, merge rules (core/formats). */
   formats: typeof FORMATS_GUIDE;
@@ -319,7 +320,7 @@ export function motionCatalog(): MotionCatalog {
     captions: captionCatalog(),
     timing: TIMING,
     audio: audioCatalog(),
-    footage: footageCatalog(),
+    footage: fullFootageCatalog(),
     starter: STARTER,
     formats: FORMATS_GUIDE,
   };

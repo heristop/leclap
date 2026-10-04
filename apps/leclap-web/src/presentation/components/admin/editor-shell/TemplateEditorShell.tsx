@@ -17,7 +17,7 @@ import { useSectionSelection } from './useSectionSelection';
 import { EditorPanelSwitch } from './EditorPanelSwitch';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
 import { useProgramMonitor, useTemplatePersistence } from './use-template-editor-shell';
-import { ShellTitlebar, ShellMonitor, ShellModals } from './shell-slots';
+import { ShellTitlebar, ShellMonitor, ShellModals, useShellModals } from './shell-slots';
 import { sectionLabelKey, sectionTitle } from './section-label';
 
 interface TemplateEditorShellProps {
@@ -62,9 +62,8 @@ export const TemplateEditorShell = ({
   const ops = useEditorSectionOps(set);
   const { patch, patchSection, addSection, removeSection, duplicateSection, reorder, setTransition } = ops;
   const [localPartials] = useState(() => userPartialService.list());
-  const [helpOpen, setHelpOpen] = useState(false);
-  // Cold start (building from scratch): offer starter presets before showing the blank editor.
-  const [presetsOpen, setPresetsOpen] = useState(initial === null);
+  // Help, starter presets and Generate with AI. Cold start (building from scratch) opens the presets.
+  const modals = useShellModals(initial === null);
 
   // Selection state for the shell (which tool + which scene), clamped to a valid section index; plus
   // the shared text-overlay selection threaded to both the canvas and the inspector, keyed by scene.
@@ -140,13 +139,13 @@ export const TemplateEditorShell = ({
       monitor.clock.toggle();
     },
     onShowHelp: () => {
-      setHelpOpen(true);
+      modals.setHelpOpen(true);
     },
     // The help dialog closes itself on Escape (Radix); this fires with it closed — exit play mode.
     onDismissHelp: () => {
       if (monitor.playMode) monitor.exitPlayMode();
     },
-    enabled: !helpOpen && !presetsOpen,
+    enabled: !modals.anyOpen,
   });
 
   return (
@@ -173,6 +172,9 @@ export const TemplateEditorShell = ({
             backLabel={backLabel}
             onSave={save.handleSave}
             onSaveAndCompile={onSaveAndCompile ? save.handleSaveAndCompile : undefined}
+            onGenerate={() => {
+              modals.setAiOpen(true);
+            }}
             feedback={save.feedback}
             nameInvalid={save.blocker?.kind === 'name'}
             nameRef={save.nameRef}
@@ -238,18 +240,12 @@ export const TemplateEditorShell = ({
             sectionTitle={(section) => sectionTitle(section, t)}
             sectionKindLabel={(section) => t(sectionLabelKey(section.kind))}
             onBrowsePresets={() => {
-              setPresetsOpen(true);
+              modals.setPresetsOpen(true);
             }}
           />
         }
       />
-      <ShellModals
-        helpOpen={helpOpen}
-        setHelpOpen={setHelpOpen}
-        presetsOpen={presetsOpen}
-        setPresetsOpen={setPresetsOpen}
-        reset={reset}
-      />
+      <ShellModals modals={modals} reset={reset} canUndo={canUndo} />
     </ColorVariablesProvider>
   );
 };

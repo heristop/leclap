@@ -1,7 +1,7 @@
 // The three self-contained slots of TemplateEditorShell's ShellChrome — the titlebar, the program
 // monitor (edit canvas or playback), and the help / starter-preset modals — lifted out so the shell
 // file stays under its dependency budget. Each is a thin presentational wrapper; the shell owns state.
-import type { Ref } from 'react';
+import { useState, type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProgramMonitor } from '@/presentation/components/editor-shell';
 import type { EditorSection, EditorState } from '../templateEditorModel';
@@ -16,6 +16,7 @@ import { ProgramPlayer } from './program-player';
 import { ProgramTransport } from './program-transport';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import type { SaveFeedback } from './save-blocker.logic';
+import { GenerateWithAiButton, LazyGenerateWithAiDialog } from '../ai-generate/AiAssist';
 
 interface ShellTitlebarProps {
   state: EditorState;
@@ -31,6 +32,8 @@ interface ShellTitlebarProps {
   feedback: SaveFeedback | null;
   nameInvalid: boolean;
   nameRef: Ref<HTMLInputElement>;
+  // Opens Generate with AI; the titlebar shows its button only when given.
+  onGenerate?: () => void;
 }
 
 export const ShellTitlebar = ({
@@ -47,8 +50,10 @@ export const ShellTitlebar = ({
   feedback,
   nameInvalid,
   nameRef,
+  onGenerate,
 }: ShellTitlebarProps) => {
   const { t } = useTranslation('admin');
+  const { t: tAi } = useTranslation('ai');
 
   return (
     <EditorShellTitlebar
@@ -66,6 +71,7 @@ export const ShellTitlebar = ({
       nameInvalid={nameInvalid}
       nameRef={nameRef}
       preview={<TestRenderButton state={state} disabled={state.sections.length === 0} />}
+      assist={onGenerate ? <GenerateWithAiButton onClick={onGenerate} t={tAi} /> : undefined}
       t={t}
     />
   );
@@ -126,31 +132,67 @@ export const ShellMonitor = ({
   );
 };
 
-interface ShellModalsProps {
+export interface ShellModalState {
   helpOpen: boolean;
   setHelpOpen: (open: boolean) => void;
   presetsOpen: boolean;
   setPresetsOpen: (open: boolean) => void;
-  reset: (state: EditorState) => void;
+  aiOpen: boolean;
+  setAiOpen: (open: boolean) => void;
+  // Any modal open: the editor's global shortcuts stand down so keys act on the dialog.
+  anyOpen: boolean;
 }
 
-export const ShellModals = ({ helpOpen, setHelpOpen, presetsOpen, setPresetsOpen, reset }: ShellModalsProps) => (
+export function useShellModals(presetsInitiallyOpen: boolean): ShellModalState {
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(presetsInitiallyOpen);
+  const [aiOpen, setAiOpen] = useState(false);
+
+  return {
+    helpOpen,
+    setHelpOpen,
+    presetsOpen,
+    setPresetsOpen,
+    aiOpen,
+    setAiOpen,
+    anyOpen: helpOpen || presetsOpen || aiOpen,
+  };
+}
+
+interface ShellModalsProps {
+  modals: ShellModalState;
+  reset: (state: EditorState) => void;
+  // The draft has edits: loading a generated template asks before replacing it.
+  canUndo: boolean;
+}
+
+export const ShellModals = ({ modals, reset, canUndo }: ShellModalsProps) => (
   <>
     <ShortcutCheatSheet
-      open={helpOpen}
+      open={modals.helpOpen}
       onClose={() => {
-        setHelpOpen(false);
+        modals.setHelpOpen(false);
       }}
     />
     <StarterPresetPicker
-      open={presetsOpen}
+      open={modals.presetsOpen}
       onPick={(preset) => {
         reset(preset.build());
-        setPresetsOpen(false);
+        modals.setPresetsOpen(false);
       }}
       onBlank={() => {
-        setPresetsOpen(false);
+        modals.setPresetsOpen(false);
       }}
+      onGenerate={() => {
+        modals.setPresetsOpen(false);
+        modals.setAiOpen(true);
+      }}
+    />
+    <LazyGenerateWithAiDialog
+      open={modals.aiOpen}
+      onOpenChange={modals.setAiOpen}
+      hasUnsavedWork={canUndo}
+      onLoad={reset}
     />
   </>
 );

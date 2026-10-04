@@ -10,8 +10,10 @@ import { expandPartialsSafe } from '@/core/partials';
 import { resolveThemeDescriptor } from '@/core/theme/resolve';
 import { findAccentOveruse } from '@/core/theme/accent';
 import type { GeometryWarning, FontLoader } from './geometry';
+import { collectMotionWarnings, type MotionWarning } from './motion-lint';
 
 export type { ValidationError } from './template-validation-rules';
+export type { MotionWarning } from './motion-lint';
 export type { GeometryWarning, FontLoader } from './geometry';
 
 export interface ValidationResult {
@@ -344,6 +346,13 @@ export class TemplateValidator {
     const { collectGeometryWarnings } = await import('./geometry');
 
     return collectGeometryWarnings(template, loadFont);
+  }
+
+  // Advisory, like getGeometryWarnings: pacing findings read off the motion timeline (ease monotony,
+  // front-loaded sections, dead air, flat tempo…) plus assertions that can't be measured render-free.
+  // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
+  getMotionWarnings(template: unknown): MotionWarning[] {
+    return collectMotionWarnings(template);
   }
 
   getValidationSummary(result: ValidationResult): string {

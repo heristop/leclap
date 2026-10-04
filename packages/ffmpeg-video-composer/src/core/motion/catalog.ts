@@ -11,6 +11,13 @@ import { CAMERA_PRESETS } from '../../schemas/camera.schemas';
 import { DESIGNED_TRANSITION_DESCRIPTIONS } from './transitions';
 import { platformCatalog, type PlatformCatalogEntry } from '../platforms';
 import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
+import { CAMERA_GUIDES, GRAPHIC_GUIDES, KINETIC_GUIDES, TRANSITION_GUIDES, type MotionGuide } from './catalog-guides';
+import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
+import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+
+export type { MotionGuide } from './catalog-guides';
+export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
+export type { BlueprintRole, MotionBlueprint } from './catalog-blueprints';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -38,6 +45,12 @@ const ART_DIRECTION = [
     'of the frame per edge) and the timeline under platforms[].maxDuration.',
   'Every result is deterministic: the same JSON and global.seed render the same frames. Change the seed to ' +
     'reshuffle random order, scramble glyphs and grain.',
+  'Pick a genre doctrine first, then a blueprint per narrative role; keep each blueprint signatureMove. Every ' +
+    'element needs a verb (see each entry); two elements with the same verb in one beat compete.',
+  'Pacing: one primary transition plus 1–2 accents; the transition is the exit (no element exit right before it); ' +
+    'start text 0.1–0.3 s after the cut; vary eases by role; the slowest beat runs ≥ 3× the fastest.',
+  'Prove the choreography with section `assert` (visibleBy, before, inFrame, keepsMoving) and read the advisory ' +
+    'motionWarnings from validate_template before rendering.',
 ];
 
 const STARTER = {
@@ -65,10 +78,14 @@ const STARTER = {
   ],
 };
 
+type Guided<T> = T & MotionGuide;
+
 export interface MotionCatalog {
   rules: string[];
+  doctrine: Record<MotionGenre, GenreDoctrine>;
+  blueprints: MotionBlueprint[];
   kinetic: {
-    presets: ReturnType<typeof kineticCatalog>;
+    presets: Array<Guided<ReturnType<typeof kineticCatalog>[number]>>;
     exits: readonly string[];
     orders: readonly string[];
     units: readonly string[];
@@ -79,9 +96,9 @@ export interface MotionCatalog {
     functions: string[];
     springRules: string;
   };
-  camera: { presets: readonly string[]; fields: string[] };
-  transitions: Record<string, string>;
-  graphics: Record<string, string>;
+  camera: { presets: Array<Guided<{ preset: string }>>; fields: string[] };
+  transitions: Record<string, Guided<{ description: string }>>;
+  graphics: Record<string, Guided<{ description: string }>>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
   /** Delivery platforms for `global.platform`: orientation, safe zones, max duration, loudness. */
   platforms: PlatformCatalogEntry[];
@@ -89,6 +106,13 @@ export interface MotionCatalog {
   themes: ThemeCatalog;
   starter: typeof STARTER;
 }
+
+const BASIC_TRANSITIONS: Record<string, string> = {
+  cut: 'A hard cut: free to render, lands on the beat.',
+  fade: 'A crossfade between the two scenes.',
+  fadeblack: 'Dips through black: a chapter break.',
+  dissolve: 'A grainy, organic dissolve.',
+};
 
 const GRAPHICS: Record<string, string> = {
   flash: 'Full-frame light hit that decays (at, duration, color, intensity).',
@@ -100,11 +124,19 @@ const GRAPHICS: Record<string, string> = {
   panel: 'A solid block growing from one edge: a backing plate for text (x, y, width, height, from).',
 };
 
+function guided(descriptions: Record<string, string>, guides: Record<string, MotionGuide>) {
+  return Object.fromEntries(
+    Object.entries(descriptions).map(([name, description]) => [name, { description, ...guides[name] }])
+  );
+}
+
 export function motionCatalog(): MotionCatalog {
   return {
     rules: ART_DIRECTION,
+    doctrine: GENRE_DOCTRINE,
+    blueprints: MOTION_BLUEPRINTS,
     kinetic: {
-      presets: kineticCatalog(),
+      presets: kineticCatalog().map((entry) => ({ ...entry, ...KINETIC_GUIDES[entry.preset] })),
       exits: KINETIC_EXIT_PRESETS,
       orders: KINETIC_ORDERS,
       units: ['line', 'word', 'glyph'],
@@ -122,7 +154,7 @@ export function motionCatalog(): MotionCatalog {
       springRules: `stiffness 1..2000, damping 1..200, mass 0.1..20, velocity -50..50, damping ratio ≥ ${MIN_DAMPING_RATIO}; with no duration a spring takes its own settle time.`,
     },
     camera: {
-      presets: CAMERA_PRESETS,
+      presets: CAMERA_PRESETS.map((preset) => ({ preset, ...CAMERA_GUIDES[preset] })),
       fields: [
         'preset',
         'amount',
@@ -138,8 +170,8 @@ export function motionCatalog(): MotionCatalog {
         'includeText',
       ],
     },
-    transitions: DESIGNED_TRANSITION_DESCRIPTIONS,
-    graphics: GRAPHICS,
+    transitions: guided({ ...BASIC_TRANSITIONS, ...DESIGNED_TRANSITION_DESCRIPTIONS }, TRANSITION_GUIDES),
+    graphics: guided(GRAPHICS, GRAPHIC_GUIDES),
     tokens: BUILTIN_MOTION_TOKENS,
     platforms: platformCatalog(),
     themes: themeCatalog(),

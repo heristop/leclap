@@ -4,6 +4,7 @@ import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
 import { findNondeterministicExpressions } from '@/core/determinism/hygiene';
 import { validateMotionSystem } from './motion-validation';
 import { validateTheme } from '@/core/theme/validate';
+import { validateAssertions } from './motion-assertions';
 
 export interface ValidationError {
   path: string;
@@ -240,5 +241,6 @@ export function validateDescriptorRules(template: TemplateDescriptor): Validatio
     ...validateDeterminism(template),
     ...validateMotionSystem(template),
     ...validateTheme(template),
+    ...validateAssertions(template),
   ];
 }

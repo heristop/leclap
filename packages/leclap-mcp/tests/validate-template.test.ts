@@ -210,4 +210,60 @@ describe('validate_template with render: true', () => {
     expect(render.unavailable).toMatch(/^not rendered: /);
     expect(runGeometryCheckMock).not.toHaveBeenCalled();
   });
+
+  it('reports motion pacing findings under motionWarnings, and in the text block', async () => {
+    const still: Record<string, unknown> = {
+      sections: [
+        {
+          name: 'hold',
+          type: 'color_background',
+          options: { backgroundColor: '#000000', duration: 6 },
+          kinetic: [{ text: { en: 'Hi' }, preset: 'rise' }],
+        },
+      ],
+    };
+    const result = await setup()({ template: still });
+    const warnings = result.structuredContent?.motionWarnings as Array<{ code: string; hint?: string }>;
+
+    expect(result.isError).toBeUndefined();
+    expect(warnings.map((w) => w.code)).toContain('dead_air');
+    expect(warnings.every((w) => typeof w.hint === 'string')).toBe(true);
+    expect(result.content[0].text).toContain('motion finding(s)');
+    expect(result.content[0].text).toContain('[dead_air]');
+  });
+
+  it('omits motionWarnings for a well-paced template', async () => {
+    const paced: Record<string, unknown> = {
+      sections: [
+        {
+          name: 'beat',
+          type: 'color_background',
+          options: { backgroundColor: '#000000', duration: 3 },
+          camera: { preset: 'push-in', amount: 0.05 },
+          kinetic: [{ text: { en: 'Hi there' }, preset: 'rise' }],
+        },
+      ],
+    };
+    const result = await setup()({ template: paced });
+
+    expect(result.structuredContent?.motionWarnings).toBeUndefined();
+  });
+
+  it('fails a template whose motion assertion does not hold', async () => {
+    const late: Record<string, unknown> = {
+      sections: [
+        {
+          name: 'beat',
+          type: 'color_background',
+          options: { backgroundColor: '#000000', duration: 3 },
+          kinetic: [{ text: { en: 'Hi' }, preset: 'rise', delay: 1 }],
+          assert: [{ visibleBy: { target: 'kinetic[0]', at: 0.5 } }],
+        },
+      ],
+    };
+    const result = await setup()({ template: late });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0].text).toContain('visibleBy: "kinetic[0]" finishes entering at');
+  });
 });

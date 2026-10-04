@@ -135,6 +135,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On-device engine: `acompressor`, `adelay`, `agate`, `alimiter`, `equalizer` and `alphamerge` join the
   filter allowlist and the build links libfribidi (rebuild the engine).
 
+### Changed
+
+- Browser entry: `zod` is no longer inlined into `dist/browser.js`. It is imported from the `zod`
+  runtime dependency (like `tslib`), so the host's bundler shares one copy with the app. Validation
+  also no longer loads the background sugar presets or the rounded-panel PNG encoder at startup.
+  Together these cut the eager load from 806 KB to 587 KB, and `Template` still validates synchronously.
+
 ### Fixed
 
 - Backslashes in drawtext text (captions, title cards, overlays, kinetic counter prefix/suffix) render

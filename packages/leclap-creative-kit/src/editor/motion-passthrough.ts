@@ -8,14 +8,19 @@ import type { Camera } from 'ffmpeg-video-composer/src/schemas/camera.schemas.ts
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import type { EasingSpecInput, MotionTokens } from 'ffmpeg-video-composer/src/schemas/motion.schemas.ts';
 import type { Theme } from 'ffmpeg-video-composer/src/schemas/theme.schemas.ts';
+import type { SectionRole } from 'ffmpeg-video-composer/src/schemas/section-intent.schemas.ts';
 
 export type MotionEase = EasingSpecInput;
 
-/** Per-section motion blocks. */
+/** Per-section motion blocks, plus the section intent (purpose, narrative role): never rendered, carried through. */
 export interface MotionBlocks {
   kinetic?: KineticBlock[];
   camera?: Camera;
   graphics?: Graphic[];
+  /** Why the section exists (authoring metadata). */
+  purpose?: string;
+  /** Narrative role: hook, problem, product-intro, reveal, proof, cta, outro, bridge. */
+  role?: SectionRole;
 }
 
 /** Template-wide motion settings. */
@@ -31,6 +36,8 @@ export function motionBlocksOf(source: MotionBlocks): MotionBlocks {
     ...(source.kinetic ? { kinetic: source.kinetic } : {}),
     ...(source.camera ? { camera: source.camera } : {}),
     ...(source.graphics ? { graphics: source.graphics } : {}),
+    ...(source.purpose?.trim() ? { purpose: source.purpose.trim() } : {}),
+    ...(source.role ? { role: source.role } : {}),
   };
 }
 

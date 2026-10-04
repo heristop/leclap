@@ -396,7 +396,9 @@ export const DEFAULT_AUDIO_MIX: AudioMix = { sourceVolume: 1, musicVolume: 0.5, 
 // a freshly-added one. The guide is a recording aid only — never burned into the video.
 export const DEFAULT_FRAMING_OPACITY = 0.45;
 
-export interface EditorState extends Pick<NonNullable<TemplateDescriptor['meta']>, 'creativeDirection'> {
+type EditorMeta = Pick<NonNullable<TemplateDescriptor['meta']>, 'creativeDirection' | 'brief' | 'requirePurpose'>;
+
+export interface EditorState extends EditorMeta {
   id: string;
   // Motion settings (global.seed, global.motion); absent when the template sets none.
   motion?: EditorMotion;

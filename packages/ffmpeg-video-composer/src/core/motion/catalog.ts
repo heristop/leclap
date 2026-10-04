@@ -14,6 +14,7 @@ import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
 import { CAMERA_GUIDES, GRAPHIC_GUIDES, KINETIC_GUIDES, TRANSITION_GUIDES, type MotionGuide } from './catalog-guides';
 import { GENRE_DOCTRINE, type GenreDoctrine, type MotionGenre } from './catalog-doctrine';
 import { MOTION_BLUEPRINTS, type MotionBlueprint } from './catalog-blueprints';
+import { motionRolesCatalog, type MotionRolesCatalog } from './catalog-roles';
 
 export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
@@ -107,6 +108,8 @@ export interface MotionCatalog {
   transitions: Record<string, Guided<{ description: string }>>;
   graphics: Record<string, Guided<{ description: string }>>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
+  /** Motion roles (micro, panel, camera, headline, accent, mascot): defaults, guidance and rules. */
+  roles: MotionRolesCatalog;
   /** Delivery platforms for `global.platform`: orientation, safe zones, max duration, loudness. */
   platforms: PlatformCatalogEntry[];
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
@@ -225,6 +228,7 @@ export function motionCatalog(): MotionCatalog {
     transitions: guided({ ...BASIC_TRANSITIONS, ...DESIGNED_TRANSITION_DESCRIPTIONS }, TRANSITION_GUIDES),
     graphics: guided(GRAPHICS, GRAPHIC_GUIDES),
     tokens: BUILTIN_MOTION_TOKENS,
+    roles: motionRolesCatalog(),
     platforms: platformCatalog(),
     themes: themeCatalog(),
     timing: TIMING,

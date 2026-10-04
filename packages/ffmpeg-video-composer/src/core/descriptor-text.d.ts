@@ -5,6 +5,7 @@
 // spelled inline as `Record<string, string | undefined>` (the `Translation` shape) to avoid a cycle.
 
 import type { FontInput } from './fonts';
+import type { MotionRole } from '../schemas/motion.schemas';
 
 export type RevealType = 'none' | 'fade' | 'rise' | 'slide-left' | 'slide-right';
 // The four historical names, or any easing spec: springs, beziers, named curves, $tokens.
@@ -45,6 +46,8 @@ export interface TitleCard {
   reveal?: Reveal;
   stagger?: number;
   fade?: { in?: boolean; out?: boolean };
+  /** Motion role (global.motion.roles): fills the reveal easing/duration left unset. */
+  role?: MotionRole;
 }
 
 export interface LowerThird {
@@ -55,6 +58,8 @@ export interface LowerThird {
   position?: 'bottom' | 'top';
   badge?: Record<string, string | undefined>;
   reveal?: Reveal;
+  /** Motion role (global.motion.roles): fills the reveal easing/duration left unset. */
+  role?: MotionRole;
 }
 
 export interface ChromaKey {

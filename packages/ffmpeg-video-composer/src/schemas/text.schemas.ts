@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { RevealSchema, TextEffectSchema } from './effects.schemas';
 import { TranslationSchema, FontInputSchema } from './global.schemas';
+import { MotionRoleSchema } from './motion.schemas';
 
 // Author-facing text sugar — caption, title card and lower third. Each lowers to drawtext/drawbox/fade
 // filters via the text presets (editor/presets/captions.ts, text-blocks.ts), so authors describe intent
@@ -77,6 +78,7 @@ export const TitleCardSchema = z
     align: z.enum(['left', 'center']).optional().describe('Horizontal alignment of the card (default left).'),
     background: z.string().optional().describe('Fade colour; defaults to the section background colour.'),
     reveal: RevealSchema.optional().describe('Entrance for the lines, staggered top-to-bottom (default "rise").'),
+    role: MotionRoleSchema.optional(),
     stagger: z
       .number()
       .min(0)
@@ -120,6 +122,7 @@ export const LowerThirdSchema = z
     position: z.enum(['bottom', 'top']).optional().describe('Vertical anchor of the band (default bottom).'),
     badge: TranslationSchema.optional().describe('Optional right-aligned pill (price, step number, badge).'),
     reveal: RevealSchema.optional().describe('Entrance for the lines, staggered (default "rise").'),
+    role: MotionRoleSchema.optional(),
     effect: TextEffectSchema.optional().describe(
       'Drop shadow / outline applied to the title + subtitle for legibility.'
     ),

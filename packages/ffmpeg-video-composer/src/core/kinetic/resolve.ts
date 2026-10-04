@@ -50,7 +50,8 @@ const SAFE_MARGIN = 0.08;
 const DEFAULT_COLOR = '#F5F3F7';
 const DEFAULT_FONT = 'BebasNeue.ttf';
 
-function fontFile(font: string | undefined): string {
+/** The font file a kinetic block draws with: its bundled id or file, else Bebas Neue. */
+export function kineticFontFile(font: string | undefined): string {
   if (!font) return DEFAULT_FONT;
 
   return findFont(font)?.file ?? font;
@@ -82,7 +83,7 @@ function resolveType(
   const align = block.align ?? 'center';
 
   return {
-    font: fontFile(block.font),
+    font: kineticFontFile(block.font),
     size,
     color: block.color ?? DEFAULT_COLOR,
     align,

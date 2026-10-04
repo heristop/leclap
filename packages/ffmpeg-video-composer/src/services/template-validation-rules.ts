@@ -3,6 +3,7 @@ import { DEFAULT_TRANSITION_DURATION } from '../schemas/effects.schemas';
 import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
 import { findNondeterministicExpressions } from '@/core/determinism/hygiene';
 import { validateMotionSystem } from './motion-validation';
+import { validateGlyphCoverage } from './glyph-coverage';
 
 export interface ValidationError {
   path: string;
@@ -238,5 +239,6 @@ export function validateDescriptorRules(template: TemplateDescriptor): Validatio
     ...validateFonts(template),
     ...validateDeterminism(template),
     ...validateMotionSystem(template),
+    ...validateGlyphCoverage(template),
   ];
 }

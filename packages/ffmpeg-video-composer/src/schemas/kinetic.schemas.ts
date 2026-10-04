@@ -158,6 +158,27 @@ export const KineticBlockSchema = z
       .strict()
       .optional()
       .describe('counter preset: the rolling number (text is ignored).'),
+    trail: z
+      .object({
+        echoes: z.number().int().min(2).max(6).describe('Ghost copies drawn behind each moving unit (2..6).'),
+        delta: z
+          .number()
+          .min(0.01)
+          .max(0.25)
+          .optional()
+          .describe('Seconds each echo lags the one before it (default 0.04).'),
+        fade: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe('Opacity of the first echo; each further echo multiplies it again (default 0.5).'),
+      })
+      .strict()
+      .optional()
+      .describe(
+        'Echo trail (motion smear): each unit leaves fading copies of itself a few frames behind while it travels; the echoes collapse into it once it rests. Not applied to counter.'
+      ),
     exit: z
       .union([z.enum(KINETIC_EXIT_PRESETS), KineticExitSchema])
       .optional()

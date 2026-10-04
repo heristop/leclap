@@ -3,6 +3,7 @@
 
 import { phaseDuration } from '../../editor/presets/eased-ramp';
 import { measureBundled } from '../kinetic/layout';
+import { LOWER_THIRD_STYLE_REVEALS, type LowerThirdStyle } from '../../schemas/text.schemas';
 import { resolveKeyTimes, type TrackKey } from './tracks';
 import type { EasingSpec } from './easing';
 import {
@@ -67,7 +68,7 @@ interface SugarSection {
     reveal?: unknown;
     stagger?: number;
   };
-  lowerThird?: { title?: Translation; subtitle?: Translation; reveal?: unknown };
+  lowerThird?: { title?: Translation; subtitle?: Translation; reveal?: unknown; style?: LowerThirdStyle };
   caption?: { text?: Translation; reveal?: unknown };
 }
 
@@ -97,7 +98,7 @@ function sugarBlocks(section: SugarSection): SugarBlock[] {
           {
             element: 'lowerThird',
             lines: [band.title, band.subtitle],
-            reveal: band.reveal ?? 'rise',
+            reveal: band.reveal ?? (band.style ? LOWER_THIRD_STYLE_REVEALS[band.style] : 'rise'),
             stagger: LINE_STAGGER,
           },
         ]

@@ -55,6 +55,8 @@ export interface LowerThird {
   position?: 'bottom' | 'top';
   badge?: Record<string, string | undefined>;
   reveal?: Reveal;
+  /** Layout and animation preset; unset keeps the full-width band. */
+  style?: 'clean-bar' | 'side-rule' | 'kicker' | 'stack-bars' | 'pill';
 }
 
 export interface ChromaKey {

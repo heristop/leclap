@@ -1,7 +1,8 @@
 import type { Filter, Section, TemplateDescriptorGlobal } from '@/core/types';
 import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letterboxToFilters } from './looks';
 import { captionToFilters } from './captions';
-import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
+import { titleCardToFilters, globalTextOverlayToFilters } from './text-blocks';
+import { lowerThirdFilters } from './lower-third-styles';
 import { kineticBlocksToFilters } from './kinetic';
 import { cameraBackground } from './camera';
 import { graphicsToFilters } from './graphics';
@@ -83,7 +84,8 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [
     key: 'lowerThird',
     order: 58,
     layer: 'overlay',
-    compile: (section, ctx) => lowerThirdToFilters(section.lowerThird, { scale: ctx.scale }),
+    compile: (section, ctx) =>
+      lowerThirdFilters(section.lowerThird, { scale: ctx.scale, fps: ctx.fps, resolveText: ctx.motion?.resolveText }),
   },
   {
     key: 'graphics',

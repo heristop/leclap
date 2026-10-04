@@ -26,6 +26,9 @@ const GUIDE = [
     'split, fade) with accents and exits; easings add springs (spring(k,c)), cubic-bezier, named curves and ' +
     '$tokens ($snappy, $bouncy, $expo…); `animate` keyframe tracks drive x/y/opacity/scale on drawtext filters; ' +
     'global.motion holds tokens and the energy dial; global.seed makes every random-looking choice repeatable. ' +
+    'Kinetic `trail` adds echo smears; section `graphics` add hits (flash, glitch, focus), shapes and data / ' +
+    'broadcast graphics (progress, ticker, bars-chart); designed transitions include whip-left/right/up/down; ' +
+    '`lowerThird.style` picks clean-bar, side-rule, kicker, stack-bars or pill. ' +
     'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
   'Delivery platforms: set global.platform (tiktok, reels/ig, shorts/yt-shorts, youtube, x/twitter, linkedin, ' +
     'facebook, square-feed) when the video has a destination. It defaults the orientation (portrait for ' +

@@ -18,8 +18,10 @@ import {
   timeOf,
 } from './timeline-model';
 
-/** Graphics that are light hits or in-scene page turns rather than elements entering. */
-const HIT_GRAPHICS = new Set(['flash', 'wipe']);
+/** Graphics that are light hits, pixel effects or in-scene page turns rather than elements entering. */
+const HIT_GRAPHICS = new Set(['flash', 'wipe', 'glitch', 'focus']);
+/** Graphics that keep moving after their entrance until they leave (the ticker scrolls). */
+const CONTINUOUS_GRAPHICS = new Set(['ticker']);
 
 function kineticFrame(frame: ElementFrame): KineticFrame {
   return {
@@ -151,5 +153,6 @@ export function graphicEvent(graphic: Graphic, index: number, frame: ElementFram
     entrance: !HIT_GRAPHICS.has(graphic.type),
     text: false,
     preset: graphic.type,
+    ...(CONTINUOUS_GRAPHICS.has(graphic.type) && { continuous: true }),
   };
 }

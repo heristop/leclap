@@ -7,6 +7,8 @@ import {
 } from '../schemas/template.schemas';
 import { validateDescriptorRules, type ValidationError } from './template-validation-rules';
 import { expandPartialsSafe } from '@/core/partials';
+import { resolveThemeDescriptor } from '@/core/theme/resolve';
+import { findAccentOveruse } from '@/core/theme/accent';
 import type { GeometryWarning, FontLoader } from './geometry';
 
 export type { ValidationError } from './template-validation-rules';
@@ -235,9 +237,10 @@ export class TemplateValidator {
   }
 
   // Runs every descriptor-level rule (beyond the zod schema itself) and merges their errors. Extracted
-  // out of validateParsed to keep that function under the statement-count lint budget.
+  // out of validateParsed to keep that function under the statement-count lint budget. The rules see the
+  // theme-resolved descriptor (what the engine lowers), so `$font.display` is checked as the font it names.
   private collectDescriptorErrors(template: TemplateDescriptor): ValidationError[] {
-    return [...this.validateSectionReferences(template), ...validateDescriptorRules(template)];
+    return [...this.validateSectionReferences(template), ...validateDescriptorRules(resolveThemeDescriptor(template))];
   }
 
   validateSection(sectionData: unknown): ValidationResult {
@@ -324,6 +327,11 @@ export class TemplateValidator {
 
   getVariableWarnings(template: TemplateDescriptor): ValidationError[] {
     return this.validateVariableReferences(template);
+  }
+
+  // Advisory: sections that spread the theme accent over too many elements (core/theme/accent.ts).
+  getThemeWarnings(template: TemplateDescriptor): ValidationError[] {
+    return findAccentOveruse(template);
   }
 
   // Advisory, exactly like getVariableWarnings: geometry findings never enter `errors` and never

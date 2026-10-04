@@ -1,5 +1,6 @@
 import { parseFontMetrics, type FontMetrics } from '@/core/font-metrics';
 import { expandPartialsSafe } from '@/core/partials';
+import { resolveThemeDescriptor } from '@/core/theme/resolve';
 import type { TemplateDescriptor } from '../../schemas/template.schemas';
 import {
   canvasFor,
@@ -96,10 +97,11 @@ async function parseOne(loadFont: FontLoader, file: string): Promise<FontMetrics
 // measuring the raw descriptor reported a clean bill of health for everything the partial contains —
 // and six of the nine bundled templates are partial-based. An unexpandable descriptor is measured
 // as-is: this channel is advisory, and `validateTemplate` is what reports the broken ref.
+// Theme tokens are resolved too, so `$color.fg` is measured as the colour it renders.
 function expanded(template: TemplateDescriptor): TemplateDescriptor {
   const expansion = expandPartialsSafe(template);
 
-  return expansion.ok ? (expansion.data as TemplateDescriptor) : template;
+  return expansion.ok ? resolveThemeDescriptor(expansion.data as TemplateDescriptor) : template;
 }
 
 interface LoosePartialRef {

@@ -9,6 +9,7 @@ import { kineticCatalog } from '../kinetic/presets';
 import { KINETIC_EXIT_PRESETS, KINETIC_ORDERS } from '../../schemas/kinetic.schemas';
 import { CAMERA_PRESETS } from '../../schemas/camera.schemas';
 import { DESIGNED_TRANSITION_DESCRIPTIONS } from './transitions';
+import { themeCatalog, type ThemeCatalog } from '../theme/catalog';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -78,6 +79,8 @@ export interface MotionCatalog {
   transitions: Record<string, string>;
   graphics: Record<string, string>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
+  /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
+  themes: ThemeCatalog;
   starter: typeof STARTER;
 }
 
@@ -132,6 +135,7 @@ export function motionCatalog(): MotionCatalog {
     transitions: DESIGNED_TRANSITION_DESCRIPTIONS,
     graphics: GRAPHICS,
     tokens: BUILTIN_MOTION_TOKENS,
+    themes: themeCatalog(),
     starter: STARTER,
   };
 }

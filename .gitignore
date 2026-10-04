@@ -64,3 +64,6 @@ apps/leclap-expo/modules/leclap-ffmpeg/ios/LeclapFfmpegCore.xcframework/
 # Brainstorming/plan docs kept locally only, never tracked.
 docs/superpowers/
 
+# Python bytecode and vitest JSON reports.
+__pycache__/
+.vitest/

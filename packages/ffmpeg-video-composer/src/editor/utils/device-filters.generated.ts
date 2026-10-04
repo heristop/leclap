@@ -3,12 +3,16 @@
 // Freshness is guarded by tests/lgpl-filter-audit.test.ts.
 
 export const DEVICE_FILTERS: ReadonlySet<string> = new Set([
+  'acompressor',
   'acrossfade',
+  'adelay',
   'aecho',
   'aevalsrc',
   'afade',
   'afftdn',
   'aformat',
+  'agate',
+  'alimiter',
   'amix',
   'anull',
   'anullsrc',
@@ -28,6 +32,7 @@ export const DEVICE_FILTERS: ReadonlySet<string> = new Set([
   'drawtext',
   'dynaudnorm',
   'edgedetect',
+  'equalizer',
   'fade',
   'format',
   'fps',

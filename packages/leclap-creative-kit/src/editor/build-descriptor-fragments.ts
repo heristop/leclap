@@ -13,7 +13,7 @@ import type {
   ImageOverlay,
   MediaChoice,
   SectionFit,
-  AudioEffect,
+  VisualAudio,
   WatermarkChoice,
 } from './model';
 import { motionBlocksOf, type MotionBlocks } from './motion-passthrough';
@@ -207,26 +207,18 @@ export function visualExtras(
 }
 
 // Per-section audio extras — only emitted when present; undefined values are dropped entirely.
-export function sectionAudioOptions(section: {
-  musicVolume?: number;
-  audioFade?: { in?: { duration: number; curve?: string }; out?: { duration: number; curve?: string } };
-  audioEffect?: AudioEffect;
-}): Partial<{
-  musicVolume: number;
-  audioFade: { in?: { duration: number; curve?: string }; out?: { duration: number; curve?: string } };
-  audioEffect: AudioEffect;
-}> {
-  const out: Partial<{
-    musicVolume: number;
-    audioFade: { in?: { duration: number; curve?: string }; out?: { duration: number; curve?: string } };
-    audioEffect: AudioEffect;
-  }> = {};
+export function sectionAudioOptions(section: VisualAudio): Partial<VisualAudio> {
+  const out: Partial<VisualAudio> = {};
 
   if (section.musicVolume !== undefined) out.musicVolume = section.musicVolume;
 
   if (section.audioFade) out.audioFade = section.audioFade;
 
   if (section.audioEffect) out.audioEffect = section.audioEffect;
+
+  if (section.voice) out.voice = section.voice;
+
+  if (section.audioAutomation) out.audioAutomation = section.audioAutomation;
 
   return out;
 }

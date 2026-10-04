@@ -8,6 +8,7 @@ import { barTime, beatTime, knownDuration, sectionStarts, type Beats, type Timel
 import { sectionElements, timeSlots, type ElementEntry, type TimeSlot } from './fields';
 import { defaultStart, entranceSpan, type SpanContext } from './spans';
 import { timingFrame, timingText, type TimingOptions } from './context';
+import { resolveGlobalTimeRefs } from './global-refs';
 
 export type { TimingOptions } from './context';
 
@@ -271,5 +272,11 @@ export function resolveTimeRefs<T extends { global?: unknown; sections?: unknown
     return out;
   });
 
-  return { descriptor: { ...descriptor, sections: resolved }, issues };
+  const globals = resolveGlobalTimeRefs(descriptor.global, sections);
+
+  issues.push(...globals.issues);
+
+  const resolvedGlobal = globals.global === descriptor.global ? {} : { global: globals.global };
+
+  return { descriptor: { ...descriptor, ...resolvedGlobal, sections: resolved }, issues };
 }

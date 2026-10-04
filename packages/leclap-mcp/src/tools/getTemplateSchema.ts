@@ -37,6 +37,12 @@ const GUIDE = [
     'about 10% while alpha remains bounded; leave space around the resting position and use it selectively. ' +
     'For per-word blur-rise, split-slide or elastic-stagger discover the optional studio.editorial-type catalog ' +
     'with get_effect_schema. These registered Remotion modes need a Node worker, not the portable native path.',
+  'Audio polish: `options.voice` (clean, broadcast, warm, rumble-cut, room-gate) cleans recorded speech on ' +
+    'video/project_video sections; `options.audioAutomation` and `global.audio.automation` ([{ at, volume, ease? }], ' +
+    'time references allowed) shape the clip sound and the music bed (music automation runs before ducking); ' +
+    'section `sfx` / `global.sfx` ([{ id, at, volume? }]) place bundled sound effects (whoosh, swoosh-short, hit, ' +
+    'boom, riser, click, tick, pop, shutter, ding; a riser ends at `at`) and `global.audio.sfx: "auto"` places ' +
+    'them from the motion. get_motion_catalog lists audio.sfx with when to use each sound.',
   'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +
     'cut-only templates use a fast stream-copy concat.',
   'Strings may contain `{{ variables }}` (from global.variables), `{{ colorN }}` (1-indexed from ' +

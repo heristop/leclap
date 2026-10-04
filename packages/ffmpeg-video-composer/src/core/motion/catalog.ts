@@ -19,6 +19,7 @@ export type { MotionGuide } from './catalog-guides';
 export type { GenreDoctrine, MotionGenre } from './catalog-doctrine';
 export type { BlueprintRole, MotionBlueprint } from './catalog-blueprints';
 import { TIME_REF_SYNTAX } from '../timing/grammar';
+import { audioCatalog, type AudioCatalog } from '../audio/catalog';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -112,6 +113,8 @@ export interface MotionCatalog {
   /** Built-in themes (palette, fonts, motion feel) and the `$color.*` / `$font.*` grammar. */
   themes: ThemeCatalog;
   timing: typeof TIMING;
+  /** Sound effects (with when to use each), voice presets, volume automation and how they mix. */
+  audio: AudioCatalog;
   starter: typeof STARTER;
 }
 
@@ -128,6 +131,9 @@ const TIMING = {
     'filters[].reveal.delay (drawtext)',
     'filters[].exit.after (drawtext)',
     'filters[].animate.*[].t',
+    'sfx[].at',
+    'options.audioAutomation[].at',
+    'global.sfx[].at and global.audio.automation[].at (whole-video scope: "<section>.start|end", "cue:<name>", "beat:n", "50%", "end")',
   ],
   grammar: TIME_REF_SYNTAX,
   bases: {
@@ -228,6 +234,7 @@ export function motionCatalog(): MotionCatalog {
     platforms: platformCatalog(),
     themes: themeCatalog(),
     timing: TIMING,
+    audio: audioCatalog(),
     starter: STARTER,
   };
 }

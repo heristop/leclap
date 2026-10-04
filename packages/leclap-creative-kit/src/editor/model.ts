@@ -29,7 +29,7 @@ import {
   type ShapeSpecSchema,
   CaptureModeSchema,
 } from 'ffmpeg-video-composer/src/schemas/section.schemas.ts';
-import type { EditorMotion, MotionBlocks } from './motion-passthrough';
+import type { AudioMixPassthrough, ClipAudioPassthrough, EditorMotion, MotionBlocks } from './motion-passthrough';
 import type { DefaultTransition, SectionTransition } from './transition-types';
 export { DEFAULT_TRANSITION, type DefaultTransition, type SectionTransition } from './transition-types';
 export type { EditorMotion, MotionBlocks } from './motion-passthrough';
@@ -155,7 +155,7 @@ export interface SectionAudioFade {
 
 // Visual-section audio extras: per-section music-volume override, fade-in/out, and voice effect.
 // Co-located with look/grade/motion because they all ride on visual sections only.
-export interface VisualAudio {
+export interface VisualAudio extends ClipAudioPassthrough {
   musicVolume?: number;
   audioFade?: SectionAudioFade;
   audioEffect?: AudioEffect;
@@ -382,7 +382,7 @@ export type { Orientation };
 // (sourceVolume) vs the background music (musicVolume), each 0..1. normalize/ducking are
 // finishing options surfaced by the builder. `ducking` mirrors the descriptor union: false = off,
 // true = engine defaults, object = fine-tuned threshold/ratio/attack/release (DuckingSchema).
-export interface AudioMix {
+export interface AudioMix extends AudioMixPassthrough {
   sourceVolume: number;
   musicVolume: number;
   normalize?: 'loudnorm' | 'dynaudnorm';

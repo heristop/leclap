@@ -32,6 +32,9 @@ DIST_DIR="$REPO_ROOT/scripts/ffmpeg/dist"
 # tests/lgpl-filter-audit.test.ts, which cross-checks every filter the engine can emit against this
 # list (or a FILTER_COMPAT rewrite/drop) — extend both together when a preset or manager starts
 # emitting a new filter.
+# Audio polish: `acompressor`/`agate`/`alimiter`/`equalizer` (voice clean-up presets) and `adelay` (sound-
+# effect placement) are LGPL (no `_deps` in configure; af_sidechaincompress.c, af_agate.c, af_alimiter.c,
+# af_biquads.c, af_adelay.c).
 FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --disable-gpl \
  --disable-ffplay --disable-doc --disable-autodetect \
  --enable-zlib \
@@ -47,6 +50,7 @@ FF_COMMON="--enable-static --disable-shared --enable-pic --enable-version3 --dis
 drawbox,gblur,noise,hue,vignette,hflip,vflip,rotate,transpose,negate,colorchannelmixer,colorbalance,curves,zoompan,lutyuv,\
 lut3d,colorkey,split,setparams,null,rgbashift,edgedetect,\
 atrim,asetpts,aresample,aformat,amix,afade,acrossfade,afftdn,sidechaincompress,volume,anull,anullsrc,aevalsrc,color,sine,gradients,\
+acompressor,adelay,agate,alimiter,equalizer,\
 atempo,asplit,loudnorm,dynaudnorm,aecho,highpass,lowpass \
  --enable-bsf=h264_mp4toannexb,hevc_mp4toannexb,aac_adtstoasc"
 

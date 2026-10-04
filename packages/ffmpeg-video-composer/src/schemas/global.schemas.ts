@@ -3,6 +3,7 @@ import { MAX_SEED } from '../core/determinism/contract';
 import { MotionTokensSchema } from './motion.schemas';
 import { ThemeSchema } from './theme.schemas';
 import { BeatsSchema } from './time.schemas';
+import { GlobalSfxSchema } from './audio.schemas';
 import {
   TransitionSchema,
   GlobalAudioSchema,
@@ -235,6 +236,7 @@ export const GlobalConfigSchema = z
       'Default transition applied between sections when no per-section transition is set.'
     ),
     audio: GlobalAudioSchema.optional().describe('Global audio mix settings (volumes, normalisation, ducking).'),
+    sfx: GlobalSfxSchema.optional(),
     music: MusicConfigSchema.optional().describe('Default background music track for the template.'),
     animations: z
       .array(GlobalAnimationSchema)

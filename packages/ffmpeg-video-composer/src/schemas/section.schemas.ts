@@ -16,6 +16,7 @@ import { FilterSchema, MapSchema } from './filter.schemas';
 import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas';
 import { InputSchema, FieldSchema } from './section-media.schemas';
 import { MOTION_SECTION_FIELDS } from './motion-section.schemas';
+import { CLIP_AUDIO_OPTION_FIELDS } from './audio.schemas';
 
 export {
   CAPTION_STYLES,
@@ -162,7 +163,10 @@ export const BaseSectionSchema = z
 
 export const VideoSectionSchema = BaseSectionSchema.extend({
   type: z.literal('video').describe('Section type: renders a pre-recorded or asset-backed video clip.'),
-  options: BaseSectionOptionsSchema.optional().describe('Playback and compositing options for the video section.'),
+  options: BaseSectionOptionsSchema.extend(CLIP_AUDIO_OPTION_FIELDS)
+    .strict()
+    .optional()
+    .describe('Playback and compositing options for the video section.'),
 }).describe('A section that plays a pre-recorded video clip or a user-uploaded video asset.');
 
 export const EffectSectionSchema = BaseSectionSchema.extend({
@@ -185,6 +189,7 @@ export type CaptureMode = z.infer<typeof CaptureModeSchema>;
 export const ProjectVideoSectionSchema = BaseSectionSchema.extend({
   type: z.literal('project_video').describe('Section type: captures a new video clip from the device camera.'),
   options: BaseSectionOptionsSchema.extend({
+    ...CLIP_AUDIO_OPTION_FIELDS,
     framingGuide: FramingGuideSchema.optional().describe('Camera framing guide overlay shown in the recording UI.'),
     captureMode: CaptureModeSchema.optional().describe('Recorder mode: front/back/screen/upload (default: front).'),
     allowedCaptureModes: z

@@ -67,6 +67,12 @@ abstract class AbstractFilesystem {
     return Promise.resolve(null);
   }
 
+  // Resolve a bundled sound effect (the creative kit's library/sfx) to a local path, or null — the
+  // caller then downloads it from the asset source. Node overrides; browser/expo keep the default.
+  resolveBundledSfx(_sfxFile: string): Promise<string | null> {
+    return Promise.resolve(null);
+  }
+
   // Resolve a template asset URL to an already-present local file (under the configured assets dir),
   // or null when there's no local copy — in which case the caller downloads it. Lets renders run
   // offline when their media is staged locally while still fetching remote-only assets. The Node

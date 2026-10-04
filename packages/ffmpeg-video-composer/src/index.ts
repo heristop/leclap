@@ -258,6 +258,10 @@ export function renderedGeometryWarnings(
   return runRenderCheck(descriptor, { ...options, loadFont: options.loadFont ?? nodeFontLoader() }, engine);
 }
 
+// Node entry only: frame snapshots and comparisons (services/snapshot-api-node.ts) render through this
+// engine's compile(), handed over through the container so the snapshot modules never import this entry.
+container.registerInstance('snapshotEngine', { compile });
+
 export { TemplateDirector };
 export { VideoEditor };
 export { default as FFmpegNodeAdapter } from './platform/ffmpeg/FFmpegNodeAdapter';
@@ -373,3 +377,4 @@ export {
 } from './core/motion/timeline';
 export { kineticCatalog, KINETIC_PRESET_DEFAULTS } from './core/kinetic/presets';
 export { layoutKinetic, measureBundled } from './core/kinetic/layout';
+export * from './services/snapshot-api-node';

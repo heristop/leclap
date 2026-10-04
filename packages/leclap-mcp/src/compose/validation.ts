@@ -1,12 +1,30 @@
 import { TemplateValidator, type TemplateDescriptor, type ValidationError } from 'ffmpeg-video-composer';
 
-export type ValidationResult = { ok: true; descriptor: TemplateDescriptor } | { ok: false; message: string };
+// `errors` carries the structured findings (path, code, and — when the validator knows the fix — hint,
+// suggestion and kind) whenever the failure came from the validator itself.
+export type ValidationResult =
+  | { ok: true; descriptor: TemplateDescriptor }
+  | { ok: false; message: string; errors?: ValidationError[] };
+
+// `dotted.path: message → hint`, the hint only when the validator has an actionable fix.
+export function findingLine(error: ValidationError): string {
+  const hint = error.hint ? ` → ${error.hint}` : '';
+
+  return `${error.path || '(root)'}: ${error.message}${hint}`;
+}
+
+// Every finding, one per line, so an agent can fix them all in one pass instead of one per call.
+export function invalidTemplateText(result: { message: string; errors?: ValidationError[] }): string {
+  if (!result.errors || result.errors.length === 0) return result.message;
+
+  return `Invalid template (${result.errors.length} finding(s)):\n- ${result.errors.map(findingLine).join('\n- ')}`;
+}
 
 // Summarize the first three issues as `dotted.path: message`, capping the rest with a
 // `(+N more)` suffix, so the full error tree (and any internal validator detail) never leaks to the
 // agent.
 function summarizeErrors(errors: ValidationError[]): string {
-  const issues = errors.slice(0, 3).map((error) => `${error.path || '(root)'}: ${error.message}`);
+  const issues = errors.slice(0, 3).map(findingLine);
   const suffix = errors.length > 3 ? ` (+${errors.length - 3} more)` : '';
 
   return `Invalid template: ${issues.join('; ')}${suffix}`;
@@ -96,7 +114,9 @@ export function validateTemplate(raw: unknown): ValidationResult {
   const validation = new TemplateValidator().validateTemplate(raw);
 
   if (!validation.success || !validation.data) {
-    return { ok: false, message: summarizeErrors(validation.errors ?? []) };
+    const errors = validation.errors ?? [];
+
+    return { ok: false, message: summarizeErrors(errors), errors };
   }
 
   // The engine types `data` as `TemplateDescriptor | Section` because the same result shape also

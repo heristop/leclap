@@ -30,7 +30,8 @@ const EasingStringSchema = z
   .superRefine((spec, ctx) => {
     const issue = easingGrammarIssue(spec);
 
-    if (issue) ctx.addIssue({ code: 'custom', message: issue });
+    // `params.easing` lets the validator attach the nearest named easing as a suggestion.
+    if (issue) ctx.addIssue({ code: 'custom', message: issue, params: { easing: true } });
   });
 
 export const EasingSpecSchema = z

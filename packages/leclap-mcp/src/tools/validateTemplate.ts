@@ -8,6 +8,7 @@ import {
   type RenderedGeometry,
   type TemplateDescriptor,
   type TemplateDescriptorSchema,
+  type ValidationError,
 } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
@@ -16,7 +17,7 @@ import { templateRevision } from '../effects/template-revision.js';
 import type { McpConfig } from '../config.js';
 import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { runGeometryCheck } from '../compose/renderRunner.js';
-import { validateTemplate } from '../compose/validation.js';
+import { invalidTemplateText, validateTemplate } from '../compose/validation.js';
 import { motionNote, motionWarnings, motionWarningsSchema } from './motionWarnings.js';
 
 const inputSchema = z.object({
@@ -50,6 +51,23 @@ const outputSchema = z.object({
         'saying what to change, present only when there is something to fix; check this before rendering.'
     ),
   motionWarnings: motionWarningsSchema,
+  // Present only on an invalid template (with isError): every finding at once, with fixes when known.
+  errors: z
+    .array(
+      z.object({
+        path: z.string(),
+        message: z.string(),
+        code: z.string(),
+        hint: z.string().optional(),
+        suggestion: z.unknown().optional(),
+        kind: z.enum(['format', 'judgement']).optional(),
+      })
+    )
+    .optional()
+    .describe(
+      'Invalid template only: every finding. `suggestion` is a replacement value for `path` (a key name for ' +
+        'unknown_key); kind "format" is safe to apply as-is, "judgement" changes creative content — ask first.'
+    ),
   // Present only when `render: true` was asked for.
   render: z
     .object({ measured: z.number(), seconds: z.number(), unavailable: z.string().optional() })
@@ -60,7 +78,11 @@ const outputSchema = z.object({
 type ValidateArgs = { template: Record<string, unknown>; render?: boolean };
 type RenderSummary = { measured: number; seconds: number; unavailable?: string };
 type RenderConfig = Pick<McpConfig, 'mediaDir' | 'outputDir' | 'renderTimeoutMs'> & EffectConfig;
-type ToolError = { isError: true; content: [{ type: 'text'; text: string }] };
+type ToolError = {
+  isError: true;
+  content: [{ type: 'text'; text: string }];
+  structuredContent?: { valid: false; errors: ValidationError[] };
+};
 type DescriptorResult = { ok: true; descriptor: TemplateDescriptor } | ToolError;
 
 function errorResult(text: string): ToolError {
@@ -72,7 +94,11 @@ function resolveDescriptor(args: ValidateArgs): DescriptorResult {
   const result = validateTemplate(args.template);
 
   if (!result.ok) {
-    return errorResult(result.message);
+    const text = invalidTemplateText(result);
+
+    return result.errors
+      ? { ...errorResult(text), structuredContent: { valid: false, errors: result.errors } }
+      : errorResult(text);
   }
 
   return { ok: true, descriptor: result.descriptor };

@@ -20,6 +20,11 @@ interface ValidationError {
   path: string;
   message: string;
   code?: string;
+  // How to fix it, when the validator knows: one sentence, a replacement value for `path`, and whether
+  // that fix is mechanical (`format`) or a creative call (`judgement`). `--json` emits them unchanged.
+  hint?: string;
+  suggestion?: unknown;
+  kind?: 'format' | 'judgement';
 }
 
 // The engine's type itself, not a hand-written mirror. A mirror that made `code`/`severity`/`approx`
@@ -103,9 +108,16 @@ function formatFindings(result: ValidationResult): string[] {
     return [fail(`Template is invalid${warned}`), ...warnings];
   }
 
-  const lines = errors.map((e) => step(`${pc.red('✗')} ${pc.bold(bracketPath(e.path))} — ${e.message}`));
+  const lines = errors.flatMap(errorLines);
 
   return [fail(`Template is invalid (${plural(errors.length, 'problem')})${warned}`), ...lines, ...warnings];
+}
+
+// One line per error, plus a dimmed `→ hint` line under it when the validator knows the fix.
+function errorLines(error: ValidationError): string[] {
+  const line = step(`${pc.red('✗')} ${pc.bold(bracketPath(error.path))} — ${error.message}`);
+
+  return error.hint ? [line, hint(`      → ${error.hint}`)] : [line];
 }
 
 // The exit code is driven solely by `success`; geometry (and any other) warnings must never flip it,

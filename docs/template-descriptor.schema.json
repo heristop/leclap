@@ -56,6 +56,25 @@
           "enum": ["landscape", "portrait", "square"],
           "description": "Output video orientation; controls the resolution preset — landscape 1280x720, portrait 720x1280, square 1080x1080 (default: landscape)."
         },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "tiktok",
+            "reels",
+            "shorts",
+            "youtube",
+            "x",
+            "linkedin",
+            "facebook",
+            "square-feed",
+            "ig",
+            "instagram",
+            "yt-shorts",
+            "youtube-shorts",
+            "twitter"
+          ],
+          "description": "Delivery platform the video is made for: tiktok, reels (aliases ig, instagram), shorts (aliases yt-shorts, youtube-shorts), youtube, x (alias twitter), linkedin, facebook or square-feed. Sets the default orientation when global.orientation is omitted (portrait for tiktok/reels/shorts, square for square-feed, landscape otherwise); validation then warns about text under the app UI (per-edge safe zones, e.g. the bottom 22% under TikTok captions), a timeline longer than the platform accepts and an unusual fps; the default caption position is lifted clear of the bottom UI; and loudnorm targets the platform loudness (-14 LUFS, -1 dBTP). Rendering is otherwise unchanged."
+        },
         "seed": {
           "description": "Root seed (uint32, default 0) for every procedural effect: each element derives its own stream as hash(seed, element path), so the same seed always renders the same shake, grain and scramble.",
           "type": "integer",
@@ -138,6 +157,12 @@
           },
           "additionalProperties": false,
           "description": "Motion tokens: one design system for time, shared by every animated field."
+        },
+        "theme": {
+          "$ref": "#/$defs/Theme"
+        },
+        "beats": {
+          "$ref": "#/$defs/Beats"
         },
         "fps": {
           "description": "Output frame rate for the rendered video (integer 1..120, default 30).",
@@ -1221,6 +1246,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -1237,9 +1268,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -1257,8 +1295,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -1282,9 +1319,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -1298,8 +1342,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -1545,6 +1588,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -1561,9 +1610,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -1581,8 +1637,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -1606,9 +1661,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -1622,8 +1684,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -1860,6 +1921,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -1876,9 +1943,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -1896,8 +1970,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -1921,9 +1994,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -1937,8 +2017,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -2430,6 +2509,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -3380,6 +3480,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -3396,9 +3502,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -3416,8 +3529,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -3441,9 +3553,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -3457,8 +3576,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -3704,6 +3822,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -3720,9 +3844,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -3740,8 +3871,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -3765,9 +3895,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -3781,8 +3918,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -4019,6 +4155,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -4035,9 +4177,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -4055,8 +4204,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -4080,9 +4228,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -4096,8 +4251,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -4589,6 +4743,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -5582,6 +5757,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -5598,9 +5779,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -5618,8 +5806,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -5643,9 +5830,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -5659,8 +5853,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -5906,6 +6099,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -5922,9 +6121,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -5942,8 +6148,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -5967,9 +6172,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -5983,8 +6195,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -6221,6 +6432,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -6237,9 +6454,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -6257,8 +6481,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -6282,9 +6505,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -6298,8 +6528,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -6791,6 +7020,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -7768,6 +8018,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -7784,9 +8040,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -7804,8 +8067,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -7829,9 +8091,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -7845,8 +8114,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -8092,6 +8360,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -8108,9 +8382,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -8128,8 +8409,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -8153,9 +8433,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -8169,8 +8456,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -8407,6 +8693,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -8423,9 +8715,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -8443,8 +8742,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -8468,9 +8766,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -8484,8 +8789,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -8977,6 +9281,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -9927,6 +10252,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -9943,9 +10274,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -9963,8 +10301,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -9988,9 +10325,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -10004,8 +10348,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -10251,6 +10594,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -10267,9 +10616,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -10287,8 +10643,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -10312,9 +10667,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -10328,8 +10690,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -10566,6 +10927,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -10582,9 +10949,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -10602,8 +10976,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -10627,9 +11000,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -10643,8 +11023,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -11136,6 +11515,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -12552,6 +12952,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -12568,9 +12974,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -12588,8 +13001,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -12613,9 +13025,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -12629,8 +13048,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -12876,6 +13294,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -12892,9 +13316,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -12912,8 +13343,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -12937,9 +13367,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -12953,8 +13390,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -13191,6 +13627,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -13207,9 +13649,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -13227,8 +13676,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -13252,9 +13700,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -13268,8 +13723,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -13761,6 +14215,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -14711,6 +15186,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -14727,9 +15208,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -14747,8 +15235,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -14772,9 +15259,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -14788,8 +15282,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -15035,6 +15528,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -15051,9 +15550,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -15071,8 +15577,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -15096,9 +15601,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -15112,8 +15624,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -15350,6 +15861,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -15366,9 +15883,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -15386,8 +15910,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -15411,9 +15934,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -15427,8 +15957,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -15920,6 +16449,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -16870,6 +17420,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -16886,9 +17442,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -16906,8 +17469,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -16931,9 +17493,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -16947,8 +17516,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -17194,6 +17762,12 @@
                             "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                             "type": "string"
                           },
+                          "id": {
+                            "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                            "type": "string",
+                            "maxLength": 40,
+                            "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                          },
                           "reveal": {
                             "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                             "anyOf": [
@@ -17210,9 +17784,16 @@
                                     "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                                   },
                                   "delay": {
-                                    "description": "Seconds before the entrance starts (default 0.3).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the entrance takes (default 0.6).",
@@ -17230,8 +17811,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated entrance for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -17255,9 +17835,16 @@
                                     "$ref": "#/$defs/EasingSpec"
                                   },
                                   "after": {
-                                    "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                                    "type": "number",
-                                    "minimum": 0
+                                    "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                                    "anyOf": [
+                                      {
+                                        "type": "number",
+                                        "minimum": 0
+                                      },
+                                      {
+                                        "$ref": "#/$defs/TimeRef"
+                                      }
+                                    ]
                                   },
                                   "duration": {
                                     "description": "Seconds the exit takes (default 0.6).",
@@ -17271,8 +17858,7 @@
                                   }
                                 },
                                 "required": ["type"],
-                                "additionalProperties": false,
-                                "description": "Animated exit for sugar text, with optional timing overrides."
+                                "additionalProperties": false
                               }
                             ]
                           },
@@ -17509,6 +18095,12 @@
                       "description": "Time range over which the filter is active, as \"start:end\" in seconds.",
                       "type": "string"
                     },
+                    "id": {
+                      "description": "Id of a drawtext filter for time references: \"<id>.start\" is its reveal delay, \"<id>.end\" when its entrance has landed.",
+                      "type": "string",
+                      "maxLength": 40,
+                      "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                    },
                     "reveal": {
                       "description": "Animated entrance for a drawtext filter; baked to alpha + kinetic x/y at compile.",
                       "anyOf": [
@@ -17525,9 +18117,16 @@
                               "description": "Entrance style: none, fade, rise (up from below), slide-left, slide-right."
                             },
                             "delay": {
-                              "description": "Seconds before the entrance starts (default 0.3).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the entrance starts: seconds (default 0.3) or a time reference (\"title.end + 0.2\").",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the entrance takes (default 0.6).",
@@ -17545,8 +18144,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated entrance for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -17570,9 +18168,16 @@
                               "$ref": "#/$defs/EasingSpec"
                             },
                             "after": {
-                              "description": "Seconds from the section start when the exit begins (default: timed to end at the section end).",
-                              "type": "number",
-                              "minimum": 0
+                              "description": "When the exit begins: seconds or a time reference (\"end - 0.6\"); default: ends with the section.",
+                              "anyOf": [
+                                {
+                                  "type": "number",
+                                  "minimum": 0
+                                },
+                                {
+                                  "$ref": "#/$defs/TimeRef"
+                                }
+                              ]
                             },
                             "duration": {
                               "description": "Seconds the exit takes (default 0.6).",
@@ -17586,8 +18191,7 @@
                             }
                           },
                           "required": ["type"],
-                          "additionalProperties": false,
-                          "description": "Animated exit for sugar text, with optional timing overrides."
+                          "additionalProperties": false
                         }
                       ]
                     },
@@ -18079,6 +18683,27 @@
                   "$ref": "#/$defs/Graphic"
                 },
                 "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel."
+              },
+              "assert": {
+                "maxItems": 16,
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/MotionAssertion"
+                },
+                "description": "Motion assertions proven against the timeline at validation; a failure is an assertion_failed error."
+              },
+              "cues": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$"
+                },
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "description": "Named moments in this section, in seconds from its start, referenced as \"cue:<name>\"."
               },
               "look": {
                 "description": "Named colour-grade preset applied to the section video (default: none).",
@@ -18763,6 +19388,177 @@
       ],
       "description": "Easing: linear | ease-out | ease-in-out | ease-out-back, ease | ease-in | ease-out-expo | ease-in-out-sine | ease-out-elastic | ease-out-bounce | … , cubic-bezier(x1,y1,x2,y2), spring(stiffness,damping[,mass[,velocity]]), steps(n[,start|end]), a $token from global.motion or the built-ins ($snappy, $gentle, $bouncy, $wobbly, $smooth, $juicy, $expo, $anticipate), or { points: [[p,value],…] }."
     },
+    "Theme": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "properties": {
+            "extends": {
+              "description": "Built-in theme this one layers over (default \"leclap\").",
+              "type": "string",
+              "minLength": 1
+            },
+            "colors": {
+              "description": "Colour tokens to override.",
+              "type": "object",
+              "properties": {
+                "bg": {
+                  "description": "Canvas / background colour ($color.bg).",
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "fg": {
+                  "description": "Primary text colour on bg ($color.fg).",
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "muted": {
+                  "description": "Secondary text: kickers, captions, labels ($color.muted).",
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "surface": {
+                  "description": "Raised plates, bands and panels over bg ($color.surface).",
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "brand": {
+                  "description": "The brand colour: logos, rules, signature details ($color.brand).",
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "accent": {
+                  "description": "The one highlight per idea: a word, a bar, a CTA ($color.accent).",
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                },
+                "accent2": {
+                  "description": "A rare second highlight ($color.accent2).",
+                  "type": "string",
+                  "pattern": "^#[0-9a-fA-F]{6}$"
+                }
+              },
+              "additionalProperties": false
+            },
+            "fonts": {
+              "description": "Font tokens to override.",
+              "type": "object",
+              "properties": {
+                "display": {
+                  "description": "Headline face ($font.display): a bundled font id (bebas, oswald, …) or a .ttf file name.",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "body": {
+                  "description": "Supporting copy face ($font.body).",
+                  "type": "string",
+                  "minLength": 1
+                },
+                "mono": {
+                  "description": "Code / data face ($font.mono).",
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            },
+            "radius": {
+              "description": "Corner radius in output pixels for plates and panels.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 200
+            },
+            "motion": {
+              "description": "The motion feel: fills global.motion where the template leaves it unset.",
+              "type": "object",
+              "properties": {
+                "energy": {
+                  "description": "Default for global.motion.energy (0..1.5).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1.5
+                },
+                "ease": {
+                  "description": "The $theme easing token, e.g. \"$snappy\" or \"cubic-bezier(…)\".",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "beat": {
+                  "description": "The $beat duration token, in seconds.",
+                  "type": "number",
+                  "minimum": 0.05,
+                  "maximum": 10
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "description": "Theme: a built-in name (leclap, midnight, editorial, bold, neon, paper) or { extends, colors, fonts, radius, motion }. Reference its tokens anywhere as \"$color.accent\", \"$color.bg@0.55\" or \"$font.display\"."
+    },
+    "Beats": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "bpm": {
+              "type": "number",
+              "minimum": 20,
+              "maximum": 400,
+              "description": "Tempo in beats per minute."
+            },
+            "offset": {
+              "description": "Video time of beat 1 in seconds (default 0).",
+              "type": "number",
+              "minimum": 0
+            },
+            "beatsPerBar": {
+              "description": "Beats per bar (default 4).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            }
+          },
+          "required": ["bpm"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "times": {
+              "minItems": 1,
+              "maxItems": 4096,
+              "type": "array",
+              "items": {
+                "type": "number",
+                "minimum": 0
+              },
+              "description": "Beat times in video seconds, ascending (from an analysis of the music)."
+            },
+            "beatsPerBar": {
+              "description": "Beats per bar (default 4).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 16
+            }
+          },
+          "required": ["times"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "The beat grid of the whole video, for \"beat:n\" / \"bar:n\" time references: { bpm, offset?, beatsPerBar? } or explicit { times } from a music analysis. Beats are 1-based and counted from the start of the video."
+    },
+    "TimeRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80,
+      "description": "A moment in this section, resolved to seconds at compile time. \"<id>.start\" / \"<id>.end\": an element with that id in the same section (kinetic block, graphic or drawtext filter); end = when its entrance has landed. \"50%\": a fraction of the section duration. \"end\": the section end. \"beat:12\" / \"bar:3\": the 12th beat / downbeat of bar 3 of global.beats (1-based, counted on the whole video). \"cue:drop\": a named point in sections[].cues. Every form takes an offset in seconds: \"title.end + 0.2\", \"end - 0.5\", \"beat:8 - 0.1\". Hits and flashes land exactly on a beat; lead entrances by 0.04–0.19 s (\"beat:8 - 0.1\") so they read as on the beat."
+    },
     "Animate": {
       "type": "object",
       "properties": {
@@ -18794,7 +19590,7 @@
         "type": "object",
         "properties": {
           "t": {
-            "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+            "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), a duration token (\"$base\", \"+$short\"), or a time reference (\"title.end + 0.2\", \"beat:8 - 0.1\", \"50%\", \"end - 0.5\", \"cue:drop\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
             "anyOf": [
               {
                 "type": "number",
@@ -18803,7 +19599,7 @@
               {
                 "type": "string",
                 "minLength": 1,
-                "maxLength": 40
+                "maxLength": 80
               }
             ]
           },
@@ -18871,11 +19667,24 @@
           "type": "string",
           "enum": ["forward", "reverse", "center", "edges", "random"]
         },
+        "id": {
+          "type": "string",
+          "maxLength": 40,
+          "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+          "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+        },
         "delay": {
-          "description": "Seconds before the first unit moves (default 0.2).",
-          "type": "number",
-          "minimum": 0,
-          "maximum": 30
+          "description": "When the first unit moves: seconds from the section start (default 0.2) or a time reference (\"title.end + 0.1\", \"beat:4 - 0.1\").",
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 30
+            },
+            {
+              "$ref": "#/$defs/TimeRef"
+            }
+          ]
         },
         "stagger": {
           "description": "Seconds between units (default per preset, e.g. 0.07 per word, 0.035 per glyph).",
@@ -19116,9 +19925,16 @@
                   "description": "How the block leaves (default fade). cascade = staggered rise-out."
                 },
                 "at": {
-                  "description": "Seconds from the section start when the exit begins (default: ends with the section).",
-                  "type": "number",
-                  "minimum": 0
+                  "description": "When the exit begins: seconds from the section start or a time reference (\"end - 0.6\"); default: ends with the section.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
                 },
                 "duration": {
                   "description": "Seconds each unit takes to leave (default 0.35).",
@@ -19179,9 +19995,16 @@
           "maximum": 0.6
         },
         "delay": {
-          "description": "Seconds before the preset move starts (default 0).",
-          "type": "number",
-          "minimum": 0
+          "description": "When the preset move starts: seconds (default 0) or a time reference.",
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "$ref": "#/$defs/TimeRef"
+            }
+          ]
         },
         "duration": {
           "description": "Seconds the preset move takes (default: to the section end).",
@@ -19201,7 +20024,7 @@
             "type": "object",
             "properties": {
               "t": {
-                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), a duration token (\"$base\", \"+$short\"), or a time reference (\"title.end + 0.2\", \"beat:8 - 0.1\", \"50%\", \"end - 0.5\", \"cue:drop\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
                 "anyOf": [
                   {
                     "type": "number",
@@ -19210,7 +20033,7 @@
                   {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 40
+                    "maxLength": 80
                   }
                 ]
               },
@@ -19244,7 +20067,7 @@
             "type": "object",
             "properties": {
               "t": {
-                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), a duration token (\"$base\", \"+$short\"), or a time reference (\"title.end + 0.2\", \"beat:8 - 0.1\", \"50%\", \"end - 0.5\", \"cue:drop\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
                 "anyOf": [
                   {
                     "type": "number",
@@ -19253,7 +20076,7 @@
                   {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 40
+                    "maxLength": 80
                   }
                 ]
               },
@@ -19287,7 +20110,7 @@
             "type": "object",
             "properties": {
               "t": {
-                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), a duration token (\"$base\", \"+$short\"), or a time reference (\"title.end + 0.2\", \"beat:8 - 0.1\", \"50%\", \"end - 0.5\", \"cue:drop\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
                 "anyOf": [
                   {
                     "type": "number",
@@ -19296,7 +20119,7 @@
                   {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 40
+                    "maxLength": 80
                   }
                 ]
               },
@@ -19330,7 +20153,7 @@
             "type": "object",
             "properties": {
               "t": {
-                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), or a duration token (\"$base\", \"+$short\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
+                "description": "When this key is reached: seconds from the section start (1.2), relative to the previous key (\"+0.3\"), a duration token (\"$base\", \"+$short\"), or a time reference (\"title.end + 0.2\", \"beat:8 - 0.1\", \"50%\", \"end - 0.5\", \"cue:drop\"). Omitted: the previous key plus this ease's natural duration (a spring settles on its own) or 0.6 s; the first key defaults to 0.",
                 "anyOf": [
                   {
                     "type": "number",
@@ -19339,7 +20162,7 @@
                   {
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 40
+                    "maxLength": 80
                   }
                 ]
               },
@@ -19365,7 +20188,7 @@
           }
         },
         "hits": {
-          "description": "Punch-ins on beats: seconds, or { at, strength, decay }. Pair with kinetic impact or a flash.",
+          "description": "Punch-ins on beats: seconds, a time reference (\"beat:8\"), or { at, strength, decay }. Pair with kinetic impact or a flash.",
           "maxItems": 16,
           "type": "array",
           "items": {
@@ -19375,12 +20198,22 @@
                 "minimum": 0
               },
               {
+                "$ref": "#/$defs/TimeRef"
+              },
+              {
                 "type": "object",
                 "properties": {
                   "at": {
-                    "type": "number",
-                    "minimum": 0,
-                    "description": "Seconds from the section start when the punch lands."
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      {
+                        "$ref": "#/$defs/TimeRef"
+                      }
+                    ],
+                    "description": "When the punch lands: seconds from the section start or a time reference (\"beat:8\", \"title.end\")."
                   },
                   "strength": {
                     "description": "Zoom bump (0.08 = 8% punch-in; default 0.08).",
@@ -19443,10 +20276,23 @@
               "type": "string",
               "const": "flash"
             },
+            "id": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+              "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+            },
             "at": {
-              "description": "Seconds from the section start when it animates in (default 0).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it animates in: seconds from the section start (default 0) or a time reference (\"beat:8\").",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "duration": {
               "description": "Seconds the animation takes (default per type).",
@@ -19459,9 +20305,16 @@
               "$ref": "#/$defs/EasingSpec"
             },
             "until": {
-              "description": "Seconds when it disappears (default: holds to the cut).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it disappears: seconds or a time reference (\"end - 0.3\"); default: holds to the cut.",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "color": {
               "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
@@ -19489,10 +20342,23 @@
               "type": "string",
               "const": "bars"
             },
+            "id": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+              "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+            },
             "at": {
-              "description": "Seconds from the section start when it animates in (default 0).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it animates in: seconds from the section start (default 0) or a time reference (\"beat:8\").",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "duration": {
               "description": "Seconds the animation takes (default per type).",
@@ -19505,9 +20371,16 @@
               "$ref": "#/$defs/EasingSpec"
             },
             "until": {
-              "description": "Seconds when it disappears (default: holds to the cut).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it disappears: seconds or a time reference (\"end - 0.3\"); default: holds to the cut.",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "color": {
               "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
@@ -19535,10 +20408,23 @@
               "type": "string",
               "const": "underline"
             },
+            "id": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+              "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+            },
             "at": {
-              "description": "Seconds from the section start when it animates in (default 0).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it animates in: seconds from the section start (default 0) or a time reference (\"beat:8\").",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "duration": {
               "description": "Seconds the animation takes (default per type).",
@@ -19551,9 +20437,16 @@
               "$ref": "#/$defs/EasingSpec"
             },
             "until": {
-              "description": "Seconds when it disappears (default: holds to the cut).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it disappears: seconds or a time reference (\"end - 0.3\"); default: holds to the cut.",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "color": {
               "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
@@ -19599,10 +20492,23 @@
               "type": "string",
               "const": "frame"
             },
+            "id": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+              "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+            },
             "at": {
-              "description": "Seconds from the section start when it animates in (default 0).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it animates in: seconds from the section start (default 0) or a time reference (\"beat:8\").",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "duration": {
               "description": "Seconds the animation takes (default per type).",
@@ -19615,9 +20521,16 @@
               "$ref": "#/$defs/EasingSpec"
             },
             "until": {
-              "description": "Seconds when it disappears (default: holds to the cut).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it disappears: seconds or a time reference (\"end - 0.3\"); default: holds to the cut.",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "color": {
               "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
@@ -19650,10 +20563,23 @@
               "type": "string",
               "const": "corners"
             },
+            "id": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+              "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+            },
             "at": {
-              "description": "Seconds from the section start when it animates in (default 0).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it animates in: seconds from the section start (default 0) or a time reference (\"beat:8\").",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "duration": {
               "description": "Seconds the animation takes (default per type).",
@@ -19666,9 +20592,16 @@
               "$ref": "#/$defs/EasingSpec"
             },
             "until": {
-              "description": "Seconds when it disappears (default: holds to the cut).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it disappears: seconds or a time reference (\"end - 0.3\"); default: holds to the cut.",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "color": {
               "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
@@ -19706,10 +20639,23 @@
               "type": "string",
               "const": "wipe"
             },
+            "id": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+              "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+            },
             "at": {
-              "description": "Seconds from the section start when it animates in (default 0).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it animates in: seconds from the section start (default 0) or a time reference (\"beat:8\").",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "duration": {
               "description": "Seconds the animation takes (default per type).",
@@ -19722,9 +20668,16 @@
               "$ref": "#/$defs/EasingSpec"
             },
             "until": {
-              "description": "Seconds when it disappears (default: holds to the cut).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it disappears: seconds or a time reference (\"end - 0.3\"); default: holds to the cut.",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "color": {
               "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
@@ -19751,10 +20704,23 @@
               "type": "string",
               "const": "panel"
             },
+            "id": {
+              "type": "string",
+              "maxLength": 40,
+              "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+              "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+            },
             "at": {
-              "description": "Seconds from the section start when it animates in (default 0).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it animates in: seconds from the section start (default 0) or a time reference (\"beat:8\").",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "duration": {
               "description": "Seconds the animation takes (default per type).",
@@ -19767,9 +20733,16 @@
               "$ref": "#/$defs/EasingSpec"
             },
             "until": {
-              "description": "Seconds when it disappears (default: holds to the cut).",
-              "type": "number",
-              "minimum": 0
+              "description": "When it disappears: seconds or a time reference (\"end - 0.3\"); default: holds to the cut.",
+              "anyOf": [
+                {
+                  "type": "number",
+                  "minimum": 0
+                },
+                {
+                  "$ref": "#/$defs/TimeRef"
+                }
+              ]
             },
             "color": {
               "description": "Colour, \"#rrggbb\" or \"#rrggbb@alpha\" (default per type).",
@@ -19806,6 +20779,93 @@
           "required": ["type"],
           "additionalProperties": false,
           "description": "A solid block that grows from one edge: a backing plate for text or a colour reveal."
+        }
+      ]
+    },
+    "MotionAssertion": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "visibleBy": {
+              "type": "object",
+              "properties": {
+                "target": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "An element of this section: its `id`, or its path — \"kinetic[0]\", \"graphics[1]\", \"filters[2]\", \"titleCard\", \"lowerThird\", \"caption\"."
+                },
+                "at": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Section-local seconds by which the entrance must have completed."
+                }
+              },
+              "required": ["target", "at"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["visibleBy"],
+          "additionalProperties": false,
+          "description": "The target has fully entered by `at` seconds."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "before": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "An element of this section: its `id`, or its path — \"kinetic[0]\", \"graphics[1]\", \"filters[2]\", \"titleCard\", \"lowerThird\", \"caption\"."
+                },
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "An element of this section: its `id`, or its path — \"kinetic[0]\", \"graphics[1]\", \"filters[2]\", \"titleCard\", \"lowerThird\", \"caption\"."
+                }
+              ],
+              "description": "[a, b]: a finishes entering before b starts entering."
+            }
+          },
+          "required": ["before"],
+          "additionalProperties": false,
+          "description": "Sequencing: the first target lands before the second one starts."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "inFrame": {
+              "type": "string",
+              "minLength": 1,
+              "description": "An element of this section: its `id`, or its path — \"kinetic[0]\", \"graphics[1]\", \"filters[2]\", \"titleCard\", \"lowerThird\", \"caption\"."
+            }
+          },
+          "required": ["inFrame"],
+          "additionalProperties": false,
+          "description": "The target rests entirely inside the frame (skipped when its box is not measurable)."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "keepsMoving": {
+              "type": "object",
+              "properties": {
+                "maxStill": {
+                  "type": "number",
+                  "exclusiveMinimum": 0,
+                  "maximum": 60,
+                  "description": "Longest allowed stretch, in seconds, with nothing moving."
+                }
+              },
+              "required": ["maxStill"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["keepsMoving"],
+          "additionalProperties": false,
+          "description": "The section is never still for longer than `maxStill` seconds."
         }
       ]
     },

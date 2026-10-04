@@ -215,6 +215,12 @@ describe('accent_overuse advisory', () => {
   it('never fails validation', () => {
     expect(new TemplateValidator().validateTemplate(themed('bold', bars(4, '$color.accent'))).success).toBe(true);
   });
+
+  it('rides along with the motion warnings, with a hint', () => {
+    const warnings = new TemplateValidator().getMotionWarnings(themed('bold', bars(4, '$color.accent')));
+
+    expect(warnings.find((w) => w.code === 'accent_overuse')).toMatchObject({ severity: 'warn', path: 'sections[0]' });
+  });
 });
 
 describe('theme catalog', () => {

@@ -18,7 +18,8 @@ export const motionWarningsSchema = z
   .optional()
   .describe(
     'Advisory pacing findings read off the motion timeline (ease_monotony, front_loaded, stagger_too_long, ' +
-      'starts_at_zero, transition_monotony, exit_before_transition, dead_air, tempo_flat) and assertions that ' +
+      'starts_at_zero, transition_monotony, exit_before_transition, dead_air, tempo_flat), the theme accent ' +
+      'advisory (accent_overuse) and assertions that ' +
       'could not be checked render-free (assertion_skipped), each with a hint — present only when there is ' +
       'something to say.'
   );

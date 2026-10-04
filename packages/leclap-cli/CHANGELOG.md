@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   profile by default (`--no-deterministic` turns it off).
 - `leclap verify <manifest> [--rerender]` checks a video against its render manifest, or re-renders the
   recorded template and compares the template, asset, filtergraph and output digests.
+- `leclap validate` prints a `→ hint` line under each error that has a known fix, plus advisory motion
+  pacing findings that never change the exit code; `--json` includes `hint`, `suggestion`, `kind` and
+  `motionWarnings`.
 
 ## [0.3.0] - 2026-10-03
 

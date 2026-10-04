@@ -71,3 +71,19 @@ export function findAccentOveruse(template: Loose): AccentWarning[] {
     ];
   });
 }
+
+/**
+ * The accent advisory shaped for the motion warning list (severity + hint), so every surface that shows
+ * pacing feedback shows it too. Like the rest of that list it never throws, whatever the input.
+ */
+export function accentAdvisories(template: unknown): Array<AccentWarning & { severity: 'warn'; hint: string }> {
+  try {
+    return findAccentOveruse(template as Loose).map((warning) => ({
+      ...warning,
+      severity: 'warn' as const,
+      hint: 'Keep the accent for one element per section; use $color.fg, $color.muted or $color.brand for the rest.',
+    }));
+  } catch {
+    return [];
+  }
+}

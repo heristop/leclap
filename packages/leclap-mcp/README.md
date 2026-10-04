@@ -18,6 +18,7 @@ video models, which sample rather than render.
 | `list_samples`         | Discover sample metadata and required inputs, filtered by category/backend/query → `{ samples }`                                                             |
 | `get_sample`           | Get a sample by stable ID → metadata, requirements and self-contained `template` JSON                                                                        |
 | `get_template_schema`  | The JSON Schema for a template descriptor + a short authoring guide                                                                                          |
+| `get_motion_catalog`   | Motion presets, camera, graphics, transitions, easing/time grammar, themes, platforms, genre doctrine and scene blueprints                                   |
 | `validate_template`    | Dry-run an inline descriptor (no render) → `{ valid, sectionCount, orientation, requiredClips, formFields, geometry? }`                                      |
 | `compose_video`        | Validate an inline descriptor and render → `{ outputPath, durationSeconds, sizeBytes, videoCodec, audioCodec, renderId }`, plus a `resource_link` to the mp4 |
 | `probe_media`          | Inspect a local media file → codecs, duration, sample rate, size                                                                                             |

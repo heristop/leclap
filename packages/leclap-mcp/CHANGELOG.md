@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   defaults, exits, stagger orders, the easing grammar, built-in tokens, art-direction rules and a starter.
   `get_template_schema` and the `compose-video` prompt point agents at it.
 - `compose_video` renders with the deterministic encoder profile.
+- `validate_template` returns every finding with its hint (`structuredContent.errors` with `hint`,
+  `suggestion`, `kind`) and advisory `motionWarnings`; failing section assertions are validation errors.
+- `get_motion_catalog` also returns genre doctrine, scene blueprints, per-preset verbs and guidance,
+  built-in themes, delivery platforms and the time-reference grammar; the registry manifest lists it.
+- `get_template_schema` describes `global.platform`; the `compose-video` prompt adds motion pacing rules.
 
 ## [0.4.0] - 2026-10-03
 

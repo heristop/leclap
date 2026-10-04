@@ -18,6 +18,7 @@ import type { Reveal, RevealEasing, TextEffect, TitleCard, LowerThird, ChromaKey
 import type { FontInput } from './fonts';
 import type { PlatformName } from './platforms';
 import type { RenderManifest } from './determinism/manifest';
+import type { QcOption, QcReport } from './qc/types';
 import type { MotionTokens } from '../schemas/motion.schemas';
 import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
@@ -50,6 +51,9 @@ export type CompileReporter = {
   // core/determinism/manifest.ts) after a successful render and hands it here. Hashing costs one read of
   // the output and inputs, so it only runs when a host asks for it.
   onManifest?: (manifest: RenderManifest) => void;
+  // Node only. Called with the output QC report (core/qc) after a successful render when
+  // `ProjectConfig.qc` is set; the same report is also recorded in the manifest's `qc` field.
+  onQc?: (report: QcReport) => void;
 };
 export type ProjectConfig = {
   buildDir?: string;
@@ -71,6 +75,13 @@ export type ProjectConfig = {
   // Deterministic encoder profile (bit-exact muxing, fixed libx264 threads), applied to every FFmpeg
   // command of the build. Default: on; false opts out (faster local drafts).
   deterministic?: boolean;
+  // Node only. Probe the finished output and report findings (duration, frames, A/V drift, pixel format,
+  // colour tags, audio); `{ content: true }` also decodes it once for black/frozen/silent stretches and
+  // loudness. Delivered through `CompileReporter.onQc` and the manifest. Default: off.
+  qc?: QcOption;
+  // Node only. Directory of the per-section render cache: a section whose FFmpeg command, input files,
+  // FFmpeg build and engine version all match a previous render is copied instead of re-encoded.
+  cacheDir?: string;
 };
 
 export type MusicConfig = {

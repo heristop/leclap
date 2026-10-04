@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import type { ProjectConfig, RenderedGeometry, TemplateDescriptor } from 'ffmpeg-video-composer';
+import type { ProjectConfig, QcReport, RenderedGeometry, TemplateDescriptor } from 'ffmpeg-video-composer';
 
 import type { GeometryJob } from '../worker/geometry-job.js';
 import type { ProgressMessage } from '../worker/progress-reporter.js';
@@ -28,6 +28,8 @@ interface WorkerMessage {
   outputPath?: string;
   infos?: WorkerInfos;
   sizeBytes?: number;
+  // The engine's output QC report, when the job's ProjectConfig asked for one.
+  qc?: QcReport;
   // A geometry job's result (worker/geometry-job.ts) in place of the render fields.
   geometry?: RenderedGeometry;
   error?: string;
@@ -43,6 +45,7 @@ export type RenderResult =
       sizeBytes: number;
       videoCodec: string | null;
       audioCodec: string | null;
+      qc?: QcReport;
     }
   | WorkerFailure;
 
@@ -179,6 +182,7 @@ function successResult(msg: WorkerMessage): RenderResult {
     sizeBytes: msg.sizeBytes ?? 0,
     videoCodec: msg.infos?.videoCodec ?? null,
     audioCodec: msg.infos?.audioCodec ?? null,
+    ...(msg.qc && { qc: msg.qc }),
   };
 }
 

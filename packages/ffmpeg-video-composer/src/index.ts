@@ -19,7 +19,7 @@ import type { TemplateDescriptor as SchemaTemplateDescriptor } from './schemas/t
 import { hasDrawtext } from './services/geometry/drawtext-probe';
 import { nodeFontLoader } from './services/geometry/node-geometry';
 import { runRenderCheck, type RenderCheckOptions, type RenderedGeometry } from './services/geometry/render-check';
-import { runCompileEpilogue } from './services/compile-epilogue-node';
+import { prepareRegisteredRender, runCompileEpilogue } from './services/compile-epilogue-node';
 
 let isInitialized = false;
 let initializationPromise: Promise<void> | null = null;
@@ -186,9 +186,11 @@ async function runConstruction(
   const listeners = attachCompilationListeners(director.events, reporter?.onProgress);
 
   try {
+    // Output-is-input guard, FFmpeg version, section cache (services/render-setup-node.ts).
+    const context = await prepareRegisteredRender(projectConfig, templateDescriptor);
     const output = await timer.span('compile:total', () => director.construct());
 
-    await runCompileEpilogue({ logger, projectConfig, templateDescriptor, output, reporter });
+    await runCompileEpilogue({ logger, projectConfig, templateDescriptor, output, reporter, context });
 
     // The director reports a failed build through `task-stopped` and resolves null; rethrow the cause
     // so compile() hands it to the reporter instead of failing without saying which section broke.
@@ -359,20 +361,7 @@ export { ENGINE_VERSION } from './core/version';
 // Node entry only: digest a rendered file for `leclap verify`.
 export { digestRenderedFile } from './services/render-manifest-node';
 export * from './core/motion';
-export {
-  effectiveOrientation,
-  platformCatalog,
-  resolvePlatform,
-  PLATFORMS,
-  PLATFORM_ALIASES,
-  PLATFORM_IDS,
-  type DeliveryPlatform,
-  type PlatformCatalogEntry,
-  type PlatformId,
-  type PlatformName,
-  type ResolvedPlatform,
-  type SafeZone,
-} from './core/platforms';
+export * from './core/platforms';
 export * from './core/theme';
 export {
   motionTimeline,

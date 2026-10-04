@@ -6,6 +6,7 @@ import { compile } from '@/index';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
 import type { RenderManifest } from '@/core/determinism/manifest';
 import { TemplateValidator } from '@/services/TemplateValidator';
+import { X264_COLOR_PARAMS, buildColorMetadataArgs } from '@/core/encoding';
 import { testBuildDir } from './fixtures/build-dir';
 
 // The motion system study (examples/motion-design/spring-kinetics.json) through real FFmpeg: every
@@ -27,6 +28,13 @@ const config = {
   audioConfig: { sampleRate: 44100, channelLayout: 'stereo' },
   videoConfig: { orientation: 'landscape', scale: '1280:720' },
 } as unknown as ProjectConfig;
+
+// These goldens record a real render, whose colour-tag flags follow the local FFmpeg version (libx264
+// params from 7.1, see core/encoding.ts). Fold them back to one spelling so the golden is the same on
+// every FFmpeg the suite runs against.
+function graphGolden(manifest: RenderManifest): string {
+  return `${manifest.graph.commands.join('\n').replaceAll(X264_COLOR_PARAMS, buildColorMetadataArgs())}\n`;
+}
 
 async function render(): Promise<{ bytes: Buffer; manifest: RenderManifest }> {
   let manifest: RenderManifest | undefined;
@@ -51,9 +59,7 @@ describe('motion system example', () => {
 
     expect(second.bytes.equals(first.bytes)).toBe(true);
     expect(first.manifest.deterministic).toBe(true);
-    await expect(`${first.manifest.graph.commands.join('\n')}\n`).toMatchFileSnapshot(
-      '__goldens__/motion/spring-kinetics.txt'
-    );
+    await expect(graphGolden(first.manifest)).toMatchFileSnapshot('__goldens__/motion/spring-kinetics.txt');
   }, 240000);
 
   it('lowers every curve to plain expression arithmetic (no tokens left, bounded size)', async () => {
@@ -94,9 +100,7 @@ describe('kinetic typography example', () => {
     const second = await renderKinetic();
 
     expect(second.bytes.equals(first.bytes)).toBe(true);
-    await expect(`${first.manifest.graph.commands.join('\n')}\n`).toMatchFileSnapshot(
-      '__goldens__/motion/kinetic-type.txt'
-    );
+    await expect(graphGolden(first.manifest)).toMatchFileSnapshot('__goldens__/motion/kinetic-type.txt');
   }, 240000);
 });
 
@@ -123,8 +127,6 @@ describe('camera and graphics example', () => {
     runs.push(await renderEffects());
 
     expect(runs[1].bytes.equals(runs[0].bytes)).toBe(true);
-    await expect(`${runs[0].manifest.graph.commands.join('\n')}\n`).toMatchFileSnapshot(
-      '__goldens__/motion/camera-and-graphics.txt'
-    );
+    await expect(graphGolden(runs[0].manifest)).toMatchFileSnapshot('__goldens__/motion/camera-and-graphics.txt');
   }, 300000);
 });

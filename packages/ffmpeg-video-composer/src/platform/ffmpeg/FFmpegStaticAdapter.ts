@@ -9,6 +9,7 @@ import { FFmpegError } from '../../core/errors/FFmpegError';
 import { parseCommand } from './parse-command';
 import { FFPROBE_MISSING_MESSAGE, resolveStaticFfprobe } from './resolve-ffprobe';
 import { tailStderr } from './tail-stderr';
+import { measureLoudness } from './analyze-node';
 
 const requireModule = createRequire(import.meta.url);
 
@@ -77,6 +78,9 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
       throw new FFmpegError('FFmpeg command failed (static)', tailStderr(execError.stderr));
     }
   };
+
+  override measureTruePeak = async (file: string): Promise<number | null> =>
+    this.ffmpegPath ? (await measureLoudness(this.ffmpegPath, file)).truePeak : null;
 
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     if (!this.ffprobePath) {

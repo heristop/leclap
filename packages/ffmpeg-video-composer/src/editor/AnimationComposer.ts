@@ -197,7 +197,7 @@ class AnimationComposer {
     const filterComplex = this.buildFilterComplex(staged);
     const encoderArgs = buildVideoEncoderArgs(this.project.config);
     const pixFmtArg = buildPixFmtArg(this.project.config);
-    const colorArgs = buildColorMetadataArgs();
+    const colorArgs = buildColorMetadataArgs(this.project.config, this.project.ffmpegVersion);
     const audioMap = hasAudio ? ' -map 0:a -c:a copy ' : ' ';
 
     return (

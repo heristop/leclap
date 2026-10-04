@@ -6,6 +6,7 @@ import { canonicalJson } from './hash';
 import { sha256Hex } from './sha256';
 import { resolveSeed } from './contract';
 import { ENGINE_VERSION } from '../version';
+import type { LoudnessReport, QcReport } from '../qc/types';
 
 export const MANIFEST_SCHEMA_VERSION = 1;
 
@@ -32,7 +33,18 @@ export interface RenderManifest {
   assets: Array<{ path: string; sha256: string }>;
   graph: { sha256: string; commands: string[] };
   output: { sha256: string; bytes: number } | null;
+  /** Digest of everything that decides the output bytes (core/determinism/plan-hash.ts). Node renders. */
+  planHash?: string;
+  /** Section cache use for this render (`ProjectConfig.cacheDir`, Node only). */
+  cache?: { hits: number; misses: number; sections: Array<{ output: string; hit: boolean }> };
+  /** The loudnorm pass actually applied, after the true-peak re-check. */
+  loudness?: LoudnessReport;
+  /** The output QC report, when `ProjectConfig.qc` asked for one. */
+  qc?: QcReport;
 }
+
+/** The optional, Node-filled parts of a manifest. */
+export type ManifestExtras = Pick<RenderManifest, 'planHash' | 'cache' | 'loudness' | 'qc'>;
 
 export interface ManifestInput {
   descriptor: unknown;
@@ -43,6 +55,7 @@ export interface ManifestInput {
   ffmpegVersion: string | null;
   assets: Array<{ path: string; sha256: string }>;
   output: { sha256: string; bytes: number } | null;
+  extras?: ManifestExtras;
 }
 
 function escapeRegExp(value: string): string {
@@ -115,5 +128,6 @@ export function buildRenderManifest(input: ManifestInput): RenderManifest {
     assets: [...input.assets].sort((a, b) => a.path.localeCompare(b.path)),
     graph: graphDigest(input.commands, input.roots),
     output: input.output,
+    ...input.extras,
   };
 }

@@ -11,6 +11,12 @@ import { formatPerfReport } from '../utils/perf-report';
 import { FFmpegDetector } from '../platform/ffmpeg/FFmpegDetector';
 import { resolveDeterministic } from '@/core/determinism/contract';
 import { createNodeRenderManifest } from './render-manifest-node';
+import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
+import type { QcReport } from '@/core/qc/types';
+import { runOutputQc, wantsQc } from './qc-node';
+import type { NodeRenderContext } from './render-setup-node';
+
+export { prepareRegisteredRender } from './render-setup-node';
 
 export interface CompileEpilogueInput {
   logger: AbstractLogger;
@@ -18,6 +24,7 @@ export interface CompileEpilogueInput {
   templateDescriptor: TemplateDescriptor;
   output: string | null;
   reporter?: CompileReporter;
+  context?: NodeRenderContext | null;
 }
 
 // Log the per-run perf table and persist it next to the build output. No-op when FVC_PERF is
@@ -55,25 +62,57 @@ async function emitPerfReport(
   }
 }
 
+// The output QC (services/qc-node.ts), only when the host asked for it: it probes (and with `content`
+// decodes) the finished file. Its report goes to `onQc` and into the manifest.
+async function runQc(input: CompileEpilogueInput, output: string): Promise<QcReport | null> {
+  if (!wantsQc(input.projectConfig.qc)) return null;
+
+  const project = container.resolve<Project>('project');
+  const report = await runOutputQc({
+    file: output,
+    option: input.projectConfig.qc,
+    expectations: project.qcExpectations,
+    binaries: container.resolve<AbstractFFmpeg>('ffmpegAdapter').binaries,
+    loudness: project.loudness,
+  });
+  input.reporter?.onQc?.(report);
+
+  return report;
+}
+
+// Segments render concurrently, so the cache records them in completion order; the manifest lists
+// them by name so it stays reproducible.
+function sortedSections<T extends { output: string }>(sections: readonly T[]): T[] {
+  return [...sections].sort((a, b) => a.output.localeCompare(b.output));
+}
+
 // The render manifest (core/determinism/manifest.ts), built only after a successful render and only
 // when the host asked for it: it reads the output and every source file once to digest them.
-async function emitRenderManifest(input: CompileEpilogueInput, output: string): Promise<void> {
+async function emitRenderManifest(input: CompileEpilogueInput, output: string, qc: QcReport | null): Promise<void> {
   const onManifest = input.reporter?.onManifest;
 
   if (!onManifest) return;
 
   const project = container.resolve<Project>('project');
   const detection = await FFmpegDetector.detect();
+  const cache = input.context?.cache?.stats;
 
   onManifest(
     createNodeRenderManifest({
       descriptor: input.templateDescriptor,
       config: input.projectConfig,
+      resolvedConfig: project.config,
       commands: project.ffmpegCommands,
       deterministic: resolveDeterministic(input.projectConfig.deterministic),
       output,
       ffmpegVersion: detection.version ?? null,
+      ffmpegVersionLine: input.context?.ffmpegVersionLine,
       tempDir: container.resolve<AbstractFilesystem>('filesystemAdapter').getTempDir(),
+      extras: {
+        ...(cache && { cache: { hits: cache.hits, misses: cache.misses, sections: sortedSections(cache.sections) } }),
+        ...(project.loudness && { loudness: project.loudness }),
+        ...(qc && { qc }),
+      },
     })
   );
 }
@@ -81,5 +120,8 @@ async function emitRenderManifest(input: CompileEpilogueInput, output: string): 
 export async function runCompileEpilogue(input: CompileEpilogueInput): Promise<void> {
   await emitPerfReport(input.logger, input.projectConfig.buildDir ?? '', input.templateDescriptor);
 
-  if (input.output !== null) await emitRenderManifest(input, input.output);
+  if (input.output === null) return;
+
+  const qc = await runQc(input, input.output);
+  await emitRenderManifest(input, input.output, qc);
 }

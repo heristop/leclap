@@ -5,7 +5,12 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
-import { type ProjectConfig, type TemplateDescriptor, type ResolvedEffectProvenance } from 'ffmpeg-video-composer';
+import {
+  type ProjectConfig,
+  type QcReport,
+  type TemplateDescriptor,
+  type ResolvedEffectProvenance,
+} from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
 import { resolveComposeEffects } from '../effects/compose-effects.js';
@@ -15,6 +20,7 @@ import { assertWithinMediaDir } from '../compose/pathGuard.js';
 import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { validateTemplate } from '../compose/validation.js';
 import { runRender, type RenderResult } from '../compose/renderRunner.js';
+import { applyOutputName, pruneRenderDir, removeDir } from '../compose/renderDir.js';
 
 // Standard Schema objects, not the raw `{ field: z.type() }` shapes: the SDK's raw-shape overload is
 // deprecated since v2 and the object form is what `tools/list` converts to JSON Schema.
@@ -30,6 +36,23 @@ const inputSchema = z.object({
     .optional(),
 });
 
+// The engine's output QC report (probe + one decode pass) for the rendered file.
+const qcValue = z.union([z.string(), z.number(), z.null()]);
+const qcSchema = z.object({
+  verified: z.boolean(),
+  content: z.boolean(),
+  findings: z.array(
+    z.object({
+      check: z.string(),
+      status: z.enum(['pass', 'warn', 'fail']),
+      value: qcValue,
+      expected: qcValue,
+      reason: z.string(),
+      kind: z.enum(['format', 'judgement']),
+    })
+  ),
+});
+
 const outputSchema = z.object({
   outputPath: z.string(),
   durationSeconds: z.number().nullable(),
@@ -39,6 +62,7 @@ const outputSchema = z.object({
   renderId: z.string(),
   effectProvenance: z.record(z.string(), z.unknown()).optional(),
   effectCache: z.object({ hits: z.number(), misses: z.number(), writes: z.number() }).optional(),
+  qc: qcSchema.optional(),
 });
 
 type ComposeArgs = {
@@ -164,7 +188,19 @@ async function buildProjectConfig(
     // Agent renders are evidence: the same descriptor must yield the same bytes (bit-exact muxing,
     // pinned encoder threads; see the engine's core/determinism/command-tap.ts).
     deterministic: true,
+    // ...and checked: the engine probes and decodes the output once and reports findings (`qc`).
+    qc: { content: true },
   };
+}
+
+// One line for the agent: the QC verdict and the checks that did not pass.
+function qcSummary(qc: QcReport | undefined): string {
+  if (!qc) return '';
+
+  const flagged = qc.findings.filter((finding) => finding.status !== 'pass');
+  const detail = flagged.map((finding) => `${finding.check} ${finding.status}: ${finding.reason}`).join('; ');
+
+  return ` QC ${qc.verified ? 'verified' : 'not verified'}${detail ? ` (${detail})` : ''}.`;
 }
 
 function successPayload(
@@ -177,7 +213,7 @@ function successPayload(
     content: [
       {
         type: 'text' as const,
-        text: `Rendered ${result.outputPath} (${result.durationSeconds ?? '?'}s, ${result.sizeBytes} bytes).`,
+        text: `Rendered ${result.outputPath} (${result.durationSeconds ?? '?'}s, ${result.sizeBytes} bytes).${qcSummary(result.qc)}`,
       },
       // The protocol's pointer-to-an-artifact block: the client can open or fetch the file itself
       // rather than the server inlining megabytes of base64 mp4 into the conversation.
@@ -197,6 +233,7 @@ function successPayload(
       renderId,
       ...(effectProvenance ? { effectProvenance } : {}),
       ...(effectCache ? { effectCache } : {}),
+      ...(result.qc ? { qc: result.qc } : {}),
     },
   };
 }
@@ -336,52 +373,6 @@ async function handleCompose(args: ComposeArgs, config: McpConfig, ctx?: ServerC
     await Promise.all(
       (prepared.effectDirectories ?? []).map((directory) => pruneRenderDir(directory, ['provenance.json']))
     );
-  }
-}
-
-async function removeDir(dir: string): Promise<void> {
-  await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
-}
-
-// Delete everything in the render dir except the kept deliverables. Recurses so intermediate
-// subdirs are removed too. Swallows errors — cleanup must never turn a successful render into one.
-async function pruneRenderDir(dir: string, keep: string[]): Promise<void> {
-  const kept = new Set(keep);
-
-  try {
-    const entries = await fs.readdir(dir);
-    await Promise.all(
-      entries
-        .filter((entry) => !kept.has(entry))
-        .map((entry) => fs.rm(path.join(dir, entry), { recursive: true, force: true }).catch(() => {}))
-    );
-  } catch {
-    // Directory unreadable — nothing to prune.
-  }
-}
-
-// Honour the optional outputBaseName by copying the fixed engine output (build/output.mp4) to a
-// sibling `<outputBaseName>.mp4`, so the caller gets the name it asked for (per-render naming is an
-// app concern, not the engine's). The regex on the input schema already rejects path separators.
-// A copy failure must NOT sink a render that already succeeded — fall back to the real output path
-// so the caller still gets a usable clip instead of a spurious tool error.
-async function applyOutputName(outputPath: string, outputBaseName: string | undefined): Promise<string> {
-  if (!outputBaseName) {
-    return outputPath;
-  }
-
-  const named = path.join(path.dirname(outputPath), `${outputBaseName}.mp4`);
-
-  if (named === outputPath) {
-    return outputPath;
-  }
-
-  try {
-    await fs.copyFile(outputPath, named);
-
-    return named;
-  } catch {
-    return outputPath;
   }
 }
 

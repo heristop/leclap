@@ -106,7 +106,7 @@ class VideoEditor {
   concat = async (): Promise<string> => {
     try {
       const buildDir = this.filesystemAdapter.getBuildDir() ?? 'build';
-      const finalOutputPath = `${buildDir}/output.mp4`;
+      const finalOutputPath = this.project.output.staging || `${buildDir}/output.mp4`;
       this.project.finalVideo = finalOutputPath;
 
       const concatFilePath = this.project.buildInfos.fileConcatPath;
@@ -159,7 +159,7 @@ class VideoEditor {
       }
 
       const buildDir = this.filesystemAdapter.getBuildDir() ?? 'build';
-      const finalOutputPath = `${buildDir}/output.mp4`;
+      const finalOutputPath = this.project.output.staging || `${buildDir}/output.mp4`;
       this.project.finalVideo = finalOutputPath;
 
       const probes = await this.probeSegments(segmentFiles);
@@ -280,7 +280,7 @@ class VideoEditor {
       fps,
     });
     const filterComplex = [normalizeGraph, videoGraph, overlay.graph, audioGraph].filter(Boolean).join(';');
-    const outputArgs = `${buildVideoEncoderArgs(this.project.config)} ${buildPixFmtArg(this.project.config)} ${buildColorMetadataArgs()}`;
+    const outputArgs = `${buildVideoEncoderArgs(this.project.config)} ${buildPixFmtArg(this.project.config)} ${buildColorMetadataArgs(this.project.config, this.project.ffmpegVersion)}`;
 
     return (
       ' -y ' +

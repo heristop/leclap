@@ -10,6 +10,8 @@ function makeLogger() {
 function makeProject(config: ProjectConfig = {}) {
   return {
     finalVideo: '',
+    output: { staging: '', final: '' },
+    ffmpegVersion: null,
     errors: [] as string[],
     config: {
       audioConfig: { sampleRate: 48000, channelLayout: 'stereo' },

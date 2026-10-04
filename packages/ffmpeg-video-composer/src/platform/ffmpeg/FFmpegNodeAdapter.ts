@@ -6,6 +6,7 @@ import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { parseCommand } from './parse-command';
 import { tailStderr } from './tail-stderr';
+import { measureLoudness } from './analyze-node';
 import { getPerfTimer } from '../../utils/perf-timer';
 
 const execFileAsync = promisify(execFile);
@@ -48,6 +49,9 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
       throw new FFmpegError('FFmpeg command failed', tailStderr(execError.stderr));
     }
   };
+
+  override measureTruePeak = async (file: string): Promise<number | null> =>
+    (await measureLoudness('ffmpeg', file)).truePeak;
 
   getInfos = async (source: string): Promise<FFMpegInfos> => {
     try {

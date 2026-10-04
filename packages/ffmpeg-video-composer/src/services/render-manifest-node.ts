@@ -9,9 +9,12 @@ import { parseCommand } from '../platform/ffmpeg/parse-command';
 import {
   buildRenderManifest,
   normalizeCommand,
+  type ManifestExtras,
   type ManifestRoots,
   type RenderManifest,
 } from '@/core/determinism/manifest';
+import { computePlanHash } from '@/core/determinism/plan-hash';
+import { ENGINE_VERSION } from '@/core/version';
 
 export interface NodeManifestInput {
   descriptor: unknown;
@@ -21,6 +24,11 @@ export interface NodeManifestInput {
   output: string;
   ffmpegVersion: string | null;
   tempDir?: string;
+  /** First line of `ffmpeg -version`, for the plan hash. */
+  ffmpegVersionLine?: string | null;
+  /** The config after defaults were applied (encoder/quality fields of the plan hash). */
+  resolvedConfig?: ProjectConfig;
+  extras?: Omit<ManifestExtras, 'planHash'>;
 }
 
 // Keys whose string values name a file under assetsDir (overlay/animation/image urls, fonts, LUTs).
@@ -77,13 +85,26 @@ function collectCommandInputs(commands: readonly string[], scratch: string[], fo
   }
 }
 
-function manifestRoots(input: NodeManifestInput): ManifestRoots {
+/** The machine roots a render's commands are normalized against (manifest graph, section cache keys). */
+export function renderRoots(config: ProjectConfig, tempDir: string | undefined): ManifestRoots {
   return {
-    buildDir: input.config.buildDir ? path.resolve(input.config.buildDir) : undefined,
-    assetsDir: input.config.assetsDir ? path.resolve(input.config.assetsDir) : undefined,
-    tempDir: input.tempDir ? path.resolve(input.tempDir) : undefined,
-    userVideoPaths: input.config.userVideoPaths,
+    buildDir: config.buildDir ? path.resolve(config.buildDir) : undefined,
+    assetsDir: config.assetsDir ? path.resolve(config.assetsDir) : undefined,
+    tempDir: tempDir ? path.resolve(tempDir) : undefined,
+    userVideoPaths: config.userVideoPaths,
   };
+}
+
+function manifestRoots(input: NodeManifestInput): ManifestRoots {
+  return renderRoots(input.config, input.tempDir);
+}
+
+/** Files under `assetsDir` the descriptor names (overlay/animation/image urls, fonts, LUTs). */
+export function descriptorAssetFiles(descriptor: unknown, assetsDir: string): string[] {
+  const found = new Set<string>();
+  collectDescriptorAssets(descriptor, path.resolve(assetsDir), found);
+
+  return [...found];
 }
 
 function digestAssets(input: NodeManifestInput, roots: ManifestRoots): RenderManifest['assets'] {
@@ -114,8 +135,43 @@ function relevantConfig(config: ProjectConfig): Record<string, unknown> {
   };
 }
 
+const FONT_FILE = /fontfile='?([^':,\s\]]+)/g;
+
+// Every font file the drawtext filters load (the build's staged copies), digested by content.
+function fontDigests(commands: readonly string[]): string[] {
+  const files = new Set<string>();
+
+  for (const command of commands) {
+    for (const match of command.matchAll(FONT_FILE)) files.add(match[1]);
+  }
+
+  return [...files].filter(isFile).map((file) => digestFile(file).sha256);
+}
+
+// The encoder/quality part of the plan: what the resolved config feeds into the encoder arguments.
+function encoderConfig(config: ProjectConfig): Record<string, unknown> {
+  return {
+    codecConfig: config.codecConfig ?? null,
+    qualityTier: config.qualityTier ?? 'standard',
+    preset: config.hardwareConfig?.preset ?? null,
+    hwaccel: config.hardwareConfig?.hwaccel ?? null,
+    deterministic: config.deterministic ?? true,
+    videoConfig: config.videoConfig ?? null,
+    audioConfig: config.audioConfig ?? null,
+  };
+}
+
 export function createNodeRenderManifest(input: NodeManifestInput): RenderManifest {
   const roots = manifestRoots(input);
+  const assets = digestAssets(input, roots);
+  const planHash = computePlanHash({
+    descriptor: input.descriptor,
+    assetDigests: assets.map((asset) => asset.sha256),
+    fontDigests: fontDigests(input.commands),
+    encoder: encoderConfig(input.resolvedConfig ?? input.config),
+    engineVersion: ENGINE_VERSION,
+    ffmpegVersion: input.ffmpegVersionLine ?? input.ffmpegVersion,
+  });
 
   return buildRenderManifest({
     descriptor: input.descriptor,
@@ -124,8 +180,9 @@ export function createNodeRenderManifest(input: NodeManifestInput): RenderManife
     config: relevantConfig(input.config),
     deterministic: input.deterministic,
     ffmpegVersion: input.ffmpegVersion,
-    assets: digestAssets(input, roots),
+    assets,
     output: isFile(input.output) ? digestFile(input.output) : null,
+    extras: { planHash, ...input.extras },
   });
 }
 

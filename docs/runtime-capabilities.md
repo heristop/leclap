@@ -12,6 +12,7 @@
 | `afade`             | yes               | yes                       | yes                        |
 | `afftdn`            | yes               | yes                       | yes                        |
 | `aformat`           | yes               | yes                       | yes                        |
+| `alphamerge`        | yes               | yes                       | yes                        |
 | `amix`              | yes               | yes                       | yes                        |
 | `anullsrc`          | yes               | yes                       | yes                        |
 | `asetpts`           | yes               | yes                       | yes                        |
@@ -58,4 +59,4 @@
 | `xfade`             | yes               | yes                       | yes                        |
 | `zoompan`           | yes               | yes                       | yes                        |
 
-Device allowlist size: 62 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and affected renders can fail. Expo compilation stays local; there is no server fallback.
+Device allowlist size: 63 filters. The on-device engine binary must be rebuilt (`scripts/ffmpeg/build-engine.sh`) whenever the allowlist changes; until then, older installed engines lack newly added filters and affected renders can fail. Expo compilation stays local; there is no server fallback.

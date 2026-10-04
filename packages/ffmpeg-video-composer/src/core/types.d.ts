@@ -22,6 +22,7 @@ import type { QcOption, QcReport } from './qc/types';
 import type { MotionTokens } from '../schemas/motion.schemas';
 import type { Theme } from '../schemas/theme.schemas';
 import type { KineticBlock } from '../schemas/kinetic.schemas';
+import type { SectionLayout } from '../schemas/layout.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
 import type { Beats } from './timing/timeline';
@@ -33,7 +34,16 @@ export type { ChannelAdjust, GradeConfig, MotionEffect, BackgroundLayer, Letterb
 import type { GradeConfig, MotionEffect, BackgroundLayer, Letterbox } from './descriptor-visual';
 // Filtergraph primitives (input/filter/map + shape recipe) also live in a sibling for the budget;
 // the public ones are re-exported, and Filter/Input/Map imported back for the section declarations below.
-export type { ShapeSpec, Map, Filter, FilterValues, MapAnimationInput, OverlayFit, OverlayFlip } from './filter-types';
+export type {
+  ShapeSpec,
+  Map,
+  Filter,
+  FilterGraphChain,
+  FilterValues,
+  MapAnimationInput,
+  OverlayFit,
+  OverlayFlip,
+} from './filter-types';
 import type { Filter, Input, Map, Translation, OverlayFit, OverlayFlip } from './filter-types';
 
 export type LogParams = Record<string, unknown>;
@@ -267,6 +277,8 @@ export interface Section {
   letterbox?: Letterbox;
   motion?: MotionEffect[];
   chromaKey?: ChromaKey;
+  /** Split screen / before-after wipe (schemas/layout.schemas.ts). */
+  layout?: SectionLayout;
 }
 
 export interface PartialSection {

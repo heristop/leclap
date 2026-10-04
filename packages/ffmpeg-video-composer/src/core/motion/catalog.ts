@@ -34,7 +34,13 @@ const ART_DIRECTION = [
     'preset three beats in a row reads as a template, not direction.',
   'Exits: none for a hard cut on the beat, fade for calm, cascade for energy. A block holds to the cut by default.',
   'Word/glyph units need a bundled font (bebas, oswald, anton, archivo-black, bungee, mono, rubik, playfair, ' +
-    'righteous, abril-fatface, lobster, pacifico). At most 64 units per block; longer copy steps up to words/lines.',
+    'righteous, abril-fatface, lobster, pacifico, noto-arabic, noto-hebrew). At most 64 units per block; longer copy steps up to words/lines.',
+  'Fill a hero word with kinetic[].fill (gradient { from, to, angle } or { stops }, texture image, sweep shimmer) ' +
+    'instead of a flat colour; keep `color` legible — it is the fallback on builds without alphamerge.',
+  'Copy in Arabic, Hebrew, Devanagari, Thai… animates per line (letters must join): pick line-friendly presets ' +
+    '(rise, fade, slide, split) and a font that covers the script (noto-arabic, noto-hebrew).',
+  'Compare with sections[].layout: { type: "split", sources: [...] } for side-by-side panes, or ' +
+    '{ type: "before-after", before, after, wipe: { at, duration, direction, ease } } for a reveal wipe.',
   'Camera: one move per beat (push-in for build-up, drift for calm, orbit for product, handheld for documentary); ' +
     'add hits on the beats where impact type lands, optionally with a flash graphic at the same time.',
   'Graphics: corners or frame for focus, underline under a headline, panel as a backing plate, bars for cinema, ' +
@@ -96,7 +102,11 @@ export interface MotionCatalog {
     exits: readonly string[];
     orders: readonly string[];
     units: readonly string[];
+    /** `kinetic[].fill` shapes: gradient / texture / sweep. */
+    fill: Record<string, string>;
   };
+  /** `sections[].layout` types and their fields. */
+  layouts: Record<string, string>;
   easing: {
     historical: readonly string[];
     named: string[];
@@ -176,6 +186,21 @@ const GRAPHICS: Record<string, string> = {
   panel: 'A solid block growing from one edge: a backing plate for text (x, y, width, height, from).',
 };
 
+const KINETIC_FILL: Record<string, string> = {
+  gradient:
+    '{ from, to, angle? } or { stops: [2–8 colours], angle? }: a sweep across the block (CSS angle, 90 = left→right).',
+  texture: 'An image URL/path seen through the letters (cover-fitted to the frame); wins over gradient.',
+  sweep: '{ duration?, width?, color?, delay?, every? }: a soft highlight band crossing the letters (shimmer).',
+};
+
+const LAYOUTS: Record<string, string> = {
+  split:
+    '{ sources: [2–4 refs], direction?: horizontal|vertical, ratio?, gap?, divider?: { color, width } }: panes ' +
+    'side by side or stacked. A ref is a section name (its colour / picture / video / clip), this section, a URL or #colour.',
+  'before-after':
+    '{ before, after, wipe: { at, duration?, direction?: right|left|down|up, ease? }, divider? }: `after` wipes in over `before`.',
+};
+
 function guided(descriptions: Record<string, string>, guides: Record<string, MotionGuide>) {
   return Object.fromEntries(
     Object.entries(descriptions).map(([name, description]) => [name, { description, ...guides[name] }])
@@ -192,7 +217,9 @@ export function motionCatalog(): MotionCatalog {
       exits: KINETIC_EXIT_PRESETS,
       orders: KINETIC_ORDERS,
       units: ['line', 'word', 'glyph'],
+      fill: KINETIC_FILL,
     },
+    layouts: LAYOUTS,
     easing: {
       historical: LEGACY_EASINGS,
       named: [...Object.keys(CSS_BEZIERS), ...Object.keys(NAMED_CURVES)],

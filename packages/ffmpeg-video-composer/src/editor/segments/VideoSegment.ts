@@ -46,6 +46,14 @@ class Video extends SegmentBuilder {
     return this.section.options?.muteSection === false ? 0 : 1;
   }
 
+  // Ahead of the sources: the blank audio (unless explicitly unmuted), then the clip itself unless it
+  // comes from videoUrl (staged as the first section input, i.e. among the sources).
+  protected override leadingInputCount(): number {
+    const blank = this.section.options?.muteSection === false ? 0 : 1;
+
+    return blank + (this.section.options?.videoUrl ? 0 : 1);
+  }
+
   override configure = (): void => {
     this.command = ` -y ${this.addBlankAudio()} `;
 

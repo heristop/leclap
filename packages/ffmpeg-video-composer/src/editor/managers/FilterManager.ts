@@ -5,6 +5,8 @@ import type Project from '../../core/models/Project';
 import type { Filter } from '@/core/types';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import { applyFilterCompat, engineCapabilities } from '../utils/filter-compat';
+import { renderFilterGraph } from '../utils/filter-graph';
+import { withTextShaping } from '../utils/text-shaping';
 import { applyAnimation } from '../presets/text';
 import { applyTracks } from '@/core/motion/tracks';
 import { resolvedTimes } from '@/core/timing/seconds';
@@ -31,7 +33,15 @@ class FilterManager {
   ) {}
 
   addFilter = (filter: Filter): string => {
-    let resolvedFilter = filter;
+    // An engine sub-graph (masks, split screens): each of its filters goes through this same path.
+    if (filter.graph) {
+      return renderFilterGraph(filter.graph, this.addFilter, (key) => this.segment.extraInputs[key]);
+    }
+
+    const caps = engineCapabilities(this.project.config, this.project.engineFeatures);
+    let resolvedFilter = withTextShaping(filter, caps, (message) => {
+      this.logger.warn(`[${this.segment.currentSection?.name}]${message}`);
+    });
 
     if (resolvedFilter.range) {
       resolvedFilter = this.remapEnableBetweenSuffix(resolvedFilter);
@@ -46,7 +56,7 @@ class FilterManager {
     // Platform filter-compat: rewrite filters the active engine can't run (e.g. the on-device LGPL
     // engine lacks GPL `eq` → lutyuv). A null result means the filter has no equivalent here: degrade
     // to the no-op `null` filter and warn, rather than emitting a filter the engine will die on.
-    const compat = applyFilterCompat(resolvedFilter, engineCapabilities(this.project.config));
+    const compat = applyFilterCompat(resolvedFilter, caps);
 
     if (compat === null) {
       this.logger.warn(`[FilterCompat] dropped unavailable filter "${resolvedFilter.type}"`);

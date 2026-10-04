@@ -16,6 +16,7 @@ import { FilterSchema, MapSchema } from './filter.schemas';
 import { CaptionSchema, TitleCardSchema, LowerThirdSchema } from './text.schemas';
 import { InputSchema, FieldSchema } from './section-media.schemas';
 import { MOTION_SECTION_FIELDS } from './motion-section.schemas';
+import { SectionLayoutSchema } from './layout.schemas';
 
 export {
   CAPTION_STYLES,
@@ -155,6 +156,7 @@ export const BaseSectionSchema = z
     chromaKey: ChromaKeySchema.optional().describe(
       'Background removal: key out a solid screen colour and composite over a solid background.'
     ),
+    layout: SectionLayoutSchema.optional(),
   })
   .describe('Base fields shared by all section variants.');
 

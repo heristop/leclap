@@ -2,7 +2,7 @@
 // text so each word or glyph can be drawn — and animated — on its own. Widths come from the generated
 // advance table of the bundled fonts, so layout is synchronous and identical on every platform.
 
-import { FIRST_CODE_POINT, FONT_ADVANCES, LAST_CODE_POINT } from '../font-advances.generated';
+import { FIRST_CODE_POINT, FONT_ADVANCES, LAST_CODE_POINT, type FontAdvanceTable } from '../font-advances.generated';
 
 export type KineticUnit = 'line' | 'word' | 'glyph';
 export type KineticAlign = 'left' | 'center' | 'right';
@@ -49,17 +49,44 @@ export function codePoints(text: string): string[] {
   return points;
 }
 
+// Decoded advance runs (see font-advances.generated.ts), by encoded string: -1 = no glyph.
+const decoded = new Map<string, number[]>();
+
+function run(encoded: string): number[] {
+  let values = decoded.get(encoded);
+
+  if (!values) {
+    values = encoded.split(',').map((token) => (token === '' ? -1 : parseInt(token, 36)));
+    decoded.set(encoded, values);
+  }
+
+  return values;
+}
+
+// A code point's advance in font units, -1 when the table has no glyph for it: the Latin range, then
+// the font's extra script blocks (Hebrew, Arabic).
+function advanceOf(table: FontAdvanceTable, cp: number): number {
+  if (cp >= FIRST_CODE_POINT && cp <= LAST_CODE_POINT) return run(table.advances)[cp - FIRST_CODE_POINT];
+
+  for (const block of table.extra ?? []) {
+    const values = run(block.advances);
+
+    if (cp >= block.start && cp < block.start + values.length) return values[cp - block.start];
+  }
+
+  return -1;
+}
+
 /** Width of `text` in px, or null when the font isn't bundled or lacks a glyph. */
 export function measureBundled(font: string, text: string, size: number): number | null {
-  const table = FONT_ADVANCES[font] as (typeof FONT_ADVANCES)[string] | undefined;
+  const table = FONT_ADVANCES[font] as FontAdvanceTable | undefined;
 
   if (!table) return null;
 
   let units = 0;
 
   for (const char of text) {
-    const cp = char.codePointAt(0) ?? 0;
-    const advance = cp >= FIRST_CODE_POINT && cp <= LAST_CODE_POINT ? table.advances[cp - FIRST_CODE_POINT] : -1;
+    const advance = advanceOf(table, char.codePointAt(0) ?? 0);
 
     if (advance < 0) return null;
 

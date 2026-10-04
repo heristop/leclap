@@ -9,7 +9,7 @@ import type AbstractFilesystem from '../platform/filesystem/AbstractFilesystem';
 import type Project from '../core/models/Project';
 import type AbstractFFmpeg from '../platform/ffmpeg/AbstractFFmpeg';
 import type { ProjectConfig } from '@/core/types';
-import { ffmpegVersionLine, versionFromLine } from '../platform/ffmpeg/analyze-node';
+import { ffmpegTextFeatures, ffmpegVersionLine, versionFromLine } from '../platform/ffmpeg/analyze-node';
 import { createSectionCache, type SectionCache } from './section-cache-node';
 import { descriptorAssetFiles, renderRoots } from './render-manifest-node';
 
@@ -66,6 +66,8 @@ export async function prepareNodeRender(setup: NodeRenderSetup): Promise<NodeRen
   const binary = setup.adapter.binaries?.ffmpeg;
   const versionLine = binary ? await ffmpegVersionLine(binary) : null;
   setup.project.ffmpegVersion = versionFromLine(versionLine);
+  // Real text capabilities of this binary (drawtext text_shaping needs libfribidi), probed once.
+  setup.project.engineFeatures = binary ? await ffmpegTextFeatures(binary) : null;
 
   // The cache key names the exact FFmpeg build; without one, nothing can be reused safely.
   const cache =

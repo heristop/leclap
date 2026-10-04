@@ -37,6 +37,9 @@ class Project {
   // Set by the Node compile() after config(): the detected FFmpeg version (colour-tag flags, see
   // core/encoding.ts) and the section-cache hook the command tap routes through (null elsewhere).
   public ffmpegVersion: string | null = null;
+  // The text libraries the probed binary links (`-buildconf`), driving the drawtext `text_shaping`
+  // capability (editor/utils/filter-compat.ts). Null where nothing was probed (browser, device).
+  public engineFeatures: { fribidi: boolean; harfbuzz: boolean } | null = null;
   public commandInterceptor: CommandInterceptor | null = null;
 
   constructor() {
@@ -83,6 +86,7 @@ class Project {
     this.ffmpegCommands.length = 0;
     this.finalVideo = '';
     this.qcExpectations = this.loudness = this.ffmpegVersion = this.commandInterceptor = null;
+    this.engineFeatures = null;
     this.output = { staging: '', final: '' };
   };
 

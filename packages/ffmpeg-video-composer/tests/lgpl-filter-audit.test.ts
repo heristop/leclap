@@ -10,8 +10,12 @@ import {
   applyFilterCompat,
   type EngineCapabilities,
 } from '@/editor/utils/filter-compat';
-import { parseEnabledFilters } from '../scripts/capability-sources';
-import { DEVICE_FILTERS } from '@/editor/utils/device-filters.generated';
+import { parseEnabledFilters, parseEnabledLibraries } from '../scripts/capability-sources';
+import { DEVICE_FILTERS, DEVICE_LIBRARIES } from '@/editor/utils/device-filters.generated';
+import { KineticBlockSchema } from '@/schemas/kinetic.schemas';
+import { kineticToFilters } from '@/editor/presets/kinetic';
+import { layoutToFilters } from '@/editor/presets/layout';
+import type { Filter } from '@/core/types';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const commonSh = fs.readFileSync(path.resolve(here, '../../../scripts/ffmpeg/common.sh'), 'utf8');
@@ -95,5 +99,49 @@ describe('LGPL device filter audit', () => {
 
   it('device-filters.generated.ts matches common.sh', () => {
     expect(new Set(DEVICE_FILTERS)).toEqual(parseEnabledFilters(commonSh));
+    expect(new Set(DEVICE_LIBRARIES)).toEqual(parseEnabledLibraries(commonSh));
+  });
+
+  it('links libfribidi on device (drawtext text_shaping) alongside harfbuzz/freetype', () => {
+    expect(DEVICE_LIBRARIES.has('fribidi')).toBe(true);
+    expect(DEVICE_LIBRARIES.has('harfbuzz')).toBe(true);
+  });
+
+  it('mask and layout sub-graphs lower to device-safe filters only', () => {
+    const block = KineticBlockSchema.parse({
+      text: { en: 'Shine' },
+      preset: 'cascade',
+      effect: { shadow: true },
+      fill: { gradient: { stops: ['#f00', '#0f0', '#00f'] }, sweep: { every: 2 } },
+    });
+    const env = { width: 640, height: 360, fps: 25, duration: 2, prefix: 'k_', color: (c: string) => c };
+    const fill = kineticToFilters(block, {
+      width: 640,
+      height: 360,
+      fps: 25,
+      duration: 2,
+      seed: 1,
+      energy: 1,
+      text: 'Shine',
+      fill: env,
+    });
+    const layouts = [
+      { type: 'split', sources: ['a.png', 'b.mp4', '#ff0000'], divider: {} },
+      { type: 'before-after', before: 'a.png', after: 'b.mp4', wipe: { at: 0.5, direction: 'up' }, divider: {} },
+    ].flatMap((layout) =>
+      layoutToFilters(layout as never, {
+        ...env,
+        self: 'x',
+        sections: [],
+        input: (key: string) => `input:${key}`,
+      })
+    );
+    const types = (filters: Filter[]): string[] =>
+      filters.flatMap((f) => (f.graph ? f.graph.flatMap((chain) => types(chain.filters)) : [f.type]));
+
+    for (const type of types([...fill, ...layouts])) {
+      expect(enabled.has(type), `mask/layout emits "${type}"`).toBe(true);
+      expect(ENGINE_EMITTED_FILTERS as readonly string[], type).toContain(type);
+    }
   });
 });

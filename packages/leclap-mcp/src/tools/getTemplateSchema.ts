@@ -26,7 +26,11 @@ const GUIDE = [
     'split, fade) with accents and exits; easings add springs (spring(k,c)), cubic-bezier, named curves and ' +
     '$tokens ($snappy, $bouncy, $expo…); `animate` keyframe tracks drive x/y/opacity/scale on drawtext filters; ' +
     'global.motion holds tokens and the energy dial; global.seed makes every random-looking choice repeatable. ' +
-    'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
+    'Call get_motion_catalog for presets, defaults, art-direction rules and a starter. A kinetic block can ' +
+    '`fill` its letters with a gradient, a texture image and/or a shimmer `sweep`; Arabic/Hebrew/Indic copy ' +
+    'animates per line (bundled fonts noto-arabic, noto-hebrew). A section `layout` composes several media in ' +
+    'one frame: { type: "split", sources: [...] } panes or { type: "before-after", before, after, wipe }; a ' +
+    'source is a section name (its colour, picture, video or clip), a media URL or a #colour.',
   'Delivery platforms: set global.platform (tiktok, reels/ig, shorts/yt-shorts, youtube, x/twitter, linkedin, ' +
     'facebook, square-feed) when the video has a destination. It defaults the orientation (portrait for ' +
     'tiktok/reels/shorts), lifts the default caption above the app UI, aims loudnorm at the platform loudness, ' +

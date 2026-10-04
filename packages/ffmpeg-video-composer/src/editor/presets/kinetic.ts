@@ -13,10 +13,11 @@ import {
   type KineticFrame,
   type ResolvedKinetic,
 } from '@/core/kinetic/resolve';
-import { layoutWithin } from '@/core/kinetic/fit';
+import { layoutWithin, type FittedLayout } from '@/core/kinetic/fit';
 import { unitTracks, type UnitTracks } from '@/core/kinetic/units';
 import { caretBoxes, counterText, markerSweep, scrambleDecoys } from '@/core/kinetic/extras';
 import { applyTextEffect } from './text';
+import { fillGraph, type FillBox, type FillEnv } from './kinetic-fill';
 import type { SugarContext } from './sugar-context';
 
 export { MAX_KINETIC_UNITS } from '@/core/kinetic/fit';
@@ -28,6 +29,8 @@ export const BASELINE = 0.8;
 export interface KineticContext extends KineticFrame {
   /** The block's text, already resolved for locale, variables and case. */
   text: string;
+  /** Where a `fill` draws (mask sub-graph); absent = the build can't, so the block stays solid. */
+  fill?: FillEnv;
 }
 
 function accentWords(block: KineticBlock, layout: Layout): Set<number> {
@@ -68,7 +71,30 @@ function waveTerm(block: KineticBlock, settings: ResolvedKinetic, draw: PieceDra
   return `+${fmt(amplitude)}*sin(6.283185*(${fmt(frequency)}*t-${fmt(draw.index * 0.08)}))*clip((t-${fmt(draw.arrive)})/0.4,0,1)`;
 }
 
-function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: PieceDraw): Filter {
+/** x-anchor suffix per alignment for a string placed by its own drawn width. */
+const ALIGN_ANCHOR = { left: '', center: '-text_w/2', right: '-text_w' } as const;
+
+// How a unit is painted: its colour and effect (the visible copy), or white without effect (a fill's
+// mask), or an invisible face that still casts its effect (under a fill). `anchored` places whole lines
+// by drawtext's own text_w (shaped or unmeasurable copy; see core/kinetic/fit.ts).
+interface PieceStyle {
+  color: string;
+  effect: KineticBlock['effect'];
+  anchored: boolean;
+}
+
+function pieceX(settings: ResolvedKinetic, draw: PieceDraw, scale: string | null, anchored: boolean): unknown {
+  const { piece, tracks } = draw;
+
+  if (anchored) return quoted(`${fmt(settings.x)}+(${trackExpr(tracks.x, 0)})${ALIGN_ANCHOR[settings.align]}`);
+
+  // A scaled unit grows around its own centre: anchor x on the centre, y on the em box.
+  if (scale) return quoted(`${fmt(piece.x + piece.width / 2)}+(${trackExpr(tracks.x, 0)})-text_w/2`);
+
+  return offset(piece.x, tracks.x);
+}
+
+function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: PieceDraw, style: PieceStyle): Filter {
   const { piece, tracks } = draw;
   const scale = tracks.scale ? trackExpr(tracks.scale, 0) : null;
   const size = settings.size;
@@ -83,15 +109,12 @@ function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: Piece
     text: piece.text,
     fontfile: settings.font,
     fontsize: scale ? quoted(`${fmt(settings.size)}*(${scale})`) : settings.size,
-    fontcolor: draw.color,
-    // A scaled unit grows around its own centre: anchor x on the centre, y on the em box.
-    x: scale
-      ? quoted(`${fmt(piece.x + piece.width / 2)}+(${trackExpr(tracks.x, 0)})-text_w/2`)
-      : offset(piece.x, tracks.x),
+    fontcolor: style.color,
+    x: pieceX(settings, draw, scale, style.anchored),
     y: quoted(y),
     alpha: quoted(`clip(${trackExpr(tracks.opacity, 0)},0,1)`),
   };
-  applyTextEffect(values, block.effect);
+  applyTextEffect(values, style.effect);
 
   return { type: 'drawtext', values };
 }
@@ -99,7 +122,7 @@ function pieceFilter(block: KineticBlock, settings: ResolvedKinetic, draw: Piece
 function counterFilters(block: KineticBlock, settings: ResolvedKinetic, ctx: KineticContext): Filter[] {
   const counter = block.counter ?? { from: 0, to: 100 };
   const window = { delay: settings.delay, duration: settings.duration };
-  const anchor = { left: '', center: '-text_w/2', right: '-text_w' }[settings.align];
+  const anchor = ALIGN_ANCHOR[settings.align];
   const top = blockTop(block.y, settings.lineHeight, ctx);
   const values: Record<string, unknown> = {
     textExpr: counterText(counter, window, settings.ease),
@@ -123,6 +146,7 @@ interface Choreography {
   starts: number[];
   exit: ReturnType<typeof resolveExit>;
   fps: number;
+  anchored: boolean;
 }
 
 function pieceDraws(block: KineticBlock, plan: Choreography): PieceDraw[] {
@@ -169,9 +193,43 @@ function extras(block: KineticBlock, plan: Choreography, seed: number): Filter[]
   return settings.preset === 'scramble' ? scrambleDecoys(settings, pieces, starts, block.charset, seed) : [];
 }
 
+function choreograph(block: KineticBlock, ctx: KineticContext, base: ResolvedKinetic, laid: FittedLayout) {
+  const settings = { ...base, unit: laid.unit };
+  const top = blockTop(block.y, laid.layout.height, ctx);
+  const pieces = laid.layout.pieces.map((piece) => ({ ...piece, y: piece.y + top }));
+  const ranks = staggerRanks(pieces, block.order, ctx.seed);
+  const starts = ranks.map((rank) => settings.delay + rank * settings.stagger);
+  const exit = resolveExit(block, settings, ctx, Math.max(0, ...ranks));
+
+  return { settings, layout: laid.layout, pieces, ranks, starts, exit, fps: ctx.fps, anchored: laid.anchored };
+}
+
+function blockBox(plan: Choreography): FillBox {
+  const x = Math.min(...plan.pieces.map((piece) => piece.x));
+  const y = Math.min(...plan.pieces.map((piece) => piece.y));
+  const right = Math.max(...plan.pieces.map((piece) => piece.x + piece.width));
+
+  return { x, y, w: Math.max(1, right - x), h: Math.max(1, plan.layout.height) };
+}
+
+// The block drawn through a fill (kinetic-fill.ts): the same draws as white mask units, plus an
+// invisible-faced copy under the fill when the block casts a shadow or outline.
+function filledBlock(block: KineticBlock, plan: Choreography, draws: PieceDraw[], env: FillEnv, seed: number): Filter {
+  const { settings, anchored } = plan;
+  const mask = draws.map((draw) => pieceFilter(block, settings, draw, { color: 'white', effect: undefined, anchored }));
+  const clear = `${settings.color.split('@')[0]}@0`;
+  const casts = block.effect
+    ? draws.map((draw) => pieceFilter(block, settings, draw, { color: clear, effect: block.effect, anchored }))
+    : [];
+  const base = [...markers(block, plan, draws), ...casts, ...extras(block, plan, seed)];
+  const landed = Math.max(0, ...draws.map((draw) => draw.arrive));
+
+  return fillGraph(block.fill ?? {}, { base, mask, box: blockBox(plan), landed, solid: settings.color }, env);
+}
+
 /** The filters for one kinetic block. Empty when there is nothing to draw. */
 export function kineticToFilters(block: KineticBlock, ctx: KineticContext): Filter[] {
-  const base = resolveKinetic(block, ctx);
+  const base = resolveKinetic(block, ctx, ctx.text);
 
   if (block.preset === 'counter') return counterFilters(block, base, ctx);
 
@@ -179,20 +237,48 @@ export function kineticToFilters(block: KineticBlock, ctx: KineticContext): Filt
 
   if (!laid) return [];
 
-  const settings = { ...base, unit: laid.unit };
-  const top = blockTop(block.y, laid.layout.height, ctx);
-  const pieces = laid.layout.pieces.map((piece) => ({ ...piece, y: piece.y + top }));
-  const ranks = staggerRanks(pieces, block.order, ctx.seed);
-  const starts = ranks.map((rank) => settings.delay + rank * settings.stagger);
-  const exit = resolveExit(block, settings, ctx, Math.max(0, ...ranks));
-  const plan: Choreography = { settings, layout: laid.layout, pieces, ranks, starts, exit, fps: ctx.fps };
+  const plan: Choreography = choreograph(block, ctx, base, laid);
   const draws = pieceDraws(block, plan);
+
+  if (block.fill && ctx.fill) return [filledBlock(block, plan, draws, ctx.fill, ctx.seed)];
+
+  const style = { effect: block.effect, anchored: plan.anchored };
 
   return [
     ...markers(block, plan, draws),
-    ...draws.map((draw) => pieceFilter(block, settings, draw)),
+    ...draws.map((draw) => pieceFilter(block, plan.settings, draw, { ...style, color: draw.color })),
     ...extras(block, plan, ctx.seed),
   ];
+}
+
+export const MASK_UNAVAILABLE_WARNING =
+  '[mask_unavailable] kinetic fill needs the alphamerge filter, absent from this FFmpeg build: the block is ' +
+  'drawn in its solid colour';
+
+// The fill environment for block `index`, or undefined (solid text) when the build can't draw masks.
+function fillEnv(block: KineticBlock, index: number, ctx: SugarContext): FillEnv | undefined {
+  const masks = ctx.masks;
+
+  if (!block.fill || !masks) return undefined;
+
+  if (!masks.available) {
+    masks.warn(MASK_UNAVAILABLE_WARNING);
+
+    return undefined;
+  }
+
+  const [width, height] = ctx.scale.split(':').map(Number);
+  const key = `kinetic${index}_texture`;
+
+  return {
+    width,
+    height,
+    fps: ctx.fps,
+    duration: ctx.duration,
+    prefix: `kin${index}_`,
+    texture: (url) => masks.input(key, { url, still: true }),
+    color: masks.color,
+  };
 }
 
 /** Every kinetic block of a section, through the sugar registry. Needs the motion context. */
@@ -212,6 +298,7 @@ export function kineticBlocksToFilters(blocks: KineticBlock[] | undefined, ctx: 
       energy: motion.energy,
       seed: motion.seedFor(`kinetic[${index}]`),
       text: block.preset === 'counter' ? '' : motion.resolveText(block.text),
+      fill: fillEnv(block, index, ctx),
     })
   );
 }

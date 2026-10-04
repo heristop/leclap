@@ -53,7 +53,7 @@ describe('bundled font coverage', () => {
   });
 
   it('finds the bundled fonts covering a set of characters', () => {
-    expect(fontsCovering(['א']).map((font) => font.id)).toEqual(['rubik']);
+    expect(fontsCovering(['א']).map((font) => font.id)).toEqual(['rubik', 'noto-hebrew']);
     expect(fontsCovering(['中'])).toEqual([]);
   });
 

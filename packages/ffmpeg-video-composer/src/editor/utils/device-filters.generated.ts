@@ -9,6 +9,7 @@ export const DEVICE_FILTERS: ReadonlySet<string> = new Set([
   'afade',
   'afftdn',
   'aformat',
+  'alphamerge',
   'amix',
   'anull',
   'anullsrc',
@@ -66,3 +67,6 @@ export const DEVICE_FILTERS: ReadonlySet<string> = new Set([
   'xfade',
   'zoompan',
 ]);
+
+/** External libraries the device build links (`--enable-lib<name>`): fribidi = drawtext text_shaping. */
+export const DEVICE_LIBRARIES: ReadonlySet<string> = new Set(['freetype', 'fribidi', 'harfbuzz', 'openh264', 'vpx']);

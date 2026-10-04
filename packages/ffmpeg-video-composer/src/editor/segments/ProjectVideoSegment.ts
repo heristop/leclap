@@ -12,6 +12,11 @@ class ProjectVideo extends SegmentBuilder {
     return this.section.options?.muteSection === true ? 1 : 0;
   }
 
+  // Ahead of the sources: the blank audio when muted, then the recorded clip.
+  protected override leadingInputCount(): number {
+    return this.section.options?.muteSection === true ? 2 : 1;
+  }
+
   // True when the source clip carries no audio of its own (a video-only upload). The director probes
   // this; when set, configure() appends a silent track so the segment always has an audio stream —
   // otherwise the transition assembly's acrossfade later aborts on a missing `[k:a]`.

@@ -9,6 +9,7 @@ import { validateGlyphCoverage } from './glyph-coverage';
 import { nearest } from './validation/suggest';
 import type { ValidationError } from './validation/types';
 import { validateTimeRefs } from './time-ref-validation';
+import { validateLayouts } from './layout-validation';
 
 export type { ValidationError, ValidationFindingKind } from './validation/types';
 
@@ -281,5 +282,6 @@ export function validateDescriptorRules(template: TemplateDescriptor): Validatio
     ...validateAssertions(template),
     ...validateGlyphCoverage(template),
     ...validateTimeRefs(template),
+    ...validateLayouts(template),
   ];
 }

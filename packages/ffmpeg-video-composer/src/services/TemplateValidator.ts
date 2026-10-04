@@ -4,9 +4,11 @@ import { BaseTemplateValidator, type ValidationError } from './BaseTemplateValid
 import { accentAdvisories, findAccentOveruse } from '@/core/theme/accent';
 import type { GeometryWarning, FontLoader } from './geometry';
 import { collectMotionWarnings, type MotionWarning } from './motion-lint';
+import { collectScriptWarnings, type ScriptLintCapabilities } from './script-lint';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
+export type { ScriptLintCapabilities } from './script-lint';
 export type { GeometryWarning, FontLoader } from './geometry';
 
 // The full validator: everything BaseTemplateValidator checks, plus the advisory passes. Advisories
@@ -91,7 +93,13 @@ export class TemplateValidator extends BaseTemplateValidator {
   // Synchronous and render-free; partials are expanded first, so paths index the expanded sections.
   // The theme's one-accent-per-idea advisory rides along, so every surface that shows pacing feedback
   // shows it too.
-  getMotionWarnings(template: unknown): MotionWarning[] {
-    return [...collectMotionWarnings(template), ...accentAdvisories(template)];
+  // Script/mask advisories ride along too (services/script-lint.ts); pass the target build's
+  // capabilities to also hear what it can't draw (rtl_unshaped, mask_unavailable).
+  getMotionWarnings(template: unknown, capabilities?: ScriptLintCapabilities): MotionWarning[] {
+    return [
+      ...collectMotionWarnings(template),
+      ...accentAdvisories(template),
+      ...collectScriptWarnings(template, capabilities),
+    ];
   }
 }

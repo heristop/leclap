@@ -3,10 +3,12 @@ import { layersToFilters, motionToFilters, gradeToFilters, lookToFilters, letter
 import { captionToFilters } from './captions';
 import { titleCardToFilters, lowerThirdToFilters, globalTextOverlayToFilters } from './text-blocks';
 import { kineticBlocksToFilters } from './kinetic';
+import { sectionLayoutFilters } from './layout';
 import { cameraBackground } from './camera';
 import { graphicsToFilters } from './graphics';
 
 export type { SugarContext, KineticSugarContext } from './sugar-context';
+export { compositingContext, createExtraInputs } from './compositing';
 import type { SugarContext } from './sugar-context';
 
 // Where a sugar's filters sit relative to an animation/gradient overlay graph:
@@ -27,6 +29,13 @@ export type SugarCompiler = {
 
 // Order preserves the previous hardcoded chain: layers → motion → grade → look → letterbox → caption.
 export const SUGAR_COMPILERS: SugarCompiler[] = [
+  {
+    // Split screen / before-after: composes the frame first, so everything below grades the whole.
+    key: 'layout',
+    order: 5,
+    layer: 'background',
+    compile: (section, ctx) => sectionLayoutFilters(section, ctx),
+  },
   {
     key: 'layers',
     order: 10,

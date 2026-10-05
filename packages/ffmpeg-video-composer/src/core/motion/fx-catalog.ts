@@ -10,6 +10,7 @@ import {
   type FxDefaults,
   type FxIntent,
 } from '../../schemas/fx.schemas';
+import { LIBRARY_ANIMATION_SAMPLES, LIBRARY_SAMPLE_NOTE, type LibrarySample } from './library-samples';
 
 export interface FxPrimitiveEntry extends FxIntent {
   /** Primitive-specific fields → what each does (range and default included). */
@@ -41,6 +42,16 @@ function describe(shape: z.ZodRawShape): Record<string, string> {
   return Object.fromEntries(
     Object.entries(shape).map(([key, schema]) => [key, (schema as z.ZodType).description ?? ''])
   );
+}
+
+/** The creative kit's library animations, labelled as samples and mapped to the primitives that replace them. */
+export interface SamplesCatalog {
+  note: string;
+  animations: LibrarySample[];
+}
+
+export function samplesCatalog(): SamplesCatalog {
+  return { note: LIBRARY_SAMPLE_NOTE, animations: LIBRARY_ANIMATION_SAMPLES };
 }
 
 export function fxCatalog(): FxCatalog {

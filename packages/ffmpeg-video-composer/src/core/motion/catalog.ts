@@ -34,9 +34,13 @@ import { COMPOSITING, COMPOSITING_RULES, type CompositingCatalog } from './catal
 import { captionCatalog, type CaptionCatalog } from '../captions/catalog';
 import { audioCatalog, type AudioCatalog } from '../audio/catalog';
 import { TIMING } from './catalog-timing';
-import { fxCatalog, type FxCatalog } from './fx-catalog';
+import { fxCatalog, samplesCatalog, type FxCatalog, type SamplesCatalog } from './fx-catalog';
 
 const ART_DIRECTION = [
+  'Compose, do not pick: derive the motion from the creative direction (audience, brand, energy), write one ' +
+    'motion intent per section, choose engine primitives for it (kinetic, animate tracks with ease tokens or ' +
+    'springs, camera, designed transitions, graphics, fx), then tune their parameters: never ship all defaults. ' +
+    'One or two signature moves per video, not one per section. Library animations are samples: a last resort.',
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
     '0.4 s + words / 3.5 s after the last unit lands.',
   'Pick a preset for the job: cascade/rise for headlines, impact for a single punch word, pop for playful ' +
@@ -133,6 +137,8 @@ export interface MotionCatalog {
   graphics: Record<string, Guided<{ description: string }>>;
   /** Procedural light primitives (graphics type fx): open parameters, targets and design intent. */
   fx: FxCatalog;
+  /** The creative kit's library animations: demo samples, each mapped to the engine primitives that replace it. */
+  samples: SamplesCatalog;
   /** `lowerThird.style` presets; `band` is the default look (no style). */
   lowerThirds: Record<string, Guided<{ description: string }>>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
@@ -252,6 +258,7 @@ export function motionCatalog(): MotionCatalog {
     transitions: guided({ ...BASIC_TRANSITIONS, ...DESIGNED_TRANSITION_DESCRIPTIONS }, TRANSITION_GUIDES),
     graphics: guided(GRAPHICS, GRAPHIC_GUIDES),
     fx: fxCatalog(),
+    samples: samplesCatalog(),
     lowerThirds: guided(LOWER_THIRDS, LOWER_THIRD_GUIDES),
     tokens: BUILTIN_MOTION_TOKENS,
     roles: motionRolesCatalog(),

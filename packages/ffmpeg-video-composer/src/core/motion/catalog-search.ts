@@ -172,7 +172,8 @@ export function searchMotionCatalog(
   const matches = pool
     .map((entry) => score(entry, tokens, raw))
     .filter((match): match is CatalogMatch => match !== null)
-    .sort((a, b) => b.score - a.score)
+    // Engine primitives first: a library sample (a demo asset) only ranks after every engine match.
+    .sort((a, b) => Number(a.kind === 'sample') - Number(b.kind === 'sample') || b.score - a.score)
     .slice(0, options.limit ?? DEFAULT_LIMIT);
 
   return { query, ...(options.kind && { kind: options.kind }), matches };

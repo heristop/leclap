@@ -64,3 +64,30 @@ describe('searchMotionCatalog', () => {
     }
   });
 });
+
+describe('engine primitives rank above library samples', () => {
+  function rank(query: string, name: string): number {
+    return searchMotionCatalog(query, { limit: 500 }).matches.findIndex((match) => match.name === name);
+  }
+
+  it.each([
+    ['a light sweep shining across the card', 'sheen', 'shine_sweep'],
+    ['a glint orbiting the product', 'sheen', 'spec_orbit'],
+    ['corner brackets around the screen', 'corners', 'corner_brackets'],
+    ['a glowing frame border', 'frame', 'glow_border'],
+  ])('"%s": %s before the %s sample', (query, primitive, sample) => {
+    expect(rank(query, primitive)).toBeGreaterThanOrEqual(0);
+    expect(rank(query, primitive)).toBeLessThan(rank(query, sample));
+  });
+
+  it('labels a sample match as a sample with its engine replacement', () => {
+    const match = searchMotionCatalog('confetti', { kind: 'sample' }).matches[0];
+
+    expect(match).toMatchObject({ kind: 'sample', name: 'confetti' });
+    expect(match.entry).toMatchObject({
+      note: expect.stringContaining('Sample assets'),
+      composeWith: expect.any(String),
+    });
+    expect(searchMotionCatalog('sheen', { kind: 'fx' }).matches[0]).toMatchObject({ kind: 'fx', name: 'sheen' });
+  });
+});

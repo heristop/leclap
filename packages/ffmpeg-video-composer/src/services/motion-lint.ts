@@ -7,6 +7,7 @@ import { longestStill, type MotionEvent, type SectionTimeline } from '@/core/mot
 import { expandPartialsSafe } from '@/core/partials';
 import { skippedAssertions } from './motion-assertions';
 import { roleWarnings } from './motion-roles-lint';
+import { samenessWarnings } from './sameness-lint';
 
 export interface MotionWarning {
   path: string;
@@ -224,15 +225,20 @@ export function collectMotionWarnings(template: unknown): MotionWarning[] {
 
   if (!expansion.ok) return [];
 
+  // The sameness lint reads the descriptor, not the timeline: it holds even when timing cannot be resolved.
+  return [...timelineWarnings(expansion.data), ...samenessWarnings(expansion.data)];
+}
+
+function timelineWarnings(data: unknown): MotionWarning[] {
   try {
-    const timeline = motionTimeline(expansion.data);
+    const timeline = motionTimeline(data);
 
     return [
       ...timeline.sections.flatMap((section, position) => sectionWarnings(section, position)),
       ...transitionMonotony(timeline.sections),
       ...tempoFlat(timeline.sections),
-      ...skippedAssertions(expansion.data, timeline),
-      ...roleWarnings(expansion.data, timeline),
+      ...skippedAssertions(data, timeline),
+      ...roleWarnings(data, timeline),
     ];
   } catch {
     return [];

@@ -1,0 +1,275 @@
+{
+  "meta": {
+    "name": "Effects tour: compositing",
+    "description": "Chapter 5 of the effects tour: section layouts with bundled photographs, a three-pane horizontal split with gaps, a stacked vertical split with a divider, and a before/after wipe.",
+    "creativeDirection": "Comparison as composition: the triptych names its shores on a backing panel, the stacked pair labels each pane on its own side, and the wipe uncovers the tidy desk while BEFORE and AFTER sit on either side of the moving edge. Review: panes stay cover-fitted, dividers are crisp, and type never straddles a pane boundary."
+  },
+  "global": {
+    "orientation": "landscape",
+    "fps": 30,
+    "musicEnabled": false,
+    "seed": 47,
+    "transition": {
+      "type": "cut"
+    },
+    "motion": {
+      "energy": 1
+    },
+    "overlays": [
+      {
+        "text": {
+          "en": "05  COMPOSITING"
+        },
+        "position": "top-right",
+        "font": "mono",
+        "size": 24,
+        "color": "#C9C6D2",
+        "effect": {
+          "shadow": true
+        }
+      }
+    ]
+  },
+  "sections": [
+    {
+      "name": "split-horizontal",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#141416",
+        "duration": 3.2
+      },
+      "layout": {
+        "type": "split",
+        "sources": ["backgrounds/rocky-coast.jpg", "backgrounds/forest-sea.jpg", "backgrounds/green-forest.jpg"],
+        "gap": 12
+      },
+      "graphics": [
+        {
+          "type": "panel",
+          "at": 0.15,
+          "x": 0,
+          "y": 580,
+          "width": 1280,
+          "height": 140,
+          "color": "#141416@0.75",
+          "from": "bottom"
+        }
+      ],
+      "kinetic": [
+        {
+          "text": {
+            "en": "layout · split · horizontal · 3 panes · gap"
+          },
+          "preset": "fade",
+          "font": "mono",
+          "size": 32,
+          "align": "left",
+          "x": 64,
+          "y": 40,
+          "color": "#B9B7C6",
+          "delay": 0.1,
+          "effect": {
+            "shadow": true
+          }
+        },
+        {
+          "text": {
+            "en": "Three shores, one frame"
+          },
+          "preset": "rise",
+          "font": "oswald",
+          "size": 56,
+          "y": 612,
+          "delay": 0.4,
+          "accent": {
+            "words": "last",
+            "color": "#FFF685"
+          }
+        }
+      ],
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "split-vertical",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#141416",
+        "duration": 3.2
+      },
+      "layout": {
+        "type": "split",
+        "direction": "vertical",
+        "sources": ["backgrounds/laptop-desk.jpg", "backgrounds/desk-flatlay.jpg"],
+        "divider": {
+          "color": "#FFF685",
+          "width": 6
+        }
+      },
+      "kinetic": [
+        {
+          "text": {
+            "en": "layout · split · vertical · divider"
+          },
+          "preset": "fade",
+          "font": "mono",
+          "size": 32,
+          "align": "left",
+          "x": 64,
+          "y": 40,
+          "color": "#B9B7C6",
+          "delay": 0.1,
+          "effect": {
+            "shadow": true
+          }
+        },
+        {
+          "text": {
+            "en": "WIDE"
+          },
+          "preset": "slide",
+          "direction": "left",
+          "size": 80,
+          "align": "right",
+          "x": 1220,
+          "y": 230,
+          "delay": 0.35,
+          "effect": {
+            "shadow": {
+              "color": "#000000@0.75",
+              "dx": 3,
+              "dy": 4
+            },
+            "outline": {
+              "color": "#000000@0.5",
+              "width": 2
+            }
+          }
+        },
+        {
+          "text": {
+            "en": "OVERHEAD"
+          },
+          "preset": "slide",
+          "direction": "left",
+          "size": 80,
+          "align": "right",
+          "x": 1220,
+          "y": 590,
+          "delay": 0.6,
+          "color": "#FFF685",
+          "effect": {
+            "shadow": {
+              "color": "#000000@0.75",
+              "dx": 3,
+              "dy": 4
+            },
+            "outline": {
+              "color": "#000000@0.5",
+              "width": 2
+            }
+          },
+          "ease": "$expo"
+        }
+      ],
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "before-after",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#141416",
+        "duration": 3.8
+      },
+      "layout": {
+        "type": "before-after",
+        "before": "backgrounds/laptop-desk.jpg",
+        "after": "backgrounds/desk-flatlay.jpg",
+        "wipe": {
+          "at": 0.9,
+          "duration": 1.4,
+          "direction": "right",
+          "ease": "ease-in-out-cubic"
+        },
+        "divider": {
+          "color": "#FFFFFF",
+          "width": 5
+        }
+      },
+      "kinetic": [
+        {
+          "text": {
+            "en": "layout · before-after · wipe"
+          },
+          "preset": "fade",
+          "font": "mono",
+          "size": 32,
+          "align": "left",
+          "x": 64,
+          "y": 640,
+          "color": "#B9B7C6",
+          "delay": 0.1,
+          "effect": {
+            "shadow": true
+          }
+        },
+        {
+          "text": {
+            "en": "BEFORE"
+          },
+          "preset": "fade",
+          "size": 76,
+          "align": "right",
+          "x": 1220,
+          "y": 100,
+          "delay": 0.2,
+          "effect": {
+            "shadow": {
+              "color": "#000000@0.75",
+              "dx": 3,
+              "dy": 4
+            },
+            "outline": {
+              "color": "#000000@0.5",
+              "width": 2
+            }
+          },
+          "exit": {
+            "preset": "fade",
+            "at": 1.7
+          }
+        },
+        {
+          "text": {
+            "en": "AFTER"
+          },
+          "preset": "rise",
+          "size": 76,
+          "align": "left",
+          "x": 60,
+          "y": 100,
+          "delay": 1.5,
+          "color": "#FFF685",
+          "effect": {
+            "shadow": {
+              "color": "#000000@0.75",
+              "dx": 3,
+              "dy": 4
+            },
+            "outline": {
+              "color": "#000000@0.5",
+              "width": 2
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

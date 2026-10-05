@@ -6,7 +6,7 @@ import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { reportedTraits } from '../../core/footage/media-traits';
 import { parseCommand } from './parse-command';
-import { tailStderr } from './tail-stderr';
+import { spawnFailure, tailStderr } from './tail-stderr';
 import { measureLoudness } from './analyze-node';
 import { getPerfTimer } from '../../utils/perf-timer';
 
@@ -47,7 +47,9 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
 
-      throw new FFmpegError('FFmpeg command failed', tailStderr(execError.stderr));
+      // A spawn failure (E2BIG: an argument such as the filtergraph exceeds the OS limit, 128 KiB on
+      // Linux) never reaches FFmpeg, so there is no stderr: report the system error instead.
+      throw new FFmpegError('FFmpeg command failed', tailStderr(execError.stderr) || spawnFailure(execError));
     }
   };
 

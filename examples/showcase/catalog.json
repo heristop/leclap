@@ -253,6 +253,13 @@
       "source": "examples/agentic-pr-video/evidence-skill/template.json"
     },
     {
+      "id": "effects-tour",
+      "title": "Effects tour",
+      "description": "Every motion effect in one guided tour, chapter by chapter: kinetic type, camera and graphics, transitions, captions, compositing, themes, looks, footage editing and sound, each effect named on screen.",
+      "category": "effects",
+      "source": "examples/motion-design/effects-tour.json"
+    },
+    {
       "id": "fx-pack",
       "title": "Motion FX pack",
       "description": "A glitch hook with an echo-trailed punch word, a rack-focus title, a bar chart counting up under a progress bar, a looping ticker and whip transitions on the beat.",

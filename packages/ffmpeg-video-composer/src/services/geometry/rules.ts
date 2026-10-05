@@ -224,6 +224,10 @@ interface Timed {
   height: number;
 }
 
+// Windows that merely touch (one ends as the next starts) can disagree by a float rounding error when
+// section start times are accumulated, e.g. a global overlay repeated on back-to-back sections.
+const TOUCH_EPSILON_SEC = 1e-3;
+
 function overlapsInTime(a: Timed, b: Timed): number {
   return Math.min(a.endSec, b.endSec) - Math.max(a.startSec, b.startSec);
 }
@@ -255,7 +259,7 @@ export function collisionWarnings(boxes: Box[], limit = Number.POSITIVE_INFINITY
 
       const shared = overlapsInTime(a, b);
 
-      if (shared <= 0 || !overlapsInSpace(a, b)) {
+      if (shared <= TOUCH_EPSILON_SEC || !overlapsInSpace(a, b)) {
         continue;
       }
 

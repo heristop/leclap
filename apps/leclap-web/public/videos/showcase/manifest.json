@@ -434,6 +434,18 @@
       "hasAudio": true
     },
     {
+      "id": "effects-tour",
+      "source": "examples/motion-design/effects-tour.json",
+      "duration": 323.220998,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "1acb3ef962332c0cb473fec2d316539c3ee226b16c38f12c95d4183e1e7cb827",
+      "templateSha256": "66f509e1e60711838bc347eb3e6089d993f4df93f26cf9b0a8c741438ceefa05",
+      "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
+      "bytes": 15183420
+    },
+    {
       "id": "fx-pack",
       "source": "examples/motion-design/fx-pack.json",
       "duration": 13.443991,

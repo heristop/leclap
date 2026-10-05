@@ -75,14 +75,19 @@ function entryLines(entries: CatalogEntry[]): string {
     .join('\n');
 }
 
-// The motion catalog for the prompt: with a known genre, only that genre's doctrine travels (the
-// others are noise for this brief and cost tokens).
-export function motionForPrompt(motion: MotionCatalog, genre?: string): MotionCatalog {
-  if (!genre || !Object.hasOwn(motion.doctrine, genre)) return motion;
+// The motion catalog for the prompt, minus what the builder cannot author: partials (never in a builder
+// template) and the take-editing guide (user LUT files, B-roll URLs, Node-only silence trimming). With a
+// known genre, only that genre's doctrine travels (the others are noise for this brief and cost tokens).
+export function motionForPrompt(motion: MotionCatalog, genre?: string): Omit<MotionCatalog, 'partials'> {
+  const { partials: _partials, footage, ...rest } = motion;
+  const { take: _take, ...builderFootage } = footage;
+  const trimmed = { ...rest, footage: builderFootage as MotionCatalog['footage'] };
+
+  if (!genre || !Object.hasOwn(motion.doctrine, genre)) return trimmed;
 
   const key = genre as keyof MotionCatalog['doctrine'];
 
-  return { ...motion, doctrine: { [key]: motion.doctrine[key] } as MotionCatalog['doctrine'] };
+  return { ...trimmed, doctrine: { [key]: motion.doctrine[key] } as MotionCatalog['doctrine'] };
 }
 
 export function formatCatalog(catalog: EngineCatalog, genre?: string): string {

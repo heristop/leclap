@@ -26,7 +26,7 @@ export type { GeometryWarning, FontLoader } from './geometry';
 function takeWarnings(template: unknown): MotionWarning[] {
   const expanded = expandPartialsSafe(template);
 
-  return expanded.ok ? takeAdvisories(expanded.data as TemplateDescriptor) : [];
+  return expanded.ok && expanded.data ? takeAdvisories(expanded.data) : [];
 }
 
 // Expansion advisories (partial_compressed: a ref squeezed under its partial's fixed intro/outro). Partials

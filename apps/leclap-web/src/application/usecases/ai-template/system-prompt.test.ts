@@ -102,10 +102,10 @@ describe('buildSystemPrompt', () => {
       catalog: context.catalog,
       samples: context.samples.slice(0, 3),
       hints: {},
-      budget: 60_000,
+      budget: 80_000,
     });
 
-    expect(built.system.length).toBeLessThanOrEqual(60_000);
+    expect(built.system.length).toBeLessThanOrEqual(80_000);
     expect(built.sampleIds.length).toBeLessThan(3);
   });
 

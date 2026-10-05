@@ -121,7 +121,7 @@ function sectionAdvisories(section: Bag, index: number): MotionWarning[] {
 /** Every footage advisory of the template (partials expanded). Never throws. */
 export function footageAdvisories(template: unknown): MotionWarning[] {
   const expansion = expandPartialsSafe(template);
-  const sections = (expansion.ok ? (expansion.data as { sections?: unknown }).sections : undefined) ?? [];
+  const sections = (expansion.ok ? (expansion.data as { sections?: unknown } | null)?.sections : undefined) ?? [];
 
   if (!Array.isArray(sections)) return [];
 

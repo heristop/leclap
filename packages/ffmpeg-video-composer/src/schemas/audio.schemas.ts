@@ -40,7 +40,7 @@ export const AutomationSchema = z
 
 export const SfxIdSchema = z
   .enum(SFX_IDS)
-  .describe('A sound from the bundled library (motionCatalog().sfx lists when to use each one).');
+  .describe('A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one).');
 
 export const SfxCueSchema = z
   .object({

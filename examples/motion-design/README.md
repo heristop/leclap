@@ -37,7 +37,7 @@ leclap render examples/motion-design/spring-kinetics.json \
 leclap verify spring-kinetics.mp4.manifest.json --rerender --assets packages/leclap-creative-kit/src/library
 ```
 
-Set `global.motion.energy` to `0` for the reduced-motion cut (fades only) or `1.5` for more travel. See [motion system v2](../../docs/template-configuration.md#motion-system-v2).
+Set `global.motion.energy` to `0` for the reduced-motion cut (fades only) or `1.5` for more travel. See [motion system](../../docs/template-configuration.md#motion-system).
 
 ## Kinetic type (motion system v2)
 

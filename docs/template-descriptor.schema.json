@@ -618,7 +618,7 @@
               "id": {
                 "type": "string",
                 "enum": ["whoosh", "swoosh-short", "hit", "boom", "riser", "click", "tick", "pop", "shutter", "ding"],
-                "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
               },
               "at": {
                 "anyOf": [
@@ -2959,7 +2959,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [
@@ -5724,7 +5724,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [
@@ -8532,7 +8532,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [
@@ -11064,7 +11064,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [
@@ -13576,7 +13576,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [
@@ -16559,7 +16559,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [
@@ -19071,7 +19071,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [
@@ -21583,7 +21583,7 @@
                         "shutter",
                         "ding"
                       ],
-                      "description": "A sound from the bundled library (motionCatalog().sfx lists when to use each one)."
+                      "description": "A sound from the bundled library (motionCatalog().audio.sfx lists when to use each one)."
                     },
                     "at": {
                       "anyOf": [

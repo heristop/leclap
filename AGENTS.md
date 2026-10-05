@@ -92,6 +92,12 @@ when only a library build is needed. The dev `compile`/`diagnose` scripts also i
 - **Dependencies:** Radix is added per primitive (`@radix-ui/react-*`) plus `class-variance-authority`; pin versions old enough to satisfy the `minimumReleaseAge` supply-chain policy (`pnpm-workspace.yaml`).
 - **Path alias** in the web app: `@/*` → `apps/leclap-web/src/*` (distinct from core's `@/*`).
 
+### Browser-agent tools (web — WebMCP)
+
+- The builder's 23 WebMCP tools live in `apps/leclap-web/src/application/usecases/webmcp/` and reach the builder only through `BuilderPort`; names and kinds are in `tool-names.ts`. Keep the tool layer free of React, AI keys and media storage.
+- Adding, renaming or re-classifying a tool means updating `src/presentation/components/doc/webmcpDocs.ts` (checked by `webmcpDocs.test.ts`), the `agent.json` locales and `docs/webmcp.md`. Names shared with `@leclap/mcp` (`SHARED_WITH_MCP`) must keep the same meaning on both surfaces.
+- Consequential actions always go through the in-page confirmation queue; never add a tool that films, uploads media or downloads exports.
+
 ## Pre-commit
 
 Git hooks run via vite-plus staged checks (`vp fmt` on `*.{ts,tsx,js,cjs,mjs,json,md,yml,yaml}`, `vp lint` on `*.{ts,tsx}`). Keep changes formatted (`pnpm fmt`) and lint-clean before committing.

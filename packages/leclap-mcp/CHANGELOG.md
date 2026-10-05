@@ -11,8 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `edit_template`: an RFC 6902 JSON Patch over inline template JSON under `expectedRevision` (stale →
   `revision_conflict`), all-or-nothing and validated after applying; returns the template, its new
-  `revision` and `changedPaths`. The web builder's WebMCP tools share the name, operations and revision.
-  Sixteen tools are now always registered.
+  `revision` and `changedPaths`. The web builder's WebMCP tools share the name, operations and revision,
+  along with `get_template_schema`, `get_motion_catalog`, `list_samples`, `get_sample`, `validate_template`,
+  `get_timeline` and `render_frames`. Sixteen tools are now always registered.
 - `list_samples` accepts `category: "effects"`; 46 packaged samples.
 - `compose_video` runs the engine's output QC and returns it in `structuredContent.qc` with a one-line
   verdict.
@@ -28,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New always-registered tools: `extract_style` (theme and style guide from a reference under the media
   dir), `analyze_music` (beat grid and cues), `get_capabilities` (local FFmpeg capability report),
   `render_frames` (PNG frames, contact sheets, safe zones, variant and look grids), `get_timeline` and
-  `report_catalog_gap`. Fifteen tools are now always registered.
+  `report_catalog_gap`.
 - `get_motion_catalog` accepts `{ query, kind? }` and returns ranked matches, with a pointer to
   `report_catalog_gap` when nothing matches; `--catalog-gap-log` / `LECLAP_MCP_CATALOG_GAP_LOG` sets the log.
 - `compose_video`, `render_frames` and `get_timeline` accept `format`; the template is resolved to that

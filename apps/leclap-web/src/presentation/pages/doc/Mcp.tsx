@@ -72,6 +72,11 @@ export const DocMcp = () => (
           <Code>render_preview</Code> and <Code>render_remotion_clip</Code>. Every argument below is the literal key the
           agent passes. Patch availability does not bypass effect-backend validation.
         </p>
+        <p>
+          The web builder&apos;s <Link to="/doc/webmcp">browser-agent tools</Link> reuse eight of these names (
+          <Code>validate_template</Code>, <Code>edit_template</Code>, <Code>get_timeline</Code>…) with the same meaning
+          and the same template revision.
+        </p>
       </Prose>
       <DefList rows={toolRows} />
       <Callout label="Typical flow">

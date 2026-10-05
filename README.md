@@ -46,14 +46,15 @@ Generative tools can't reproduce a result twice. Cloud renderers can't run in yo
 
 ## 🧰 Highlights
 
-| Highlight                         | What it means                                                                                                                                |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                                      |
-| 🌍 **Runs everywhere**            | Node.js, browser (WASM), and React Native — one shared core, reproducible on each (the encoder differs per platform, see above).             |
-| 📹 **Capture → compose → render** | Record from the camera, trim/crop, mix music, add transitions, and render — captured, edited, and composed on-device.                        |
-| 🤖 **Agent-callable**             | An [MCP server](packages/leclap-mcp) lets an AI agent author & render a template — no LLM in the output path, so it's rendered, not sampled. |
-| 🎨 **Premium out of the box**     | A bundled [creative kit](packages/leclap-creative-kit) of polished, on-device-safe templates — by prompt or in the visual builder.           |
-| 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                                                |
+| Highlight                         | What it means                                                                                                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 🧩 **Template-driven**            | One JSON descriptor → a complete video. No imperative FFmpeg wrangling.                                                                                          |
+| 🌍 **Runs everywhere**            | Node.js, browser (WASM), and React Native — one shared core, reproducible on each (the encoder differs per platform, see above).                                 |
+| 📹 **Capture → compose → render** | Record from the camera, trim/crop, mix music, add transitions, and render — captured, edited, and composed on-device.                                            |
+| 🤖 **Agent-callable**             | An [MCP server](packages/leclap-mcp) lets an AI agent author & render a template — no LLM in the output path, so it's rendered, not sampled.                     |
+| 🧭 **Browser agents**             | The web builder registers 23 [WebMCP](docs/webmcp.md) tools with the agent built into your browser — every edit undoable, nothing consequential without your OK. |
+| 🎨 **Premium out of the box**     | A bundled [creative kit](packages/leclap-creative-kit) of polished, on-device-safe templates — by prompt or in the visual builder.                               |
+| 🧱 **Typed & validated**          | Zod-validated templates, strict TypeScript, dependency-injected architecture.                                                                                    |
 
 ## 🎬 Don't describe the change. Show it.
 
@@ -62,6 +63,14 @@ LeClap can sit inside an agentic development loop. After implementing a change, 
 The workflow is explicit: **implement → collect evidence → author template → validate → render → attach to PR/MR**. LeClap creates the video artifact; the surrounding workflow decides when and where to upload it.
 
 **[See the use case →](https://leclap.dev/#agentic)** · **[Run the example](examples/agentic-pr-video)** · **[Copy the agent skill](examples/agentic-pr-video/evidence-skill)**
+
+## 🧭 Let your browser's agent drive the builder
+
+In a browser with WebMCP, the web template builder registers its tools with the browser's own agent: 9 read, 9 edit (each lands as one undo step; `undo` reverts the agent's own last one) and 5 consequential ones. Replacing the draft, opening a sample, rendering a preview and saving never run until you allow them in the page; capturing stills only reads a preview you already allowed. An **Agent** drawer turns it on or off, can ask before every edit, and logs each call with an **Undo**. The page holds no API key, and the tool names the builder shares with [`@leclap/mcp`](packages/leclap-mcp) mean the same on both surfaces.
+
+<img src=".github/pr-media/webmcp/03-activity-undo.webp" alt="The builder's Agent drawer: recent agent activity, with Undo on the edit that is still current" width="640" />
+
+**[Watch the 70 s walkthrough](.github/pr-media/webmcp/webmcp.mp4)** · **[Read the guide](docs/webmcp.md)**
 
 ## 🚀 Quick start
 
@@ -130,6 +139,7 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 - **[🎬 Effects Configuration](docs/effects-configuration.md)** — generated effect contracts, custom registration, bounds, assets and preview/edit workflow.
 - **[⚙️ Engine Configuration](docs/engine-configuration.md)** — host `ProjectConfig`, CLI bindings, MCP flags, deadlines, cache and output precedence.
 - **[✨ Generate with AI](docs/ai-template-generation.md)** — bring-your-own-key template generation in the web builder, with validation, automatic repair and optional Jev brief routing.
+- **[🧭 Browser agents (WebMCP)](docs/webmcp.md)** — the builder's in-browser agent tools, confirmations, undo and security.
 - **[🏗 Architecture](docs/architecture.md)** — system architecture and design patterns.
 - **[🔧 FFmpeg Fallback Strategy](docs/architecture.md#cross-platform-support)** — how automatic FFmpeg detection works.
 - **[📱 On-Device Compilation](docs/on-device-compilation.md)** — the serverless Expo compile pipeline.

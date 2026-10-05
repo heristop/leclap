@@ -111,9 +111,16 @@
         {
           "type": "frame",
           "at": 0.3,
+          "inset": 34,
+          "thickness": 10,
+          "color": "#3b342c"
+        },
+        {
+          "type": "frame",
+          "at": 0.3,
           "inset": 36,
-          "thickness": 3,
-          "color": "#F5F3F7@0.75"
+          "thickness": 6,
+          "color": "#F5F3F7@0.95"
         }
       ]
     },

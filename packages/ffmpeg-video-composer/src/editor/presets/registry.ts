@@ -67,16 +67,20 @@ export const SUGAR_COMPILERS: SugarCompiler[] = [...BACKGROUND_SUGAR_COMPILERS, 
 /**
  * Lowers the section's structured-sugar fields into raw filters, split by layer and sorted by each
  * compiler's `order`. `background` filters bake into the video before overlays; `overlay` filters
- * (text) draw on top — the caller routes them onto the final map when an overlay graph exists.
+ * (text) draw on top — the caller routes them onto the final map when an overlay graph exists; `top`
+ * filters draw last, after the section's authored chain (its masks and filters) too.
  */
-export function compileSugarLayers(section: Section, ctx: SugarContext): { background: Filter[]; overlay: Filter[] } {
+export function compileSugarLayers(
+  section: Section,
+  ctx: SugarContext
+): { background: Filter[]; overlay: Filter[]; top: Filter[] } {
   const sorted = [...SUGAR_COMPILERS].sort((a, b) => a.order - b.order);
 
   function select(layer: SugarLayer): Filter[] {
     return sorted.filter((compiler) => compiler.layer === layer).flatMap((compiler) => compiler.compile(section, ctx));
   }
 
-  return { background: select('background'), overlay: select('overlay') };
+  return { background: select('background'), overlay: select('overlay'), top: select('top') };
 }
 
 /**

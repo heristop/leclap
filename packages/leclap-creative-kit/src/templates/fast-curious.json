@@ -64,7 +64,7 @@
       },
       "camera": {
         "preset": "push-in",
-        "amount": 0.06
+        "amount": 0.09
       }
     },
     {
@@ -352,7 +352,7 @@
       },
       "camera": {
         "preset": "push-in",
-        "amount": 0.06
+        "amount": 0.09
       }
     },
     {

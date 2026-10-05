@@ -2,7 +2,7 @@
   "meta": {
     "name": "Product Launch",
     "description": "A minimal vertical reveal: large centred product typography, a clean full-frame shot, and an offer-led closing with fast, staggered motion.",
-    "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity shine sweep on the product reveal and a small overshoot on the offer; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation. Motion: fly through the intro into the product, then draw a rule under the price on a slow push-in."
+    "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity shine sweep on the product reveal and a small overshoot on the offer; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation. Motion: push up from the intro into the product, then draw a rule under the price on a slow push-in."
   },
   "global": {
     "orientation": "portrait",
@@ -162,8 +162,9 @@
         }
       ],
       "transition": {
-        "type": "zoom-through",
-        "duration": 0.5
+        "type": "push-up",
+        "duration": 0.45,
+        "ease": "$smooth"
       }
     },
     {
@@ -232,16 +233,7 @@
       "type": "color_background",
       "options": {
         "backgroundColor": "#090909",
-        "duration": 2.1,
-        "layers": [
-          {
-            "color": "#c8bc9c",
-            "x": 290,
-            "y": 900,
-            "w": 140,
-            "h": 3
-          }
-        ]
+        "duration": 2.1
       },
       "filters": [
         {
@@ -318,7 +310,7 @@
       ],
       "camera": {
         "preset": "push-in",
-        "amount": 0.05
+        "amount": 0.08
       }
     }
   ]

@@ -357,7 +357,8 @@
           "thickness": 5,
           "origin": "center",
           "at": 0.6,
-          "color": "#FF8AAE"
+          "color": "#FF8AAE",
+          "above": true
         }
       ]
     }

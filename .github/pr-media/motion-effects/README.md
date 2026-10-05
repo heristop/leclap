@@ -27,6 +27,8 @@ The template is [`examples/agentic-pr-video/motion-effects-reel.json`](../../../
 
 Every image is WebP, 1280 px wide and under 300 KB.
 
+For one labelled tile per option (every kinetic preset, camera preset, graphic, designed transition, lower-third style, caption DNA, layout, theme, platform, format, look and footage edit), see the documentation [gallery](../../../docs/gallery.md).
+
 ## Regenerate
 
 From the repository root, with `ffmpeg` (built with libwebp) and `python3` on `PATH`:

@@ -126,6 +126,7 @@ A **template** is a Zod-validated JSON descriptor — a `global` block plus an o
 
 - **[🌐 Descriptor reference (web)](https://leclap.pages.dev/doc)** — the full, schema-driven descriptor reference, one page per topic (sections, transitions, looks, grade, motion, audio, captions, filters, examples, JSON Schema).
 - **[🧩 Template Configuration](docs/template-configuration.md)** — the template JSON reference.
+- **[🖼 Gallery](docs/gallery.md)** — what every kinetic preset, camera move, graphic, transition, caption style, layout, theme, platform, format, look and footage edit looks like, rendered with `leclap snapshot`.
 - **[🎬 Effects Configuration](docs/effects-configuration.md)** — generated effect contracts, custom registration, bounds, assets and preview/edit workflow.
 - **[⚙️ Engine Configuration](docs/engine-configuration.md)** — host `ProjectConfig`, CLI bindings, MCP flags, deadlines, cache and output precedence.
 - **[✨ Generate with AI](docs/ai-template-generation.md)** — bring-your-own-key template generation in the web builder, with validation, automatic repair and optional Jev brief routing.

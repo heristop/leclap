@@ -202,6 +202,10 @@ Common options (`BaseSectionOptionsSchema`, `strict`) shared by native sections,
 
 `video` and `project_video` sections can reframe, trim and retime their clip. Everything lowers to deterministic filters that run on every backend, and the edited length drives the timeline, transitions, music and output QC.
 
+![Fit and focus on a clip](./media/gallery/footage-framing.webp)
+
+More in the [gallery](./gallery.md#footage-editing).
+
 | Option        | Type                                                                                      | Description                                                                                                                                                                                                                           |
 | ------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `fit`         | `cover` \| `letterbox` \| `blur` \| `off`                                                 | How the source maps into the frame; overrides `forceAspectRatio` / `forceOriginalAspectRatio`. `blur` keeps the whole picture over a blurred, dimmed copy of itself (every visual section).                                           |
@@ -253,6 +257,10 @@ The validator rejects:
 
 `transition.type` also accepts the designed transitions `push-left`, `push-right`, `push-up`, `push-down`, `swipe-left`, `swipe-right`, `zoom-through` and `iris`, plus an `ease` (default `cubic-bezier(0.65, 0, 0.35, 1)`; springs overshoot a push). A designed boundary cuts the outgoing tail and the incoming head, and composes them with filters whose geometry is evaluated once per frame (pad/overlay/crop, zoompan, a built-in crossfade). It then concatenates the result back on the same timeline as `xfade`. It costs about the same as a built-in transition and runs on device. `iris` uses the built-in circle reveal and ignores `ease`.
 
+![Every designed transition, mid-way](./media/gallery/transitions.webp)
+
+More in the [gallery](./gallery.md#transitions).
+
 `whip-left`, `whip-right`, `whip-up` and `whip-down` are pushes with motion blur. The push curve (default `cubic-bezier(0.7, 0, 0.2, 1)`) is differentiated per frame, and while it moves fast a gaussian blur stretched along the travel axis (up to 3% of the frame) is enabled for that frame. Keep whips at 0.3–0.5 s, on the beat.
 
 ### xfade transition names
@@ -262,6 +270,10 @@ Quoted from `XFADE_TRANSITIONS` in [`effects.schemas.ts`](../packages/ffmpeg-vid
 `fade`, `fadeblack`, `fadewhite`, `fadegrays`, `distance`, `dissolve`, `pixelize`, `radial`, `hblur`, `wipeleft`, `wiperight`, `wipeup`, `wipedown`, `wipetl`, `wipetr`, `wipebl`, `wipebr`, `slideleft`, `slideright`, `slideup`, `slidedown`, `smoothleft`, `smoothright`, `smoothup`, `smoothdown`, `circlecrop`, `rectcrop`, `circleclose`, `circleopen`, `horzclose`, `horzopen`, `vertclose`, `vertopen`, `diagbl`, `diagbr`, `diagtl`, `diagtr`, `hlslice`, `hrslice`, `vuslice`, `vdslice`, `hlwind`, `hrwind`, `vuwind`, `vdwind`, `coverleft`, `coverright`, `coverup`, `coverdown`, `revealleft`, `revealright`, `revealup`, `revealdown`, `squeezeh`, `squeezev`, `zoomin` — plus the special value `cut`.
 
 ## Looks & grade
+
+![Every LOOK preset on one frame](./media/gallery/looks.webp)
+
+More in the [gallery](./gallery.md#looks).
 
 `look` is a one-word colour-grade preset (`LOOK_PRESETS`). Three families:
 
@@ -420,6 +432,10 @@ A native visual section (`video`, `project_video`, `image_background`, `color_ba
 
 A `color_background`, `image_background`, `video` or `project_video` section can take a `layout`: a split screen or a before/after wipe.
 
+![Split screens and before/after wipes](./media/gallery/layouts.webp)
+
+More in the [gallery](./gallery.md#layouts).
+
 ```jsonc
 "layout": { "type": "split", "sources": ["demo", "videos/app.mp4", "#141416"], "direction": "horizontal", "gap": 8, "divider": { "color": "#FFFFFF", "width": 4 } }
 "layout": { "type": "before-after", "before": "pictures/raw.jpg", "after": "pictures/graded.jpg", "wipe": { "at": 1, "duration": 1.2, "direction": "right", "ease": "ease-in-out-cubic" } }
@@ -454,6 +470,10 @@ A section's `caption` field renders a styled lower-third / overlay as a `drawtex
 ## Subtitles (word-timed captions)
 
 A section's `subtitles` turns copy plus timing into designed captions, on every section type. Give it speech-to-text `words` (`[{ text, start, end }]`, section seconds), authored `cues` (`[{ at, end, text, words? }]`; `at`/`end` accept [time references](#time-references)) or an inline `srt` (SRT or WebVTT text).
+
+![Every caption DNA style](./media/gallery/caption-styles.webp)
+
+More in the [gallery](./gallery.md#captions).
 
 ```jsonc
 "subtitles": {
@@ -546,9 +566,17 @@ Whitespace, zero-width joiners and variation selectors are ignored. `{{ variable
 
 `drawtext` draws monochrome outlines, so the engine draws emoji itself. With `global.emoji: "image"` (default), each emoji in a caption, title card, lower third, global overlay, kinetic block or `drawtext` filter leaves the text, a measured gap takes its place, and a bundled 72 px colour image (about 250 common emoji, including skin tones, flags, keycaps and ZWJ sequences; CC-BY 4.0, see the [creative kit README](../packages/leclap-creative-kit/README.md)) is composited there with the text's `enable` window, motion and fade. Lookup falls back from the exact sequence to the one without U+FE0F, then without the skin tone, then the base emoji. A missing image strips the emoji (advisory `emoji_missing_asset`), and a section draws at most 24 images (`emoji_overlay_cap`). `"strip"` removes emoji (`emoji_stripped`); `"error"` fails validation with `emoji_unsupported`.
 
+![Colour emoji in every text element](./media/gallery/emoji.webp)
+
+More in the [gallery](./gallery.md#emoji-and-right-to-left-scripts).
+
 ### Right-to-left and complex scripts
 
 Arabic, Hebrew and other right-to-left scripts, and Indic, Thai and similar scripts that need shaping, animate a line at a time: a kinetic block with such text is forced to `unit: "line"` (advisory `kinetic_unit_coarsened`). Use the bundled `noto-arabic` or `noto-hebrew` fonts. `text_shaping=1` is added to such `drawtext` only when the FFmpeg build links libfribidi (the on-device engine does); otherwise the text renders unshaped and validation reports `rtl_unshaped` when the target build is known.
+
+![Arabic and Hebrew type](./media/gallery/rtl.webp)
+
+More in the [gallery](./gallery.md#emoji-and-right-to-left-scripts).
 
 ## Reveal
 
@@ -674,6 +702,10 @@ Validation codes: `unknown_motion_token`, `invalid_motion_token`, `invalid_easin
 
 A `color_background` section takes a section-level `titleCard` that collapses the kicker / headline / accent bar / subtitle / fade boilerplate into one block. Positions and sizes are derived from the output scale, so one card renders correctly in any orientation.
 
+![Title card variants](./media/gallery/title-cards.webp)
+
+More in the [gallery](./gallery.md#lower-thirds-and-title-cards).
+
 ```jsonc
 {
   "name": "intro",
@@ -702,6 +734,10 @@ A `color_background` section takes a section-level `titleCard` that collapses th
 ## Lower thirds
 
 Any visual section takes a `lowerThird` — a title/subtitle band over the clip with an optional right-aligned badge. It composites **on top** of any animation overlay (no `maps`/`@name` ceremony needed). `accent` and `boxOpacity` are separate fields so you never write `{{ var }}@alpha` by hand.
+
+![Every lower-third style](./media/gallery/lower-thirds.webp)
+
+More in the [gallery](./gallery.md#lower-thirds-and-title-cards).
 
 ```jsonc
 "lowerThird": {
@@ -1080,6 +1116,10 @@ A failing assertion is a validation error, `assertion_failed`, whose message nam
 
 Any visual section takes `kinetic`: up to 8 blocks of animated copy. A block is laid out with the bundled fonts' real metrics: it wraps to `maxWidth`, aligns, and sits every piece on a shared baseline. Each word, glyph or line is then drawn and animated on its own as a native `drawtext`, so there is no worker or browser and it renders the same on Node, WASM and on-device. Only `text` and `preset` are required; everything else has a preset default.
 
+![Every kinetic preset, mid-entrance](./media/gallery/kinetic-presets.webp)
+
+More in the [gallery](./gallery.md#kinetic-typography).
+
 ```jsonc
 "kinetic": [
   { "text": { "en": "Make every word land." }, "preset": "cascade", "accent": { "words": "last" }, "exit": "cascade" },
@@ -1128,6 +1168,10 @@ Moving boxes (the highlight marker, the typewriter caret) are emitted as one box
 
 A section takes a `camera`: a virtual camera that moves over the finished frame. By default it moves the text and graphics too; set `includeText: false` to keep overlays steady over a moving shot. It is lowered to `zoompan` (on a 2× upscale, as Ken Burns is) plus `rotate`, on the frame clock. The frame is over-scanned just enough that pans, shake and roll never show an edge.
 
+![Every camera preset](./media/gallery/camera-presets.webp)
+
+More in the [gallery](./gallery.md#camera).
+
 ```jsonc
 "camera": { "preset": "push-in", "amount": 0.12, "hits": [0.6, { "at": 1.8, "strength": 0.06 }], "shake": { "amplitude": 4 } }
 ```
@@ -1145,6 +1189,10 @@ A section takes a `camera`: a virtual camera that moves over the finished frame.
 ## Graphics
 
 `graphics` (up to 24 per section) are editorial shapes and light hits that animate on a curve. FFmpeg evaluates `drawbox` geometry only once, so each animated frame is its own box behind an `enable` window: frame-exact, deterministic, and on every backend. Every type takes `at` (default 0), `duration`, `ease`, `until` (default: hold to the cut), `color`, `role` and `above` (default: true for flash, wipe, glitch and focus, false otherwise).
+
+![Every graphics type](./media/gallery/graphics.webp)
+
+More in the [gallery](./gallery.md#graphics).
 
 | Type         | Extra fields                                                                                                                                             | Effect                                                                                                                                |
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1205,6 +1253,10 @@ Inspection tools read the same grammar on the whole video: `leclap snapshot --at
 
 ## Themes
 
+![The same card on every built-in theme](./media/gallery/themes.webp)
+
+More in the [gallery](./gallery.md#themes).
+
 `global.theme` names a template's look once: a palette, a type stack and a motion feel. Use a built-in name, or an object that overrides single tokens of one:
 
 | Theme              | Look                                                                                              |
@@ -1242,6 +1294,10 @@ Derive a `global.theme` object from a reference image or clip: `leclap style ref
 ## Delivery platforms
 
 Set `global.platform` when a video has a destination. It tunes the defaults and the validation for that app; the rendered frames stay the engine's own presets.
+
+![Every platform safe-zone overlay](./media/gallery/platforms.webp)
+
+More in the [gallery](./gallery.md#delivery-platforms).
 
 | `platform`                               | Orientation | Max duration | Safe zone (top / bottom / left / right) | What covers the frame                             |
 | ---------------------------------------- | ----------- | ------------ | --------------------------------------- | ------------------------------------------------- |
@@ -1283,6 +1339,10 @@ What `global.platform` changes:
 ```
 
 ## Formats (one story, several compositions)
+
+![One story in three formats](./media/gallery/formats.webp)
+
+More in the [gallery](./gallery.md#formats).
 
 A 9:16 cut of a 16:9 film is a different composition, not a crop. Declare `formats` at the descriptor top level; each entry patches the descriptor when that orientation renders:
 

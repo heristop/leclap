@@ -93,6 +93,9 @@ class SegmentBuilder {
   // Overlay-class (text) sugar computed in stageBackgroundSugar, routed once the overlay graph is known
   // (buildFilters). Background-class sugar is folded into section.filters directly at staging time.
   private pendingOverlaySugar: Filter[] = [];
+  // Top-class sugar (`above: true` graphics, freeze flashes): drawn after the section's authored chain,
+  // so an authored mask or text never hides it.
+  private pendingTopSugar: Filter[] = [];
   // Count of background-sugar filters prepended to section.filters — the splice point for overlay text
   // in the no-overlay-graph case (text sits above the grade, below the section's authored chain).
   private backgroundSugarCount = 0;
@@ -172,6 +175,7 @@ class SegmentBuilder {
     this.sugarStaged = false;
     this.emojiPlan = null;
     this.pendingOverlaySugar = [];
+    this.pendingTopSugar = [];
     this.backgroundSugarCount = 0;
     this.footageHeadCount = 0;
   }
@@ -509,13 +513,9 @@ class SegmentBuilder {
     const opts = this.section.options;
 
     const hasOverlayGraph = this.segment.filtersMapList.length > 0;
-    const overlaySugar = this.pendingOverlaySugar;
 
-    // Overlay-class (text) sugar routing: with NO overlay graph, splice it into the linear chain right
-    // after the background sugar (above the grade, below the section's authored chain) to preserve the
-    // previous draw order; with an overlay graph it is chained onto the final composited pad below.
-    if (!hasOverlayGraph && overlaySugar.length > 0) {
-      this.section.filters.splice(this.backgroundSugarCount, 0, ...overlaySugar);
+    if (!hasOverlayGraph) {
+      this.routeSugarIntoLinearChain(this.section.filters);
     }
 
     // Reframe (cover / letterbox / blur fill, focus), right after the footage edits staged ahead of
@@ -541,13 +541,25 @@ class SegmentBuilder {
     // When the section composites an overlay graph (animation/gradient maps), the linear filtersList
     // is ignored — so overlay-class sugar (caption/lowerThird text) is chained ONTO the final map
     // instead, drawing on top of the overlay rather than being dropped.
-    this.appendOverlayChain(hasOverlayGraph ? overlaySugar : []);
+    this.appendOverlayChain(hasOverlayGraph ? [...this.pendingOverlaySugar, ...this.pendingTopSugar] : []);
     this.promoteToComplexGraph();
 
     // Colour emoji composite above the text they were pulled out of (editor/emoji).
     this.emojiPlan?.compose(this.segment, this.section.filters, `${this.videoInputIndex()}:v`);
 
     this.formatFilters();
+  };
+
+  // With NO overlay graph, overlay-class (text) sugar is spliced into the linear chain right after the
+  // background sugar (above the grade, below the section's authored chain) to preserve the previous draw
+  // order, and top-class sugar closes the chain, after the authored masks and filters. With an overlay
+  // graph both are chained onto the final composited pad instead (appendOverlayChain).
+  private readonly routeSugarIntoLinearChain = (filters: Filter[]): void => {
+    if (this.pendingOverlaySugar.length > 0) {
+      filters.splice(this.backgroundSugarCount, 0, ...this.pendingOverlaySugar);
+    }
+
+    filters.push(...this.pendingTopSugar);
   };
 
   // Builds the chroma-key split/overlay graph when the section requests it, sizing the clip to the
@@ -657,6 +669,7 @@ class SegmentBuilder {
 
     const background = [...sectionSugar.background, ...globalSugar.background];
     this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
+    this.pendingTopSugar = sectionSugar.top;
     const authored = this.section.filters;
 
     // Footage edits retime the raw clip first, then the CFR conform + seeded noise (presets/motion-chain.ts).
@@ -684,6 +697,7 @@ class SegmentBuilder {
     });
 
     this.pendingOverlaySugar = plan.rewrite(this.pendingOverlaySugar);
+    this.pendingTopSugar = plan.rewrite(this.pendingTopSugar);
     this.section.filters = plan.rewrite(this.section.filters ?? []);
     this.emojiPlan = plan;
   };

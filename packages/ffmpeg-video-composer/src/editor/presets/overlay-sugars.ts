@@ -15,7 +15,9 @@ import type { SugarContext } from './sugar-context';
 // - 'background' bakes into the video before overlays (colour grade, motion, layers).
 // - 'overlay' draws on top of the composited frame (text: caption, titleCard, lowerThird) so it is
 //   visible above an animation overlay rather than buried under it.
-export type SugarLayer = 'background' | 'overlay';
+// - 'top' draws over everything the section draws, its authored filters included (`above: true`
+//   graphics, freeze flashes): an authored mask or text never hides it.
+export type SugarLayer = 'background' | 'overlay' | 'top';
 
 // A single structured-sugar field (look/grade/motion/caption/…) and how it lowers to raw filters.
 // `order` fixes its position in the section's filter chain; lower runs first. Registering a new
@@ -71,14 +73,14 @@ export const OVERLAY_SUGAR_COMPILERS: SugarCompiler[] = [
   {
     key: 'graphics-above',
     order: 70,
-    layer: 'overlay',
+    layer: 'top',
     compile: (section, ctx) => graphicsToFilters(section, ctx, true),
   },
   {
     // A freeze frame's optional flash hit (options.freeze[].flash), on top of everything like a flash graphic.
     key: 'freeze-flash',
     order: 75,
-    layer: 'overlay',
+    layer: 'top',
     compile: (section, ctx) => freezeFlashFilters(section, ctx),
   },
 ];

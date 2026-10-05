@@ -11,7 +11,7 @@
 
 import type { Filter, FilterGraphChain } from '@/core/types';
 import { fmt } from '@/core/motion/hermite';
-import { passProgress, sourceTiming, type FxContext, type FxEffect, type FxLayer } from './fx-kit';
+import { gradientSeed, passProgress, sourceTiming, type FxContext, type FxEffect, type FxLayer } from './fx-kit';
 import {
   colorOr,
   envelope,
@@ -207,7 +207,7 @@ function lobeSource(fx: FxContext<'leak'>, lobe: Lobe, side: number, key: string
     .join(':');
   const value =
     `s=${side}x${side}:type=radial:${colors}:nb_colors=${STOPS}:x0=${half}:y0=${half}:x1=${side - 1}:y1=${half}` +
-    `:speed=0.00001:${sourceTiming(fx)}`;
+    `:speed=0.00001:${gradientSeed(fx)}:${sourceTiming(fx)}`;
 
   return { filters: [{ type: 'gradients', value }, ...firstFrame(fx), { type: 'format', value: 'yuva444p' }] };
 }

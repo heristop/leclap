@@ -173,7 +173,7 @@ describe('fx kit', () => {
   it('crops the target for the window only and composites back with eof pass and an enable window', () => {
     const text = render(lightInTarget(fakeContext(), [band]) ?? []);
 
-    expect(text).toContain('split=2[fx0_m][fx0_r0]');
+    expect(text).toContain('format=yuv420p,split=2[fx0_m][fx0_r0]');
     expect(text).toContain('[fx0_r0]trim=end=1.25,crop=400:240:200:120[fx0_r]');
     expect(text).toContain("[fx0_r][fx0_b]overlay=x='0':y='0'[fx0_o0]");
     expect(text).toContain("[fx0_m][fx0_o0]overlay=200:120:eof_action=pass:enable='between(t,0.5,1.25)'");

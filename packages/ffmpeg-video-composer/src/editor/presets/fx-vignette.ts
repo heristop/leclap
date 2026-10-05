@@ -9,7 +9,7 @@
 
 import type { Filter, FilterGraphChain } from '@/core/types';
 import { fmt } from '@/core/motion/hermite';
-import { shiftTo, sourceTiming, type FxContext, type FxEffect, type FxLayer } from './fx-kit';
+import { gradientSeed, shiftTo, sourceTiming, type FxContext, type FxEffect, type FxLayer } from './fx-kit';
 import { ambientRamps, even, softDither } from './fx-light-kit';
 
 /** Near-black with a hint of warmth: a lens falloff, not a grey wash. */
@@ -66,11 +66,20 @@ function vignetteMask(fx: FxContext<'vignette-breathe'>, v: Vignette): Filter[] 
   ];
 }
 
+// The radial gradient's endpoints: the focus, and the point at the half-diagonal toward the farthest
+// corner (always inside: that corner is at least the half-diagonal away). Both stay inside the source, which
+// would otherwise replace an outside endpoint with a random one.
+function radialEnds(v: Vignette, w: number, h: number): string {
+  const [cx, cy] = [Math.min(w - 1, Math.round(v.fx * w)), Math.min(h - 1, Math.round(v.fy * h))];
+  const [kx, ky] = [cx < w / 2 ? w - 1 : 0, cy < h / 2 ? h - 1 : 0];
+  const t = Math.min(1, Math.hypot(w / 2, h / 2) / Math.max(1, Math.hypot(kx - cx, ky - cy)));
+
+  return `x0=${cx}:y0=${cy}:x1=${Math.round(cx + (kx - cx) * t)}:y1=${Math.round(cy + (ky - cy) * t)}`;
+}
+
 // The still stand-in: the same falloff (1 − cos⁴) as a radial gradient from the focus to the far corner.
 function gradientMask(fx: FxContext<'vignette-breathe'>, v: Vignette): Filter[] {
   const [w, h] = [even(fx.target.w / 2), even(fx.target.h / 2)];
-  const [cx, cy] = [Math.round(v.fx * w), Math.round(v.fy * h)];
-  const reach = Math.hypot(w / 2, h / 2);
   const colors = Array.from({ length: STOPS }, (_, i) => {
     const dark = 1 - Math.cos((v.angle * i) / (STOPS - 1)) ** 4;
     const level = Math.round(255 * Math.min(fx.peak, dark * v.gain));
@@ -78,8 +87,8 @@ function gradientMask(fx: FxContext<'vignette-breathe'>, v: Vignette): Filter[] 
     return `c${i}=0x${level.toString(16).padStart(2, '0').repeat(3)}`;
   }).join(':');
   const value =
-    `s=${w}x${h}:type=radial:${colors}:nb_colors=${STOPS}:x0=${cx}:y0=${cy}:x1=${Math.round(cx + reach)}:y1=${cy}` +
-    `:speed=0.00001:${sourceTiming(fx)}`;
+    `s=${w}x${h}:type=radial:${colors}:nb_colors=${STOPS}:${radialEnds(v, w, h)}` +
+    `:speed=0.00001:${gradientSeed(fx)}:${sourceTiming(fx)}`;
 
   // Gray stops convert to the same values on a gray plane (RGB → gray is full range).
   return [{ type: 'gradients', value }, shiftTo(fx), { type: 'format', value: 'gray' }];

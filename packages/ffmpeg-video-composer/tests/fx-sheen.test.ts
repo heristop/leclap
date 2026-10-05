@@ -72,7 +72,7 @@ describe('fx sheen', () => {
     expect(Number(source?.[2])).toBeGreaterThan(CARD.h);
     expect(Number(source?.[2])).toBeLessThan(CARD.h + 40);
     expect(source?.[3]).toMatch(/c0=#[0-9A-F]{6}@0:.*c6=#[0-9A-F]{6}@0:nb_colors=7/);
-    expect(source?.[3]).toContain('speed=0.00001:r=30:d=0.766667');
+    expect(source?.[3]).toMatch(/speed=0.00001:seed=\d+:r=30:d=0.766667/);
     expect(text).toContain('setpts=PTS+0.4/TB');
     expect(text).toContain('noise=c3s=3:c3f=u:all_seed=');
     expect(text).toContain('trim=end=1.166667,crop=400:240:200:120');

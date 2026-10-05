@@ -5,6 +5,7 @@ import { compile } from '@/index';
 import type { ProjectConfig, TemplateDescriptor } from '@/core/types';
 import type { RenderManifest } from '@/core/determinism/manifest';
 import { TemplateValidator } from '@/services/TemplateValidator';
+import { parseCommand } from '@/platform/ffmpeg/parse-command';
 import { testBuildDir } from './fixtures/build-dir';
 
 // The sheen through the whole compile path: the rounded mask sprite is generated and staged by the asset
@@ -51,11 +52,24 @@ function hasFfmpeg(): boolean {
   }
 }
 
-async function render(): Promise<{ bytes: Buffer; commands: string }> {
+async function render(): Promise<{ bytes: Buffer; commands: string; list: string[] }> {
   let manifest: RenderManifest | undefined;
   const output = await compile(config, descriptor(), { onManifest: (m) => (manifest = m) });
+  const list = manifest?.graph.commands ?? [];
 
-  return { bytes: fs.readFileSync(output as string), commands: manifest?.graph.commands.join('\n') ?? '' };
+  return { bytes: fs.readFileSync(output as string), commands: list.join('\n'), list };
+}
+
+// Decoded-frame checksums of one segment command, its filtergraph run on `threads` slice threads. The
+// output codec is swapped for rawvideo, so only the filtergraph is compared (not the encoder).
+function frameHashes(command: string, threads: number): string {
+  const args = parseCommand(command.replaceAll('$BUILD', config.buildDir as string)).slice(0, -1);
+
+  return execFileSync(
+    'ffmpeg',
+    ['-v', 'error', '-filter_threads', String(threads), ...args, '-an', '-c:v', 'rawvideo', '-f', 'framemd5', '-'],
+    { encoding: 'utf8', maxBuffer: 1 << 26 }
+  );
 }
 
 describe.skipIf(!hasFfmpeg())('fx sheen compile', () => {
@@ -72,5 +86,22 @@ describe.skipIf(!hasFfmpeg())('fx sheen compile', () => {
     expect(first.commands).toMatch(/sprite-mask-[0-9a-f]{8}\.png/);
     expect(first.commands).toContain('alphamerge');
     expect(first.commands).toContain('eof_action=pass');
+  }, 240000);
+
+  // FFmpeg's overlay, given a main WITH alpha, blends chroma from the main's alpha rows while the
+  // neighbouring slice job rewrites them (its alpha composite): the result depended on the slice count and
+  // on thread scheduling. Text drawn before the effect leaves partial alpha in the main, so the title
+  // section is the case that raced. The sub-graph pins an opaque frame; any thread count gives one result.
+  it('composites independently of the filter thread count', async () => {
+    const { list } = await render();
+    const segments = list.filter((command) => command.includes('fx0_'));
+
+    expect(segments).toHaveLength(2);
+
+    for (const command of segments) {
+      const single = frameHashes(command, 1);
+
+      for (const threads of [3, 5, 8]) expect(frameHashes(command, threads)).toBe(single);
+    }
   }, 240000);
 });

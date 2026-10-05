@@ -171,34 +171,8 @@ function cornerCoverage(cx: number, cy: number, spec: PanelSpec): number {
   return clamp(radius - dist + 0.5, 0, 1);
 } // straight alpha, no premultiplication
 
-/** One horizontal band of a rounded rectangle and how far its ends are pulled in by the corners. */
-export interface RoundedBand {
-  /** Top of the band, from the top of the rectangle. */
-  y: number;
-  h: number;
-  /** Horizontal inset of both ends at the band's middle row. */
-  inset: number;
-}
-
-/**
- * A rounded rectangle as non-overlapping horizontal bands (the same corner arc the PNG panel rasterizes,
- * sampled per band): `rows` bands per corner, then one straight band between them. Lets drawbox, which
- * only fills rectangles, draw a rounded panel or pill with translucent fills that never double up.
- */
-export function roundedBands(height: number, radius: number, rows: number): RoundedBand[] {
-  const r = clamp(radius, 0, height / 2);
-  const count = r < 1 ? 0 : Math.max(1, Math.floor(rows));
-  const step = count === 0 ? 0 : r / count;
-  const top = Array.from({ length: count }, (_, i) => {
-    const dy = r - (i + 0.5) * step;
-
-    return { y: i * step, h: step, inset: r - Math.sqrt(r * r - dy * dy) };
-  });
-  const middle = height - 2 * r >= 0.5 ? [{ y: r, h: height - 2 * r, inset: 0 }] : [];
-  const bottom = top.map((_, i) => top[top.length - 1 - i]).map((band) => ({ ...band, y: height - band.y - band.h }));
-
-  return [...top, ...middle, ...bottom];
-}
+// Re-exported: the drawbox band sampling lives in ./rounded-bands, out of the PNG encoder's module.
+export { roundedBands, type RoundedBand } from './rounded-bands';
 
 // Build the raw (unfiltered-minus-filter-byte) RGBA scanlines: one filter-type byte 0 per row, then
 // width*4 straight-alpha RGBA bytes.

@@ -81,17 +81,19 @@ export default defineConfig([
         'yauzl',
         'fd-slicer',
         'get-stream',
+        // zod is a runtime dependency resolved by the host's bundler, like tslib: the app and the engine
+        // share one copy (one schema registry, no second ~150 KB zod in the page) instead of the engine
+        // inlining its own into the eager chunk.
+        'zod',
       ],
       alwaysBundle: [
         // Only include browser-compatible dependencies
         'reflect-metadata',
         'tsyringe',
         'picocolors',
-        'zod',
       ],
-      // Bundle zod's JS (above) but keep it external in the .d.ts: rolldown-plugin-dts can't bundle
-      // zod v4's CommonJS .d.cts locale files (a wall of warnings). Consumers install zod (a runtime
-      // dependency), so the declarations referencing `import('zod')` resolve fine.
+      // zod's declarations stay external too: rolldown-plugin-dts can't bundle zod v4's CommonJS .d.cts
+      // locale files (a wall of warnings), and consumers have zod installed as a runtime dependency.
       dts: { neverBundle: ['zod'] },
     },
     plugins: [
@@ -162,7 +164,7 @@ export default defineConfig([
         '@ffmpeg/util',
       ],
       alwaysBundle: ['tsyringe', 'zod'],
-      // Bundle zod's JS but keep it external in the .d.ts (see the browser build note above) so
+      // Bundle zod's JS but keep it external in the .d.ts (the browser build keeps it external instead) so
       // rolldown-plugin-dts doesn't try to bundle zod v4's CommonJS .d.cts locales.
       dts: { neverBundle: ['zod'] },
     },

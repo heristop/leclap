@@ -31,6 +31,8 @@ export interface FxContext<N extends FxEffectName> {
   ease: EasingSpec;
   /** The light colour, resolved (theme tokens, variables), without alpha. */
   color: string;
+  /** global.theme as authored (resolveTheme gives its palette for colour defaults). */
+  theme?: unknown;
   /** Peak alpha: intensity under the primitive's ceiling. */
   peak: number;
   /** global.motion.energy (0 = reduced motion). */

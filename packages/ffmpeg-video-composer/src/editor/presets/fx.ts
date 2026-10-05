@@ -30,11 +30,17 @@ import { resolveFxTarget, type FxTargetRect } from './fx-target';
 import { spriteUrl } from './fx-sprites';
 import { lightInTarget, type AnyFxContext, type FxEffect } from './fx-kit';
 import { SHEEN } from './fx-sheen';
+import { RIPPLE } from './fx-ripple';
+import { GLINT } from './fx-glint';
+import { CONFETTI } from './fx-confetti';
 import type { FxRequest } from './sugar-context';
 
 /** The registry: one line per primitive. */
 const FX_EFFECTS: { readonly [N in FxEffectName]?: FxEffect<N> } = {
   sheen: SHEEN,
+  ripple: RIPPLE,
+  glint: GLINT,
+  confetti: CONFETTI,
 };
 
 /** Names of the primitives with a lowering (the rest of FX_PRIMITIVES validate but render nothing yet). */
@@ -124,6 +130,7 @@ function context(request: FxRequest, target: FxTargetRect, time: Timing): AnyFxC
     ...time,
     ease: g.ease ?? defaults.ease,
     color: lightColor(request),
+    theme: ctx.theme,
     peak: defaults.ceiling * (g.intensity ?? defaults.intensity),
     energy,
     reduced: energy === 0,

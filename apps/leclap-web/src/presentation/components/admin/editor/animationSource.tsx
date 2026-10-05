@@ -1,25 +1,25 @@
 // Canvas-free animation overlay pieces shared by AnimationGallery (which adds the drag canvas) and the
-// canvas-less PlacementControls inspector: AnimationSource = the Library / Upload / Url tabbed source picker,
+// canvas-less PlacementControls inspector: AnimationSource = the Library / Upload / Url tabbed source picker
+// (the Library tab is AnimationLibraryPicker: engine primitives first, the APNG samples last),
 // and AnimationPlayback = playback extent (forever / loops / seconds) + start offset + keep-last-frame.
 // These are the single source for the animation source/playback UI so both consumers reuse them.
-import { useState, type DragEvent } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMediaDrop, type AcceptSpec, type Rejection } from '@/lib/upload';
-import { Upload, X, Check } from '@/presentation/components/icons';
+import { Upload, X } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { Button, Checkbox, SegmentedControl } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
-import { ANIMATION_LIBRARY, findAnimationByUrl, type AnimationAsset } from '@/data/mediaCatalog';
-import { animationDefaultsForUrl, type AnimationOverlay } from '../templateEditorModel';
+import { findAnimationByUrl, findSampleCard, type AnimationAsset, type PickerCard } from '@/data/mediaCatalog';
+import {
+  animationDefaultsForUrl,
+  type AnimationEffectPreset,
+  type AnimationOverlay,
+  type EngineLibraryEntry,
+} from '../templateEditorModel';
 import { PREVIEW_BG_CLASS } from './animationOverlay';
 import { AnimationMedia } from './AnimationMedia';
-import { CANVAS_DND_MIME, type DropPayload } from '../editor-shell/canvasDrop';
-
-// Begin a native drag carrying a serialized drop payload (so the card can be dropped on the canvas).
-const startCanvasDrag = (event: DragEvent, payload: DropPayload) => {
-  event.dataTransfer.effectAllowed = 'copy';
-  event.dataTransfer.setData(CANVAS_DND_MIME, JSON.stringify(payload));
-};
+import { AnimationLibraryPicker } from './AnimationLibraryPicker';
 
 type Tab = 'library' | 'upload' | 'url';
 
@@ -29,8 +29,9 @@ const ANIMATION_ACCEPT: AcceptSpec = [
   { mime: 'video/webm', extensions: ['.webm'] },
 ];
 
-// Library cards + upload preview sit on the transparency checker so transparent/white overlays stay
-// readable; the placement panel below (when present) carries its own switchable backdrop.
+// The upload preview sits on the transparency checker so a transparent/white overlay stays readable
+// (library cards show their engine-rendered thumbnails on their own dark stage instead); the placement
+// panel below (when present) carries its own switchable backdrop.
 export const CHECKER = PREVIEW_BG_CLASS.checker;
 
 // Open on the tab matching the current value so re-opening lands you back where you set it: a library
@@ -50,18 +51,48 @@ export const pickInitialTab = (value: AnimationOverlay | undefined): Tab => {
 interface AnimationSourceProps {
   value: AnimationOverlay | undefined;
   onChange: (value?: AnimationOverlay) => void;
-  /** Override the dynamic library with a curated list (config-driven); defaults to all bundled animations. */
+  /** Override the sample list with a curated one (config-driven); defaults to the bundled samples. */
   library?: AnimationAsset[];
+  /** Inserts an engine primitive in place of this overlay (a section host); absent = samples only. */
+  onPickEngine?: (entry: EngineLibraryEntry) => void;
+  /** Inserts a two-part recipe in place of this overlay. */
+  onPickRecipe?: (preset: AnimationEffectPreset) => void;
 }
 
+// A curated asset list as sample cards (the bundled ones keep their thumbnails).
+const curatedSamples = (library: AnimationAsset[]): PickerCard[] =>
+  library.map(
+    (asset) =>
+      findSampleCard(asset.url) ?? {
+        key: `sample:${asset.id}`,
+        id: asset.id,
+        group: 'samples',
+        labelKey: `animation.library.${asset.id}`,
+        fallbackLabel: asset.label,
+        sample: asset,
+      }
+  );
+
 // The Library / Upload / Url tabbed source picker (no canvas, no placement).
-export const AnimationSource = ({ value, onChange, library = ANIMATION_LIBRARY }: AnimationSourceProps) => {
+export const AnimationSource = ({ value, onChange, library, onPickEngine, onPickRecipe }: AnimationSourceProps) => {
   const [tab, setTab] = useState<Tab>(() => pickInitialTab(value));
 
   return (
     <div>
       <AnimationTabs tab={tab} setTab={setTab} />
-      {tab === 'library' ? <AnimationLibraryGrid value={value} library={library} onChange={onChange} /> : null}
+      {tab === 'library' ? (
+        <AnimationLibraryPicker
+          selectedUrl={value?.url}
+          samples={library ? curatedSamples(library) : undefined}
+          onPickEngine={onPickEngine}
+          onPickRecipe={onPickRecipe}
+          onPickSample={(card) => {
+            const asset = card.sample;
+
+            if (asset) onChange({ url: asset.url, label: asset.label, ...animationDefaultsForUrl(asset.url) });
+          }}
+        />
+      ) : null}
       {tab === 'upload' ? <AnimationUploadPane value={value} onChange={onChange} /> : null}
       {tab === 'url' ? <AnimationUrlPane value={value} onChange={onChange} /> : null}
     </div>
@@ -204,55 +235,6 @@ const AnimationTabs = ({ tab, setTab }: { tab: Tab; setTab: (t: Tab) => void }) 
     />
   );
 };
-
-interface LibraryGridProps {
-  value: AnimationOverlay | undefined;
-  library: AnimationAsset[];
-  onChange: (value?: AnimationOverlay) => void;
-}
-
-const AnimationLibraryGrid = ({ value, library, onChange }: LibraryGridProps) => (
-  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="radiogroup">
-    {library.map((animation) => {
-      const selected = value?.url === animation.url;
-
-      return (
-        <button
-          key={animation.id}
-          type="button"
-          role="radio"
-          aria-checked={selected}
-          draggable
-          onDragStart={(event) => {
-            startCanvasDrag(event, {
-              source: 'library',
-              element: 'animation',
-              url: animation.url,
-              label: animation.label,
-            });
-          }}
-          onClick={() => {
-            onChange({ url: animation.url, label: animation.label, ...animationDefaultsForUrl(animation.url) });
-          }}
-          className={cn(
-            'group relative block overflow-hidden rounded-xl border text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40',
-            selected ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-foreground/10 hover:border-brand-500/40'
-          )}
-        >
-          <span className={cn('block aspect-video w-full overflow-hidden', CHECKER)}>
-            <AnimationMedia url={animation.url} className="h-full w-full object-contain" />
-          </span>
-          <span className="block truncate px-2 py-1.5 text-[0.65rem] font-semibold text-foreground">
-            {animation.label}
-          </span>
-          {selected ? (
-            <Check className="absolute right-2 top-2 h-4 w-4 rounded-full bg-brand-500 p-0.5 text-white" />
-          ) : null}
-        </button>
-      );
-    })}
-  </div>
-);
 
 interface PaneProps {
   value: AnimationOverlay | undefined;

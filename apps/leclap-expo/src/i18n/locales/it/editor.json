@@ -399,7 +399,55 @@
         "name": "Rivelazione della cornice",
         "description": "Una cornice sottile con un unico riflesso luminoso."
       }
-    }
+    },
+    "library": {
+      "sheen": "Riflesso",
+      "glint-orbit": "Bagliore in orbita",
+      "edge-glow": "Bagliore sul bordo",
+      "leak": "Light leak",
+      "bloom": "Alone luminoso",
+      "ripple": "Onda",
+      "ripple-tap": "Tocco",
+      "resolve": "Messa a fuoco",
+      "glass": "Vetro",
+      "vignette-breathe": "Vignettatura viva",
+      "confetti": "Coriandoli",
+      "glint": "Scintille",
+      "frame": "Cornice",
+      "corners": "Angoli",
+      "underline": "Sottolineatura",
+      "bokeh": "Bokeh",
+      "dust": "Polvere",
+      "grain": "Grana",
+      "shine-sweep": "Passata di luce",
+      "sparkle": "Scintillio",
+      "corner-brackets": "Angoli",
+      "pulse-ring": "Anello pulsante",
+      "tap-pulse": "Impulso di tocco",
+      "light-leak": "Light leak",
+      "white-border": "Bordo bianco",
+      "glow-border": "Bordo luminoso",
+      "rounded-border": "Bordo arrotondato",
+      "spec-orbit": "Orbita speculare",
+      "animation-icons": "Icone animate"
+    },
+    "groups": {
+      "light": "Luce",
+      "focus": "Focus",
+      "celebrate": "Festa",
+      "frames": "Cornici",
+      "ambient": "Atmosfera",
+      "samples": "Esempi",
+      "samplesHint": "Overlay di serie, identici in ogni modello. Meglio un effetto qui sopra: lo disegna il motore, su misura per questa scena."
+    },
+    "engine": {
+      "engineLabel": "Effetti del motore",
+      "engineHelp": "Disegnati dal motore su questa scena, su misura. Regolali nell’editor web.",
+      "added": "Effetti di questa scena",
+      "removeEffect": "Rimuovi {{label}}",
+      "addEffect": "Aggiungi {{label}}"
+    },
+    "sampleBadge": "Esempio"
   },
   "overlays": {
     "kind": "Sovrimpressioni",

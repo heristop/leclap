@@ -30,6 +30,7 @@
     "gen:icons": "node scripts/gen-icons.ts",
     "gen:icons:native": "node scripts/gen-expo-native-icons.ts",
     "gen:emoji": "node scripts/gen-emoji.ts",
+    "gen:animation-thumbs": "pnpm --filter @leclap/creative-kit gen:animation-thumbs",
     "sync:repo-meta": "node scripts/sync-repo-metadata.ts",
     "deps:check": "depcruise packages/ffmpeg-video-composer/src",
     "deps:dot": "depcruise packages/ffmpeg-video-composer/src --output-type dot > docs/graph.dot",

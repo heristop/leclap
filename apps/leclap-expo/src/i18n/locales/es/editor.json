@@ -399,7 +399,55 @@
         "name": "Revelado del marco",
         "description": "Un marco fino con un único barrido de brillo."
       }
-    }
+    },
+    "library": {
+      "sheen": "Destello",
+      "glint-orbit": "Destello en órbita",
+      "edge-glow": "Brillo de borde",
+      "leak": "Fuga de luz",
+      "bloom": "Resplandor",
+      "ripple": "Onda",
+      "ripple-tap": "Toque",
+      "resolve": "Enfoque",
+      "glass": "Cristal",
+      "vignette-breathe": "Viñeta que respira",
+      "confetti": "Confeti",
+      "glint": "Destellos",
+      "frame": "Marco",
+      "corners": "Esquinas",
+      "underline": "Subrayado",
+      "bokeh": "Bokeh",
+      "dust": "Polvo",
+      "grain": "Grano",
+      "shine-sweep": "Barrido brillante",
+      "sparkle": "Chispas",
+      "corner-brackets": "Esquinas",
+      "pulse-ring": "Anillo de pulso",
+      "tap-pulse": "Pulso de toque",
+      "light-leak": "Fuga de luz",
+      "white-border": "Borde blanco",
+      "glow-border": "Borde luminoso",
+      "rounded-border": "Borde redondeado",
+      "spec-orbit": "Órbita especular",
+      "animation-icons": "Iconos animados"
+    },
+    "groups": {
+      "light": "Luz",
+      "focus": "Enfoque",
+      "celebrate": "Celebrar",
+      "frames": "Marcos",
+      "ambient": "Ambiente",
+      "samples": "Muestras",
+      "samplesHint": "Superposiciones de serie que se ven igual en cada plantilla. Mejor un efecto de arriba: lo dibuja el motor, ajustado a esta escena."
+    },
+    "engine": {
+      "engineLabel": "Efectos del motor",
+      "engineHelp": "Los dibuja el motor sobre esta escena, ajustados a ella. Ajústalos en el editor web.",
+      "added": "Efectos de esta escena",
+      "removeEffect": "Quitar {{label}}",
+      "addEffect": "Añadir {{label}}"
+    },
+    "sampleBadge": "Muestra"
   },
   "overlays": {
     "kind": "Superposiciones",

@@ -8,6 +8,8 @@
 //   - background layers (`layers`):  color only
 //   - image overlays (`images`):     video, color, image
 //   - animation overlays (`animations`): video, color, image
+//   - engine effects (`graphics`: fx lights and stroke graphics): video, color, image — inserted from the
+//     animation picker (never from the "+ Add" menu), so a fresh one always starts from a library entry
 //
 // NOTE: a section-level background image is NOT a per-index array element (image/color sections carry
 // a single `color`/picked background, not an `image` ElementRef), so background-image is OUT of scope
@@ -25,6 +27,8 @@ import {
   type BackgroundLayer,
   type LowerThird,
 } from '../templateEditorModel';
+import { libraryEntryOfGraphic, libraryLabelKey } from '@leclap/creative-kit/editor';
+import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import { newExtraLayer } from '../editor/layerGeometry';
 import { newShapeImage } from './shape-image';
 import { translationText } from './sugarPreviewGeometry';
@@ -38,20 +42,23 @@ export interface ElementDescriptor {
   // A short content preview (the overlay text, a logo/animation filename) shown next to the kind label
   // so rows are distinguishable and a reorder is visible. Absent when the element has no content yet.
   previewText?: string;
+  // An i18n key for the preview instead (an engine effect reads as its library label, e.g. "Sheen").
+  previewKey?: string;
 }
 
-type ArrayField = 'layers' | 'overlays' | 'images' | 'animations';
+type ArrayField = 'layers' | 'overlays' | 'images' | 'animations' | 'graphics';
 
 // The kinds backed by an ordered per-section array, vs the SINGLETON text-sugar kinds
 // (caption/titleCard/lowerThird — at most one per section, always ElementRef index 0). Sugar is
 // authored via the scene fields / its inspector, never added or reordered like array elements.
-type ArrayKind = 'layer' | 'text' | 'image' | 'animation';
+type ArrayKind = 'layer' | 'text' | 'image' | 'animation' | 'effect';
 export type SugarKind = 'caption' | 'titleCard' | 'lowerThird';
 
 // Everything the "+ Add" menu can offer: the selectable element kinds plus the two shape entries.
 // Shapes are NOT an ElementRef kind — a shape is an ImageOverlay carrying a `shape` recipe, so the
 // menu entries lower to an `images` append and select as `{ kind: 'image' }`.
-export type AddableKind = ElementRef['kind'] | 'shapeRect' | 'shapeEllipse';
+// Effects are absent: they come from the animation picker (a library entry), never as a blank element.
+export type AddableKind = Exclude<ElementRef['kind'], 'effect'> | 'shapeRect' | 'shapeEllipse';
 
 type ShapeAddKind = 'shapeRect' | 'shapeEllipse';
 
@@ -69,14 +76,15 @@ const FIELD_FOR_KIND: Record<ArrayKind, ArrayField> = {
   text: 'overlays',
   image: 'images',
   animation: 'animations',
+  effect: 'graphics',
 };
 
 // Which element kinds each section kind owns. The arrays are optional on the model (absent when
 // empty), so ownership is keyed by section kind here rather than inferred from a present field.
 const OWNED_KINDS: Record<EditorSection['kind'], ReadonlyArray<ElementRef['kind']>> = {
-  video: ['text', 'image', 'animation'],
-  color: ['layer', 'text', 'image', 'animation'],
-  image: ['text', 'image', 'animation'],
+  video: ['text', 'image', 'animation', 'effect'],
+  color: ['layer', 'text', 'image', 'animation', 'effect'],
+  image: ['text', 'image', 'animation', 'effect'],
   music: [],
   form: [],
   partial: [],
@@ -90,8 +98,9 @@ const SUGAR_OWNERS: Record<SugarKind, ReadonlyArray<EditorSection['kind']>> = {
   lowerThird: ['video'],
 };
 
-// Stable flatten order: background layers, then text overlays, then image overlays, then animations.
-const KIND_ORDER: ReadonlyArray<ArrayKind> = ['layer', 'text', 'image', 'animation'];
+// Stable flatten order: background layers, then text overlays, then image overlays, then animations,
+// then engine effects.
+const KIND_ORDER: ReadonlyArray<ArrayKind> = ['layer', 'text', 'image', 'animation', 'effect'];
 
 // Sugar rows follow the array elements, in the engine's overlay draw order (registry 50/55/58).
 const SUGAR_ORDER: ReadonlyArray<SugarKind> = ['caption', 'titleCard', 'lowerThird'];
@@ -164,6 +173,9 @@ function elementPreview(element: unknown, kind: ArrayKind): string | undefined {
 
     if (kind === 'animation') return fileLabel((element as AnimationOverlay).url);
 
+    // A graphic the library does not offer (flash, bars…) reads as its type.
+    if (kind === 'effect') return (element as Graphic).type;
+
     return undefined;
   })();
 
@@ -196,13 +208,17 @@ function descriptorsFor(section: EditorSection, kind: ArrayKind): ElementDescrip
 
   if (!list) return [];
 
-  return list.map((element, index) => ({
-    ref: { kind, index },
-    kind,
-    labelKey: elementLabelKey(element, kind),
-    labelParams: { n: index + 1 },
-    previewText: elementPreview(element, kind),
-  }));
+  return list.map((element, index) => {
+    const entry = kind === 'effect' ? libraryEntryOfGraphic(element as Graphic) : undefined;
+
+    return {
+      ref: { kind, index },
+      kind,
+      labelKey: elementLabelKey(element, kind),
+      labelParams: { n: index + 1 },
+      ...(entry ? { previewKey: libraryLabelKey(entry.id) } : { previewText: elementPreview(element, kind) }),
+    };
+  });
 }
 
 // The identity-bearing line of a sugar singleton for its list row (the caption text, the card
@@ -251,7 +267,9 @@ export function listSectionElements(section: EditorSection): ElementDescriptor[]
 }
 
 // A fresh default element for `kind`, reusing the model's real factories.
-function newElement(kind: ArrayKind): TextOverlay | BackgroundLayer | ImageOverlay | AnimationOverlay {
+function newElement(
+  kind: Exclude<ArrayKind, 'effect'>
+): TextOverlay | BackgroundLayer | ImageOverlay | AnimationOverlay {
   if (kind === 'text') return newOverlay();
 
   if (kind === 'layer') return newExtraLayer();
@@ -331,6 +349,9 @@ export function removeElement(section: EditorSection, ref: ElementRef): Partial<
 
   const field = FIELD_FOR_KIND[ref.kind];
   const next = list.filter((_, index) => index !== ref.index);
+
+  // The section's graphics are carried in descriptor shape: no effects left means no `graphics` field.
+  if (field === 'graphics' && next.length === 0) return { graphics: undefined };
 
   return { [field]: next };
 }

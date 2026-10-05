@@ -688,14 +688,19 @@
       "targetCustom": "Área personalizada",
       "resetParam": "Volver {{label}} a auto",
       "custom": "Personalizado",
-      "previewHint": "Lo dibuja el motor: se ve en «Renderizar vista previa».",
+      "previewHint": "Vista previa en directo en el lienzo. El aspecto exacto se ve en «Renderizar vista previa».",
       "notTunable": "Este gráfico aún no tiene controles aquí. Edítalo en el editor JSON.",
       "token": {
         "accent": "Acento",
         "accent2": "Acento 2",
         "fg": "Texto",
         "bg": "Fondo"
-      }
+      },
+      "livePreview": "Vista previa en directo · aspecto exacto en Renderizar vista previa",
+      "livePreviewStill": "Vista fija (movimiento reducido) · efecto completo en Renderizar vista previa",
+      "livePreviewNone": "Nada que dibujar en este destino · ver Renderizar vista previa",
+      "renderScene": "Renderizar esta escena",
+      "renderSceneHint": "Un borrador rápido solo de esta escena, con el efecto exacto."
     },
     "param": {
       "at": "Empieza (s)",

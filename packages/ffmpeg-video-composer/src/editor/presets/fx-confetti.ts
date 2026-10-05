@@ -35,7 +35,7 @@ type Ctx = FxContext<'confetti'>;
 /** The overlay budget of one confetti graphic, every pass included. */
 export const CONFETTI_BUDGET = 36;
 /** A piece's long side in px at 1080p: big enough to read as paper at phone scale. */
-const DEFAULT_SIZE = 28;
+export const DEFAULT_SIZE = 28;
 const REDUCED_PIECES = 12;
 const TIERS = [
   { size: 0.4, alpha: 0.15 },
@@ -142,7 +142,7 @@ export function confettiPieces(fx: Ctx): Piece[] {
   return pieces.slice(0, fx.reduced ? Math.min(REDUCED_PIECES, perPass) : CONFETTI_BUDGET);
 }
 
-function spriteOf(key: string, size: number): SpriteSpec {
+export function spriteOf(key: string, size: number): SpriteSpec {
   const disc = key.startsWith('d');
   const [w, h] = disc ? [even(size * 0.6), even(size * 0.6)] : [even(size), even(size / 2)];
 

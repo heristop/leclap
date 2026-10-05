@@ -34,8 +34,8 @@ import { glintPasses, glintSpots, orbitLayers, OVERSHOOT, starSpec } from './fx-
 type Ctx = FxContext<'glint'>;
 
 /** Share of a star's life spent growing (the rest shrinks). */
-const GROW = 0.45;
-const SHRINK_EASE = 'cubic-bezier(0.4, 0, 1, 1)';
+export const GROW = 0.45;
+export const SHRINK_EASE = 'cubic-bezier(0.4, 0, 1, 1)';
 
 export interface Star {
   /** Centre in region px. */
@@ -56,7 +56,7 @@ export interface GlintPlan {
 }
 
 // Sizes, positions and timing; context defaults drawn in a fixed order: count, sizes, spots, order.
-function planOf(fx: Ctx): GlintPlan | null {
+export function planOf(fx: Ctx): GlintPlan | null {
   const g = fx.graphic;
   const k = frameScale(fx);
   const { x, y, w, h } = fx.target;

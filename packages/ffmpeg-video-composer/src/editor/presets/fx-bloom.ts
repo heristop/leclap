@@ -15,7 +15,7 @@ import { ambientRamps, even, fromWindow, hexOf, mix, rgbOf, softDither, type Rgb
 const WARM: Rgb = [0xff, 0xd9, 0xa8];
 const WHITE: Rgb = [255, 255, 255];
 
-interface Bloom {
+export interface Bloom {
   /** Luma on the full-range gray plane (yuv → gray stretches 16..235 to 0..255): mask start and full. */
   low: number;
   high: number;
@@ -25,7 +25,7 @@ interface Bloom {
 }
 
 // Context defaults, drawn in a fixed order: threshold, radius.
-function bloomOf(fx: FxContext<'bloom'>): Bloom {
+export function bloomOf(fx: FxContext<'bloom'>): Bloom {
   const g = fx.graphic;
   const [thresholdDraw, radiusDraw] = [fx.random(), fx.random()];
   const threshold = g.threshold ?? 0.68 + thresholdDraw * 0.1;

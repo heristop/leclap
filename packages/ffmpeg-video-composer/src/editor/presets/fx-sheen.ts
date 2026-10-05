@@ -28,7 +28,7 @@ const REDUCED_ALPHA = 0.08;
 /** gblur σ as a share of the spacing between stops: rounds the joints of the linear stops, keeps the profile. */
 const SMOOTHING = 0.2;
 
-interface Band {
+export interface Band {
   /** Travel along x (right/left) or y (down/up). */
   horizontal: boolean;
   forward: boolean;
@@ -53,7 +53,7 @@ function even(value: number): number {
 }
 
 // Context defaults, drawn in a fixed order from the element's seeded stream: tilt, then width jitter.
-function bandOf(fx: FxContext<'sheen'>): Band {
+export function bandOf(fx: FxContext<'sheen'>): Band {
   const g = fx.graphic;
   const { w, h } = fx.target;
   const tiltDefault = 14 + Math.round(fx.random() * 24) / 2;

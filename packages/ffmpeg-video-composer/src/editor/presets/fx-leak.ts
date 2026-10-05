@@ -40,12 +40,12 @@ const OFFSET = 0.15;
 const SPAN = 46;
 /** Width of the ramp below the light's own luma where the picture is handed back (full-range gray). */
 const KNEE = 28;
-const REDUCED_GAIN = 0.6;
+export const REDUCED_GAIN = 0.6;
 const WHITE: Rgb = [255, 255, 255];
 /** How far toward white the lobe's centre runs. */
 const HOT_CORE = 0.45;
 
-interface Lobe {
+export interface Lobe {
   /** Centre at the start of the pass, target px. */
   cx: number;
   cy: number;
@@ -56,7 +56,7 @@ interface Lobe {
   alpha: number;
 }
 
-interface Plan {
+export interface LeakPlan {
   lobes: Lobe[];
   /** Drift over the pass, px. */
   dx: number;
@@ -154,7 +154,7 @@ function lobesOf(fx: FxContext<'leak'>, r: number[], geo: Geometry): Lobe[] {
   return second.alpha > 0.004 ? [first, second] : [first];
 }
 
-function plan(fx: FxContext<'leak'>): Plan {
+export function plan(fx: FxContext<'leak'>): LeakPlan {
   const r = draws(fx);
   const geo = geometry(fx, r);
   const drift = (fx.graphic.drift ?? (r[4] < 0.5 ? -1 : 1) * (0.06 + r[4] * 0.04)) * geo.length;
@@ -163,7 +163,7 @@ function plan(fx: FxContext<'leak'>): Plan {
 }
 
 /** A hotter, whiter core fading to the lobe's own colour by mid-radius: an exposure, not a tint. */
-function stopColor(color: string, u: number): string {
+export function stopColor(color: string, u: number): string {
   const base = rgbOf(color) ?? AMBER;
 
   return hexOf(mix(mix(base, WHITE, HOT_CORE), base, Math.min(1, u * 1.8)));
@@ -212,7 +212,7 @@ function lobeSource(fx: FxContext<'leak'>, lobe: Lobe, side: number, key: string
   return { filters: [{ type: 'gradients', value }, ...firstFrame(fx), { type: 'format', value: 'yuva444p' }] };
 }
 
-function lobeLayer(fx: FxContext<'leak'>, lobe: Lobe, index: number, travel: Plan): FxLayer | null {
+function lobeLayer(fx: FxContext<'leak'>, lobe: Lobe, index: number, travel: LeakPlan): FxLayer | null {
   const label = `${fx.prefix}lk${index}`;
   const side = even(Math.max(lobe.rx, lobe.ry));
   const source = lobeSource(fx, lobe, side, `lobe${index}`);

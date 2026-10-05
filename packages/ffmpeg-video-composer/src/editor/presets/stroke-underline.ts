@@ -14,9 +14,9 @@ import { entrancePhase, exitPhase, type StrokePhase } from './stroke-timeline';
 import { SMOOTH, even, splitColor, spriteInput, warn } from './stroke-kit';
 import type { StrokeRequest } from './sugar-context';
 
-type UnderlineRequest = StrokeRequest & { graphic: { type: 'underline' } };
+export type UnderlineRequest = StrokeRequest & { graphic: { type: 'underline' } };
 
-interface Extent {
+export interface Extent {
   from: number;
   to: number | undefined;
   /** Left and right ends of the whole line, caps included. */
@@ -45,7 +45,7 @@ function span(origin: string, x: number, width: number, p: number): { left: numb
   return origin === 'right' ? { left: x + width - w, right: x + width } : { left: x, right: x + w };
 }
 
-interface Line {
+export interface Line {
   x: number;
   y: number;
   width: number;
@@ -66,7 +66,7 @@ function lineOf(request: UnderlineRequest): Line {
   };
 }
 
-interface Setup {
+export interface Setup {
   line: Line;
   fps: number;
   entrance: StrokePhase;
@@ -89,7 +89,7 @@ function exitOf(request: UnderlineRequest, kind: string, duration: number, entra
   return exitPhase(request.until ?? request.ctx.duration, duration, entrance.start + entrance.frames / fps, fps);
 }
 
-function setup(request: UnderlineRequest): Setup {
+export function setup(request: UnderlineRequest): Setup {
   const g = request.graphic;
   const fps = request.ctx.fps;
   const line = lineOf(request);
@@ -144,7 +144,7 @@ function exitExtents(s: Setup): Extent[] {
   }));
 }
 
-function extents(request: UnderlineRequest, s: Setup): Extent[] {
+export function extents(request: UnderlineRequest, s: Setup): Extent[] {
   const g = request.graphic;
   const curve = settleCurve(parseEasing(g.ease ?? STROKE_V2_DEFAULTS.underline.ease).fn, g.settle ?? 0.03);
   const settled = s.entrance.start + s.entrance.frames / s.fps;

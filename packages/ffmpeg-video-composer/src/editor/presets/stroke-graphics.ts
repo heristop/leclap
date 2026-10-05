@@ -57,7 +57,7 @@ function boxOf(request: OutlineRequest): Rect | null {
   return right - x >= 8 && bottom - y >= 8 ? { x, y, w: right - x, h: bottom - y } : null;
 }
 
-function outline(request: OutlineRequest, box: Rect): Outline {
+export function outline(request: OutlineRequest, box: Rect): Outline {
   const g = request.graphic;
   const defaults = STROKE_V2_DEFAULTS[g.type];
   const fps = request.ctx.fps;
@@ -87,7 +87,7 @@ function probePoints(o: Outline): Array<{ x: number; y: number }> {
   return xs.flatMap((px, i) => ys.flatMap((py, j) => (i === 1 && j === 1 ? [] : [{ x: px, y: py }])));
 }
 
-interface Ink {
+export interface Ink {
   color: string;
   alpha: number;
   shadow: StrokeShadow | null;
@@ -101,7 +101,7 @@ function backgroundLumas(o: Outline): (number | null)[] {
   });
 }
 
-function inkOf(o: Outline): Ink {
+export function inkOf(o: Outline): Ink {
   const g = o.request.graphic;
   const authored = g.color ? (o.request.ctx.masks?.color(g.color) ?? g.color) : null;
   const { hex, alpha } = splitColor(authored ?? `${INK}@${g.type === 'frame' ? 0.9 : 1}`);

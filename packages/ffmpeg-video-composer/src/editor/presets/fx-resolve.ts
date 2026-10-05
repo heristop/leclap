@@ -18,7 +18,7 @@ import { fmt } from '@/core/motion/hermite';
 import { mergeRuns, sampleSteps } from './graphics-spec';
 import type { AnyFxContext, FxContext, FxEffect, FxLayer } from './fx-kit';
 
-interface Look {
+export interface Look {
   /** Defocus σ at the start, px. */
   blur: number;
   /** Starting scale (≥ 1). */
@@ -40,7 +40,7 @@ const GLOW = 0.28;
 const TEXT_PAD = 1.6;
 
 // Context defaults, drawn in a fixed order: blur, then scale. `short` is the element's short side.
-function lookOf(fx: FxContext<'resolve'>, short: number): Look {
+export function lookOf(fx: FxContext<'resolve'>, short: number): Look {
   const g = fx.graphic;
   const amount = fx.reduced ? 0 : (g.intensity ?? 1);
   const blur = (g.blur ?? 0.035 + fx.random() * 0.02) * short * amount;

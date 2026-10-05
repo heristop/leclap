@@ -36,13 +36,13 @@ type Ctx = FxContext<'ripple'>;
 /** The ring's alpha relative to the peak (the full 0.85 peak: it decays as (1 - p)², so it must start strong to read on a dark card). */
 const RING_ALPHA = 1;
 /** Seconds of the tap's press (down then release). */
-const PRESS = 0.12;
+export const PRESS = 0.12;
 /** Ring stroke in px at 1080p. */
 const DEFAULT_STROKE = 5;
-const RELEASE_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
-const PRESS_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
+export const RELEASE_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
+export const PRESS_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
-interface Plan {
+export interface RipplePlan {
   tap: boolean;
   /** Final ring radius, ring sprite side, dot sprite side (px). */
   radius: number;
@@ -81,7 +81,7 @@ function colorOf(fx: Ctx): string {
   return (fx.graphic.color ? spriteHex(fx.color) : themeColors(fx, ['accent'])[0]) ?? 'ffffff';
 }
 
-function planOf(fx: Ctx): Plan | null {
+export function planOf(fx: Ctx): RipplePlan | null {
   const g = fx.graphic;
   const tap = g.variant === 'tap';
   const ring = ringOf(fx, tap);
@@ -130,7 +130,7 @@ interface Window {
 }
 
 // Ring i of a pass starting at `t0`: after the press for a tap, every ring inside the pass.
-function ringWindow(fx: Ctx, plan: Plan, t0: number, i: number): Window {
+export function ringWindow(fx: Ctx, plan: RipplePlan, t0: number, i: number): Window {
   const lead = plan.tap ? PRESS * 0.4 : 0;
   const frame = 1 / fx.frame.fps;
   const stagger = Math.min(plan.stagger, (fx.duration - lead) / (plan.rings + 1));
@@ -139,7 +139,7 @@ function ringWindow(fx: Ctx, plan: Plan, t0: number, i: number): Window {
   return { start: t0 + lead + i * stagger, life };
 }
 
-function ringFilters(fx: Ctx, plan: Plan, win: Window): Filter[] {
+function ringFilters(fx: Ctx, plan: RipplePlan, win: Window): Filter[] {
   const p = easedProgressExpr(parseEasing(fx.ease), { delay: win.start, duration: win.life });
   const ramp = Math.min(rampOf(fx), win.life / 3);
 
@@ -152,7 +152,7 @@ function ringFilters(fx: Ctx, plan: Plan, win: Window): Filter[] {
 }
 
 // The dot of a tap: (1 - press) → (1 - 2·press) → 1 over PRESS, then a fade over the pass's second half.
-function dotFilters(fx: Ctx, plan: Plan, t0: number): Filter[] {
+function dotFilters(fx: Ctx, plan: RipplePlan, t0: number): Filter[] {
   const press = fx.graphic.press ?? 0.09;
   const down = easedProgressExpr(parseEasing(PRESS_EASE), { delay: t0, duration: PRESS * 0.4 });
   const up = easedProgressExpr(parseEasing(RELEASE_EASE), { delay: t0 + PRESS * 0.4, duration: PRESS * 0.6 });
@@ -167,7 +167,7 @@ function dotFilters(fx: Ctx, plan: Plan, t0: number): Filter[] {
   ];
 }
 
-function layer(label: string, filters: Filter[], plan: Plan, out: string): FxLayer {
+function layer(label: string, filters: Filter[], plan: RipplePlan, out: string): FxLayer {
   return { chains: [{ inputs: [label], filters, outputs: [out] }], label: out, ...centredAt(plan.cx, plan.cy) };
 }
 
@@ -175,7 +175,7 @@ function passStarts(fx: Ctx): number[] {
   return Array.from({ length: fx.passes }, (_, i) => fx.at + i * fx.every).filter((t0) => t0 < fx.end);
 }
 
-function rings(fx: Ctx, plan: Plan): FxLayer[] | null {
+function rings(fx: Ctx, plan: RipplePlan): FxLayer[] | null {
   const starts = passStarts(fx);
   const windows = starts.flatMap((t0) => Array.from({ length: plan.rings }, (_, i) => ringWindow(fx, plan, t0, i)));
   const stream = spriteStream(fx, 'ring', plan.spec, windows.length, alphaScale(fx.peak * RING_ALPHA));
@@ -189,7 +189,7 @@ function rings(fx: Ctx, plan: Plan): FxLayer[] | null {
   return [{ ...layers[0], chains: [...stream.chains, ...layers[0].chains] }, ...layers.slice(1)];
 }
 
-function dots(fx: Ctx, plan: Plan): FxLayer[] | null {
+function dots(fx: Ctx, plan: RipplePlan): FxLayer[] | null {
   const starts = passStarts(fx);
   const spec: SpriteSpec = { kind: 'piece', shape: 'disc', w: plan.dot, h: plan.dot, color: plan.color };
   const stream = spriteStream(fx, 'dot', spec, starts.length, alphaScale(fx.peak));
@@ -202,7 +202,7 @@ function dots(fx: Ctx, plan: Plan): FxLayer[] | null {
 }
 
 // Reduced motion: the ring (or the dot) still, at its middle size, faded in then out over the window.
-function pulse(fx: Ctx, plan: Plan): FxLayer[] | null {
+function pulse(fx: Ctx, plan: RipplePlan): FxLayer[] | null {
   const [key, spec, base] = plan.tap
     ? ['dot', { kind: 'piece', shape: 'disc', w: plan.dot, h: plan.dot, color: plan.color } as SpriteSpec, plan.dot]
     : ['ring', plan.spec, even(plan.side * (plan.start + 1) * 0.5)];

@@ -13,11 +13,11 @@ import { shiftTo, sourceTiming, type FxContext, type FxEffect, type FxLayer } fr
 import { ambientRamps, even, softDither } from './fx-light-kit';
 
 /** Near-black with a hint of warmth: a lens falloff, not a grey wash. */
-const SHADE = '#0A0806';
-const RAMP = 0.6;
+export const SHADE = '#0A0806';
+export const RAMP = 0.6;
 const STOPS = 8;
 
-interface Vignette {
+export interface Vignette {
   angle: number;
   swing: number;
   period: number;
@@ -28,7 +28,7 @@ interface Vignette {
 }
 
 // Context defaults, drawn in a fixed order: angle, period, focus x, focus y.
-function vignetteOf(fx: FxContext<'vignette-breathe'>): Vignette {
+export function vignetteOf(fx: FxContext<'vignette-breathe'>): Vignette {
   const g = fx.graphic;
   const draws = [fx.random(), fx.random(), fx.random(), fx.random()];
   const angle = g.angle ?? 0.55 + draws[0] * 0.15;

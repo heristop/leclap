@@ -24,6 +24,8 @@ import { AgentActivity } from '../agent/AgentActivity';
 import { AgentConfirmDialog } from '../agent/AgentConfirmDialog';
 import type { BuilderAgent } from '../agent/use-builder-agent';
 
+export { SceneRenderScope } from '../editor/scene-render-context';
+
 interface ShellTitlebarProps {
   state: EditorState;
   onNameChange: (name: string) => void;

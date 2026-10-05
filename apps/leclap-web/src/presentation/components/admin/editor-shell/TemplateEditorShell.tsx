@@ -17,7 +17,7 @@ import { useSectionSelection } from './useSectionSelection';
 import { EditorPanelSwitch } from './EditorPanelSwitch';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
 import { useBuilderAgent, useProgramMonitor, useTemplatePersistence } from './use-template-editor-shell';
-import { ShellTitlebar, ShellMonitor, ShellModals, useShellModals } from './shell-slots';
+import { ShellTitlebar, ShellMonitor, ShellModals, useShellModals, SceneRenderScope } from './shell-slots';
 import { sectionLabelKey, sectionTitle } from './section-label';
 
 interface TemplateEditorShellProps {
@@ -194,19 +194,21 @@ export const TemplateEditorShell = ({
           />
         }
         panel={
-          <EditorPanelSwitch
-            activeTool={sel.activeTool}
-            state={state}
-            section={selectedSection}
-            partials={listAvailablePartials(localPartials)}
-            patch={patch}
-            patchSection={(p) => {
-              patchSection(sel.selectedIndex, p);
-            }}
-            onImport={reset}
-            selection={sectionSelection.state}
-            onSelectElement={sectionSelection.selectElement}
-          />
+          <SceneRenderScope state={state} sectionIndex={sel.selectedIndex} preview={agent.preview}>
+            <EditorPanelSwitch
+              activeTool={sel.activeTool}
+              state={state}
+              section={selectedSection}
+              partials={listAvailablePartials(localPartials)}
+              patch={patch}
+              patchSection={(p) => {
+                patchSection(sel.selectedIndex, p);
+              }}
+              onImport={reset}
+              selection={sectionSelection.state}
+              onSelectElement={sectionSelection.selectElement}
+            />
+          </SceneRenderScope>
         }
         monitor={
           <ShellMonitor

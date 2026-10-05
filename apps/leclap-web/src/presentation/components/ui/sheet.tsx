@@ -79,10 +79,11 @@ const SheetContent = React.forwardRef<React.ComponentRef<typeof DialogPrimitive.
         >
           {side === 'bottom' && <SheetHandle />}
           {children}
+          {/* Above the content's pinned header (z-10), which would otherwise take the clicks. */}
           <DialogPrimitive.Close
             aria-label={t('actions.close')}
             className={cn(
-              "tap cursor-pointer absolute right-3 grid h-10 w-10 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 before:absolute before:-inset-1.5 before:content-['']",
+              "tap cursor-pointer absolute right-3 z-20 grid h-10 w-10 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 before:absolute before:-inset-1.5 before:content-['']",
               side === 'bottom' ? 'top-5' : 'top-3'
             )}
           >

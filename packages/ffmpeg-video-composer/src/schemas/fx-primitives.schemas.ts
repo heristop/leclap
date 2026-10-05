@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { confetti, glint, ripple } from './fx-celebrate.schemas';
+import { bokeh, dust } from './fx-particles.schemas';
+import { glass, resolve } from './fx-surface.schemas';
 
 // ── fx primitives: the parameter surface of every procedural effect ─────────────
 //
@@ -98,6 +100,9 @@ const sheen = {
  * Every fx primitive, keyed by `effect`. Adding one: a row here (fields + intent), its lowering module
  * editor/presets/fx-<name>.ts and one line in the registry of editor/presets/fx.ts.
  */
-export const FX_PRIMITIVES = { sheen, ripple, glint, confetti } as const satisfies Record<string, FxPrimitive>;
+export const FX_PRIMITIVES = { sheen, ripple, glint, confetti, bokeh, dust, glass, resolve } as const satisfies Record<
+  string,
+  FxPrimitive
+>;
 
 export type FxEffectName = keyof typeof FX_PRIMITIVES;

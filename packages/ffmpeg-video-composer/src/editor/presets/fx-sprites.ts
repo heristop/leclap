@@ -24,7 +24,18 @@ export {
 } from './fx-sprite-shapes';
 
 const SCHEME = 'sprite:';
-const KINDS: readonly SpriteKind[] = ['disc', 'ring', 'star', 'stroke', 'mask', 'piece', 'band'];
+const KINDS: readonly SpriteKind[] = [
+  'disc',
+  'ring',
+  'star',
+  'stroke',
+  'mask',
+  'piece',
+  'band',
+  'bokeh',
+  'rim',
+  'feather',
+];
 const NUMERIC = ['w', 'h', 'sigma', 'radius', 'stroke', 'halo', 'flare', 'width', 'tilt', 'bloom', 'peak'] as const;
 const WORDS = ['shape', 'profile'] as const;
 const ALLOWED: Record<(typeof WORDS)[number], readonly string[]> = {
@@ -59,11 +70,11 @@ function writePixel(data: Uint8Array, i: number, value: number, rgb: [number, nu
   data[i] = value;
 }
 
-/** The sprite's pixels: grayscale for a `mask` (an alphamerge input), straight-alpha RGBA otherwise. */
+/** The sprite's pixels: grayscale for a `mask`/`feather` (alphamerge inputs), straight-alpha RGBA otherwise. */
 export function spriteImage(spec: SpriteSpec): PngImage {
   const [width, height] = [clampSide(spec.w), clampSide(spec.h)];
   const coverage = spriteCoverage({ ...spec, w: width, h: height });
-  const channels = spec.kind === 'mask' ? 1 : 4;
+  const channels = spec.kind === 'mask' || spec.kind === 'feather' ? 1 : 4;
   const data = new Uint8Array(width * height * channels);
   const rgb = channels === 4 ? colorOf(spec) : null;
 

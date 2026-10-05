@@ -24,8 +24,21 @@ export {
 } from './fx-sprite-shapes';
 
 const SCHEME = 'sprite:';
-const KINDS: readonly SpriteKind[] = ['disc', 'ring', 'star', 'stroke', 'mask', 'piece', 'band'];
-const NUMERIC = ['w', 'h', 'sigma', 'radius', 'stroke', 'halo', 'flare', 'width', 'tilt', 'bloom', 'peak'] as const;
+const KINDS: readonly SpriteKind[] = ['disc', 'ring', 'star', 'stroke', 'mask', 'piece', 'band', 'glow'];
+const NUMERIC = [
+  'w',
+  'h',
+  'sigma',
+  'radius',
+  'stroke',
+  'halo',
+  'flare',
+  'width',
+  'tilt',
+  'bloom',
+  'peak',
+  'inset',
+] as const;
 const WORDS = ['shape', 'profile'] as const;
 const ALLOWED: Record<(typeof WORDS)[number], readonly string[]> = {
   shape: ['rect', 'disc'],

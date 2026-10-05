@@ -54,6 +54,11 @@ export type AnyFxContext = FxContext<FxEffectName>;
 export interface FxEffect<N extends FxEffectName> {
   // Method syntax on purpose: the registry holds each primitive's FxEffect<N> as FxEffect<FxEffectName>.
   lower(fx: FxContext<N>): FxLayer[] | null;
+  /**
+   * The rectangle the light is drawn in when it is not the target itself (a glow AROUND a card); it is
+   * not clipped to the target's shape, so the layers carry their own shape. Default: the target.
+   */
+  canvas?(fx: FxContext<N>): FxTargetRect;
 }
 
 /** One light layer: chains producing `label` (target-sized coordinates), laid over the region at x/y. */
@@ -63,6 +68,12 @@ export interface FxLayer {
   /** Overlay position expressions in target pixels (evaluated per frame, `t` = section time). */
   x: string;
   y: string;
+  /**
+   * Labels the kit feeds with copies of the picture under the effect (the region, cropped and bounded to
+   * the window, before any light), for light built from the frame itself: halation, grain, a leak that
+   * spares the shadows. Each label is consumed once by the layer's chains.
+   */
+  taps?: string[];
 }
 
 const STRETCH = "y='clip((val-16)*255/219,0,255)'";
@@ -80,13 +91,15 @@ export function shiftTo(fx: AnyFxContext): Filter {
 }
 
 /**
- * Seeded, temporal dither on the light's ALPHA (what a light layer is quantised by), inside the light only:
- * the floor zeroes the noise where the layer is empty. Converts the layer to yuva444p.
+ * Seeded dither on the light's ALPHA (what a light layer is quantised by), inside the light only: the floor
+ * zeroes the noise where the layer is empty. ±1 alpha step (well under one code value once composited)
+ * and STATIC: the pattern rides with the layer instead of fizzing every frame, so it breaks the 8-bit
+ * steps of a slow falloff without adding texture an encoder smears into blotches. Converts to yuva444p.
  */
 export function ditherFilters(fx: AnyFxContext): Filter[] {
   return [
     { type: 'format', value: 'yuva444p' },
-    { type: 'noise', value: `c3s=${DITHER.strength}:c3f=t+u:all_seed=${fx.seed % 2147483647}` },
+    { type: 'noise', value: `c3s=${DITHER.strength}:c3f=u:all_seed=${fx.seed % 2147483647}` },
     { type: 'lutyuv', value: `a='if(lt(val,${DITHER.floor}),0,val)'` },
   ];
 }
@@ -154,6 +167,8 @@ export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphC
   });
   const litLabel = `${p}o${layers.length - 1}`;
   const masked = maskChains(fx, litLabel, `${p}l`);
+  const taps = layers.flatMap((layer) => layer.taps ?? []);
+  const fork: Filter[] = taps.length > 0 ? [{ type: 'split', value: String(taps.length + 1) }] : [];
 
   if (masked === false) return null;
 
@@ -163,11 +178,8 @@ export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphC
     { filters: [{ type: 'split', value: '2' }], outputs: [`${p}m`, `${p}r0`] },
     {
       inputs: [`${p}r0`],
-      filters: [
-        { type: 'trim', value: `end=${fmt(fx.end)}` },
-        { type: 'crop', value: `${w}:${h}:${x}:${y}` },
-      ],
-      outputs: [`${p}r`],
+      filters: [{ type: 'trim', value: `end=${fmt(fx.end)}` }, { type: 'crop', value: `${w}:${h}:${x}:${y}` }, ...fork],
+      outputs: [`${p}r`, ...taps],
     },
     ...layers.flatMap((layer) => layer.chains),
     ...lit,

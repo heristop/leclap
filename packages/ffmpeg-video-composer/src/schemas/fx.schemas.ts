@@ -141,6 +141,9 @@ export const FxGraphicSchema = z
       'fits this template instead of a stock look. Omitted fields derive from the target, theme and energy.'
   );
 
-export type FxGraphic = z.infer<typeof FxGraphicSchema>;
-/** The fx graphic of one primitive, with its own fields typed. */
-export type FxGraphicOf<N extends FxEffectName> = z.infer<ReturnType<typeof fxObject<N>>>;
+type FxShape<N extends FxEffectName> = { type: z.ZodLiteral<'fx'>; effect: z.ZodLiteral<N> } & typeof FX_COMMON &
+  (typeof FX_PRIMITIVES)[N]['params'];
+/** The fx graphic of one primitive, with its own fields typed (a mapped type, so primitives never mix). */
+export type FxGraphicOf<N extends FxEffectName> =
+  FxShape<N> extends z.ZodRawShape ? z.infer<z.ZodObject<FxShape<N>>> : never;
+export type FxGraphic = { [N in FxEffectName]: FxGraphicOf<N> }[FxEffectName];

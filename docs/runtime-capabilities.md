@@ -66,6 +66,7 @@
 | `trim`              | yes               | yes                       | yes                        |
 | `trim`              | yes               | yes                       | yes                        |
 | `vflip`             | yes               | yes                       | yes                        |
+| `vignette`          | yes               | yes                       | yes                        |
 | `volume`            | yes               | yes                       | yes                        |
 | `xfade`             | yes               | yes                       | yes                        |
 | `zoompan`           | yes               | yes                       | yes                        |

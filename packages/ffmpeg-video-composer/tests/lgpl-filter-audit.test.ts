@@ -19,6 +19,7 @@ import type { Filter } from '@/core/types';
 import { VOICE_FILTERS, VOICE_PRESETS, voiceChain } from '@/core/audio/voice-presets';
 import { sfxGraph } from '@/editor/utils/sfx-mix';
 import { REGISTERED_FX, lowerFx } from '@/editor/presets/fx';
+import { FX_PRIMITIVES } from '@/schemas/fx.schemas';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const commonSh = fs.readFileSync(path.resolve(here, '../../../scripts/ffmpeg/common.sh'), 'utf8');
@@ -215,7 +216,10 @@ describe('LGPL device filter audit', () => {
       )
     );
 
-    expect(lowered.length).toBe(REGISTERED_FX.length * targets.length * 4);
+    // Ambient primitives whose reduced-motion form is "absent" lower to nothing at energy 0.
+    const absent = REGISTERED_FX.filter((effect) => FX_PRIMITIVES[effect].intent.reduced === 'absent').length;
+
+    expect(lowered.length).toBe((REGISTERED_FX.length * 4 - absent * 2) * targets.length);
 
     for (const type of types(lowered)) {
       expect(enabled.has(type), `fx emits "${type}"`).toBe(true);

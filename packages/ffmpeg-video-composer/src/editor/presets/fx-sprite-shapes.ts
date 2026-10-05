@@ -2,7 +2,7 @@
 // Kept apart from the encoder/URL plumbing (fx-sprites.ts). Light shapes fall off as gaussians (no edge
 // anywhere); solid shapes (strokes, masks, confetti) get a 1 px anti-aliased edge from a signed distance.
 
-export type SpriteKind = 'disc' | 'ring' | 'star' | 'stroke' | 'mask' | 'piece' | 'band';
+export type SpriteKind = 'disc' | 'ring' | 'star' | 'stroke' | 'mask' | 'piece' | 'band' | 'glow';
 
 /** Light profiles across a band: a specular core with bloom, one soft wash, or two thin parallel glints. */
 export const BAND_PROFILES = ['specular', 'soft', 'twin'] as const;
@@ -20,6 +20,8 @@ export type BandProfile = (typeof BAND_PROFILES)[number];
  * - band: tilted light band through the centre, `tilt` degrees off vertical, peak alpha `peak`, shaped by
  *   `profile` (bandProfile): specular = core of extent `width` px (±2σ) plus a bloom twice as wide
  *   carrying `bloom` of the peak; soft = one wider gaussian (σ = width / 3); twin = two thin cores.
+ * - glow: gaussian bloom of σ `sigma` px, peak alpha `peak`, OUTSIDE a centred rounded rectangle inset
+ *   `inset` px from every image edge (corner `radius` px); exactly transparent inside it.
  */
 export interface SpriteSpec {
   kind: SpriteKind;
@@ -36,6 +38,7 @@ export interface SpriteSpec {
   tilt?: number;
   bloom?: number;
   peak?: number;
+  inset?: number;
   shape?: 'rect' | 'disc';
   profile?: BandProfile;
 }
@@ -136,7 +139,29 @@ function band(spec: SpriteSpec): Coverage {
   return (x, y) => bandProfile(x * nx + y * ny, spec);
 }
 
-const SHAPES: Record<SpriteKind, (spec: SpriteSpec) => Coverage> = { disc, ring, star, stroke, mask, piece, band };
+// Light that starts at the rectangle's edge (anti-aliased over 1 px) and falls off outward only.
+function glow(spec: SpriteSpec): Coverage {
+  const inset = spec.inset ?? 0;
+  const rect = { w: spec.w - 2 * inset, h: spec.h - 2 * inset, radius: spec.radius };
+  const sigma = spec.sigma ?? 10;
+
+  return (x, y) => {
+    const d = roundedRectDistance(x, y, rect);
+
+    return (spec.peak ?? 1) * clamp01(d + 0.5) * gauss(Math.max(0, d), sigma);
+  };
+}
+
+const SHAPES: Record<SpriteKind, (spec: SpriteSpec) => Coverage> = {
+  disc,
+  ring,
+  star,
+  stroke,
+  mask,
+  piece,
+  band,
+  glow,
+};
 
 /** The coverage function of a sprite, in pixel-centre coordinates relative to the image centre. */
 export function spriteCoverage(spec: SpriteSpec): Coverage {

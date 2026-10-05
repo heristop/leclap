@@ -11,7 +11,9 @@
 //      lets `lightInTarget` crop, clip and composite them. Derive omitted parameters from the context
 //      (target size and aspect, fx.random, fx.energy, fx.color) so untuned effects differ per template.
 //      Use only on-device filters (scripts/ffmpeg/common.sh), gate optional ones with `fx.has(...)` and
-//      keep a fallback (compile-time sprites: fx-sprites.ts, fx.sprite). Honour `fx.reduced`.
+//      keep a fallback (compile-time sprites: fx-sprites.ts, fx.sprite). Honour `fx.reduced` (return [] for
+//      "absent": no warning). Light built from the picture itself (halation, grain) asks the kit for copies of
+//      the region through a layer's `taps`; light drawn AROUND its target (a glow) declares a `canvas`.
 //   3. One line in FX_EFFECTS below. Then add the primitive to tests/lgpl-filter-audit.test.ts (FX_AUDIT).
 //
 // The dispatcher owns everything shared: target resolution (fx-target.ts), timing (`at` snapped to a frame,
@@ -30,11 +32,21 @@ import { resolveFxTarget, type FxTargetRect } from './fx-target';
 import { spriteUrl } from './fx-sprites';
 import { lightInTarget, type AnyFxContext, type FxEffect } from './fx-kit';
 import { SHEEN } from './fx-sheen';
+import { LEAK } from './fx-leak';
+import { EDGE_GLOW } from './fx-edge-glow';
+import { BLOOM } from './fx-bloom';
+import { VIGNETTE_BREATHE } from './fx-vignette';
+import { GRAIN } from './fx-grain';
 import type { FxRequest } from './sugar-context';
 
 /** The registry: one line per primitive. */
 const FX_EFFECTS: { readonly [N in FxEffectName]?: FxEffect<N> } = {
   sheen: SHEEN,
+  leak: LEAK,
+  'edge-glow': EDGE_GLOW,
+  bloom: BLOOM,
+  'vignette-breathe': VIGNETTE_BREATHE,
+  grain: GRAIN,
 };
 
 /** Names of the primitives with a lowering (the rest of FX_PRIMITIVES validate but render nothing yet). */
@@ -171,7 +183,11 @@ export function lowerFx(request: FxRequest): Filter[] {
 
   const fx = context(request, target, time);
   const layers = effect.lower(fx);
-  const graph = layers && layers.length > 0 ? lightInTarget(fx, layers) : null;
+
+  // An empty list is a deliberate "nothing" (an ambient texture under reduced motion): no warning.
+  if (layers?.length === 0) return [];
+
+  const graph = layers ? lightInTarget(effect.canvas ? { ...fx, target: effect.canvas(fx) } : fx, layers) : null;
 
   if (!graph) {
     warn(request, 'fx_skipped', 'this build or segment cannot draw it (missing filter or extra input); skipped');

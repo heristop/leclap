@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { BLOOM, GRAIN, VIGNETTE_BREATHE } from './fx-ambient.schemas';
+import { EDGE_GLOW, LEAK } from './fx-light.schemas';
 
 // ── fx primitives: the parameter surface of every procedural effect ─────────────
 //
@@ -97,6 +99,13 @@ const sheen = {
  * Every fx primitive, keyed by `effect`. Adding one: a row here (fields + intent), its lowering module
  * editor/presets/fx-<name>.ts and one line in the registry of editor/presets/fx.ts.
  */
-export const FX_PRIMITIVES = { sheen } as const;
+export const FX_PRIMITIVES = {
+  sheen,
+  leak: LEAK satisfies FxPrimitive,
+  'edge-glow': EDGE_GLOW satisfies FxPrimitive,
+  bloom: BLOOM satisfies FxPrimitive,
+  'vignette-breathe': VIGNETTE_BREATHE satisfies FxPrimitive,
+  grain: GRAIN satisfies FxPrimitive,
+} as const;
 
 export type FxEffectName = keyof typeof FX_PRIMITIVES;

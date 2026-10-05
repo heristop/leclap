@@ -12,7 +12,9 @@ import {
   findBackground,
   type MediaCredit,
 } from '@leclap/creative-kit/media';
+import { libraryLabelKey, sampleEntries } from '@leclap/creative-kit/editor';
 import { ANIMATION_ASSETS } from './animation-assets.generated';
+import { ANIMATION_THUMB_POSTERS } from './animation-thumbs.generated';
 import { EMOJI_ASSETS } from './emoji-assets.generated';
 
 export { ANIMATION_ASSETS, EMOJI_ASSETS };
@@ -126,6 +128,25 @@ export const ANIMATION_LIBRARY: AnimationAsset[] = Object.entries(ANIMATION_ASSE
 
 export const findAnimationByUrl = (url: string): AnimationAsset | undefined =>
   ANIMATION_LIBRARY.find((a) => a.url === url);
+
+// The picker's Samples: the legacy overlays it still lists (animation_icons hidden, spec_orbit merged into
+// the orbit glint), each with its i18n label key and the still poster cut from a showcase render.
+export interface SampleAsset extends AnimationAsset {
+  labelKey: string;
+  poster?: number;
+}
+
+export const SAMPLE_LIBRARY: SampleAsset[] = sampleEntries(Object.keys(ANIMATION_ASSETS).sort()).flatMap((sample) => {
+  const asset = ANIMATION_LIBRARY.find((animation) => animation.file === sample.file);
+
+  return asset
+    ? [{ ...asset, labelKey: libraryLabelKey(sample.id), poster: ANIMATION_THUMB_POSTERS[`sample:${sample.id}`] }]
+    : [];
+});
+
+/** The still poster of an engine library entry (fx or graphic), if the thumbnails were generated. */
+export const enginePoster = (kind: 'fx' | 'graphic', id: string): number | undefined =>
+  ANIMATION_THUMB_POSTERS[`${kind}:${id}`];
 
 export const musicAsset = (id: string): number | undefined => {
   const f = findMusic(id)?.file;

@@ -6,7 +6,7 @@
 import { useState, type ComponentType, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
-import { Image, Square, Trash2, Type } from '@/presentation/components/icons';
+import { Image, Square, Trash2, Type, Zap } from '@/presentation/components/icons';
 import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
 import { ChevronUpIcon } from '@/presentation/components/icons/chevron-up';
 import { SparklesIcon } from '@/presentation/components/icons/sparkles';
@@ -22,6 +22,7 @@ const KIND_ICON: Record<ElementRef['kind'], ComponentType<{ className?: string }
   text: Type,
   image: Image,
   animation: SparklesIcon,
+  effect: Zap,
   caption: Type,
   titleCard: Type,
   lowerThird: Type,
@@ -219,6 +220,9 @@ const Row = ({
       >
         <Icon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden />
         <span className="shrink-0">{t(descriptor.labelKey, descriptor.labelParams)}</span>
+        {descriptor.previewKey ? (
+          <span className="truncate text-gray-400 dark:text-gray-500">{t(descriptor.previewKey)}</span>
+        ) : null}
         {descriptor.previewText && (
           <span className="truncate text-gray-400 dark:text-gray-500">{descriptor.previewText}</span>
         )}

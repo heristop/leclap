@@ -65,6 +65,8 @@ export const ElementBlock = ({ state, section, selection, patchSection, onSelect
         activeRef={selection.element}
         variables={collectVariables(state)}
         orientation={state.orientation}
+        theme={state.motion?.theme}
+        salt={state.sections.indexOf(section)}
         onPatchSection={patchSection}
         onSelectElement={onSelectElement}
       />

@@ -57,6 +57,7 @@
     "gen:templates": "node scripts/gen-templates.ts",
     "gen:partials": "node scripts/gen-partials.ts",
     "gen:sfx": "node scripts/gen-sfx.ts",
+    "gen:animation-thumbs": "node scripts/gen-animation-thumbs.ts",
     "gen:music-beats": "node scripts/analyze-music-library.ts"
   },
   "devDependencies": {

@@ -8,6 +8,7 @@ import { findFont } from '../fonts';
 import { seconds } from '../timing/seconds';
 import { needsShaping } from '../text-scripts';
 import { KINETIC_PRESET_DEFAULTS } from './presets';
+import { COPY_COUNTER_SECONDS } from './counter-copy';
 import type { KineticAlign, KineticUnit, LayoutPiece } from './layout';
 
 export interface KineticFrame {
@@ -74,6 +75,8 @@ function unitDuration(authored: number | undefined, ease: EasingSpec, fallback: 
 // briskly (0.6 s), a six-figure one gets time to read (1.6 s).
 function presetDuration(block: KineticBlock, fallback: number): number {
   if (block.preset !== 'counter' || !block.counter) return fallback;
+
+  if (block.counter.to === undefined) return COPY_COUNTER_SECONDS;
 
   const units = Math.abs(block.counter.to - block.counter.from) * 10 ** (block.counter.decimals ?? 0);
   const seconds = 0.5 + 0.25 * Math.log10(Math.max(1, units));

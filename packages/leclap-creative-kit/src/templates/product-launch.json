@@ -2,7 +2,7 @@
   "meta": {
     "name": "Product Launch",
     "description": "A minimal vertical reveal: large centred product typography, a clean full-frame shot, and an offer-led closing with fast, staggered motion.",
-    "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity shine sweep on the product reveal and a small overshoot on the offer; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation. Motion: push up from the intro into the product, then draw a rule under the price on a slow push-in."
+    "creativeDirection": "Audience: shoppers seeing one product for the first time. Direction: a minimal vertical reveal with the product as the hero, rather than a miniature web-app presentation. Use near-black surfaces, large centered condensed type and a clean full-frame product shot. Move quickly into the footage; make the closing offer and approved price easy to scan. Use one low-opacity specular sheen on the product reveal and let the price count up and settle exactly on the approved value; use staggered entrances sparingly and leave a readable hold. Avoid dense feature lists, fake discounts, covering the product and screen-recording chrome. Review product crop, longest name and price, type settling and the closing invitation. Motion: push up from the intro into the product, a slow specular sheen crosses the shot as it lands, then the price counts up and settles while a round-capped rule draws under it on a slow push-in."
   },
   "global": {
     "orientation": "portrait",
@@ -211,20 +211,21 @@
         "boxColor": "#090909",
         "boxOpacity": 0.65
       },
-      "inputs": [
+      "graphics": [
         {
-          "name": "product_shine",
-          "type": "animation",
-          "url": "/assets/animations/shine_sweep.apng",
-          "options": {
-            "position": "22:450",
-            "scale": "677:381",
-            "fit": "contain",
-            "persistent": false,
-            "start": 0.25,
-            "duration": 2.52,
-            "opacity": 0.24
-          }
+          "type": "fx",
+          "effect": "sheen",
+          "target": "frame",
+          "at": 0.4,
+          "duration": 1.2,
+          "profile": "specular",
+          "width": 0.2,
+          "bloom": 0.35,
+          "tilt": 24,
+          "direction": "down",
+          "ease": "cubic-bezier(0.3, 0, 0.3, 1)",
+          "intensity": 0.6,
+          "color": "#ffffff"
         }
       ]
     },
@@ -236,26 +237,6 @@
         "duration": 2.1
       },
       "filters": [
-        {
-          "type": "drawtext",
-          "values": {
-            "text": {
-              "en": "{{ form_1_price }}"
-            },
-            "fontfile": "BebasNeue.ttf",
-            "fontsize": 88,
-            "fontcolor": "#c8bc9c",
-            "x": "(w-text_w)/2",
-            "y": 440
-          },
-          "reveal": {
-            "type": "rise",
-            "delay": 0.04,
-            "duration": 0.38,
-            "distance": 36,
-            "easing": "ease-out-back"
-          }
-        },
         {
           "type": "drawtext",
           "values": {
@@ -305,13 +286,35 @@
           "thickness": 6,
           "origin": "center",
           "at": 0.7,
-          "color": "#c8bc9c"
+          "color": "#c8bc9c",
+          "caps": "round",
+          "settle": 0.03,
+          "exit": "none"
         }
       ],
       "camera": {
         "preset": "push-in",
         "amount": 0.08
-      }
+      },
+      "kinetic": [
+        {
+          "id": "price",
+          "text": {
+            "en": "{{ form_1_price }}"
+          },
+          "preset": "counter",
+          "counter": {
+            "from": 0
+          },
+          "delay": 0.08,
+          "duration": 0.8,
+          "ease": "$expo",
+          "font": "BebasNeue.ttf",
+          "size": 88,
+          "color": "#c8bc9c",
+          "y": 440
+        }
+      ]
     }
   ]
 }

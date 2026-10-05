@@ -2,7 +2,7 @@
   "meta": {
     "name": "Web App Promo",
     "description": "A cinematic app launch: masked editorial type, an uncluttered 3D screen reveal and a confident closing invitation.",
-    "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation. Motion: fly through the promise into the interface, push up to the invitation, underline the call to action."
+    "creativeDirection": "Audience: people evaluating a web app. Direction: a cinematic editorial product demo led by expressive type and the actual interface. Keep a continuous dark ink canvas, white condensed headlines, restrained lavender and a pink brand signature. Reveal the promise through a baseline mask, let a brief camera pull settle the opening, then move into a shallow perspective screen reveal that resolves to a readable flat view. A subtle forward drift adds depth without covering the recorded interaction. Finish with a large centered invitation and a stable final hold. Keep feature copy outside the capture. No decorative slabs, scene counters, fake window controls, oversized play symbols or bouncing geometry. Review the entrances, readable screen hold, widest allowed copy and final invitation. Preserve the existing native flat fallback on mobile; creative direction itself does not execute animation. Motion: fly through the promise into the interface, a twin glint crosses the screen as it lands flat, push up to the invitation, a round-capped pink rule settles under the call to action."
   },
   "global": {
     "orientation": "landscape",
@@ -263,7 +263,29 @@
         "type": "push-up",
         "duration": 0.5,
         "ease": "$snappy"
-      }
+      },
+      "graphics": [
+        {
+          "type": "fx",
+          "effect": "sheen",
+          "target": {
+            "x": 144,
+            "y": 60,
+            "w": 992,
+            "h": 558
+          },
+          "at": 1.3,
+          "duration": 0.8,
+          "profile": "twin",
+          "width": 0.09,
+          "tilt": 18,
+          "direction": "right",
+          "ease": "$smooth",
+          "intensity": 0.5,
+          "color": "$color.fg",
+          "above": true
+        }
+      ]
     },
     {
       "name": "outro",
@@ -357,8 +379,11 @@
           "thickness": 5,
           "origin": "center",
           "at": 0.6,
-          "color": "#FF8AAE",
-          "above": true
+          "color": "$color.accent",
+          "above": true,
+          "caps": "round",
+          "settle": 0.03,
+          "exit": "none"
         }
       ]
     }

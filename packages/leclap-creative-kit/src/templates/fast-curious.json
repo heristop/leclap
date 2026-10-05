@@ -165,6 +165,19 @@
             "color": "#141416"
           }
         }
+      ],
+      "graphics": [
+        {
+          "type": "fx",
+          "effect": "grain",
+          "target": "frame",
+          "at": 0,
+          "duration": 12,
+          "size": 1.6,
+          "animated": true,
+          "ramp": 0.3,
+          "intensity": 0.8
+        }
       ]
     },
     {
@@ -244,6 +257,19 @@
             "color": "#141416"
           }
         }
+      ],
+      "graphics": [
+        {
+          "type": "fx",
+          "effect": "grain",
+          "target": "frame",
+          "at": 0,
+          "duration": 12,
+          "size": 1.6,
+          "animated": true,
+          "ramp": 0.3,
+          "intensity": 0.8
+        }
       ]
     },
     {
@@ -322,6 +348,19 @@
           "values": {
             "color": "#141416"
           }
+        }
+      ],
+      "graphics": [
+        {
+          "type": "fx",
+          "effect": "grain",
+          "target": "frame",
+          "at": 0,
+          "duration": 12,
+          "size": 1.6,
+          "animated": true,
+          "ramp": 0.3,
+          "intensity": 0.8
         }
       ]
     },

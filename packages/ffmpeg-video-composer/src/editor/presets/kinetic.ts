@@ -15,6 +15,7 @@ import { layoutWithin, type FittedLayout } from '@/core/kinetic/fit';
 import { unitTracks } from '@/core/kinetic/units';
 import { caretBoxes, markerSweep, scrambleDecoys } from '@/core/kinetic/extras';
 import { COUNTER_LOCALE_PROBE, counterBlockFilters } from './text-counter';
+import { COPY_COUNTER_SECONDS, counterFromCopy } from '@/core/kinetic/counter-copy';
 import { trailEchoes } from './kinetic-trail';
 import { pieceFilter, type PieceDraw, type PieceStyle } from './kinetic-piece';
 import { fillGraph, type FillBox, type FillEnv } from './kinetic-fill';
@@ -216,19 +217,42 @@ export function kineticBlocksToFilters(blocks: KineticBlock[] | undefined, ctx: 
 
   const [width, height] = ctx.scale.split(':').map(Number);
 
-  return blocks.flatMap((block, index) =>
-    kineticToFilters(block, {
+  return blocks.flatMap((authored, index) => {
+    const { block, text } = withCopy(authored, motion.resolveText);
+
+    return kineticToFilters(block, {
       width,
       height,
       fps: ctx.fps,
       duration: ctx.duration,
       energy: motion.energy,
       seed: motion.seedFor(`kinetic[${index}]`),
-      // A counter ignores its copy; resolving the locale probe hands it the active locale instead.
-      text: motion.resolveText(block.preset === 'counter' ? COUNTER_LOCALE_PROBE : block.text),
+      text,
       fill: fillEnv(block, index, ctx),
-    })
-  );
+    });
+  });
+}
+
+// The block as lowered and its final copy. A counter ignores its copy (resolving the locale probe hands it
+// the active locale instead), unless it omits `to`: then it reads its number from the copy, and copy
+// without a number is drawn as a plain fade.
+function withCopy(
+  block: KineticBlock,
+  resolve: (text: Record<string, string | undefined>) => string
+): { block: KineticBlock; text: string } {
+  if (block.preset !== 'counter') return { block, text: resolve(block.text) };
+
+  const locale = resolve(COUNTER_LOCALE_PROBE);
+
+  if (block.counter?.to !== undefined) return { block, text: locale };
+
+  const copy = resolve(block.text);
+  const counter = block.counter && counterFromCopy(block.counter, copy);
+  const duration = block.duration ?? COPY_COUNTER_SECONDS;
+
+  if (!counter) return { block: { ...block, preset: 'fade', counter: undefined, duration }, text: copy };
+
+  return { block: { ...block, counter, duration }, text: locale };
 }
 
 /**

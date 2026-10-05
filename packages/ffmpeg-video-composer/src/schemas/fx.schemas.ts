@@ -73,9 +73,12 @@ const FX_COMMON = {
   duration: z
     .number()
     .min(0.1)
-    .max(12)
+    .max(30)
     .optional()
-    .describe('Seconds one pass takes (default per primitive, quicker at higher global.motion.energy).'),
+    .describe(
+      'Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ' +
+        'ambient texture lasts its duration: set it to the section length to hold it (up to 30).'
+    ),
   ease: EasingSpecSchema.optional().describe(
     'Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.'
   ),

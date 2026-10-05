@@ -141,7 +141,11 @@ describe('packaged sample catalog', () => {
     expect(getSample('before-after').requirements.variables).toContainEqual(
       expect.objectContaining({ name: 'change', default: 'Describe the change', placeholders: ['{{ change }}'] })
     );
+    // Its glow is a procedural fx now: the bumper clip of its partial is the asset it references.
     expect(getSample('present-yourself').requirements.assets).toContainEqual(
+      expect.objectContaining({ kind: 'video', path: 'sections[3].options.videoUrl' })
+    );
+    expect(getSample('present-yourself').requirements.assets).not.toContainEqual(
       expect.objectContaining({ reference: '/assets/animations/glow_border.apng' })
     );
     expect(getSample('drink-and-code').requirements.assets).toContainEqual(

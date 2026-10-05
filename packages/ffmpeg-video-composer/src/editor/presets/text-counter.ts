@@ -88,13 +88,14 @@ function separators(locale: string): { group: string; mark: string } {
 
 function numberFormat(counter: CounterSpec, activeLocale: string): NumberFormat {
   const scale = 10 ** (counter.decimals ?? 0);
-  const peak = Math.max(counter.from, counter.to) * (1 + (counter.overshoot ?? 0));
+  const to = counter.to ?? counter.from;
+  const peak = Math.max(counter.from, to) * (1 + (counter.overshoot ?? 0));
   const grouping = counter.grouping ?? String(Math.floor(peak)).length >= 5;
   const { group, mark } = separators(counter.locale ?? (activeLocale.trim().toLowerCase() || 'en'));
 
   return {
     from: Math.round(counter.from * scale),
-    to: Math.round(counter.to * scale),
+    to: Math.round(to * scale),
     decimals: counter.decimals ?? 0,
     group: grouping ? group : '',
     mark,

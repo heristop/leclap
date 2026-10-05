@@ -131,7 +131,17 @@ export const COUNTER_LOCALES = ['en', 'fr', 'de', 'es', 'it', 'pt', 'nl', 'de-CH
 export const CounterSchema = z
   .object({
     from: z.number().min(0).max(1e11).describe('Start value (non-negative; use prefix "-" for negatives).'),
-    to: z.number().min(0).max(1e11).describe('End value (non-negative). Shown exactly once the roll ends, and held.'),
+    to: z
+      .number()
+      .min(0)
+      .max(1e11)
+      .optional()
+      .describe(
+        'End value (non-negative). Shown exactly once the roll ends, and held. Omit it to roll up to the first ' +
+          'number in the block `text` once form fields resolve ("{{ form_price }}" → "EUR 24", "24,90 €"): the ' +
+          'text around it becomes the prefix/suffix, its separators set decimals, grouping and locale; text ' +
+          'without a number fades in as is.'
+      ),
     decimals: z.number().int().min(0).max(4).optional().describe('Digits after the decimal mark (default 0).'),
     prefix: z.string().max(12).optional().describe('Text before the number, e.g. "$" or "EUR ".'),
     suffix: z.string().max(12).optional().describe('Text after the number, e.g. "%" or " K".'),
@@ -170,7 +180,7 @@ export const CounterSchema = z
   })
   .strict()
   .describe(
-    'counter preset: the rolling number (the block text is ignored). It rolls over the block ' +
+    'counter preset: the rolling number (the block text is ignored unless `to` is omitted). It rolls over the block ' +
       '`delay` + `duration` on the block `ease` (a token such as "$expo", a cubic-bezier or a spring), lands ' +
       'exactly on `to` and holds. Without a block duration, the roll lasts 0.6–1.6 s, longer for bigger ranges.'
   );

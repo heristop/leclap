@@ -30,14 +30,22 @@ export interface FxCatalog {
 }
 
 const RULES = [
-  'Compose, do not pick: set the parameters that define the look (profile, width, tilt, direction, colour, ' +
-    'intensity, duration/ease, repeat) for THIS template; an untuned fx only gets context defaults.',
-  'Anchor every effect to the element it decorates with `target` (a card rect with its radius, a pane, a layer, ' +
-    'a kinetic block). Light never spills outside its target.',
-  'Light adds, it never greys: peaks stay under the ceiling (light ≤ 0.35 alpha); ≤ 0.6 intensity over skin.',
-  'One hero effect per beat, at most two layered; land it on the beat the target resolves (`at: "card.end"`).',
-  'Tie colour to the theme ("$color.accent", "$color.fg") and speed to the motion energy and tokens ($smooth, $expo).',
-  'Vary `seed` to re-roll context defaults; the same descriptor always renders the same pixels.',
+  'Compose, do not pick: set the parameters that define the look (each primitive lists them under `vary`) for ' +
+    'THIS template; an untuned fx only gets context defaults.',
+  'Anchor every effect with `target` (a card rect with its radius, a pane, a layer, a kinetic block, or the frame) ' +
+    'and derive it from what it decorates, never a floating box.',
+  'Light (sheen, leak, edge-glow) adds luminance, never greys: it stays inside its target (an edge-glow blooms ' +
+    'just outside the card), peaks ≤ 0.35 alpha (leak ≤ 0.25) and ≤ 0.6 intensity over skin.',
+  'Marks (ripple, glint, confetti) start from a point of the target and may leave it: a ripple on the exact ' +
+    'control, glints on a product, confetti once per video on a real payoff.',
+  'Ambient textures (bokeh, dust, grain, bloom, vignette-breathe) stay ≤ 0.12, last the section and are dropped ' +
+    'in reduced motion: at most one per section, never on UI or text-heavy cards.',
+  'Surfaces (glass, resolve) rework the pixels inside the target: a frosted plate under text, a logo that lands ' +
+    'in focus. Keep the text on them legible and give a kinetic entrance or a resolve, not both.',
+  'One hero effect per beat, at most two layered (ambient textures count); land it on the beat its target ' +
+    'resolves (`at: "card.end"`).',
+  'Tie colour to the palette ("$color.accent", "$color.fg") and speed to the motion energy and tokens ($smooth, ' +
+    '$expo); vary `seed` to re-roll context defaults: the same descriptor always renders the same pixels.',
 ];
 
 function describe(shape: z.ZodRawShape): Record<string, string> {

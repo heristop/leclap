@@ -106,6 +106,8 @@ describe('fx ripple', () => {
     expect(inputs).toHaveLength(1);
     expect(ring?.kind).toBe('ring');
     expect(ring?.radius).toBe(80);
+    // Default stroke 5 px at 1080p, scaled to the 720p frame: a ring that still reads on a dark card.
+    expect(ring?.stroke).toBe(3.3);
     // Default 2 rings, 0.375 → 1 of the sprite (expo), two chained alpha fades per ring.
     expect(count(text, /overlay=x=/g)).toBe(2);
     expect(text).toContain('split=2');
@@ -205,13 +207,17 @@ describe('fx glint', () => {
 });
 
 describe('fx confetti', () => {
-  it('launches 24–32 pieces in the theme palette, at most 36 overlays even when repeated', () => {
+  it('launches 28–36 pieces in the theme palette, at most 36 overlays even when repeated', () => {
     const { text, inputs } = lower({ effect: 'confetti', target: 'frame' }, { theme: 'leclap' });
     const colors = new Set(inputs.map((url) => parseSpriteUrl(url)?.color));
     const pieces = count(text, /overlay=x=/g);
+    const strips = inputs.map((url) => parseSpriteUrl(url)).filter((spec) => spec && spec.w !== spec.h);
 
-    expect(pieces).toBeGreaterThanOrEqual(24);
-    expect(pieces).toBeLessThanOrEqual(32);
+    expect(pieces).toBeGreaterThanOrEqual(28);
+    expect(pieces).toBeLessThanOrEqual(36);
+    // Default long side 28 px at 1080p (≈ 18 px at 720p): paper that reads at phone scale.
+    expect(strips.length).toBeGreaterThan(0);
+    expect(strips.every((spec) => spec?.w === 18)).toBe(true);
     expect(colors).toEqual(new Set(['7c83fd', 'f5f3f7', 'ff8aae', 'fff685']));
     expect(count(lower({ effect: 'confetti', count: 36, repeat: 3, every: 2.5 }).text, /overlay=x=/g)).toBe(36);
   });

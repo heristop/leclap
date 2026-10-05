@@ -34,6 +34,8 @@ type Ctx = FxContext<'confetti'>;
 
 /** The overlay budget of one confetti graphic, every pass included. */
 export const CONFETTI_BUDGET = 36;
+/** A piece's long side in px at 1080p: big enough to read as paper at phone scale. */
+const DEFAULT_SIZE = 28;
 const REDUCED_PIECES = 12;
 const TIERS = [
   { size: 0.4, alpha: 0.15 },
@@ -76,7 +78,7 @@ export function confettiPalette(fx: Ctx): string[] {
 function burstOf(fx: Ctx): Burst {
   const g = fx.graphic;
   const { x, y, w, h } = fx.target;
-  const spread = g.spread ?? 70 + fx.random() * 40;
+  const spread = g.spread ?? 90 + fx.random() * 40;
 
   return {
     ox: x + (g.origin?.x ?? 0.5) * w,
@@ -128,7 +130,7 @@ function pieceOf(fx: Ctx, burst: Burst, slot: { i: number; t0: number; palette: 
 
 /** Every piece of every pass that fits the 36-overlay budget, in a fixed seeded order. */
 export function confettiPieces(fx: Ctx): Piece[] {
-  const count = fx.graphic.count ?? 24 + Math.floor(fx.random() * 9);
+  const count = fx.graphic.count ?? 28 + Math.floor(fx.random() * 9);
   const burst = burstOf(fx);
   const palette = confettiPalette(fx);
   const starts = Array.from({ length: fx.passes }, (_, i) => fx.at + i * fx.every).filter((t0) => t0 < fx.end);
@@ -204,7 +206,7 @@ function lower(fx: Ctx): FxLayer[] | null {
   if (!fx.has('scale')) return null;
 
   const pieces = confettiPieces(fx);
-  const size = (fx.graphic.size ?? 22) * frameScale(fx);
+  const size = (fx.graphic.size ?? DEFAULT_SIZE) * frameScale(fx);
 
   drawInFrame(fx);
 

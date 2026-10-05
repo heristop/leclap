@@ -29,22 +29,28 @@ export const LIBRARY_ANIMATION_SAMPLES: LibrarySample[] = [
   {
     name: 'sparkle',
     looksLike: 'twinkling star glints',
-    composeWith: 'a twin-profile fx sheen with repeat + every on the hero, or a kinetic accent on one word',
+    composeWith:
+      'graphics { type: "fx", effect: "glint" } on the product or logo (path, count, size, stagger tuned), or a ' +
+      'twin-profile fx sheen with repeat + every on the hero',
   },
   {
     name: 'spec_orbit',
     looksLike: 'a specular glint orbiting a product',
-    composeWith: 'a crisp fx sheen (width 0.05–0.1) landing as the product settles, with a camera orbit',
+    composeWith: 'an fx glint with path "orbit" around the product, or a crisp fx sheen (width 0.05–0.1) as it lands',
   },
   {
     name: 'light_leak',
     looksLike: 'a warm film light leak over the frame',
-    composeWith: 'a warm `look` or grade.colorBalance plus a slow camera drift; a soft, wide fx sheen on the frame',
+    composeWith:
+      'graphics { type: "fx", effect: "leak" } at a beat change (edge, size, drift and palette colours tuned), or ' +
+      'a warm `look` / grade.colorBalance plus a slow camera drift',
   },
   {
     name: 'confetti',
     looksLike: 'falling confetti',
-    composeWith: 'kinetic pop / drop by glyph with an accent word, a camera hit and one flash on the payoff beat',
+    composeWith:
+      'graphics { type: "fx", effect: "confetti" } once, on the payoff (origin, angle, physics, theme colours), ' +
+      'or kinetic pop / drop with an accent word and a camera hit',
   },
   {
     name: 'corner_brackets',
@@ -54,7 +60,9 @@ export const LIBRARY_ANIMATION_SAMPLES: LibrarySample[] = [
   {
     name: 'glow_border',
     looksLike: 'a glowing frame border',
-    composeWith: 'graphics { type: "frame" } tracing on, coloured "$color.accent", plus an fx sheen on its target',
+    composeWith:
+      'graphics { type: "fx", effect: "edge-glow" } hugging the card it lights (glow "$color.accent", spread, ' +
+      'breathe), or a v2 frame tracing on around it',
   },
   {
     name: 'white_border',
@@ -69,12 +77,15 @@ export const LIBRARY_ANIMATION_SAMPLES: LibrarySample[] = [
   {
     name: 'pulse_ring',
     looksLike: 'an expanding pulse ring',
-    composeWith: 'camera hits on the beat, a kinetic pop accent, or a section `pulse` motion at low intensity',
+    composeWith:
+      'graphics { type: "fx", effect: "ripple" } from the exact point (rings, radius, stroke tuned), or camera ' +
+      'hits on the beat',
   },
   {
     name: 'tap_pulse',
     looksLike: 'a tap indicator pulse',
-    composeWith: 'a kinetic pop on the label being tapped with an animate track (scale / opacity) and a click sfx',
+    composeWith:
+      'graphics { type: "fx", effect: "ripple", variant: "tap" } on the control being tapped, plus a click sfx',
   },
   {
     name: 'animation_icons',

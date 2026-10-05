@@ -141,11 +141,15 @@ function liftStats(fx: Buffer[], none: Buffer[], rows: [number, number]): number
 
 // The steepest change of the leak's lift between neighbouring pixels (a straight edge would be a cliff).
 function steepest(fx: Buffer, none: Buffer): number {
-  const lift = (x: number, y: number): number => lumaAt(fx, W, x, y) - lumaAt(none, W, x, y);
+  return steepestIn(fx, none, W, H);
+}
+
+function steepestIn(fx: Buffer, none: Buffer, width: number, height: number): number {
+  const lift = (x: number, y: number): number => lumaAt(fx, width, x, y) - lumaAt(none, width, x, y);
   let max = 0;
 
-  for (let y = 1; y < H - 1; y++) {
-    for (let x = 1; x < W - 1; x++) {
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
       const gx =
         lift(x + 1, y - 1) +
         2 * lift(x + 1, y) +
@@ -200,6 +204,27 @@ describe.skipIf(!ready)('fx leak on real frames', () => {
     expect(peak).toBeGreaterThan(15);
     for (const [i, frame] of frames.grey.entries()) {
       expect(steepest(frame, frames.greyNone[i]), `frame ${i}`).toBeLessThan(2.5);
+    }
+  });
+
+  // A lobe wider than the frame (size 1.1, stretched) from a side or a corner, in both orientations: its
+  // half-resolution source box, the blur and the scale-up must never leave a cliff inside the light.
+  it.each([
+    ['left, landscape', 'left', W, H],
+    ['left, portrait', 'left', H, W],
+    ['top-left corner, landscape', 'top-left', W, H],
+    ['top-left corner, portrait', 'top-left', H, W],
+  ])('keeps a frame-wide lobe free of straight edges (%s)', (_label, edge, width, height) => {
+    const spec = { ...SPEC, width, height, base: `color=c=0x606060:s=${width}x${height}:r=30:d=1.5` };
+    const wide = leak(
+      { edge, size: 1.1, stretch: 1.4, duration: 1, intensity: 1, shadows: 0 },
+      { ...OPTIONS, scale: `${width}:${height}` }
+    );
+    const lit = renderFrames({ ...spec, name: `wide-${edge}-${width}` }, wide);
+    const none = renderFrames({ ...spec, name: `wide-none-${width}` }, null);
+
+    for (const i of [12, 18, 24]) {
+      expect(steepestIn(lit[i], none[i], width, height), `frame ${i}`).toBeLessThan(2.5);
     }
   });
 

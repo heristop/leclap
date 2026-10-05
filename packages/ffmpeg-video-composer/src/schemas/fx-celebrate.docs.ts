@@ -12,7 +12,7 @@ export const rippleDoc = {
     rings: 'Rings per pass (default 2 for ring, 1 for tap).',
     stagger: 'Seconds between ring starts (default 0.18). The pass duration covers every ring.',
     start: 'Ring size when it appears, as a share of its final size (default 0.375: 0.6 → 1.6).',
-    stroke: 'Ring stroke in px at 1080p, at full size (default 4; scaled to the output frame).',
+    stroke: 'Ring stroke in px at 1080p, at full size (default 5; scaled to the output frame).',
     halo: 'Gaussian halo around the stroke, σ in px at 1080p (default 6; 0 = a bare line).',
     dot: "tap: the pressed dot's radius as a share of the final ring radius (default 0.28).",
     press: 'tap: how far the dot sinks on press, as a share of its size (default 0.09: 0.9 → 0.82 → 1).',
@@ -50,16 +50,16 @@ export const glintDoc = {
 
 export const confettiDoc = {
   params: {
-    count: 'Pieces in the burst (default 24–32, from the seed and energy). Repeated passes share 36.',
+    count: 'Pieces in the burst (default 28–36, from the seed). Repeated passes share 36.',
     origin: 'Where the burst starts, as fractions of the target ({x, y}; default the target centre, {x: 0.5, y: 0.5}).',
     angle: 'Burst direction in degrees: -90 = up (default), 0 = right, 90 = down, ±180 = left.',
-    spread: 'Cone the pieces leave in, degrees around angle (default 70–110 from the seed; 360 = all around).',
+    spread: 'Cone the pieces leave in, degrees around angle (default 90–130 from the seed; 360 = all around).',
     speed: 'Launch speed in frame heights per second (default 1.5; each piece varies ±25 %).',
     gravity: 'Downward pull in frame heights per s² (default 1.6; 0 = floating).',
     drag: 'Air drag per second (default 3.2): higher = pieces stall and drift down slowly, like paper.',
     sway: 'Side-to-side flutter while falling, in frame widths (default 0.012).',
     spin: 'Maximum tumble in turns per second (default 1.4; each piece gets its own rate and sense).',
-    size: "A piece's long side in px at 1080p (default 22; scaled to the output frame).",
+    size: "A piece's long side in px at 1080p (default 28; scaled to the output frame).",
     discs: 'Share of round pieces; the rest are 2:1 strips (default 0.2).',
     colors:
       'Palette, 1–5 colours ("#rrggbb", names or "$color.*" tokens). Default: the theme accent, accent2, brand and a neutral (fg).',

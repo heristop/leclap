@@ -33,10 +33,12 @@ import {
 
 type Ctx = FxContext<'ripple'>;
 
-/** The ring's alpha relative to the peak (0.72 at the default 0.85 peak: it decays as (1 - p)², so it must start strong). */
-const RING_ALPHA = 0.85;
+/** The ring's alpha relative to the peak (the full 0.85 peak: it decays as (1 - p)², so it must start strong to read on a dark card). */
+const RING_ALPHA = 1;
 /** Seconds of the tap's press (down then release). */
 const PRESS = 0.12;
+/** Ring stroke in px at 1080p. */
+const DEFAULT_STROKE = 5;
 const RELEASE_EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
 const PRESS_EASE = 'cubic-bezier(0.4, 0, 0.2, 1)';
 
@@ -69,7 +71,7 @@ function ringOf(fx: Ctx, tap: boolean): Ring {
   const k = frameScale(fx);
   const share = g.radius ?? (tap ? 1.1 : 0.9) + fx.random() * 0.3;
   const radius = Math.max(6, share * Math.min(fx.target.w, fx.target.h));
-  const stroke = Math.max(1, (g.stroke ?? 4) * k);
+  const stroke = Math.max(1, (g.stroke ?? DEFAULT_STROKE) * k);
   const halo = (g.halo ?? 6) * k;
 
   return { radius, stroke, halo, side: even(2 * (radius + stroke / 2 + 3 * halo) + 2) };

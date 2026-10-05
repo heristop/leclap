@@ -13,3 +13,15 @@ export * from './platform/ffmpeg/capability-exports-node';
 export { expandPartialsReport, PartialError, type PartialFinding } from './core/partials';
 // Frame snapshots, comparisons, the whole-video timeline and catalog search (services/snapshot-api-node.ts).
 export * from './services/snapshot-api-node';
+// Agent-facing helpers shared with @leclap/mcp and the web builder: RFC 6902 patches over a template and
+// plain-text validation findings (template revisions come with core/determinism).
+export {
+  applyJsonPatch,
+  parsePointer,
+  JsonPatchError,
+  JSON_PATCH_MAX_DEPTH,
+  type ApplyJsonPatchOptions,
+  type JsonPatchErrorCode,
+  type JsonPatchOperation,
+} from './core/json-patch';
+export { findingLine, invalidTemplateText, summarizeErrors } from './services/validation-format';

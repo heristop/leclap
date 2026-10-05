@@ -36,6 +36,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   timing, motion roles and section purpose, trails, the new graphics, whips, lower-third styles, fills,
   layouts, right-to-left text and emoji.
 
+### Changed
+
+- Template revisions (`expectedRevision` / `revision`) and the validation finding text now come from the
+  engine (`templateRevision`, `invalidTemplateText`), so other surfaces compute the same revision for the
+  same JSON; values are unchanged.
+
 ## [0.4.0] - 2026-10-03
 
 ### Added

@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `applyJsonPatch(doc, operations, { maxOps })` and `parsePointer(pointer)` (Node entry): RFC 6902 JSON
+  Patch (`add`, `remove`, `replace`, `move`, `copy`, `test`) over RFC 6901 pointers (`-` append, `~0`/`~1`
+  escapes). Atomic (runs on a copy, the input is never mutated); rejects `__proto__`/`prototype`/`constructor`
+  segments and keys and anything deeper than 64 levels; failures throw a `JsonPatchError` with a `code`, the
+  failing operation's `index` and its `path`.
+- `templateRevision(template)`: stable SHA-256 of a template's canonical JSON (object key order ignored),
+  synchronous and platform-neutral; matches a `node:crypto` digest of the same JSON byte for byte.
+- `findingLine`, `invalidTemplateText` and `summarizeErrors` (Node entry): the plain-text renderings of
+  validation findings `@leclap/mcp` uses, now shared with other agent surfaces.
 - Effects tour (`examples/motion-design/effects-tour.json`): a five-minute tour of every motion effect in nine chapters, first in the Effects & editing showcase (47 samples).
 - `samples`: new `effects` category with 11 native samples (FX pack, word captions, formats, kinetic fills, split layouts, right-to-left type, emoji type, beat grid, theme/roles/safe zones, footage editing, sound design).
 - Determinism contract. `global.seed` roots every procedural effect. A deterministic encoder profile

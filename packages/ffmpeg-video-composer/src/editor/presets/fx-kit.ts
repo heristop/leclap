@@ -4,7 +4,8 @@
 // window with trim, so nothing runs after it), the layers are laid over that region, the result is clipped
 // to the target shape (rounded sprite mask or the kinetic glyph mask, via alphamerge) and composited back
 // with `enable` limited to the window. Outside the window and outside the target the frame is untouched,
-// bit for bit. Filters: split, trim, crop, overlay, alphamerge, color, format, setpts, noise, lutyuv, fade
+// bit for bit (the frame is pinned opaque before the split: see OPAQUE). Filters: split, trim, crop,
+// overlay, alphamerge, color, format, setpts, noise, lutyuv, fade
 // (all on the on-device allowlist).
 
 import type { Filter, FilterGraphChain } from '@/core/types';
@@ -109,6 +110,15 @@ export function sourceTiming(fx: AnyFxContext): string {
   return `r=${fx.frame.fps}:d=${fmt(fx.end - fx.at)}`;
 }
 
+/**
+ * The element's seed for a `gradients` source. FFmpeg seeds it from the clock by default (seed -1) and
+ * draws from it whenever an endpoint falls outside the source; pinned, the source is a pure function of
+ * its options even then.
+ */
+export function gradientSeed(fx: AnyFxContext): string {
+  return `seed=${fx.seed % 2147483647}`;
+}
+
 /** Moves a source that starts at 0 to the effect window, so `t` in later filters is section time. */
 export function shiftTo(fx: AnyFxContext): Filter {
   return { type: 'setpts', value: `PTS+${fmt(fx.at)}/TB` };
@@ -180,6 +190,16 @@ function maskChains(fx: AnyFxContext, from: string, out: string): FilterGraphCha
   ];
 }
 
+/**
+ * The section frame enters the sub-graph opaque. Without the pin, alphamerge's need for alpha propagates up
+ * through overlay/crop/split and the whole section negotiates yuva420p; text drawn before the effect then
+ * leaves partial alpha in it, and FFmpeg's overlay blending onto a main WITH alpha is not deterministic: a
+ * slice job reads the main's alpha rows (chroma un-premultiply) while the neighbouring job rewrites them
+ * (alpha composite), so the bytes depended on the slice count and thread scheduling. A section frame has no
+ * meaningful alpha (the segment is encoded yuv420p), so dropping it costs nothing.
+ */
+const OPAQUE: Filter = { type: 'format', value: 'yuv420p' };
+
 /** The whole sub-graph: `layers` lit inside the target, clipped to its shape, during the window only. */
 export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphChain[] | null {
   const p = fx.prefix;
@@ -207,7 +227,7 @@ export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphC
   const window = `enable='between(t,${fmt(fx.at)},${fmt(fx.end)})'`;
 
   return [
-    { filters: [{ type: 'split', value: '2' }], outputs: [`${p}m`, `${p}r0`] },
+    { filters: [OPAQUE, { type: 'split', value: '2' }], outputs: [`${p}m`, `${p}r0`] },
     {
       inputs: [`${p}r0`],
       filters: [{ type: 'trim', value: `end=${fmt(fx.end)}` }, { type: 'crop', value: `${w}:${h}:${x}:${y}` }, ...fork],

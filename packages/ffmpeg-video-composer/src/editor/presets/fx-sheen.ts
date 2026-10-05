@@ -14,6 +14,7 @@ import { fmt } from '@/core/motion/hermite';
 import { bandProfile, type SpriteSpec } from './fx-sprites';
 import {
   ditherFilters,
+  gradientSeed,
   passProgress,
   shiftTo,
   sourceTiming,
@@ -164,7 +165,7 @@ function gradientBand(fx: FxContext<'sheen'>, band: Band): Filter[] {
   const colors = sheenStops(fx, band.width)
     .map((alpha, i) => `c${i}=${fx.color}@${fmt(alpha)}`)
     .join(':');
-  const value = `s=${sourceSize(band)}:${colors}:nb_colors=${STOPS}:${endpoints(band)}:speed=0.00001:${sourceTiming(fx)}`;
+  const value = `s=${sourceSize(band)}:${colors}:nb_colors=${STOPS}:${endpoints(band)}:speed=0.00001:${gradientSeed(fx)}:${sourceTiming(fx)}`;
   const [format, ...dither] = ditherFilters(fx);
   const sigma = blurSigma(band.width);
 

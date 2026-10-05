@@ -56,6 +56,10 @@ from the engine for each brief:
 5. **One or two signature moves** for the whole video (the plan's `signature`). The other beats stay simpler
    so the signature moves land.
 
+The fx primitives, their targets, parameters and ceilings are documented in
+[Light and effects](./template-configuration.md#light-and-effects-graphicstype-fx); the prompt receives their
+parameter names, and the motion catalog their design intent.
+
 The library animation overlays (`/assets/animations/*.apng`, such as the shine sweep, confetti and light
 leak) are samples. The prompt lists them last and labels them as a last resort. The motion catalog's
 `samples` entry names the engine primitives that replace each one. The polish pass returns the

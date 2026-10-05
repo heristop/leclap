@@ -2913,7 +2913,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -5678,7 +5678,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -8486,7 +8486,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -11018,7 +11018,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -13530,7 +13530,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -16513,7 +16513,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -19025,7 +19025,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -21537,7 +21537,7 @@
                 "items": {
                   "$ref": "#/$defs/Graphic"
                 },
-                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart."
+                "description": "Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters)."
               },
               "assert": {
                 "maxItems": 16,
@@ -23291,38 +23291,59 @@
           "maxLength": 120
         },
         "counter": {
-          "description": "counter preset: the rolling number (text is ignored).",
           "type": "object",
           "properties": {
             "from": {
               "type": "number",
               "minimum": 0,
+              "maximum": 100000000000,
               "description": "Start value (non-negative; use prefix \"-\" for negatives)."
             },
             "to": {
+              "description": "End value (non-negative). Shown exactly once the roll ends, and held. Omit it to roll up to the first number in the block `text` once form fields resolve (\"{{ form_price }}\" → \"EUR 24\", \"24,90 €\"): the text around it becomes the prefix/suffix, its separators set decimals, grouping and locale; text without a number fades in as is.",
               "type": "number",
               "minimum": 0,
-              "description": "End value (non-negative)."
+              "maximum": 100000000000
             },
             "decimals": {
-              "description": "Digits after the point (default 0).",
+              "description": "Digits after the decimal mark (default 0).",
               "type": "integer",
               "minimum": 0,
               "maximum": 4
             },
             "prefix": {
-              "description": "Text before the number, e.g. \"$\".",
+              "description": "Text before the number, e.g. \"$\" or \"EUR \".",
               "type": "string",
               "maxLength": 12
             },
             "suffix": {
-              "description": "Text after the number, e.g. \"%\" or \"K\".",
+              "description": "Text after the number, e.g. \"%\" or \" K\".",
               "type": "string",
               "maxLength": 12
+            },
+            "locale": {
+              "description": "Number formatting: the grouping separator and decimal mark (en 1,234.5; fr 1 234,5; de 1.234,5; de-CH 1’234.5). Default: the template’s active locale.",
+              "type": "string",
+              "enum": ["en", "fr", "de", "es", "it", "pt", "nl", "de-CH", "ja", "zh", "ko"]
+            },
+            "grouping": {
+              "description": "Group thousands with the locale separator. Default: on when the largest value has 5+ integer digits (12,500), off below it so years and short figures (2024, 1500) stay plain.",
+              "type": "boolean"
+            },
+            "tabular": {
+              "description": "Tabular digits (default true): every digit sits in a fixed-width slot, so the number does not jitter sideways while it rolls; it only widens when it gains a digit. false draws proportional figures (tighter, but the width breathes every frame).",
+              "type": "boolean"
+            },
+            "overshoot": {
+              "description": "Run past the final value by this share of the travelled range, then settle back onto it inside the block duration (0..0.1, default 0). Keep it at 0.02–0.04 for a physical settle; visible only when the share is worth at least one shown unit.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.1
             }
           },
-          "required": ["from", "to"],
-          "additionalProperties": false
+          "required": ["from"],
+          "additionalProperties": false,
+          "description": "counter preset: the rolling number (the block text is ignored unless `to` is omitted). It rolls over the block `delay` + `duration` on the block `ease` (a token such as \"$expo\", a cubic-bezier or a spring), lands exactly on `to` and holds. Without a block duration, the roll lasts 0.6–1.6 s, longer for bigger ranges."
         },
         "trail": {
           "description": "Echo trail (motion smear): each unit leaves fading copies of itself a few frames behind while it travels; the echoes collapse into it once it rests. Not applied to counter.",
@@ -23772,7 +23793,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "intensity": {
@@ -23843,7 +23864,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "aspect": {
@@ -23914,7 +23935,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "x": {
@@ -23940,11 +23961,33 @@
               "description": "Where the line grows from (default left).",
               "type": "string",
               "enum": ["left", "center", "right"]
+            },
+            "exit": {
+              "description": "v2. How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default in v2: fade for frame and underline, expand for corners.",
+              "type": "string",
+              "enum": ["none", "fade", "retract", "expand"]
+            },
+            "exitDuration": {
+              "description": "v2. Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1.5
+            },
+            "caps": {
+              "description": "v2. Line ends: round (anti-aliased half discs, default in v2) or square.",
+              "type": "string",
+              "enum": ["square", "round"]
+            },
+            "settle": {
+              "description": "v2. Overshoot of the draw-on as a fraction of the width: the line runs that much past its end, then settles back (default 0.03 in v2; 0 = none).",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.12
             }
           },
           "required": ["type"],
           "additionalProperties": false,
-          "description": "A rule that draws itself across under a headline."
+          "description": "A rule that draws itself across under a headline. v2 (set caps, settle, exit or exitDuration): round caps, an expo draw-on that settles, a fade exit, and drawn above text by default so a CTA card or plate under it never hides it."
         },
         {
           "type": "object",
@@ -24003,11 +24046,11 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "inset": {
-              "description": "Distance from the frame edge in px (default 48).",
+              "description": "Distance from the frame edge in px (default 48; ignored with a v2 target).",
               "type": "number",
               "minimum": 0
             },
@@ -24016,11 +24059,48 @@
               "type": "number",
               "exclusiveMinimum": 0,
               "maximum": 40
+            },
+            "exit": {
+              "description": "v2. How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default in v2: fade for frame and underline, expand for corners.",
+              "type": "string",
+              "enum": ["none", "fade", "retract", "expand"]
+            },
+            "exitDuration": {
+              "description": "v2. Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1.5
+            },
+            "target": {
+              "description": "v2. What the strokes frame instead of the whole frame: \"layer:<i>\", \"pane:<i>\", \"text:<i>\" or a {x, y, w, h} rectangle in px or frame fractions. They sit `clearance` px outside it, clamped inside the frame.",
+              "$ref": "#/$defs/FxTarget"
+            },
+            "clearance": {
+              "description": "v2, with `target`. Px between the target edge and the strokes (default 24; negative = inside it).",
+              "type": "number",
+              "minimum": -200,
+              "maximum": 400
+            },
+            "radius": {
+              "description": "v2. Corner radius in px (default 0 = square corners); raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 400
+            },
+            "contrast": {
+              "description": "v2. Keeps the strokes readable on any background. auto (default in v2): on a known solid background an unset colour becomes light or dark ink by its luminance, and a low-contrast colour or an unknown background (footage, images) gets a soft offset shadow. shadow: always the shadow. none: as authored.",
+              "type": "string",
+              "enum": ["none", "auto", "shadow"]
+            },
+            "trace": {
+              "description": "v2. How the outline draws on, always starting at the top-left corner: path (one head travels clockwise at constant speed, default in v2), split (two heads leave the top-left and meet bottom-right), sides (each side in turn takes a quarter of the time, the legacy look), fade (no draw-on, fades in).",
+              "type": "string",
+              "enum": ["sides", "path", "split", "fade"]
             }
           },
           "required": ["type"],
           "additionalProperties": false,
-          "description": "A rectangle outline that traces itself clockwise."
+          "description": "A rectangle outline that traces itself clockwise. v2 (set any of radius, trace, exit, exitDuration, target, clearance, contrast): rounded corners, a constant-speed trace from the top-left with a head fade, a visible exit and contrast-aware colour."
         },
         {
           "type": "object",
@@ -24079,29 +24159,72 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "inset": {
-              "description": "Distance from the frame edge in px (default 56).",
+              "description": "Distance from the frame edge in px (default 56; ignored with a v2 target).",
               "type": "number",
               "minimum": 0
             },
             "length": {
-              "description": "Arm length in px (default 72).",
+              "description": "Arm length in px (default 72; with a v2 target ~18% of its short side, 24..160).",
               "type": "number",
               "exclusiveMinimum": 0
             },
             "thickness": {
-              "description": "Stroke in px (default 5).",
+              "description": "Stroke in px (default 5; 4 in v2).",
               "type": "number",
               "exclusiveMinimum": 0,
               "maximum": 40
+            },
+            "exit": {
+              "description": "v2. How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default in v2: fade for frame and underline, expand for corners.",
+              "type": "string",
+              "enum": ["none", "fade", "retract", "expand"]
+            },
+            "exitDuration": {
+              "description": "v2. Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1.5
+            },
+            "target": {
+              "description": "v2. What the strokes frame instead of the whole frame: \"layer:<i>\", \"pane:<i>\", \"text:<i>\" or a {x, y, w, h} rectangle in px or frame fractions. They sit `clearance` px outside it, clamped inside the frame.",
+              "$ref": "#/$defs/FxTarget"
+            },
+            "clearance": {
+              "description": "v2, with `target`. Px between the target edge and the strokes (default 24; negative = inside it).",
+              "type": "number",
+              "minimum": -200,
+              "maximum": 400
+            },
+            "radius": {
+              "description": "v2. Corner radius in px (default 0 = square corners); raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 400
+            },
+            "contrast": {
+              "description": "v2. Keeps the strokes readable on any background. auto (default in v2): on a known solid background an unset colour becomes light or dark ink by its luminance, and a low-contrast colour or an unknown background (footage, images) gets a soft offset shadow. shadow: always the shadow. none: as authored.",
+              "type": "string",
+              "enum": ["none", "auto", "shadow"]
+            },
+            "trace": {
+              "description": "v2. together (all four brackets extend at once), clockwise (they start one after another from the top-left; default in v2), fade (no draw-on, they fade in at full length).",
+              "type": "string",
+              "enum": ["together", "clockwise", "fade"]
+            },
+            "spread": {
+              "description": "v2. Size the bracket rectangle starts at relative to its rest size: 1.08 = they close in from 108% onto the subject on the entrance curve (default 1.06 in v2; 1 = no travel).",
+              "type": "number",
+              "minimum": 1,
+              "maximum": 1.3
             }
           },
           "required": ["type"],
           "additionalProperties": false,
-          "description": "Four corner brackets that extend from the corners (viewfinder / focus framing)."
+          "description": "Four corner brackets that extend from the corners (viewfinder / focus framing). v2 (set any of target, clearance, spread, trace, radius, exit, exitDuration, contrast): brackets around a subject that close in on a spring, extend clockwise from the top-left, exit by expanding and fading, and stay readable on light backgrounds."
         },
         {
           "type": "object",
@@ -24160,7 +24283,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "direction": {
@@ -24230,7 +24353,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "x": {
@@ -24318,7 +24441,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "intensity": {
@@ -24389,7 +24512,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "direction": {
@@ -24465,7 +24588,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "position": {
@@ -24558,7 +24681,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "text": {
@@ -24664,7 +24787,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch and focus; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
               "type": "boolean"
             },
             "values": {
@@ -24753,8 +24876,1900 @@
           "required": ["type", "values"],
           "additionalProperties": false,
           "description": "An animated bar chart: bars grow from the baseline one after another on the curve while their values count up. `duration` is per bar (default 0.7 s)."
+        },
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "sheen"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "profile": {
+                  "description": "Light profile across the band: specular (tight gaussian core + a bloom twice as wide, default: glass, metal, screens), soft (one wide gaussian wash: paper, fabric, matte cards), twin (two thin parallel glints: chrome, lenses, techy UI).",
+                  "type": "string",
+                  "enum": ["specular", "soft", "twin"]
+                },
+                "width": {
+                  "description": "Band width as a fraction of the target's short side (default ~0.15, varied by target shape and seed). 0.05–0.1 = a crisp glint, 0.2–0.4 = a broad wash.",
+                  "type": "number",
+                  "minimum": 0.02,
+                  "maximum": 0.6
+                },
+                "tilt": {
+                  "description": "Band angle in degrees off the perpendicular of its travel (default 14–26, from the seed). 0 = square to the path; negative leans the other way.",
+                  "type": "number",
+                  "minimum": -60,
+                  "maximum": 60
+                },
+                "direction": {
+                  "description": "Travel path across the target (default: right on wide targets, down on tall ones). Match the scene's motion or reading direction.",
+                  "type": "string",
+                  "enum": ["right", "left", "down", "up"]
+                },
+                "bloom": {
+                  "description": "Share of the peak carried by the soft bloom around a specular core (default 0.25; 0 = bare core).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.6
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "A specular light band that crosses its target once (or `repeat` times), clipped to the target shape: light on the glass of a card, a screen, a product shot or the letters of a title. Tune: profile and width set the material (crisp glint vs. broad wash); tilt and direction set the light source; colour (e.g. \"$color.accent\") tints it; duration and ease set the speed (0.6–0.9 s reads as a glint, 1.2 s+ as a slow reflection); repeat + every turn it into a periodic glint."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "ripple"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "variant": {
+                  "description": "ring (default): anti-aliased rings expanding from the origin and fading out (a pulse, a radar, a \"look here\"). tap: a filled dot pressed in and released, then one ring (a UI tap on a button).",
+                  "type": "string",
+                  "enum": ["ring", "tap"]
+                },
+                "origin": {
+                  "description": "Ring centre, as fractions of the target ({x, y}; default the target centre).",
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": -0.5,
+                      "maximum": 1.5,
+                      "description": "Across the target: 0 = left edge, 1 = right edge."
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": -0.5,
+                      "maximum": 1.5,
+                      "description": "Down the target: 0 = top edge, 1 = bottom edge."
+                    }
+                  },
+                  "required": ["x", "y"],
+                  "additionalProperties": false
+                },
+                "radius": {
+                  "description": "The rings' final radius as a share of the target's short side (default 0.9–1.2 from the seed, so the ring clears its target; a tap on a small button: 0.9–1.4 so the ring clears it).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 3
+                },
+                "rings": {
+                  "description": "Rings per pass (default 2 for ring, 1 for tap).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 3
+                },
+                "stagger": {
+                  "description": "Seconds between ring starts (default 0.18). The pass duration covers every ring.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.6
+                },
+                "start": {
+                  "description": "Ring size when it appears, as a share of its final size (default 0.375: 0.6 → 1.6).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 0.9
+                },
+                "stroke": {
+                  "description": "Ring stroke in px at 1080p, at full size (default 5; scaled to the output frame).",
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 16
+                },
+                "halo": {
+                  "description": "Gaussian halo around the stroke, σ in px at 1080p (default 6; 0 = a bare line).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 24
+                },
+                "dot": {
+                  "description": "tap: the pressed dot's radius as a share of the final ring radius (default 0.28).",
+                  "type": "number",
+                  "minimum": 0.05,
+                  "maximum": 0.8
+                },
+                "press": {
+                  "description": "tap: how far the dot sinks on press, as a share of its size (default 0.09: 0.9 → 0.82 → 1).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.3
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "Expanding anti-aliased rings (or a pressed dot plus a ring) from a point of the target: a tap, a pulse, a \"look here\". Tune: variant sets the gesture (ring = pulse, tap = touch); origin puts it on the exact control; radius, start and stroke set its scale and weight; rings + stagger set its rhythm; colour defaults to the theme accent."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "glint"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "path": {
+                  "description": "Where the light sits: scatter (default: seeded points on the target, biased to its upper half and corners, like specular highlights), corners (just inside its corners), orbit (lights travelling around the target's edge with a short trail: a spec orbit for product shots).",
+                  "type": "string",
+                  "enum": ["scatter", "corners", "orbit"]
+                },
+                "points": {
+                  "description": "Exact star positions as target fractions; overrides path and count (scatter/corners only).",
+                  "minItems": 1,
+                  "maxItems": 6,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number",
+                        "minimum": -0.5,
+                        "maximum": 1.5,
+                        "description": "Across the target: 0 = left edge, 1 = right edge."
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": -0.5,
+                        "maximum": 1.5,
+                        "description": "Down the target: 0 = top edge, 1 = bottom edge."
+                      }
+                    },
+                    "required": ["x", "y"],
+                    "additionalProperties": false
+                  }
+                },
+                "count": {
+                  "description": "Stars (default 3–5 from the seed, fewer on small targets) or orbiting lights (default 2).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 6
+                },
+                "size": {
+                  "description": "Star span in px at 1080p (default 36–52 per star from the seed, 34 for orbit lights; scaled to the output frame).",
+                  "type": "number",
+                  "minimum": 8,
+                  "maximum": 96
+                },
+                "stagger": {
+                  "description": "Seconds between star twinkles (default 0.12). The pass duration covers every star.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.4
+                },
+                "spin": {
+                  "description": "Degrees each star turns while it twinkles (default 15; 0 = no turn).",
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90
+                },
+                "trail": {
+                  "description": "orbit: strength of the trail behind each light (default 0.4; 0 = none).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "speed": {
+                  "description": "orbit: revolutions per second (default 0.9).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 3
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "Four-point star glints that twinkle once on a target (scale up, turn, vanish), or small lights orbiting it: the sparkle of something new or polished. Tune: path sets the character (scatter = sparkle, corners = a framed gem, orbit = a spec orbit); count, size and points set the density; stagger and duration set the rhythm; spin and the twinkle ease set the snap; colour tints the light."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "confetti"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "count": {
+                  "description": "Pieces in the burst (default 28–36, from the seed). Repeated passes share 36.",
+                  "type": "integer",
+                  "minimum": 4,
+                  "maximum": 36
+                },
+                "origin": {
+                  "description": "Where the burst starts, as fractions of the target ({x, y}; default the target centre, {x: 0.5, y: 0.5}).",
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": -0.5,
+                      "maximum": 1.5,
+                      "description": "Across the target: 0 = left edge, 1 = right edge."
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": -0.5,
+                      "maximum": 1.5,
+                      "description": "Down the target: 0 = top edge, 1 = bottom edge."
+                    }
+                  },
+                  "required": ["x", "y"],
+                  "additionalProperties": false
+                },
+                "angle": {
+                  "description": "Burst direction in degrees: -90 = up (default), 0 = right, 90 = down, ±180 = left.",
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180
+                },
+                "spread": {
+                  "description": "Cone the pieces leave in, degrees around angle (default 90–130 from the seed; 360 = all around).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 360
+                },
+                "speed": {
+                  "description": "Launch speed in frame heights per second (default 1.5; each piece varies ±25 %).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 4
+                },
+                "gravity": {
+                  "description": "Downward pull in frame heights per s² (default 1.6; 0 = floating).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 8
+                },
+                "drag": {
+                  "description": "Air drag per second (default 3.2): higher = pieces stall and drift down slowly, like paper.",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 8
+                },
+                "sway": {
+                  "description": "Side-to-side flutter while falling, in frame widths (default 0.012).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.1
+                },
+                "spin": {
+                  "description": "Maximum tumble in turns per second (default 1.4; each piece gets its own rate and sense).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 4
+                },
+                "size": {
+                  "description": "A piece's long side in px at 1080p (default 28; scaled to the output frame).",
+                  "type": "number",
+                  "minimum": 4,
+                  "maximum": 64
+                },
+                "discs": {
+                  "description": "Share of round pieces; the rest are 2:1 strips (default 0.2).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "colors": {
+                  "description": "Palette, 1–5 colours (\"#rrggbb\", names or \"$color.*\" tokens). Default: the theme accent, accent2, brand and a neutral (fg).",
+                  "minItems": 1,
+                  "maxItems": 5,
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "depth": {
+                  "description": "Depth tiers: 1 (default) gives pieces at 0.6 / 0.8 / 1.0 size with slight alpha; 0 = all equal.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "fade": {
+                  "description": "Seconds faded out at the end of the burst (default 0.5).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 2
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "A ballistic burst of tumbling paper pieces in the theme colours: launched from a point, slowed by drag, pulled down by gravity, swaying as they fall. Tune: origin, angle and spread aim it (a cannon from a corner, a fountain from below, a pop from the centre); speed, gravity and drag set the physics (snappy vs. floaty); count, size and discs set the density; colors restyle it (theme tokens by default)."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "bokeh"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "count": {
+                  "description": "Number of out-of-focus discs (default 6–10 from the seed). Fewer, larger discs read calmer.",
+                  "type": "integer",
+                  "minimum": 2,
+                  "maximum": 16
+                },
+                "size": {
+                  "description": "Radius of the nearest discs as a share of the target's short side (default ~0.1–0.15). The middle and far depth tiers are 0.6× and 0.35× that.",
+                  "type": "number",
+                  "minimum": 0.02,
+                  "maximum": 0.3
+                },
+                "softness": {
+                  "description": "Edge roll-off as a share of the radius (default 0.25–0.45): 0 = crisp lens discs, 1 = soft glowing blobs.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "drift": {
+                  "description": "Drift heading in degrees, screen convention: 0 = right, 90 = down, -90 (or 270) = up. Default from the seed (bokeh: rising within ±70° of up; dust: settling or rising within ±35° of vertical).",
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 360
+                },
+                "speed": {
+                  "description": "Drift of the nearest tier in target short sides per second (default 0.035, scaled by motion energy); far tiers move slower (parallax).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.2
+                },
+                "depth": {
+                  "description": "Parallax spread between depth tiers (default 0.5): 0 = all tiers drift together, 1 = far tiers almost still.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "clear": {
+                  "description": "Half-size of the empty zone kept at the target's centre, as a share of the target (default 0.3 for bokeh, 0.2 for dust): where titles sit. 0 = particles anywhere.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.8
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "Out-of-focus light discs drifting slowly in three depth tiers (near discs larger, brighter and faster), clipped to the target: depth and warmth behind a title card or an intro. Tune: count, size and softness set the lens (a few large soft discs vs. many crisp ones); drift and speed set the air; depth sets the parallax; colour (e.g. \"$color.accent\") tints the light; seed re-rolls the layout. Set duration to the section length."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "dust"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "count": {
+                  "description": "Motes visible at once on average (default 16–24 from the seed).",
+                  "type": "integer",
+                  "minimum": 4,
+                  "maximum": 40
+                },
+                "size": {
+                  "description": "Mote diameter in px at 720p, scaled to the frame (default 2.5: about 2 and 3 px motes; smaller ones vanish under video compression at the 0.12 ceiling).",
+                  "type": "number",
+                  "minimum": 0.5,
+                  "maximum": 4
+                },
+                "drift": {
+                  "description": "Drift heading in degrees, screen convention: 0 = right, 90 = down, -90 (or 270) = up. Default from the seed (bokeh: rising within ±70° of up; dust: settling or rising within ±35° of vertical).",
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 360
+                },
+                "speed": {
+                  "description": "Drift in target short sides per second (default 0.012, scaled by motion energy, ±50% per mote).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.1
+                },
+                "flicker": {
+                  "description": "How often motes catch and lose the light (default 0.5): 0 = every mote stays for the whole effect, 1 = short lives (about a third of the effect) fading in and out.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "clear": {
+                  "description": "Half-size of the empty zone kept at the target's centre, as a share of the target (default 0.3 for bokeh, 0.2 for dust): where titles sit. 0 = particles anywhere.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.8
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "Fine motes of dust drifting and catching the light (1–2 px, seeded positions and lives), clipped to the target: air in a still photo or a quiet interview intro. Tune: count and size set the density; drift and speed set the air (settling vs. rising warm air); flicker sets how often motes catch the light; colour tints them; seed re-rolls the field. Set duration to the section length."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "glass"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "tone": {
+                  "description": "dark: smoked glass for light text (its brightest point stays dark enough for white text at ≥ 4.5:1); light: milk glass for dark text (its darkest point stays light enough for #1A1A1A text at ≥ 4.5:1). Default dark.",
+                  "type": "string",
+                  "enum": ["dark", "light"]
+                },
+                "frost": {
+                  "description": "Frost blur σ as a share of the card's short side (default ~0.08–0.12, at most 40 px): 0.03 = clear glass, 0.2 = heavy frost where nothing behind is legible.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.3
+                },
+                "saturation": {
+                  "description": "Colour kept from what is behind the glass (default ~0.45–0.65): 0 = neutral grey glass.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "highlight": {
+                  "description": "Strength of the top-lit edge highlight (a 1 px rim, 2 px from a 1080 px short side; default ~0.6–0.85, peaking at 0.35 alpha at 1). 0 = no rim.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "ramp": {
+                  "description": "Seconds the card takes to frost in and to clear out (default 0.3, at least 4 frames).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 1.5
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "A frosted glass panel on the target rectangle (blurred, toned and desaturated footage behind it, a top-lit edge, rounded corners from the target radius) that keeps the text on it legible: a lower third, a name card or a caption plate. Tune: tone (smoked or milk), frost (clear to heavy), saturation, colour + intensity (tint toward the theme), highlight (edge light), ramp (how it lands); the target radius sets the corners. Duration is how long it stays."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "resolve"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "blur": {
+                  "description": "Starting defocus σ as a share of the target's short side (default ~0.035–0.055, e.g. 8 px on a 180 px logo box), eased to 0 frame by frame.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.2
+                },
+                "scale": {
+                  "description": "Starting scale, settling to 1 (default 1.03–1.05). 1 = no scale.",
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 1.2
+                },
+                "fade": {
+                  "description": "Share of the duration the element takes to become opaque (default 0.55).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 1
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "A logo or title resolves into place: the target region starts defocused, slightly enlarged and dissolved into a soft glow of itself, then sharpens (per-frame blur steps, no visible step), settles to scale 1 and becomes opaque. Before `at` the target shows that glow. Tune: blur and scale set how far out of focus it starts (intensity 0..1 scales both); fade sets when it becomes solid; duration and ease set the landing ($expo crisp, $gentle soft); target a layer:<i> or a rectangle around the logo."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "leak"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "edge": {
+                  "description": "Where the off-frame source sits (default from the seed: a side or a top corner, top corners on tall targets). The light pours in from there and never reaches the far side.",
+                  "type": "string",
+                  "enum": ["left", "right", "top", "bottom", "top-left", "top-right", "bottom-left", "bottom-right"]
+                },
+                "size": {
+                  "description": "Lobe radius as a fraction of the target's long side (default 0.3–0.42 from the seed). 0.25 = a tight flare at the edge, 1+ = a wash over half the frame.",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 1.5
+                },
+                "stretch": {
+                  "description": "Lobe elongation along its edge (default 1–1.3): 1 = round, 2+ = a long streak hugging the edge.",
+                  "type": "number",
+                  "minimum": 0.5,
+                  "maximum": 3
+                },
+                "drift": {
+                  "description": "Travel along the edge over one pass, as a fraction of the edge's length; the sign sets the direction (default ±0.06–0.10 from the seed). 0 = a still leak.",
+                  "type": "number",
+                  "minimum": -0.3,
+                  "maximum": 0.3
+                },
+                "secondary": {
+                  "description": "Colour of the second lobe: \"#rrggbb\" or a theme token (default rose #FF7A88; the first lobe is `color`, default amber #FFB36B, both nudged toward the theme accent).",
+                  "type": "string",
+                  "pattern": "^(#[0-9a-fA-F]{6}|\\$color\\.[a-zA-Z]+)(@[0-9.]+)?$"
+                },
+                "balance": {
+                  "description": "Strength of the second lobe relative to the first (default 0.55–0.8). 0 = a single lobe.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "spread": {
+                  "description": "Offset of the second lobe along the edge, in lobe radii (default 0.5–0.9).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1.5
+                },
+                "shadows": {
+                  "description": "How much the shadows are kept clean (default 1: the light lifts the mid-tones and never the blacks; 0 = a wash into the shadows too). Surfaces brighter than the light itself are always left alone.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "rise": {
+                  "description": "Share of the life spent fading in (default 0.3); ease-in, so it blooms rather than switches on.",
+                  "type": "number",
+                  "minimum": 0.05,
+                  "maximum": 0.6
+                },
+                "fall": {
+                  "description": "Share of the life spent fading out (default 0.5): a leak leaves more slowly than it arrives.",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 0.8
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "A warm light leak: two soft radial lobes from an off-frame source at one edge, drifting slowly along it, rising and fading like film exposure. It lifts the mid-tones, never the blacks, never greys a bright surface, and has no edge anywhere. Tune: edge and drift set where the light comes from and where it goes; size and stretch set its reach; color/secondary/balance set the hue (amber+rose, gold, teal, the brand accent); rise/fall and duration set the exposure; intensity ≤ 1 keeps it under 0.25."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "edge-glow"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "line": {
+                  "description": "Opacity of the inner hairline (default 0.55; 0 = glow only).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "lineWidth": {
+                  "description": "Hairline width in px at 1080p, scaled with the frame (default 1.5).",
+                  "type": "number",
+                  "minimum": 0.5,
+                  "maximum": 8
+                },
+                "spread": {
+                  "description": "Bloom radius (gaussian σ) in px at 1080p, scaled with the frame (default 8–12 from the seed).",
+                  "type": "number",
+                  "minimum": 2,
+                  "maximum": 48
+                },
+                "glow": {
+                  "description": "Bloom colour: \"#rrggbb\" or a theme token (default: the light colour pushed toward the theme accent). The hairline stays near-white.",
+                  "type": "string",
+                  "pattern": "^(#[0-9a-fA-F]{6}|\\$color\\.[a-zA-Z]+)(@[0-9.]+)?$"
+                },
+                "breathe": {
+                  "description": "Opacity swing of the bloom, ± share (default 0.06; 0 = steady).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.25
+                },
+                "period": {
+                  "description": "Seconds per breath (default 3.6–4.8 from the seed).",
+                  "type": "number",
+                  "minimum": 1.5,
+                  "maximum": 12
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "A glow around a card or video rect: a crisp inner hairline plus a soft bloom outside the target's (rounded) shape only, breathing gently. Tune: spread and intensity set how far it radiates; glow (e.g. \"$color.accent\") sets the tint; line and lineWidth set the hairline; breathe and period set the pulse (0 for a still glow)."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "bloom"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "threshold": {
+                  "description": "Luma (0..1 of the video range) above which highlights halate (default 0.68–0.78 from the seed). Lower = more of the picture glows; 0.9 = only speculars and skies.",
+                  "type": "number",
+                  "minimum": 0.3,
+                  "maximum": 0.98
+                },
+                "knee": {
+                  "description": "Softness of the threshold, in luma (default 0.12): small = only clipped highlights, large = gradual.",
+                  "type": "number",
+                  "minimum": 0.02,
+                  "maximum": 0.4
+                },
+                "radius": {
+                  "description": "Halation spread (gaussian σ) as a fraction of the target's short side (default ~0.011, i.e. 12 px at 1080p, from the seed). 0.03+ = a dreamy haze.",
+                  "type": "number",
+                  "minimum": 0.002,
+                  "maximum": 0.06
+                },
+                "ramp": {
+                  "description": "Seconds of fade-in and fade-out at both ends of the life (default 0.5).",
+                  "type": "number",
+                  "minimum": 0.13,
+                  "maximum": 2
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "Highlight halation: the brightest parts of the picture bleed a soft, warm glow into their surroundings, as film does. Built from the frame itself, so it follows the footage. Tune: threshold and knee choose what glows; radius sets how far; color (warm white, gold, the accent) tints the halo; intensity ≤ 1 keeps it ≤ 0.12."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "vignette-breathe"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "angle": {
+                  "description": "Lens angle in radians: how far in the falloff reaches (default 0.55–0.7 from the seed; PI/5 ≈ 0.63).",
+                  "type": "number",
+                  "minimum": 0.15,
+                  "maximum": 1.2
+                },
+                "swing": {
+                  "description": "Breathing amplitude of the angle in radians (default 0.04; 0 = a still vignette).",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 0.15
+                },
+                "period": {
+                  "description": "Seconds per breath (default 5.4–6.6 from the seed). Keep ≥ 4 s: it should never be noticed.",
+                  "type": "number",
+                  "minimum": 2,
+                  "maximum": 16
+                },
+                "focus": {
+                  "description": "Centre of attention as fractions of the target (e.g. the speaker's face); the falloff rings it.",
+                  "type": "object",
+                  "properties": {
+                    "x": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "0..1 across the target (default ~0.5)."
+                    },
+                    "y": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1,
+                      "description": "0..1 down the target (default ~0.45)."
+                    }
+                  },
+                  "required": ["x", "y"],
+                  "additionalProperties": false
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "A slow, barely-there vignette that breathes: the edges of the target darken a little and the falloff drifts in and out, steering the eye to a focus point. Tune: angle sets the reach; focus moves the centre onto the subject; swing and period set the breath; color (default near-black) can warm it; intensity ≤ 1 keeps corners ≤ 12 % darker."
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "fx"
+                },
+                "effect": {
+                  "type": "string",
+                  "const": "grain"
+                },
+                "id": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "pattern": "^[A-Za-z]\\w*(?:-[A-Za-z]\\w*)*$",
+                  "description": "Id other time fields in this section reference as \"<id>.start\" / \"<id>.end\". Unique within the section."
+                },
+                "target": {
+                  "$ref": "#/$defs/FxTarget"
+                },
+                "at": {
+                  "description": "When the effect starts: seconds from the section start (default 0) or a time reference.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "duration": {
+                  "description": "Seconds one pass takes (default per primitive, quicker at higher global.motion.energy). A surface or an ambient texture lasts its duration: set it to the section length to hold it (up to 30).",
+                  "type": "number",
+                  "minimum": 0.1,
+                  "maximum": 30
+                },
+                "ease": {
+                  "description": "Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.",
+                  "$ref": "#/$defs/EasingSpec"
+                },
+                "role": {
+                  "type": "string",
+                  "enum": ["micro", "panel", "camera", "headline", "accent", "mascot"],
+                  "description": "Motion role of this element (global.motion.roles): micro (small UI bits, quick, no overshoot), panel (plates/cards, controlled settle), camera (smooth, near-invisible), headline (strong entrance, stable hold), accent (snappy emphasis), mascot (playful overshoot). Supplies ease (and duration when the ease comes from the role) to an element that sets none; an explicit ease/duration always wins."
+                },
+                "until": {
+                  "description": "Hard stop: nothing of the effect draws after this.",
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "$ref": "#/$defs/TimeRef"
+                    }
+                  ]
+                },
+                "repeat": {
+                  "description": "Number of passes (default 1).",
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 8
+                },
+                "every": {
+                  "description": "Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).",
+                  "type": "number",
+                  "minimum": 0.2,
+                  "maximum": 30
+                },
+                "color": {
+                  "description": "Light colour: \"#rrggbb\", a colour name or a theme token (\"$color.accent\"). Default: a warm white tinted by the theme's accent. Its @alpha is ignored: use intensity.",
+                  "type": "string"
+                },
+                "intensity": {
+                  "description": "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). Keep ≤ 0.6 over skin.",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "seed": {
+                  "description": "Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. Change it to re-roll an untuned effect; same seed, same pixels.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                },
+                "above": {
+                  "description": "Draw above the section text (default: true on a text target, else false).",
+                  "type": "boolean"
+                },
+                "size": {
+                  "description": "Grain size in px at 1080p, scaled with the frame (default 1: fine; 2–3 = 16 mm-like).",
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 4
+                },
+                "animated": {
+                  "description": "A new grain pattern every frame, like film (default true); false = a still texture.",
+                  "type": "boolean"
+                },
+                "ramp": {
+                  "description": "Seconds of fade-in and fade-out at both ends of the life (default 0.3).",
+                  "type": "number",
+                  "minimum": 0.13,
+                  "maximum": 2
+                }
+              },
+              "required": ["type", "effect"],
+              "additionalProperties": false,
+              "description": "Fine, seeded, luma-only film grain under a low ceiling (noise strength 12 at intensity 1): binds mixed footage and flat cards into one texture. Tune: size sets fine vs. coarse; intensity ≤ 1 sets the amount (below ~0.7 a standard encode smooths it away on flat areas); animated false gives a paper-like still texture; seed re-rolls the pattern."
+            }
+          ],
+          "description": "A procedural light/texture primitive lowered at output resolution and clipped to its `target`. Every look parameter is open: tune profile, size, angle, path, colour, intensity, timing and seed so the effect fits this template instead of a stock look. Omitted fields derive from the target, theme and energy."
         }
       ]
+    },
+    "FxTarget": {
+      "anyOf": [
+        {
+          "type": "string",
+          "const": "frame"
+        },
+        {
+          "type": "string",
+          "pattern": "^(pane|layer|text):(\\d+)$"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "x": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(iw|ih)\\s*\\*\\s*(\\d*\\.?\\d+)$"
+                }
+              ],
+              "description": "Left edge: px or \"iw*f\" / \"ih*f\"."
+            },
+            "y": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(iw|ih)\\s*\\*\\s*(\\d*\\.?\\d+)$"
+                }
+              ],
+              "description": "Top edge: px or \"iw*f\" / \"ih*f\"."
+            },
+            "w": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(iw|ih)\\s*\\*\\s*(\\d*\\.?\\d+)$"
+                }
+              ],
+              "description": "Width: px or \"iw*f\" / \"ih*f\"."
+            },
+            "h": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^(iw|ih)\\s*\\*\\s*(\\d*\\.?\\d+)$"
+                }
+              ],
+              "description": "Height: px or \"iw*f\" / \"ih*f\"."
+            },
+            "radius": {
+              "description": "Corner radius in px (default 0); the effect is clipped to the rounded shape.",
+              "type": "number",
+              "minimum": 0,
+              "maximum": 2000
+            }
+          },
+          "required": ["x", "y", "w", "h"],
+          "additionalProperties": false,
+          "description": "An explicit rectangle, e.g. the card or the video a light should live on."
+        }
+      ],
+      "description": "What the effect lives on; it never draws outside it. \"frame\": the whole frame (default). \"pane:<i>\": pane i of the section layout (split screen). \"layer:<i>\": options.layers[i] of a color_background. \"text:<i>\": kinetic block i, clipped to its letters. {x, y, w, h, radius}: a rectangle in px or frame fractions (\"iw*0.5\"), with rounded corners. Snapped inward to even pixels and clamped to the frame."
     },
     "MotionAssertion": {
       "anyOf": [

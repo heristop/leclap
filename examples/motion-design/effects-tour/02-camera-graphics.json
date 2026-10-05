@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Effects tour: camera and graphics",
-    "description": "Chapter 2 of the effects tour: every virtual camera preset over a bundled photograph (plus hits, seeded shake and keyframed zoom / roll), section motion (Ken Burns, pulse), letterbox, and every animated graphic: flash, bars, underline, frame, corners, panel, wipe, glitch, focus, progress, ticker and bar chart.",
+    "description": "Chapter 2 of the effects tour: every virtual camera preset over a bundled photograph (plus hits, seeded shake and keyframed zoom / roll), section motion (Ken Burns, pulse), letterbox, and every animated graphic: flash, bars, underline (round caps), frame (rounded, traced), corners (on a target), panel, wipe, glitch, focus, progress, ticker and bar chart.",
     "creativeDirection": "One camera idea or one graphic per beat, named in the corner label. Photographs make every camera move readable; graphics sit on ink grounds so their geometry reads. Review: no frame edge ever shows during a move, flashes stay under three per second, text keeps its shadow over photos, and the chart values settle before the cut."
   },
   "global": {
@@ -1118,13 +1118,17 @@
           "y": 430,
           "width": 500,
           "origin": "center",
-          "color": "#FFF685"
+          "color": "#FFF685",
+          "caps": "round",
+          "settle": 0.03,
+          "exit": "fade",
+          "thickness": 8
         }
       ],
       "kinetic": [
         {
           "text": {
-            "en": "graphics · underline"
+            "en": "graphics · underline · round caps + settle"
           },
           "preset": "fade",
           "font": "mono",
@@ -1172,13 +1176,16 @@
           "type": "frame",
           "at": 0.1,
           "inset": 100,
-          "color": "#7C83FD"
+          "color": "#7C83FD",
+          "radius": 28,
+          "trace": "path",
+          "exit": "fade"
         }
       ],
       "kinetic": [
         {
           "text": {
-            "en": "graphics · frame"
+            "en": "graphics · frame · radius + trace path"
           },
           "preset": "fade",
           "font": "mono",
@@ -1226,13 +1233,22 @@
           "type": "corners",
           "at": 0.2,
           "color": "#FF8AAE",
-          "inset": 110
+          "target": {
+            "x": 330,
+            "y": 270,
+            "w": 620,
+            "h": 180
+          },
+          "clearance": 28,
+          "spread": 1.08,
+          "trace": "clockwise",
+          "exit": "expand"
         }
       ],
       "kinetic": [
         {
           "text": {
-            "en": "graphics · corners"
+            "en": "graphics · corners · target + spread"
           },
           "preset": "fade",
           "font": "mono",

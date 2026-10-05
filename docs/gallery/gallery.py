@@ -55,6 +55,8 @@ CLIPS = {
     'zoom.mp4': ('forest-sea.jpg', f'scale=1280:-2,{PUSH_IN},{CLOCK}'),
     'main.mp4': ('laptop-desk.jpg', f'scale=1280:-2,{PUSH_IN}'),
     'broll.mp4': ('desk-flatlay.jpg', "scale=800:-2,crop=640:360:x='160-20*t':y=40"),
+    'sunset.mp4': ('golden-hour.jpg', "scale=800:-2,crop=640:360:x='20*t':y=40"),
+    'forest.mp4': ('forest-sea.jpg', "scale=800:-2,crop=640:360:x='20*t':y=60"),
 }
 
 
@@ -232,6 +234,31 @@ def graphics():
                   'Graphics: every graphics[] type')
 
 
+# Each fx primitive near its peak: (section, seconds into it, family).
+FX = [
+    ('sheen', 0.85, 'light'), ('edge-glow', 1.2, 'light'), ('leak', 1.2, 'light'), ('bloom', 1.2, 'light'),
+    ('ripple', 0.75, 'marks'), ('glint', 0.75, 'marks'), ('confetti', 0.75, 'marks'),
+    ('bokeh', 1.2, 'ambient'), ('dust', 1.2, 'ambient'), ('vignette-breathe', 1.2, 'ambient'),
+    ('grain', 1.2, 'ambient'), ('glass', 1.2, 'surfaces'), ('resolve', 0.75, 'surfaces'),
+]
+
+
+def fx_primitives():
+    section_sheet('fx', 'fx.json', 4, [(f'{n}.start+{t}', f'{n}  ({family})') for n, t, family in FX],
+                  'Light and effects: every graphics[] fx primitive, near its peak')
+
+
+STROKES = [('frame-legacy', 1.2, 'frame'), ('frame-v2', 1.2, 'frame v2: radius + path'),
+           ('frame-target', 1.2, 'frame v2: target text:0, split'), ('corners-legacy', 1.2, 'corners'),
+           ('corners-v2', 1.2, 'corners v2: target + spread'), ('corners-round', 1.2, 'corners v2: radius'),
+           ('underline-legacy', 1.4, 'underline'), ('underline-v2', 1.4, 'underline v2: round caps + settle')]
+
+
+def strokes():
+    section_sheet('strokes-v2', 'strokes-v2.json', 4, [(f'{n}.start+{t}', label) for n, t, label in STROKES],
+                  'Strokes: the legacy look and the v2 fields of frame, corners and underline')
+
+
 DESIGNED = ['push-left', 'push-right', 'push-up', 'push-down', 'swipe-left', 'swipe-right', 'zoom-through', 'iris',
             'whip-left', 'whip-right', 'whip-up', 'whip-down']
 
@@ -372,6 +399,7 @@ def tooling():
 
 SHEETS = {
     'kinetic': kinetic, 'kinetic-extras': kinetic_extras, 'camera': camera, 'graphics': graphics,
+    'fx': fx_primitives, 'strokes': strokes,
     'transitions': transitions, 'lower-thirds': lower_thirds, 'title-cards': title_cards, 'captions': captions,
     'layouts': layouts, 'themes': themes, 'platforms': platforms, 'formats': formats, 'looks': looks,
     'emoji-rtl': emoji_rtl, 'footage': footage, 'tooling': tooling,

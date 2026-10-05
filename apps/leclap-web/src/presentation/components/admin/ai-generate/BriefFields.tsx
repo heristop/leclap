@@ -111,7 +111,7 @@ const Hints = ({ orientation, onOrientationChange, duration, onDurationChange, d
   return (
     <fieldset
       disabled={disabled}
-      className="grid items-start gap-x-6 gap-y-5 disabled:opacity-60 sm:grid-cols-[auto_minmax(8rem,11rem)]"
+      className="grid items-start gap-x-6 gap-y-5 disabled:opacity-60 @lg:grid-cols-[auto_minmax(8rem,11rem)]"
     >
       <div className="min-w-0">
         <span id={`${id}-format`} className={FIELD_LABEL}>
@@ -124,7 +124,7 @@ const Hints = ({ orientation, onOrientationChange, duration, onDurationChange, d
             onOrientationChange(value as Orientation | 'auto');
           }}
           classNames={{
-            track: 'flex h-10 w-full items-center sm:inline-flex sm:w-auto',
+            track: 'flex h-10 w-full items-center @lg:inline-flex @lg:w-auto',
             button: 'flex-1 px-3 py-1.5 text-[0.8125rem]',
           }}
           options={ORIENTATIONS.map((value) => ({ value, label: t(`hints.${value}`) }))}

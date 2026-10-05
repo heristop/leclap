@@ -11,6 +11,7 @@ const GenerateWithAiDialog = lazy(() => import('./GenerateWithAiDialog'));
 export const GenerateWithAiButton = ({ onClick, t }: { onClick: () => void; t: TFunction<'ai'> }) => (
   <button
     type="button"
+    data-ai-trigger=""
     onClick={onClick}
     aria-label={t('open')}
     title={t('open')}

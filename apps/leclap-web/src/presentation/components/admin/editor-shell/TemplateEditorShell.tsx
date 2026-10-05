@@ -139,7 +139,7 @@ export const TemplateEditorShell = ({
       monitor.clock.toggle();
     },
     onShowHelp: () => {
-      modals.setHelpOpen(true);
+      modals.open('help');
     },
     // The help dialog closes itself on Escape (Radix); this fires with it closed — exit play mode.
     onDismissHelp: () => {
@@ -173,7 +173,7 @@ export const TemplateEditorShell = ({
             onSave={save.handleSave}
             onSaveAndCompile={onSaveAndCompile ? save.handleSaveAndCompile : undefined}
             onGenerate={() => {
-              modals.setAiOpen(true);
+              modals.open('ai');
             }}
             feedback={save.feedback}
             nameInvalid={save.blocker?.kind === 'name'}
@@ -240,7 +240,7 @@ export const TemplateEditorShell = ({
             sectionTitle={(section) => sectionTitle(section, t)}
             sectionKindLabel={(section) => t(sectionLabelKey(section.kind))}
             onBrowsePresets={() => {
-              modals.setPresetsOpen(true);
+              modals.open('presets');
             }}
           />
         }

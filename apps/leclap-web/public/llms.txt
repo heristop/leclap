@@ -36,7 +36,7 @@ The descriptor field tables come from the engine's Zod schema. Runtime requireme
 - [Registered effects](https://leclap.dev/doc/effects): all built-in and example catalog props, asset slots, output constraints and authoring workflow.
 - [Creative direction](https://leclap.dev/doc/creative-direction): implement a visual brief with explicit native settings or registered effect props.
 - [Engine configuration](https://leclap.dev/doc/engine): host configuration, encoder tiers, platform requirements and MCP runtime settings.
-- [Animations & images](https://leclap.dev/doc/animations): overlay playback/placement, whole-video animation and six composited APNG recipe configurations.
+- [Animations & images](https://leclap.dev/doc/animations): overlay playback/placement, whole-video animation and six composited APNG recipe configurations. The bundled APNGs are samples: compose motion with the motion engine instead.
 - [Examples](https://leclap.dev/doc/examples): copy-paste descriptors that render with `leclap render`.
 - [JSON Schema](https://leclap.dev/doc/schema): the full machine-readable schema for tooling and validation.
 
@@ -68,6 +68,8 @@ Add the MCP server to any MCP-capable client:
 ```
 
 Sixteen tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`, `get_motion_catalog`, `report_catalog_gap`, `get_timeline`, `validate_template`, `patch_template`, `edit_template`, `compose_video`, `render_frames`, `probe_media`, `extract_style`, `analyze_music`, `get_capabilities`. Opting into Remotion adds `get_effect_schema`, `render_preview` and `render_remotion_clip`. No LLM sits in the output path: the agent authors JSON and the engine renders it.
+
+Compose motion, don't pick it. Derive the motion from the creative direction (audience, brand, energy), write a motion intent per section, and build it from the motion engine: kinetic typography, `animate` tracks with ease tokens or springs, the camera, designed transitions, `graphics`, and the parametric `type: "fx"` light primitives. Tune their parameters, because untuned defaults look the same in every video. Keep one or two signature moves per video. The library animation overlays (`animations/*.apng`) are samples: use one only as a last resort. `get_motion_catalog` lists them under `samples`, together with the primitives that replace each one. `validate_template` flags stock motion as `fx_untuned`, `effect_repeated`, `library_animation_sample`, `effect_off_theme` and `decor_overload`.
 
 Registered JSON effects can use trusted, operator-configured Remotion components on Node.js. Inspect the effect schema, preview selected frames, and patch props with a revision guard before composing. Remotion rendering requires operator opt-in; JSON cannot select executable source. Generated effects become video clips before the cross-platform FFmpeg engine runs.
 

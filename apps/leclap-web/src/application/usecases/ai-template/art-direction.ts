@@ -14,7 +14,7 @@ export const BUILDER_CONSTRAINTS = [
   '- Never use sections of type "effect" or "partial".',
   '- Use "project_video" sections for the footage the user records or uploads; give each a title and description that tell them what to film.',
   '- Use "color_background" sections for title cards, chapter cards and the closing card. Put text on them with "kinetic" blocks (preferred: see the motion catalog) or "drawtext" filters; add "camera" and "graphics" where they serve the beat.',
-  '- Do not reference image or video URLs; the only external files allowed are the fonts, music and animation overlays listed in the catalog.',
+  '- Do not reference image or video URLs; the only external files allowed are the fonts and music listed in the catalog (and, as a last resort, its sample animation overlays).',
   '- All durations are in seconds. Give every color_background section an explicit options.duration.',
   '- Set meta.name (short), meta.description (one sentence) and meta.creativeDirection (the brief you followed).',
   '- Set global.orientation. Coordinates are in pixels of the output frame: landscape 1280x720, portrait 720x1280, square 1080x1080.',
@@ -88,6 +88,17 @@ export const STORY_SPINE = [
   '- For launches and reveals, hold the product back and reveal it sequentially through the back half (feature, feature, then the name/lockup).',
 ].join('\n');
 
+// The motion workflow: compose from the engine, tuned to this brief, instead of picking stock looks.
+export const COMPOSE_MOTION = [
+  "Compose motion, don't pick it (stock looks make every video the same):",
+  '1. Creative direction first: who is watching, what the brand feels like, how much energy (global.motion.energy).',
+  '2. Write a motion intent per section, one line: what moves, why, and how it should feel (snaps, glides, settles, holds).',
+  '3. Build each intent from engine primitives: kinetic typography, animate tracks with ease tokens or springs ($snappy, $expo, spring(k,c)), the camera (push-in, drift, orbit, hits), designed transitions, graphics and type "fx" primitives (light on a target), motion roles, beats and cues for timing.',
+  '4. Tune the parameters for this brief (fx profile, width, tilt, direction, colour token, intensity, duration and ease; preset delay, stagger, distance and accent; camera amount). Never ship an effect with all-default parameters.',
+  '5. One or two signature moves for the whole video, not one per section; the other beats stay simpler so the signature lands.',
+  '- The library animation overlays (/assets/animations/*.apng: shine sweep, confetti, light leak…) are samples, not building blocks: use one only as a last resort, when no engine primitive can express the intent.',
+].join('\n');
+
 export const LAZY_DEFAULTS = [
   'Lazy defaults to avoid (each one reads as a generic template):',
   '- Everything centred.',
@@ -98,6 +109,7 @@ export const LAZY_DEFAULTS = [
   '- Every element entering at t=0 (start 0.1–0.3 s after the cut, then stagger).',
   '- One transition type everywhere (one primary plus 1–2 accents, cut between beats of one idea).',
   '- Generic copy such as "Welcome to…", "Introducing…", "Let\'s get started".',
+  '- Stock motion: a library animation overlay, the same effect or preset on every section, or effects left at their default parameters.',
 ].join('\n');
 
 // Energy 0–4 in words, for the brief.

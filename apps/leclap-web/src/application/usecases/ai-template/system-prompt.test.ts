@@ -169,6 +169,21 @@ describe('buildSystemPrompt', () => {
     expect(built.schemaTruncated).toBe(false);
   });
 
+  it('steers the model to compose motion from the engine, with library animations as labelled samples', () => {
+    const { system } = promptFor('30s product launch for a note-taking app', { genre: 'product-launch' });
+    const motion = system.indexOf('Motion catalog (');
+    const samples = system.indexOf('Sample animation overlays (stock demo assets, last resort only');
+
+    expect(system).toContain("Compose motion, don't pick it");
+    expect(system).toContain('Never ship an effect with all-default parameters.');
+    expect(system).toContain('One or two signature moves for the whole video');
+    expect(system).toContain('"samples":{"note":"Sample assets, not building blocks');
+    expect(system).not.toContain('Animation overlays (inputs[].url');
+    expect(motion).toBeGreaterThan(0);
+    // The engine catalog comes first; the stock overlays come after it, labelled.
+    expect(samples).toBeGreaterThan(motion);
+  });
+
   it('drops samples before squeezing the schema below a minimum', () => {
     const context = generationContext();
     const built = buildSystemPrompt({

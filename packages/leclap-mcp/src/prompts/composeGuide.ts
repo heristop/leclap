@@ -41,6 +41,11 @@ const BUNDLED_FONTS = 'BebasNeue, Oswald, PlayfairDisplay, Pacifico, Rubik, Robo
 // Pacing rules a motion director applies; validate_template's `motionWarnings` checks most of them.
 const MOTION_RULES = [
   'Motion rules (get_motion_catalog has the genre doctrine, blueprints and a verb per preset):',
+  "  - Compose, don't pick: creative direction (audience, brand, energy) → a motion intent per section → engine",
+  '    primitives (kinetic, animate tracks + ease tokens/springs, camera, designed transitions, graphics, fx) → tune',
+  '    their parameters (never all defaults). One or two signature moves per video, not one per section.',
+  '  - Library animations (animations/*.apng: shine sweep, confetti, light leak…) are samples: a last resort;',
+  '    get_motion_catalog → samples names the primitives that replace each one.',
   '  - One primary transition plus 1–2 accents for key moments; cut between beats of the same idea.',
   '  - The transition is the exit: no element exit in the last 0.3 s before a non-cut boundary.',
   "  - Don't start at 0: offset each section's first text entrance 0.1–0.3 s after the cut.",

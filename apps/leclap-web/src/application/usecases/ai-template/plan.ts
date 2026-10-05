@@ -16,6 +16,8 @@ export interface PlanBeat {
   verb: string;
   onScreen: string;
   why: string;
+  // The beat's motion intent: engine primitives and how they are tuned (optional; older plans lack it).
+  motion?: string;
   seconds: number;
 }
 
@@ -27,6 +29,8 @@ export interface TemplatePlan {
   theme?: string;
   platform?: string;
   transitions: { primary: string; accents: string[] };
+  // The one or two signature moves of the whole video.
+  signature?: string[];
 }
 
 export interface PlanVocabulary {
@@ -40,6 +44,7 @@ export const PLAN_CONCEPTS = 3;
 export const PLAN_MIN_BEATS = 2;
 export const PLAN_MAX_BEATS = 12;
 export const PLAN_MAX_BEAT_SECONDS = 60;
+export const PLAN_MAX_SIGNATURE_MOVES = 2;
 
 type Loose = Record<string, unknown>;
 
@@ -90,6 +95,7 @@ function parseBeat(item: unknown, index: number, errors: string[]): PlanBeat {
     verb: text(record.verb).toUpperCase(),
     onScreen: text(record.onScreen),
     why: text(record.why),
+    ...(text(record.motion) && { motion: text(record.motion) }),
     seconds: typeof record.seconds === 'number' ? record.seconds : Number.NaN,
   };
   const at = `beats[${String(index)}]`;
@@ -125,6 +131,17 @@ function parseTransitions(value: unknown, errors: string[]): TemplatePlan['trans
   if (accents.length > 2) errors.push('transitions.accents: at most 2 accent transitions');
 
   return { primary, accents };
+}
+
+// Optional; a video with more than PLAN_MAX_SIGNATURE_MOVES signatures has none.
+function parseSignature(value: unknown, errors: string[]): string[] | undefined {
+  const moves = (Array.isArray(value) ? value : []).map(text).filter(Boolean);
+
+  if (moves.length > PLAN_MAX_SIGNATURE_MOVES) {
+    errors.push(`signature: at most ${String(PLAN_MAX_SIGNATURE_MOVES)} signature moves for the whole video`);
+  }
+
+  return moves.length > 0 ? moves : undefined;
 }
 
 function optionalChoice(
@@ -163,6 +180,7 @@ export function validatePlan(value: Loose, vocabulary: PlanVocabulary = {}): Pla
     theme: optionalChoice(value.theme, 'theme', vocabulary.themes, errors),
     platform: optionalChoice(value.platform, 'platform', vocabulary.platforms, errors),
     transitions: parseTransitions(value.transitions, errors),
+    signature: parseSignature(value.signature, errors),
   };
 
   return errors.length > 0 ? { ok: false, errors } : { ok: true, plan };
@@ -181,8 +199,9 @@ export function planSeconds(plan: TemplatePlan): number {
 function beatLine(beat: PlanBeat, index: number): string {
   const copy = beat.onScreen ? ` — on screen: "${beat.onScreen}"` : '';
   const why = beat.why ? ` (why: ${beat.why})` : '';
+  const motion = beat.motion ? ` — motion: ${beat.motion}` : '';
 
-  return `${String(index + 1)}. section "${beat.section}" [${beat.role}] ${beat.verb} — ${String(beat.seconds)} s${copy}${why}`;
+  return `${String(index + 1)}. section "${beat.section}" [${beat.role}] ${beat.verb} — ${String(beat.seconds)} s${copy}${why}${motion}`;
 }
 
 /** The approved plan as instructions for the template call. */
@@ -197,6 +216,10 @@ export function formatPlan(plan: TemplatePlan): string {
     ...(plan.theme ? [`Theme: set global.theme to "${plan.theme}" and use its $color / $font tokens.`] : []),
     ...(plan.platform ? [`Platform: set global.platform to "${plan.platform}".`] : []),
     `Transitions: primary ${plan.transitions.primary}${accents} (no other types).`,
+    ...(plan.signature
+      ? [`Signature moves (the only beats that get the strongest, most tuned effects): ${plan.signature.join('; ')}`]
+      : []),
+    'Build each beat from its motion intent with engine primitives, tuned for this brief; no library animation overlays.',
     'Beats:',
     ...plan.beats.map(beatLine),
   ].join('\n');

@@ -46,10 +46,13 @@ export function registerGetMotionCatalog(server: McpServer): void {
         'caption DNA identities and karaoke modes for word-timed subtitles, ' +
         'art-direction rules, a doctrine per genre (product-launch, explainer, social-hook, cinematic-trailer, ' +
         'calm-tutorial), validated scene blueprints with [slot] copy and a signature move, a verb / useWhen / ' +
-        'avoidWhen / pairsWith for every preset, transition and graphic, and a complete starter template. ' +
-        'Pass `query` (and optionally `kind`) for ranked matches instead of the whole catalog; an empty result ' +
-        'carries a `gap` — then call report_catalog_gap. Call it before authoring animated copy, camera moves, ' +
-        'graphics or designed transitions.',
+        'avoidWhen / pairsWith for every preset, transition and graphic, the fx primitives with their open ' +
+        'parameters, and a complete starter template. The creative-kit library animations are listed only under ' +
+        '`samples`: stock demo overlays, each mapped to the engine primitives that replace it (a last resort). ' +
+        'Pass `query` (and optionally `kind`) for ranked matches instead of the whole catalog (engine primitives ' +
+        'always rank above samples); an empty result carries a `gap` — then call report_catalog_gap. Call it ' +
+        'before authoring animated copy, camera moves, graphics or designed transitions, and compose the motion ' +
+        'from these primitives tuned to the brief instead of picking stock looks.',
       inputSchema,
     },
     (args: CatalogArgs) => ({

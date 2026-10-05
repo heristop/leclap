@@ -35,6 +35,13 @@ const GUIDE = [
     'designed transitions include whip-left/right/up/down; ' +
     '`lowerThird.style` picks clean-bar, side-rule, kicker, stack-bars or pill. ' +
     'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',
+  "Compose motion, don't pick it: derive it from meta.creativeDirection (audience, brand, energy), write a motion " +
+    'intent per section, build each from engine primitives (kinetic, animate tracks with ease tokens or springs, ' +
+    'camera, designed transitions, graphics, fx, roles, beats/cues for timing), then tune their parameters: never ' +
+    'all defaults. Keep one or two signature moves per video. The library animations (inputs[] of type ' +
+    '"animation" pointing at animations/*.apng: shine sweep, confetti, light leak…) are samples, a last resort; ' +
+    'get_motion_catalog → samples names the primitives that replace each. validate_template flags stock motion ' +
+    '(fx_untuned, effect_repeated, library_animation_sample, effect_off_theme, decor_overload).',
   'Masks, layouts and scripts: a kinetic block can `fill` its letters with a gradient, a texture image and/or a ' +
     'shimmer `sweep`; Arabic/Hebrew/Indic copy animates per line (bundled fonts noto-arabic, noto-hebrew). A ' +
     'section `layout` composes several media in one frame: { type: "split", sources: [...] } panes or ' +

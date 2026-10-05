@@ -6,6 +6,7 @@ import type { SampleDetail } from 'ffmpeg-video-composer/src/samples/types.ts';
 import {
   artDirection,
   BUILDER_CONSTRAINTS,
+  COMPOSE_MOTION,
   ENERGY_WORDS,
   LAZY_DEFAULTS,
   OUTPUT_CONTRACT,
@@ -76,6 +77,7 @@ function fixedBlocks(input: PromptInput): string[] {
     BUILDER_CONSTRAINTS,
     artDirection(input.hints),
     STORY_SPINE,
+    COMPOSE_MOTION,
     LAZY_DEFAULTS,
     `Engine catalog:\n${formatCatalog(input.catalog, input.hints.genre)}`,
     ...referenceBlock(input.referenceStyle),

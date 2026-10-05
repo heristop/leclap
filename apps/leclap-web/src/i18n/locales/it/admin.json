@@ -688,14 +688,19 @@
       "targetCustom": "Area personalizzata",
       "resetParam": "Riporta {{label}} su auto",
       "custom": "Personalizzato",
-      "previewHint": "Disegnato dal motore: visibile in «Anteprima del render».",
+      "previewHint": "Anteprima dal vivo sulla tela. L’aspetto esatto si vede in «Anteprima del render».",
       "notTunable": "Questa grafica non ha ancora controlli qui. Modificala nell’editor JSON.",
       "token": {
         "accent": "Accento",
         "accent2": "Accento 2",
         "fg": "Testo",
         "bg": "Sfondo"
-      }
+      },
+      "livePreview": "Anteprima dal vivo · aspetto esatto in Anteprima del render",
+      "livePreviewStill": "Anteprima ferma (movimento ridotto) · effetto completo in Anteprima del render",
+      "livePreviewNone": "Niente da disegnare su questo bersaglio · vedi Anteprima del render",
+      "renderScene": "Renderizza questa scena",
+      "renderSceneHint": "Una bozza rapida solo di questa scena, con l’effetto esatto."
     },
     "param": {
       "at": "Inizio (s)",

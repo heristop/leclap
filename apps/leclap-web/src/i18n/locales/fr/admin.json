@@ -688,14 +688,19 @@
       "targetCustom": "Zone personnalisée",
       "resetParam": "Remettre {{label}} en auto",
       "custom": "Personnalisée",
-      "previewHint": "Dessiné par le moteur : visible dans « Aperçu du rendu ».",
+      "previewHint": "Aperçu en direct sur le canevas. Le rendu exact apparaît dans « Aperçu du rendu ».",
       "notTunable": "Ce graphisme n’a pas encore de réglages ici. Modifiez-le dans l’éditeur JSON.",
       "token": {
         "accent": "Accent",
         "accent2": "Accent 2",
         "fg": "Texte",
         "bg": "Fond"
-      }
+      },
+      "livePreview": "Aperçu en direct · rendu exact dans Aperçu du rendu",
+      "livePreviewStill": "Aperçu figé (mouvement réduit) · effet complet dans Aperçu du rendu",
+      "livePreviewNone": "Rien à dessiner sur cette cible · voir Aperçu du rendu",
+      "renderScene": "Rendre cette scène",
+      "renderSceneHint": "Un brouillon rapide de cette scène seule, avec l’effet exact."
     },
     "param": {
       "at": "Début (s)",

@@ -27,6 +27,7 @@ import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItem
 import { SugarPreviewLayer } from './SugarPreviewLayer';
 import type { DropPayload, DropPoint } from './canvasDrop';
 import { useCanvasDropTarget } from './useCanvasDropTarget';
+import { LazyFxPreview, type FxPreviewLayerProps } from './fx-preview/LazyFxPreview';
 
 // Preview-surface aspect classes per orientation (portrait 9:16, square 1:1, landscape 16:9).
 // Height-driven, aspect-correct sizing: tall formats fill the stage HEIGHT (width derives from the
@@ -158,6 +159,8 @@ interface SectionCanvasProps {
   onChangeImages?: (images: ImageOverlay[]) => void;
   onChangeAnimations?: (animations: AnimationOverlay[]) => void;
   onCanvasDrop?: (payload: DropPayload, point: DropPoint) => void;
+  // The selected engine effect, drawn live by the browser (lazy layer): an approximation of the render.
+  fx?: FxPreviewLayerProps;
 }
 
 // Read the active index for a given element kind from the shared selection (null when another kind,
@@ -226,6 +229,7 @@ export const SectionCanvas = ({
   onChangeImages,
   onChangeAnimations,
   onCanvasDrop,
+  fx,
 }: SectionCanvasProps) => {
   const { t } = useTranslation('admin');
   const frameRef = useRef<HTMLDivElement>(null);
@@ -353,6 +357,8 @@ export const SectionCanvas = ({
           onDelete={removeAnimation}
         />
       ))}
+      {/* The selected engine effect, live: drawn over the composited media, below the editable text. */}
+      {fx ? <LazyFxPreview {...fx} annotate /> : null}
       {/* Text sugar draws above the composited media, below the draggable overlays — the engine's
           z-order (overlay-class sugar chains onto the final map; authored drawtext comes after). */}
       <SugarPreviewLayer

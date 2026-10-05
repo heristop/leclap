@@ -40,6 +40,7 @@ import { EditorSelectContent } from './editor-select-content';
 import { SectionDisclosure } from './SectionDisclosure';
 import { KindLine } from './animationKinds';
 import { AnimationThumb } from './AnimationMedia';
+import { RenderSceneButton } from './RenderSceneButton';
 
 const LABEL_CLS = 'text-xs font-semibold uppercase tracking-widest text-gray-400';
 const AUTO = '__auto__';
@@ -93,6 +94,7 @@ export const FxParamPanel = ({ graphic, section, theme, onChange, onRemove }: Fx
     <div className="space-y-3">
       <PanelHeader graphic={graphic} onRemove={onRemove} onReroll={graphic.type === 'fx' ? set : undefined} />
       <p className="text-[0.7rem] leading-snug text-gray-500 dark:text-gray-400">{t('animation.fx.previewHint')}</p>
+      <RenderSceneButton />
       {graphic.type === 'underline' ? null : <TargetField {...fieldProps} />}
       {[...look, ...ownParamFields(graphic)].map((field) => (
         <ParamControl key={field.key} field={field} {...fieldProps} />

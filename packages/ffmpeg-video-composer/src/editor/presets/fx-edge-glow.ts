@@ -21,14 +21,14 @@ const REACH = 3.4;
 /** The light colour's tint, exaggerated into the bloom's (fx-light-kit saturate). */
 const TINT_GAIN = 4;
 /** Seconds of the entrance and exit ramps. */
-const ENTER = 0.35;
-const EXIT = 0.25;
+export const ENTER = 0.35;
+export const EXIT = 0.25;
 /** Assumed backdrop luma for the breath: a ± share of the bloom's lift over a dark surround. */
 const BACKDROP_Y = 30;
 /** `hue` brightness unit in luma code values. */
 const HUE_B_UNIT = 24;
 
-interface Glow {
+export interface Glow {
   sigma: number;
   /** Canvas growth on each side, even px. */
   margin: number;
@@ -41,7 +41,7 @@ interface Glow {
 
 // Context defaults, drawn in a fixed order (spread, then period) from a stream of the element's seed of its
 // own (fx.random stays untouched for the dispatcher's own draws).
-function glowOf(fx: FxContext<'edge-glow'>): Glow {
+export function glowOf(fx: FxContext<'edge-glow'>): Glow {
   const g = fx.graphic;
   const random = seededRandom(fnv1a32(`${fx.seed}:edge-glow`));
   const [spreadDraw, periodDraw] = [random(), random()];

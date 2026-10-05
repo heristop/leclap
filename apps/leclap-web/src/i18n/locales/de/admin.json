@@ -688,14 +688,19 @@
       "targetCustom": "Eigener Bereich",
       "resetParam": "{{label}} auf Auto zurücksetzen",
       "custom": "Eigene",
-      "previewHint": "Von der Engine gezeichnet: sichtbar im „Vorschau-Render“.",
+      "previewHint": "Live auf der Leinwand vorgeschaut. Das exakte Ergebnis zeigt der „Vorschau-Render“.",
       "notTunable": "Für diese Grafik gibt es hier noch keine Regler. Bearbeite sie im JSON-Editor.",
       "token": {
         "accent": "Akzent",
         "accent2": "Akzent 2",
         "fg": "Text",
         "bg": "Hintergrund"
-      }
+      },
+      "livePreview": "Live-Vorschau · exaktes Ergebnis im Vorschau-Render",
+      "livePreviewStill": "Standbild (reduzierte Bewegung) · voller Effekt im Vorschau-Render",
+      "livePreviewNone": "Auf diesem Ziel gibt es nichts zu zeichnen · siehe Vorschau-Render",
+      "renderScene": "Diese Szene rendern",
+      "renderSceneHint": "Ein schneller Entwurf nur dieser Szene, mit dem exakten Effekt."
     },
     "param": {
       "at": "Beginn (s)",

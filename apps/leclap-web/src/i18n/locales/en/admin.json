@@ -688,14 +688,19 @@
       "targetCustom": "Custom area",
       "resetParam": "Set {{label}} back to auto",
       "custom": "Custom",
-      "previewHint": "Drawn by the engine: see it in “Preview render”.",
+      "previewHint": "Previewed live on the canvas. The exact look renders in “Preview render”.",
       "notTunable": "This graphic has no controls here yet. Edit it in the JSON editor.",
       "token": {
         "accent": "Accent",
         "accent2": "Accent 2",
         "fg": "Text",
         "bg": "Background"
-      }
+      },
+      "livePreview": "Live preview · exact look in Preview render",
+      "livePreviewStill": "Still preview (reduced motion) · full effect in Preview render",
+      "livePreviewNone": "Nothing to draw on this target · see Preview render",
+      "renderScene": "Render this scene",
+      "renderSceneHint": "A quick draft of this scene only, with the exact effect."
     },
     "param": {
       "at": "Starts at (s)",

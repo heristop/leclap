@@ -23,12 +23,16 @@ import { resolvePosition, sectionRef } from './read-tools';
 import { fail, ok, revisionConflict } from './results';
 import { defineTool, type ToolContext, type ToolResult } from './types';
 
-const expectedRevision = z
+export const expectedRevision = z
   .string()
   .min(1)
   .max(128)
   .describe('The revision from get_template / list_sections; a stale one fails with revision_conflict.');
-const note = z.string().max(200).optional().describe('One line telling the user why (shown in the activity log).');
+export const note = z
+  .string()
+  .max(200)
+  .optional()
+  .describe('One line telling the user why (shown in the activity log).');
 
 const SECTION_TYPES = {
   project_video: 'video',
@@ -41,7 +45,7 @@ const SECTION_TYPES = {
 
 type SectionType = keyof typeof SECTION_TYPES;
 
-function stale(state: EditorState, expected: string): boolean {
+export function stale(state: EditorState, expected: string): boolean {
   return revisionOf(buildDescriptor(state)) !== expected;
 }
 

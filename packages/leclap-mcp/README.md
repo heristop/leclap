@@ -185,11 +185,17 @@ Its `fields`, `userVideoPaths` and `locale` arguments bind media/copy, and `form
 orientation and fps. Codec, quality-tier and FFmpeg segment-concurrency fields are library host
 settings, not arbitrary MCP tool arguments.
 
-Fifteen tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
+Sixteen tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
 `get_motion_catalog`, `report_catalog_gap`, `get_timeline`, `validate_template`, `compose_video`,
-`render_frames`, `patch_template`, `probe_media`, `extract_style`, `analyze_music` and `get_capabilities`. Opt-in adds
+`render_frames`, `patch_template`, `edit_template`, `probe_media`, `extract_style`, `analyze_music` and `get_capabilities`. Opt-in adds
 `get_effect_schema`, `render_preview` and `render_remotion_clip`. Patch availability does not bypass
 effect-backend validation.
+
+`edit_template` applies a JSON Patch (RFC 6902) to inline template JSON under `expectedRevision`: the
+batch is all-or-nothing and the result must validate. The web template builder exposes the same
+vocabulary to in-browser agents through [WebMCP](../../docs/webmcp.md): `get_template_schema`,
+`get_motion_catalog`, `list_samples`, `get_sample`, `validate_template`, `get_timeline`, `edit_template`
+and `render_frames` mean the same there, and both surfaces compute the same `revision` for the same JSON.
 
 Each render writes to `<output-dir>/<renderId>/`. Local input files (`userVideoPaths`,
 `probe_media`, `extract_style`, `analyze_music`) must resolve **inside** the media-dir (symlink-safe containment check). The

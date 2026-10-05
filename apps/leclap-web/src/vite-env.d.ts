@@ -7,6 +7,8 @@ interface ImportMetaEnv {
   readonly VITE_WEBMCP_POLYFILL?: string;
   /** '0' removes the browser-agent (WebMCP) tools from the builder entirely. */
   readonly VITE_WEBMCP?: string;
+  /** Chrome's WebMCP origin-trial token; when set, the build injects its meta tag (vite/webmcp-origin-trial.ts). */
+  readonly VITE_WEBMCP_OT_TOKEN?: string;
 }
 
 interface ImportMeta {

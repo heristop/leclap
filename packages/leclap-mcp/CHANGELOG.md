@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `edit_template`: an RFC 6902 JSON Patch over inline template JSON under `expectedRevision` (stale →
+  `revision_conflict`), all-or-nothing and validated after applying; returns the template, its new
+  `revision` and `changedPaths`. The web builder's WebMCP tools share the name, operations and revision.
+  Sixteen tools are now always registered.
 - `list_samples` accepts `category: "effects"`; 46 packaged samples.
 - `compose_video` runs the engine's output QC and returns it in `structuredContent.qc` with a one-line
   verdict.

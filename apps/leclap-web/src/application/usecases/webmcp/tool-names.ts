@@ -1,8 +1,8 @@
 // The browser-agent tool names, in one dependency-free module so docs and the activity UI can list them
 // without pulling the tool layer. Names shared with @leclap/mcp mean the same thing on both surfaces.
 
-/** Phase 1: read, reference, validate and undoable edits. */
-export const BUILDER_TOOL_NAMES = [
+/** Read, reference, validate and undoable edits: always registered while the agent is on. */
+export const CORE_TOOL_NAMES = [
   'get_template',
   'list_sections',
   'get_template_schema',
@@ -18,13 +18,13 @@ export const BUILDER_TOOL_NAMES = [
   'move_section',
   'set_texts',
   'undo',
-] as const;
-
-/** Tools later phases add (global edits, consequential actions); declared so the UI can word them. */
-export const LATER_TOOL_NAMES = [
   'set_theme',
   'set_format',
   'set_music',
+] as const;
+
+/** Consequential actions, each behind a builder capability and an in-page confirmation. */
+export const CONSEQUENTIAL_TOOL_NAMES = [
   'replace_template',
   'load_sample',
   'render_preview',
@@ -32,4 +32,22 @@ export const LATER_TOOL_NAMES = [
   'save_template',
 ] as const;
 
-export type BuilderToolName = (typeof BUILDER_TOOL_NAMES)[number] | (typeof LATER_TOOL_NAMES)[number];
+/** Every tool the template builder can register. */
+export const BUILDER_TOOL_NAMES = [...CORE_TOOL_NAMES, ...CONSEQUENTIAL_TOOL_NAMES] as const;
+
+export type BuilderToolName = (typeof BUILDER_TOOL_NAMES)[number];
+
+/**
+ * Names the builder shares with @leclap/mcp: same meaning and arguments where they overlap, same revision
+ * contract (render_preview is deliberately absent: on MCP it previews a registered effect).
+ */
+export const SHARED_WITH_MCP = [
+  'get_template_schema',
+  'get_motion_catalog',
+  'list_samples',
+  'get_sample',
+  'validate_template',
+  'get_timeline',
+  'edit_template',
+  'render_frames',
+] as const;

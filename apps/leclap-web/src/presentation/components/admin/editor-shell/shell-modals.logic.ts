@@ -1,5 +1,5 @@
 // The builder shows one overlay at a time: help, the starter presets, the Generate-with-AI drawer or a
-// browser agent's confirmation ('agent', which may replace any of the others).
+// browser agent's drawer and confirmations ('agent', which may replace any of the others).
 // Opening one replaces whichever is up (presets → "Generate with AI" swaps the picker for the drawer
 // instead of stacking it on top), and a close only clears the overlay it names, so a late close from
 // an overlay that was already replaced never dismisses its successor.

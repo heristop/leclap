@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textOf } from './results';
 import { STARTER_PRESETS, buildDescriptor, patch } from '@leclap/creative-kit/editor';
 import { createFakePort, toolCaller } from './fake-port';
 
@@ -43,7 +44,7 @@ describe('edit_template', () => {
 
     expect(result.isError).toBe(true);
     expect(result.data.code).toBe('revision_conflict');
-    expect(result.content[0].text).toContain('revision_conflict: template changed');
+    expect(textOf(result)).toContain('revision_conflict: template changed');
     expect(port.commits).toHaveLength(0);
   });
 

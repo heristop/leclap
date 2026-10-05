@@ -14,6 +14,7 @@ import { registerRenderRemotionClip } from './tools/renderRemotionClip.js';
 import { registerGetEffectSchema } from './tools/getEffectSchema.js';
 import { registerRenderPreview } from './tools/renderPreview.js';
 import { registerPatchTemplate } from './tools/patchTemplate.js';
+import { registerEditTemplate } from './tools/editTemplate.js';
 import { validateEffects } from './effects/title-registry.js';
 import { registerSamples } from './tools/samples.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
@@ -59,6 +60,17 @@ export function snapshotEffectConfig(input: McpConfig): Readonly<McpConfig> {
       : {}),
   });
 }
+// Revision-guarded template edits: patch_template (registered effect props) and edit_template (JSON Patch).
+// Both stay registered without Remotion; effect sections they produce still pass effect-backend validation.
+function registerTemplateEdits(server: McpServer, config: McpConfig): void {
+  async function effects(template: Record<string, unknown>, signal?: AbortSignal): Promise<void> {
+    await validateEffects(template, config, signal);
+  }
+
+  registerPatchTemplate(server, effects);
+  registerEditTemplate(server, effects);
+}
+
 export function createServer(input: McpConfig): McpServer {
   const config = snapshotEffectConfig(input);
   const server = new McpServer(
@@ -84,9 +96,7 @@ export function createServer(input: McpConfig): McpServer {
     registerGetEffectSchema(server, config);
     registerRenderPreview(server, config);
   }
-  registerPatchTemplate(server, async (template, signal) => {
-    await validateEffects(template, config, signal);
-  });
+  registerTemplateEdits(server, config);
   registerProbe(server, config);
   registerExtractStyle(server, config);
   registerAnalyzeMusic(server, config);

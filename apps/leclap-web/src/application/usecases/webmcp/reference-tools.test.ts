@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textOf } from './results';
 import { createFakePort, toolCaller } from './fake-port';
 
 const call = toolCaller(createFakePort());
@@ -6,7 +7,7 @@ const call = toolCaller(createFakePort());
 describe('get_template_schema', () => {
   it('returns the guide and an index of pointers when the whole schema is too large', async () => {
     const result = await call('get_template_schema');
-    const text = result.content[0].text;
+    const text = textOf(result);
 
     expect(result.isError).toBeUndefined();
     expect(text).toContain('Builder guide (WebMCP)');
@@ -17,7 +18,7 @@ describe('get_template_schema', () => {
   it('slices the schema by pointer', async () => {
     const result = await call('get_template_schema', { pointer: '/properties/meta' });
 
-    expect(result.content[0].text).toContain('JSON Schema:\n{');
+    expect(textOf(result)).toContain('JSON Schema:\n{');
     expect((await call('get_template_schema', { pointer: '/nope' })).data.code).toBe('not_found');
     expect((await call('get_template_schema', { pointer: 'no-slash' })).data.code).toBe('invalid_input');
   });
@@ -28,14 +29,14 @@ describe('get_motion_catalog', () => {
     const result = await call('get_motion_catalog', { query: 'one punch word on the beat', kind: 'kinetic' });
 
     expect(result.isError).toBeUndefined();
-    expect(JSON.parse(result.content[0].text)).toHaveProperty('matches');
+    expect(JSON.parse(textOf(result))).toHaveProperty('matches');
     expect((await call('get_motion_catalog', { query: 'x', kind: 'bogus' })).data.code).toBe('invalid_input');
   });
 
   it('returns the whole catalog without a query', async () => {
     const result = await call('get_motion_catalog');
 
-    expect(JSON.parse(result.content[0].text)).toBeTypeOf('object');
+    expect(JSON.parse(textOf(result))).toBeTypeOf('object');
   });
 });
 

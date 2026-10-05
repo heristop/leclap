@@ -23,6 +23,7 @@
   },
   "log": {
     "title": "Actividad reciente",
+    "emptyTitle": "Todavía no hay actividad",
     "empty": "Nada todavía. Pide al agente de tu navegador que trabaje en esta plantilla y cada paso aparecerá aquí.",
     "undo": "Deshacer",
     "undoLabel": "Deshacer: {{action}}",
@@ -90,14 +91,23 @@
     "busy": "otro paso estaba en curso",
     "disabled": "las herramientas del agente están desactivadas",
     "aborted": "cancelado",
-    "unavailable": "no disponible"
+    "unavailable": "no disponible",
+    "render_failed": "el renderizado falló",
+    "save_blocked": "aún no se puede guardar"
   },
   "confirm": {
     "title": "¿Permitir esta acción del agente del navegador?",
     "description": "El agente de tu navegador quiere {{action}}.",
     "undoable": "Podrás deshacerlo después.",
     "allow": "Permitir",
-    "deny": "No permitir"
+    "deny": "No permitir",
+    "allowSession": "Permitir vistas previas durante el resto de esta sesión",
+    "details": {
+      "replace_template": "Se abre como un borrador nuevo llamado «{{name}}» con {{sections}} escenas; Deshacer recupera tu borrador actual.",
+      "load_sample": "El ejemplo «{{title}}» se abre como un borrador nuevo; Deshacer recupera tu borrador actual.",
+      "render_preview": "Renderiza unos {{duration}} s de vídeo en tu navegador con medios provisionales, unos {{seconds}} s de trabajo, y abre la vista previa aquí.",
+      "save_template": "Guarda «{{name}}» en tu biblioteca de plantillas en este dispositivo; el editor sigue abierto."
+    }
   },
   "live": {
     "changed_one": "El agente del navegador cambió {{count}} escena",

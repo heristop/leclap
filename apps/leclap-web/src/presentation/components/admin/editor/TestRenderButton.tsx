@@ -55,7 +55,8 @@ export const TestRenderButton = ({ state, disabled = false, preview }: TestRende
       </Button>
 
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl">
+        {/* Raised: the browser agent may start a render while its drawer is open. */}
+        <DialogContent className="max-w-2xl" raised>
           <DialogHeader>
             <DialogTitle>{t('testRender.title')}</DialogTitle>
             <DialogDescription>{t('testRender.description')}</DialogDescription>

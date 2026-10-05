@@ -23,6 +23,7 @@
   },
   "log": {
     "title": "Letzte Aktivität",
+    "emptyTitle": "Noch keine Aktivität",
     "empty": "Noch nichts. Bitte den Agenten deines Browsers, an dieser Vorlage zu arbeiten – jeder Schritt erscheint hier.",
     "undo": "Rückgängig",
     "undoLabel": "Rückgängig: {{action}}",
@@ -90,14 +91,23 @@
     "busy": "ein anderer Schritt lief noch",
     "disabled": "Agent-Tools sind aus",
     "aborted": "abgebrochen",
-    "unavailable": "nicht verfügbar"
+    "unavailable": "nicht verfügbar",
+    "render_failed": "das Rendern ist fehlgeschlagen",
+    "save_blocked": "noch nicht speicherbar"
   },
   "confirm": {
     "title": "Diese Aktion des Browser-Agenten erlauben?",
     "description": "Der Agent deines Browsers möchte {{action}}.",
     "undoable": "Du kannst es danach rückgängig machen.",
     "allow": "Erlauben",
-    "deny": "Nicht erlauben"
+    "deny": "Nicht erlauben",
+    "allowSession": "Vorschauen für den Rest dieser Sitzung erlauben",
+    "details": {
+      "replace_template": "Er öffnet sich als neuer Entwurf „{{name}}“ mit {{sections}} Szenen; Rückgängig holt deinen aktuellen Entwurf zurück.",
+      "load_sample": "Das Beispiel „{{title}}“ öffnet sich als neuer Entwurf; Rückgängig holt deinen aktuellen Entwurf zurück.",
+      "render_preview": "Er rendert etwa {{duration}} s Video in deinem Browser mit Platzhalter-Medien, rund {{seconds}} s Arbeit, und öffnet die Vorschau hier.",
+      "save_template": "Er speichert „{{name}}“ in deiner Vorlagenbibliothek auf diesem Gerät; der Editor bleibt offen."
+    }
   },
   "live": {
     "changed_one": "Der Browser-Agent hat {{count}} Szene geändert",

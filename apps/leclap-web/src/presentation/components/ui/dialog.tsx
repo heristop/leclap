@@ -24,41 +24,50 @@ const DialogOverlay = React.forwardRef<
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-const DialogContent = React.forwardRef<
-  React.ComponentRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, onCloseAutoFocus, ...props }, ref) => {
-  const { t } = useTranslation('common');
-  const returnFocus = useReturnFocus(onCloseAutoFocus);
+interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  // Above a sheet that is already open (a confirmation over a drawer): the scrim then dims the sheet too.
+  raised?: boolean;
+}
 
-  return (
-    <DialogPortal>
-      <DialogOverlay />
-      {/* Grid-center the panel on whole pixels instead of `translate(-50%,-50%)`: a percentage translate
+const DialogContent = React.forwardRef<React.ComponentRef<typeof DialogPrimitive.Content>, DialogContentProps>(
+  ({ className, children, onCloseAutoFocus, raised = false, ...props }, ref) => {
+    const { t } = useTranslation('common');
+    const returnFocus = useReturnFocus(onCloseAutoFocus);
+
+    return (
+      <DialogPortal>
+        <DialogOverlay className={raised ? 'z-[60]' : undefined} />
+        {/* Grid-center the panel on whole pixels instead of `translate(-50%,-50%)`: a percentage translate
           lands the box on a half-pixel at some viewport widths / zoom / DPR, which blurs antialiased text.
           `pointer-events-none` lets outside clicks fall through to the overlay so Radix still closes. */}
-      <div className="dark pointer-events-none fixed inset-0 z-[59] grid place-items-center overflow-y-auto p-4">
-        <DialogPrimitive.Content
-          ref={ref}
-          onCloseAutoFocus={returnFocus}
+        <div
           className={cn(
-            'rise-in pointer-events-auto relative grid w-full max-w-lg gap-1 rounded-2xl border border-divider bg-surface p-6 shadow-[var(--shadow-lg)] focus:outline-none',
-            className
+            'dark pointer-events-none fixed inset-0 grid place-items-center overflow-y-auto p-4',
+            raised ? 'z-[61]' : 'z-[59]'
           )}
-          {...props}
         >
-          {children}
-          <DialogPrimitive.Close
-            aria-label={t('actions.close')}
-            className="tap cursor-pointer absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 before:absolute before:-inset-1.5 before:content-[''] before:cursor-pointer"
+          <DialogPrimitive.Content
+            ref={ref}
+            onCloseAutoFocus={returnFocus}
+            className={cn(
+              'rise-in pointer-events-auto relative grid w-full max-w-lg gap-1 rounded-2xl border border-divider bg-surface p-6 shadow-[var(--shadow-lg)] focus:outline-none',
+              className
+            )}
+            {...props}
           >
-            <X className="h-5 w-5" />
-          </DialogPrimitive.Close>
-        </DialogPrimitive.Content>
-      </div>
-    </DialogPortal>
-  );
-});
+            {children}
+            <DialogPrimitive.Close
+              aria-label={t('actions.close')}
+              className="tap cursor-pointer absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full text-gray-400 transition-colors hover:bg-foreground/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 before:absolute before:-inset-1.5 before:content-[''] before:cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </DialogPrimitive.Close>
+          </DialogPrimitive.Content>
+        </div>
+      </DialogPortal>
+    );
+  }
+);
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (

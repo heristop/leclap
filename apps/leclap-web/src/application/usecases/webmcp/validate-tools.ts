@@ -1,8 +1,8 @@
 // Checking without changing anything: #7 validate_template (the current draft, or a candidate the agent
 // is about to apply) in the same shape and wording as @leclap/mcp's validate_template, plus a builder
 // advisory listing the fields the builder would drop; #8 get_timeline, the render-free whole-video
-// timeline. Neither renders: a pixel-measured check is the preview render the user (or, later, the
-// render_preview tool) runs.
+// timeline. Neither renders: geometry advisories (text overflow, collisions, safe zones, contrast) are
+// measured render-free with the bundled fonts the page serves; a pixel check is render_preview.
 import { z } from 'zod';
 import { invalidTemplateText } from 'ffmpeg-video-composer/src/services/validation-format.ts';
 import { TemplateValidator } from 'ffmpeg-video-composer/src/services/TemplateValidator.ts';
@@ -62,6 +62,21 @@ function motionWarnings(descriptor: TemplateDescriptor, port: BuilderPort) {
   }
 }
 
+// Render-free geometry advisories, measured with the page's bundled fonts (approximate without them).
+async function geometryWarnings(descriptor: TemplateDescriptor, port: BuilderPort) {
+  try {
+    const expanded = materializeTemplatePartials(descriptor, port.localPartials());
+    const warnings = await validator.getGeometryWarnings(
+      expanded as Parameters<typeof validator.getGeometryWarnings>[0],
+      port.loadFont
+    );
+
+    return warnings.length > 0 ? warnings : null;
+  } catch {
+    return null;
+  }
+}
+
 // Fields a candidate carries that the builder would not keep.
 function builderAdvisories(descriptor: TemplateDescriptor, port: BuilderPort) {
   const dropped = droppedPointers(descriptor, buildDescriptor(rehydrate(descriptor, port.getState())));
@@ -94,14 +109,15 @@ const validateTemplate = defineTool({
   description:
     'Dry-run the current template (or a candidate `template`) against the engine schema and the builder’s limits, ' +
     'render-free. Returns valid plus what filming needs (requiredClips, formFields), motionWarnings (pacing advice) ' +
-    'and, for a candidate, builder advisories naming fields the builder would drop. Invalid: isError with every ' +
+    'geometry (render-free text fit, collisions, safe zones, contrast) and, for a candidate, builder advisories ' +
+    'naming fields the builder would drop. Invalid: isError with every ' +
     'finding in errors[] (path, code, message, hint, suggestion). `render: true` is not available here.',
   kind: 'read',
   input: z.object({
     template: templateArg,
     render: z.boolean().optional().describe('Not supported in the builder; the user runs Preview render.'),
   }),
-  run: (args, { port }) => {
+  run: async (args, { port }) => {
     const candidate = args.template !== undefined;
     const descriptor = (args.template ?? buildDescriptor(port.getState())) as TemplateDescriptor;
     const errors = [...effectErrors(descriptor), ...runValidation(descriptor, port.localPartials())];
@@ -112,6 +128,7 @@ const validateTemplate = defineTool({
     const fields = formFields(descriptor);
     const orientation = effectiveOrientation(descriptor.global) ?? null;
     const motion = motionWarnings(descriptor, port);
+    const geometry = await geometryWarnings(descriptor, port);
     const advisories = candidate ? builderAdvisories(descriptor, port) : undefined;
     const render = args.render
       ? { measured: 0, seconds: 0, unavailable: 'not in the builder: ask the user to run Preview render' }
@@ -124,6 +141,7 @@ const validateTemplate = defineTool({
       requiredClips: clips,
       formFields: fields,
       ...(motion ? { motionWarnings: motion } : {}),
+      ...(geometry ? { geometry } : {}),
       ...(advisories ? { advisories } : {}),
       ...(render ? { render } : {}),
     };

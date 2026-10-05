@@ -131,6 +131,13 @@ export const mcpDoc: McpDoc = {
       when: 'Use expanded section names. Registry partial edits materialize only the selected instance; rendering/backend validation still requires opt-in.',
     },
     {
+      name: 'edit_template',
+      args: 'template, expectedRevision, operations',
+      purpose:
+        'Applies a JSON Patch (RFC 6902) atomically; the result must validate. Returns updated JSON, revision and changedPaths.',
+      when: "Use for any descriptor change with the revision validate_template returned. The builder's browser tools (WebMCP) expose the same name and contract.",
+    },
+    {
       name: 'compose_video',
       args: 'template, fields?, userVideoPaths?, locale?, outputBaseName?, expectedRevision?',
       purpose:

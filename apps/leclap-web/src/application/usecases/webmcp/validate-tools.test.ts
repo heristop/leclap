@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textOf } from './results';
 import { STARTER_PRESETS, buildDescriptor } from '@leclap/creative-kit/editor';
 import { createFakePort, toolCaller } from './fake-port';
 
@@ -10,9 +11,7 @@ describe('validate_template', () => {
     const result = await call('validate_template');
 
     expect(result.isError).toBeUndefined();
-    expect(result.content[0].text).toMatch(
-      /^Valid template — 3 section\(s\), landscape orientation\. Requires clips: video_1/
-    );
+    expect(textOf(result)).toMatch(/^Valid template — 3 section\(s\), landscape orientation\. Requires clips: video_1/);
     expect(result.data).toMatchObject({
       valid: true,
       revision: expect.stringMatching(/^[0-9a-f]{64}$/),
@@ -33,7 +32,7 @@ describe('validate_template', () => {
     expect(result.data.valid).toBe(false);
     const errors = result.data.errors as Array<{ code: string; path: string }>;
     expect(errors.some((error) => error.code === 'builder_unsupported_section')).toBe(true);
-    expect(result.content[0].text).toMatch(/^Invalid template \(\d+ finding\(s\)\):/);
+    expect(textOf(result)).toMatch(/^Invalid template \(\d+ finding\(s\)\):/);
   });
 
   it('warns about fields a candidate would lose in the builder, and declines render', async () => {
@@ -57,5 +56,28 @@ describe('get_timeline', () => {
 
     const portrait = await call('get_timeline', { format: 'portrait' });
     expect(portrait.data.height).toBeGreaterThan(portrait.data.width as number);
+  });
+});
+
+describe('validate_template geometry', () => {
+  it('measures text render-free with the page fonts and reports what does not fit', async () => {
+    const port = createFakePort(state);
+    const requested: string[] = [];
+    port.loadFont = (file) => {
+      requested.push(file);
+
+      return Promise.resolve(null);
+    };
+    const candidate = buildDescriptor(state) as unknown as { sections: Array<Record<string, unknown>> };
+    candidate.sections[0] = {
+      ...candidate.sections[0],
+      titleCard: { headline: { en: 'An extremely long headline that cannot possibly fit on one frame '.repeat(4) } },
+    };
+    const result = await toolCaller(port)('validate_template', { template: candidate });
+    const geometry = result.data.geometry as Array<{ code: string }> | undefined;
+
+    expect(result.isError).toBeUndefined();
+    expect(geometry?.length).toBeGreaterThan(0);
+    expect(requested.length).toBeGreaterThan(0);
   });
 });

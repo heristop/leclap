@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import type { EditorState } from '@leclap/creative-kit/editor';
 import { listAvailablePartials } from '@/services/templatePartialService';
-import { saveBlocker } from '@/presentation/components/admin/editor-shell/save-blocker.logic';
+import { saveBlockerText as blockerText } from '@/presentation/components/admin/editor-shell/save-blocker.logic';
 import { currentDescriptor, positionOfName, redactDescriptor, revisionOf, sectionInventory } from './descriptor-view';
 import { fail, ok } from './results';
 import { defineTool, type BuilderPort, type ToolResult } from './types';
@@ -42,16 +42,6 @@ export function resolvePosition(state: EditorState, ref: { name?: string; positi
   }
 
   return position;
-}
-
-function blockerText(state: EditorState): string | null {
-  const blocker = saveBlocker(state);
-
-  if (!blocker) return null;
-
-  return blocker.kind === 'media'
-    ? `media: the ${blocker.section} section at position ${String(blocker.index)} offers nothing to pick or upload`
-    : blocker.kind;
 }
 
 function editorView(port: BuilderPort) {

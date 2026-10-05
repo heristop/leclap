@@ -41,6 +41,13 @@ export function revisionConflict(): ToolResult {
   });
 }
 
+/** The text of a result's first text part ('' when it has none). */
+export function textOf(result: ToolResult): string {
+  const part = result.content.find((candidate) => candidate.type === 'text');
+
+  return part?.type === 'text' ? part.text : '';
+}
+
 /** The error code of a result, when it is one. */
 export function errorCode(result: ToolResult): ToolErrorCode | undefined {
   if (!result.isError) return undefined;
@@ -50,9 +57,12 @@ export function errorCode(result: ToolResult): ToolErrorCode | undefined {
   return typeof code === 'string' ? (code as ToolErrorCode) : undefined;
 }
 
-/** Replaces an oversized result with a `too_large` error that says how to ask for less. */
+/**
+ * Replaces an oversized result with a `too_large` error that says how to ask for less. Only text counts:
+ * images (render_frames) are bounded per frame by the tool that captures them.
+ */
 export function capOutput(result: ToolResult, hint: string): ToolResult {
-  const size = result.content.reduce((total, part) => total + byteLength(part.text), 0);
+  const size = result.content.reduce((total, part) => total + (part.type === 'text' ? byteLength(part.text) : 0), 0);
 
   if (size <= MAX_OUTPUT_BYTES) return result;
 

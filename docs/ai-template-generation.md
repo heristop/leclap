@@ -61,3 +61,10 @@ reached from the browser, generation still works without it.
 - Keys are never sent to LeClap, never put in a URL and never logged.
 - **Forget key** removes one provider's key; **Forget all keys** removes every key.
 - Usage is billed to your provider account.
+
+## Or drive the builder from your browser agent
+
+If your browser has an AI agent with WebMCP (Chrome's origin trial or `chrome://flags/#enable-webmcp-testing`),
+the builder registers its tools with it instead: the agent reads, validates and edits the open draft step by
+step, each edit undoable, and opens samples, renders a preview or saves only after you allow it in the page.
+It uses your browser's model, so no key is stored here. See [WebMCP](./webmcp.md).

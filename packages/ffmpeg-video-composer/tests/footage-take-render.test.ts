@@ -25,6 +25,11 @@ const clips = {
   lut: path.join(assetsDir, 'warm.cube'),
 };
 
+// Whether the FFmpeg on PATH has a filter (the tone-map needs zscale + tonemap).
+function buildHas(filter: string): boolean {
+  return new RegExp(`\\s${filter}\\s`).test(execFileSync('ffmpeg', ['-hide_banner', '-filters']).toString());
+}
+
 function ffmpeg(args: string[]): void {
   execFileSync('ffmpeg', ['-loglevel', 'error', '-y', ...args]);
 }
@@ -82,6 +87,9 @@ beforeAll(() => {
   ffmpeg(['-display_rotation', '90', '-i', path.join(assetsDir, 'upright.mp4'), '-c', 'copy', clips.rotated]);
   ffmpeg([
     ...video(1),
+    // FFmpeg 8 takes the colour tags from the frames, so they are set on the frames as well as the stream.
+    '-vf',
+    'setparams=color_primaries=bt2020:color_trc=smpte2084:colorspace=bt2020nc',
     '-c:v',
     'libx264',
     '-pix_fmt',
@@ -234,7 +242,7 @@ describe('footage edits on real renders', () => {
   }, 240000);
 
   it('tone-maps an HDR clip to SDR when the build has zscale + tonemap', async () => {
-    const { manifest, output } = await render(
+    const { manifest, output, logs } = await render(
       {
         meta: { name: 'hdr' },
         global: { musicEnabled: false },
@@ -243,8 +251,14 @@ describe('footage edits on real renders', () => {
       { userVideoPaths: { hdr: clips.hdr } }
     );
 
-    expect(manifest.graph.commands.some((command) => command.includes('tonemap=hable:desat=0'))).toBe(true);
-    expect(probeStream(output)).toMatchObject({ color_transfer: 'bt709', pix_fmt: 'yuv420p' });
+    const tonemapped = manifest.graph.commands.some((command) => command.includes('tonemap=hable:desat=0'));
+
+    // Builds without zscale (some packaged FFmpeg 8 builds) keep the SDR pipeline and say so.
+    expect(tonemapped).toBe(buildHas('zscale') && buildHas('tonemap'));
+    expect(tonemapped || logs.some((entry) => entry.includes('hdr_source_sdr_pipeline'))).toBe(true);
+    expect(probeStream(output)).toMatchObject({ pix_fmt: 'yuv420p' });
+
+    if (tonemapped) expect(probeStream(output)).toMatchObject({ color_transfer: 'bt709' });
   }, 240000);
 
   it('applies a user .cube LUT at a strength and a dialled-down LUT look', async () => {

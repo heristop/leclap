@@ -7,6 +7,8 @@ import type AbstractLogger from '../../platform/logging/AbstractLogger';
 import { applyFilterCompat, engineCapabilities } from '../utils/filter-compat';
 import { renderFilterGraph } from '../utils/filter-graph';
 import { withTextShaping } from '../utils/text-shaping';
+import { steppedFontSize, type FontSizeTiming } from '../utils/stepped-fontsize';
+import DefaultConfig from '../../core/default.config';
 import { applyAnimation } from '../presets/text';
 import { applyTracks } from '@/core/motion/tracks';
 import { resolvedTimes } from '@/core/timing/seconds';
@@ -67,17 +69,35 @@ class FilterManager {
       return 'null';
     }
 
-    resolvedFilter = compat;
+    // An animated drawtext size becomes one constant-size drawtext per run of frames (FFmpeg 8 crashes
+    // on a fontsize that changes between frames; editor/utils/stepped-fontsize.ts).
+    return steppedFontSize(compat, this.fontSizeTiming)
+      .map((step) => this.serialize(step))
+      .join(',');
+  };
 
-    if (resolvedFilter.value) {
-      return this.formattersManager.formatMultipleTypesValue(resolvedFilter);
+  private readonly serialize = (filter: Filter): string => {
+    if (filter.value) {
+      return this.formattersManager.formatMultipleTypesValue(filter);
     }
 
-    if (resolvedFilter.values) {
-      return this.formattersManager.formatMultipleTypesValues(resolvedFilter);
+    if (filter.values) {
+      return this.formattersManager.formatMultipleTypesValues(filter);
     }
 
-    return resolvedFilter.type;
+    return filter.type;
+  };
+
+  // The section's frame rate and length, over which an animated drawtext size is sampled.
+  private readonly fontSizeTiming = (): FontSizeTiming => {
+    const section = this.segment.currentSection;
+    const measured = section ? this.project.buildInfos.durations[section.name] : undefined;
+    const declared = section?.options?.duration;
+
+    return {
+      fps: this.project.config.videoConfig?.fps ?? DefaultConfig.FPS,
+      duration: measured ?? (typeof declared === 'number' ? declared : 0),
+    };
   };
 
   // Animated entrance/exit: a drawtext with a `reveal` and/or `exit` gets alpha + kinetic x/y baked

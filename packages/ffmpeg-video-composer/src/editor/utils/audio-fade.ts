@@ -119,6 +119,12 @@ export function buildAudioFadeChain(
     // Footage edits (utils/footage-lowering.ts) retime the clip sound before any processing or fade.
     ...footage.head,
     ...processingParts(opts, config, footage.duration ?? opts?.duration),
-    ...(pad ? ['apad'] : []),
+    ...(pad ? [padFilter(footage.duration)] : []),
   ].join(',');
+}
+
+// Silence up to the edited length when it is known: an open-ended `apad` lets `-shortest` overrun the
+// picture by a few audio frames on FFmpeg 8 (av_drift). Unedited clips keep the plain pad.
+function padFilter(length: number | undefined): string {
+  return length === undefined ? 'apad' : `apad=whole_dur=${Number(length.toFixed(6))}`;
 }

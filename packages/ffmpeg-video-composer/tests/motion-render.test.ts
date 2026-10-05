@@ -68,7 +68,10 @@ describe('motion system example', () => {
 
     expect(commands).not.toContain('$land');
     expect(commands).not.toMatch(/spring\(|cubic-bezier\(/);
-    expect(commands).toMatch(/fontsize='200\*\(/);
+    // A scale track draws one constant-size drawtext per run of frames (FFmpeg 8 crashes on a
+    // fontsize that changes between frames): no time-varying fontsize reaches FFmpeg.
+    expect(commands).not.toMatch(/fontsize='[^']*\bt\b/);
+    expect(commands).toMatch(/fontsize=2\d\d:/);
 
     for (const command of manifest.graph.commands) {
       for (const option of command.match(/'[^']*'/g) ?? []) expect(option.length).toBeLessThan(6000);

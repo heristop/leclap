@@ -8,7 +8,7 @@ import type VariableManager from './VariableManager';
 import { lutCubeText } from '../presets/lut-staging';
 import { lutFileStem } from '../presets/lut-spec';
 import { cutawayMedia } from '../footage/cutaway-media';
-import { parsePanelUrl, panelFileName, roundedPanelPng } from '../presets/rounded-panel';
+import { generatedImage } from '../presets/generated-images';
 import { findFontByFile, DEFAULT_FONT_WEIGHT, type FontRef } from '@/core/fonts';
 import { googleCssUrl, extractTtfUrl, GOOGLE_FONTS_USER_AGENT } from '@/core/google-fonts';
 import { fontAssetUrl } from '@/core/asset-source';
@@ -347,15 +347,16 @@ class AssetManager {
       return;
     }
 
-    // A `panel:` URL is a generated rounded-rect overlay, not a fetchable asset: build the PNG on the
-    // fly and stage it to the build FS (uniform on Node, Expo and browser/WASM), mirroring fetchLuts.
-    const panelSpec = parsePanelUrl(url);
+    // A `panel:` / `sprite:` URL is a generated image (rounded-rect overlay, fx sprite), not a fetchable
+    // asset: build the PNG on the fly and stage it to the build FS (uniform on Node, Expo and
+    // browser/WASM), mirroring fetchLuts.
+    const generated = generatedImage(url);
 
-    if (panelSpec) {
-      const panelPath = `${this.segment.panelsDir}/${panelFileName(panelSpec)}`;
+    if (generated) {
+      const path = `${this.segment.panelsDir}/${generated.name}`;
 
-      await this.stageGenerated(panelPath, panelFileName(panelSpec), 'Panel', () => roundedPanelPng(panelSpec));
-      cache[url] = panelPath;
+      await this.stageGenerated(path, generated.name, generated.label, generated.produce);
+      cache[url] = path;
 
       return;
     }

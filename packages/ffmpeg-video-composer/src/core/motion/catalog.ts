@@ -34,6 +34,7 @@ import { COMPOSITING, COMPOSITING_RULES, type CompositingCatalog } from './catal
 import { captionCatalog, type CaptionCatalog } from '../captions/catalog';
 import { audioCatalog, type AudioCatalog } from '../audio/catalog';
 import { TIMING } from './catalog-timing';
+import { fxCatalog, type FxCatalog } from './fx-catalog';
 
 const ART_DIRECTION = [
   'One idea per beat: one dominant kinetic block, at most one supporting block. Hold every beat at least ' +
@@ -130,6 +131,8 @@ export interface MotionCatalog {
   camera: { presets: Array<Guided<{ preset: string }>>; fields: string[] };
   transitions: Record<string, Guided<{ description: string }>>;
   graphics: Record<string, Guided<{ description: string }>>;
+  /** Procedural light primitives (graphics type fx): open parameters, targets and design intent. */
+  fx: FxCatalog;
   /** `lowerThird.style` presets; `band` is the default look (no style). */
   lowerThirds: Record<string, Guided<{ description: string }>>;
   tokens: typeof BUILTIN_MOTION_TOKENS;
@@ -176,6 +179,7 @@ const GRAPHICS: Record<string, string> = {
   ticker: 'A news band grows in, then copy scrolls right to left and loops (text, speed, position, height, font).',
   'bars-chart':
     'Bars grow one after another while their values count up (values, labels, max, x, y, width, height, stagger).',
+  fx: 'A procedural light primitive clipped to a target, composed from open parameters (effect, target, …): see fx.',
 };
 
 const LOWER_THIRDS: Record<string, string> = {
@@ -247,6 +251,7 @@ export function motionCatalog(): MotionCatalog {
     },
     transitions: guided({ ...BASIC_TRANSITIONS, ...DESIGNED_TRANSITION_DESCRIPTIONS }, TRANSITION_GUIDES),
     graphics: guided(GRAPHICS, GRAPHIC_GUIDES),
+    fx: fxCatalog(),
     lowerThirds: guided(LOWER_THIRDS, LOWER_THIRD_GUIDES),
     tokens: BUILTIN_MOTION_TOKENS,
     roles: motionRolesCatalog(),

@@ -249,3 +249,33 @@ export function kineticBlocksToFilters(blocks: KineticBlock[] | undefined, ctx: 
     })
   );
 }
+
+/**
+ * Kinetic block `index` as white mask units (the same draws the block makes, so the mask keeps every
+ * unit's timing) and its resting box: what an effect targeting "text:<index>" is clipped to. Null when the
+ * block is absent, empty or a counter (its glyphs change every frame).
+ */
+export function kineticBlockMask(
+  blocks: KineticBlock[] | undefined,
+  index: number,
+  ctx: SugarContext
+): { box: FillBox; mask: Filter[] } | null {
+  const block = blocks?.[index];
+  const motion = ctx.motion;
+
+  if (!block || !motion || block.preset === 'counter') return null;
+
+  const [width, height] = ctx.scale.split(':').map(Number);
+  const seed = motion.seedFor(`kinetic[${index}]`);
+  const text = motion.resolveText(block.text);
+  const frame = { width, height, fps: ctx.fps, duration: ctx.duration, energy: motion.energy, seed, text };
+  const base = resolveKinetic(block, frame, text);
+  const laid = text.trim() ? layoutWithin(base, text) : null;
+
+  if (!laid) return null;
+
+  const plan = choreograph(block, frame, base, laid);
+  const style = { color: 'white', effect: undefined, anchored: plan.anchored };
+
+  return { box: blockBox(plan), mask: unitFilters(block, plan, pieceDraws(block, plan), style) };
+}

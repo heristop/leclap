@@ -24,6 +24,7 @@ import {
 } from './graphics-spec';
 import { FX_SPECS } from './graphics-fx';
 import { CHART_SPECS } from './graphics-chart';
+import { fxSpec } from './fx-spec';
 
 export type { Frame, GraphicEnv, Rect } from './graphics-spec';
 
@@ -188,6 +189,7 @@ const SPECS: { [T in Graphic['type']]: (g: Of<T>, frame: Frame, base: Base) => S
   panel: panelSpec,
   ...FX_SPECS,
   ...CHART_SPECS,
+  fx: fxSpec,
 };
 
 function spec(g: Graphic, frame: Frame): Spec {
@@ -261,7 +263,9 @@ export function graphicsToFilters(section: Section, ctx: SugarContext, above: bo
   const motion = ctx.motion;
 
   return graphics.flatMap((g, index) =>
-    spec(g, frame).above === above ? graphicToFilters(g, frame, { seed: motion.seedFor(`graphics[${index}]`) }) : []
+    spec(g, frame).above === above
+      ? graphicToFilters(g, frame, { seed: motion.seedFor(`graphics[${index}]`), site: { section, ctx, index } })
+      : []
   );
 }
 

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { EasingSpecSchema, MotionRoleSchema } from './motion.schemas';
 import { ElementIdSchema, timeValue } from './time.schemas';
 import { TranslationSchema } from './global.schemas';
+import { FxGraphicSchema } from './fx.schemas';
 
 // ── animated graphics (docs/plans/motion-system-v2.md §4.4) ──────────────────────
 //
@@ -189,6 +190,7 @@ export const GraphicSchema = z
       .describe(
         'An animated bar chart: bars grow from the baseline one after another on the curve while their values count up. `duration` is per bar (default 0.7 s).'
       ),
+    FxGraphicSchema,
   ])
   .meta({ id: 'Graphic' });
 
@@ -196,7 +198,8 @@ export const GraphicsSchema = z
   .array(GraphicSchema)
   .max(24)
   .describe(
-    'Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, bars-chart.'
+    'Animated graphics: flash, bars, underline, frame, corners, wipe, panel, glitch, focus, progress, ticker, ' +
+      'bars-chart, and fx (procedural light primitives such as sheen: clipped to a target, tuned by parameters).'
   );
 
 export type Graphic = z.infer<typeof GraphicSchema>;

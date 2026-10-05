@@ -25,6 +25,8 @@ import type { KineticBlock } from '../schemas/kinetic.schemas';
 import type { SectionLayout } from '../schemas/layout.schemas';
 import type { Camera } from '../schemas/camera.schemas';
 import type { Graphic } from '../schemas/graphics.schemas';
+// What an fx graphic lives on (frame, rect, pane, layer, kinetic text).
+export type { FxTarget, FxRectTarget } from '../schemas/fx.schemas';
 import type { Subtitles } from '../schemas/subtitles.schemas';
 import type { AutomationKeyInput, SfxCue, VoicePreset } from '../schemas/audio.schemas';
 export type { AutomationKeyInput, SfxCue } from '../schemas/audio.schemas';

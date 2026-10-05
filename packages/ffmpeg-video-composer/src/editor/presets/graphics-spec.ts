@@ -1,7 +1,8 @@
 // Shared vocabulary of the animated graphics (editor/presets/graphics.ts): the spec a graphic type
 // builds, its frame, and the drawbox / enable-window helpers every type lowers through.
 
-import type { Filter } from '@/core/types';
+import type { Filter, Section } from '@/core/types';
+import type { SugarContext } from './sugar-context';
 import type { Graphic } from '../../schemas/graphics.schemas';
 import type { EasingSpec } from '@/core/motion/easing';
 import { fmt } from '@/core/motion/hermite';
@@ -22,6 +23,8 @@ export interface Frame {
 /** Per-render inputs a procedural graphic needs: its seed, derived from global.seed and its path. */
 export interface GraphicEnv {
   seed: number;
+  /** Where the graphic sits (fx graphics resolve targets and lower through ctx.masks.effects). */
+  site?: { section: Section; ctx: SugarContext; index: number };
 }
 
 /** When a graphic plays: its resolved start, and when it disappears (undefined: holds to the cut). */

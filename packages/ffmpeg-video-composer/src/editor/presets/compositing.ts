@@ -5,6 +5,7 @@ import type { ProjectConfig } from '@/core/types';
 import { engineCapabilities, hasFilter, type EngineFeatures } from '../utils/filter-compat';
 import { ExtraInputs } from '../utils/extra-inputs';
 import type { MaskSugarContext } from './sugar-context';
+import { lowerFx } from './fx';
 
 /** A fresh per-segment registry of extra inputs. */
 export function createExtraInputs(): ExtraInputs {
@@ -26,10 +27,14 @@ function safeColor(color: string): string {
 }
 
 export function compositingContext(options: CompositingOptions): MaskSugarContext {
+  const caps = engineCapabilities(options.config, options.features);
+
   return {
-    available: hasFilter(engineCapabilities(options.config, options.features), 'alphamerge'),
+    available: hasFilter(caps, 'alphamerge'),
     input: options.extras.register,
     color: (color) => safeColor(options.formatColor(color)),
     warn: options.warn,
+    has: (filter) => hasFilter(caps, filter),
+    effects: lowerFx,
   };
 }

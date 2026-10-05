@@ -172,6 +172,12 @@ export const GRAPHIC_GUIDES: Record<string, MotionGuide> = {
     'more than 6 bars on a phone, or numbers that need reading time under 2 s',
     ['counter', 'frame']
   ),
+  fx: guide(
+    'LIGHTS',
+    'a hero element lands (card, screen, product, title): compose the primitive for this template',
+    'stacking light effects on one beat, or the same untuned parameters on every template',
+    ['panel', 'rise', 'push-in']
+  ),
 };
 
 export const LOWER_THIRD_GUIDES: Record<string, MotionGuide> = {

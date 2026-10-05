@@ -31,3 +31,6 @@ apps/leclap-web/public/videos/showcase/*.webp -filter -diff -merge -text
 
 # Authored app-demo capture used to reproduce the showcase promo.
 examples/showcase/media/*.mp4 -filter -diff -merge -text
+# Pull-request evidence (snapshots and the feature reel) linked from PR descriptions: plain blobs so
+# GitHub serves the real bytes (no LFS budget, see above). Kept binary (-text).
+.github/pr-media/** -filter -diff -merge -text

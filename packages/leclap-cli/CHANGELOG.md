@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `leclap samples list --category effects`; the catalog now has 46 samples.
 - `leclap render --qc` prints output QC findings and exits non-zero on a failing check (`--json`
   includes the report); `--cache <dir>` reuses unchanged sections across renders. `--output` is written
   atomically and refused when it equals the template or a `--video` input.

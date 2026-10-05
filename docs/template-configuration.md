@@ -582,7 +582,7 @@ The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The 
 
 ## Motion system
 
-The motion system gives every template motion tokens, physical springs, CSS-style curves, keyframe tracks and an energy dial, on top of the [determinism contract](#determinism) (frame-grid conform, seeded noise, bit-exact muxing). Everything compiles to plain FFmpeg expression arithmetic, so it renders identically on Node, WASM and on-device. The study [`examples/motion-design/spring-kinetics.json`](../examples/motion-design/spring-kinetics.json) uses every feature.
+The motion system gives every template motion tokens, physical springs, CSS-style curves, keyframe tracks and an energy dial, on top of the [determinism contract](#determinism) (frame-grid conform, seeded noise, bit-exact muxing). Everything compiles to plain FFmpeg expression arithmetic, so it renders identically on Node, WASM and on-device. The study [`examples/motion-design/spring-kinetics.json`](../examples/motion-design/spring-kinetics.json) uses every feature. Examples for every native motion, caption, footage and audio control live in [`examples/motion-design/`](../examples/motion-design/README.md) and play at `/showcase` under **Effects & editing**.
 
 ### Easing
 

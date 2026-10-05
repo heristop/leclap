@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `list_samples` accepts `category: "effects"`; 46 packaged samples.
 - `compose_video` runs the engine's output QC and returns it in `structuredContent.qc` with a one-line
   verdict.
 - `get_motion_catalog` returns the engine's motion catalog: kinetic typography presets with

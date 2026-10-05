@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `samples`: new `effects` category with 11 native samples (FX pack, word captions, formats, kinetic fills, split layouts, right-to-left type, emoji type, beat grid, theme/roles/safe zones, footage editing, sound design).
 - Determinism contract. `global.seed` roots every procedural effect. A deterministic encoder profile
   (bit-exact muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on
   by default and `ProjectConfig.deterministic: false` opts out. A render manifest is delivered through

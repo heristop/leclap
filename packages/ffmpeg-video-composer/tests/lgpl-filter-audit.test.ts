@@ -18,6 +18,7 @@ import { layoutToFilters } from '@/editor/presets/layout';
 import type { Filter } from '@/core/types';
 import { VOICE_FILTERS, VOICE_PRESETS, voiceChain } from '@/core/audio/voice-presets';
 import { sfxGraph } from '@/editor/utils/sfx-mix';
+import { REGISTERED_FX, lowerFx } from '@/editor/presets/fx';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const commonSh = fs.readFileSync(path.resolve(here, '../../../scripts/ffmpeg/common.sh'), 'utf8');
@@ -176,6 +177,48 @@ describe('LGPL device filter audit', () => {
 
     for (const type of types([...fill, ...layouts])) {
       expect(enabled.has(type), `mask/layout emits "${type}"`).toBe(true);
+      expect(ENGINE_EMITTED_FILTERS as readonly string[], type).toContain(type);
+    }
+  });
+
+  // FX_AUDIT: every registered fx primitive, on every target shape, animated and reduced, with and without
+  // its optional filters (the device fallbacks), lowers to device filters only.
+  it('every fx primitive lowers to device-safe filters', () => {
+    const kinetic = [KineticBlockSchema.parse({ text: { en: 'Shine' }, preset: 'rise' })];
+    const targets = ['frame', 'text:0', { x: 40, y: 30, w: 300, h: 200, radius: 24 }, { x: 0, y: 0, w: 200, h: 100 }];
+    const types = (filters: Filter[]): string[] =>
+      filters.flatMap((f) => (f.graph ? f.graph.flatMap((chain) => types(chain.filters)) : [f.type]));
+    const lowered = REGISTERED_FX.flatMap((effect) =>
+      targets.flatMap((target) =>
+        [0, 1].flatMap((energy) =>
+          [true, false].flatMap((full) => {
+            const graphic = { type: 'fx', effect, target } as never;
+            const section = { name: 's', type: 'color_background', kinetic, graphics: [graphic] } as never;
+            const ctx = {
+              duration: 3,
+              scale: '640:360',
+              fps: 25,
+              isVideo: false,
+              motion: { energy, seedFor: () => 1, resolveText: () => 'Shine' },
+              masks: {
+                available: true,
+                input: (key: string) => `input:${key}`,
+                color: (c: string) => c,
+                warn: () => undefined,
+                has: (filter: string) => full || DEVICE_FILTERS.has(filter),
+              },
+            };
+
+            return lowerFx({ graphic, at: 0.2, until: undefined, seed: 3, index: 0, section, ctx });
+          })
+        )
+      )
+    );
+
+    expect(lowered.length).toBe(REGISTERED_FX.length * targets.length * 4);
+
+    for (const type of types(lowered)) {
+      expect(enabled.has(type), `fx emits "${type}"`).toBe(true);
       expect(ENGINE_EMITTED_FILTERS as readonly string[], type).toContain(type);
     }
   });

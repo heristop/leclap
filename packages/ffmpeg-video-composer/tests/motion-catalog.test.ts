@@ -37,7 +37,8 @@ describe('motion catalog', () => {
       );
     }
     for (const type of DESIGNED_TRANSITIONS) expect(catalog.transitions[type]).toBeDefined();
-    const graphicTypes = GraphicSchema.options.map((option) => option.shape.type.value);
+    // fx is itself a union (one member per primitive), keyed by `effect`.
+    const graphicTypes = GraphicSchema.options.map((option) => ('shape' in option ? option.shape.type.value : 'fx'));
     expect(Object.keys(catalog.graphics).sort()).toEqual([...graphicTypes].sort());
     for (const [name, entry] of Object.entries(catalog.graphics)) expectGuide(entry, name);
     expect(catalog.kinetic.presets.find((p) => p.preset === 'impact')?.verb).toBe('SLAMS');

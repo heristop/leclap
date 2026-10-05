@@ -1,4 +1,15 @@
 import { z } from 'zod';
+import { EasingSpecSchema, MotionRoleSchema } from './motion.schemas';
+import { ElementIdSchema, timeValue } from './time.schemas';
+import { FX_PRIMITIVES, type FxEffectName } from './fx-primitives.schemas';
+
+export {
+  FX_PRIMITIVES,
+  type FxDefaults,
+  type FxEffectName,
+  type FxIntent,
+  type FxPrimitive,
+} from './fx-primitives.schemas';
 
 // ── fx targets (editor/presets/fx-target.ts) ─────────────────────────────────────
 //
@@ -49,3 +60,87 @@ export const FxTargetSchema = z
 
 export type FxRectTarget = z.infer<typeof FxRectTargetSchema>;
 export type FxTarget = z.infer<typeof FxTargetSchema>;
+
+// ── the fx graphic: one primitive (fx-primitives.schemas.ts) plus the fields every primitive shares ──
+
+const FX_COMMON = {
+  id: ElementIdSchema.optional(),
+  target: FxTargetSchema.optional(),
+  at: timeValue(z.number().min(0))
+    .optional()
+    .describe('When the effect starts: seconds from the section start (default 0) or a time reference.'),
+  duration: z
+    .number()
+    .min(0.1)
+    .max(12)
+    .optional()
+    .describe('Seconds one pass takes (default per primitive, quicker at higher global.motion.energy).'),
+  ease: EasingSpecSchema.optional().describe(
+    'Curve of one pass: a token ($smooth, $expo…), a named curve, cubic-bezier(…) or spring(…). Default per primitive.'
+  ),
+  role: MotionRoleSchema.optional(),
+  until: timeValue(z.number().min(0)).optional().describe('Hard stop: nothing of the effect draws after this.'),
+  repeat: z.number().int().min(1).max(8).optional().describe('Number of passes (default 1).'),
+  every: z
+    .number()
+    .min(0.2)
+    .max(30)
+    .optional()
+    .describe('Seconds from one pass start to the next when repeat > 1 (default: duration + 1.2).'),
+  color: z
+    .string()
+    .optional()
+    .describe(
+      'Light colour: "#rrggbb", a colour name or a theme token ("$color.accent"). Default: a warm white tinted ' +
+        "by the theme's accent. Its @alpha is ignored: use intensity."
+    ),
+  intensity: z
+    .number()
+    .min(0)
+    .max(1)
+    .optional()
+    .describe(
+      "Strength 0..1, mapped under the primitive's light ceiling (a sheen peaks at 0.35 alpha at 1; default ~0.9). " +
+        'Keep ≤ 0.6 over skin.'
+    ),
+  seed: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe(
+      'Variation seed mixed with global.seed: picks the context defaults (tilt, width jitter) and the dither. ' +
+        'Change it to re-roll an untuned effect; same seed, same pixels.'
+    ),
+  above: z.boolean().optional().describe('Draw above the section text (default: true on a text target, else false).'),
+};
+
+/** The shared fields' descriptions, for the motion catalog. */
+export function fxSharedFields(): Record<string, string> {
+  return Object.fromEntries(Object.entries(FX_COMMON).map(([key, schema]) => [key, schema.description ?? '']));
+}
+
+function fxObject<N extends FxEffectName>(effect: N) {
+  const primitive = FX_PRIMITIVES[effect];
+
+  return z
+    .object({ type: z.literal('fx'), effect: z.literal(effect), ...FX_COMMON, ...primitive.params })
+    .strict()
+    .describe(`${primitive.intent.summary} Tune: ${primitive.intent.vary}`);
+}
+
+type FxObject = ReturnType<typeof fxObject<FxEffectName>>;
+
+export const FX_EFFECT_NAMES = Object.keys(FX_PRIMITIVES) as [FxEffectName, ...FxEffectName[]];
+
+export const FxGraphicSchema = z
+  .discriminatedUnion('effect', FX_EFFECT_NAMES.map(fxObject) as unknown as [FxObject, ...FxObject[]])
+  .describe(
+    'A procedural light/texture primitive lowered at output resolution and clipped to its `target`. Every look ' +
+      'parameter is open: tune profile, size, angle, path, colour, intensity, timing and seed so the effect ' +
+      'fits this template instead of a stock look. Omitted fields derive from the target, theme and energy.'
+  );
+
+export type FxGraphic = z.infer<typeof FxGraphicSchema>;
+/** The fx graphic of one primitive, with its own fields typed. */
+export type FxGraphicOf<N extends FxEffectName> = z.infer<ReturnType<typeof fxObject<N>>>;

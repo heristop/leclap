@@ -1,4 +1,19 @@
 import type { LayoutSectionRef } from '@/core/layout/sources';
+import type { Filter, Section } from '@/core/types';
+import type { FxGraphic } from '../../schemas/fx.schemas';
+
+/** One fx graphic to lower (editor/presets/fx.ts): the element, its window and where it sits. */
+export type FxRequest = {
+  graphic: FxGraphic;
+  at: number;
+  until: number | undefined;
+  /** Derived seed of the element (global.seed + its path). */
+  seed: number;
+  /** Index in section.graphics (pad-name prefix). */
+  index: number;
+  section: Section;
+  ctx: SugarContext;
+};
 
 // Context a sugar compiler needs to lower time/space-dependent effects (motion calibrates its
 // Ken Burns curve over the clip length and scale). Built once per section by SegmentBuilder.
@@ -36,6 +51,13 @@ export type MaskSugarContext = {
   color: (color: string) => string;
   /** Compile-time advisory (logged). */
   warn: (message: string) => void;
+  /** True when the active FFmpeg build has the filter (device allowlist, host probe). */
+  has?: (filter: string) => boolean;
+  /**
+   * Lowers fx graphics (editor/presets/fx.ts). Only the compile path provides it, so the effect modules stay
+   * out of the browser's eager load; without it (validation) fx graphics lower to nothing, as they draw no text.
+   */
+  effects?: (request: FxRequest) => Filter[];
 };
 
 export type KineticSugarContext = {

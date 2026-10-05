@@ -15,7 +15,7 @@ import type { FxTargetRect } from './fx-target';
 import type { SpriteSpec } from './fx-sprites';
 
 /** Everything a primitive needs, resolved by the dispatcher (defaults already derived from the context). */
-export interface FxContext<N extends FxEffectName = FxEffectName> {
+export interface FxContext<N extends FxEffectName> {
   graphic: FxGraphicOf<N>;
   target: FxTargetRect;
   frame: { width: number; height: number; fps: number };
@@ -47,9 +47,13 @@ export interface FxContext<N extends FxEffectName = FxEffectName> {
   sprite: (key: string, spec: SpriteSpec) => string | null;
 }
 
+/** The context of any primitive (the kit's helpers take every one). */
+export type AnyFxContext = FxContext<FxEffectName>;
+
 /** A primitive's lowering: the light layers over its target, or null to skip (after a warning). */
-export interface FxEffect<N extends FxEffectName = FxEffectName> {
-  lower: (fx: FxContext<N>) => FxLayer[] | null;
+export interface FxEffect<N extends FxEffectName> {
+  // Method syntax on purpose: the registry holds each primitive's FxEffect<N> as FxEffect<FxEffectName>.
+  lower(fx: FxContext<N>): FxLayer[] | null;
 }
 
 /** One light layer: chains producing `label` (target-sized coordinates), laid over the region at x/y. */
@@ -66,12 +70,12 @@ const STRETCH = "y='clip((val-16)*255/219,0,255)'";
 const DITHER = { strength: 3, floor: 3 };
 
 /** A lavfi source's timing for the effect window: `r=<fps>:d=<span>` (pair it with `shiftTo`). */
-export function sourceTiming(fx: FxContext): string {
+export function sourceTiming(fx: AnyFxContext): string {
   return `r=${fx.frame.fps}:d=${fmt(fx.end - fx.at)}`;
 }
 
 /** Moves a source that starts at 0 to the effect window, so `t` in later filters is section time. */
-export function shiftTo(fx: FxContext): Filter {
+export function shiftTo(fx: AnyFxContext): Filter {
   return { type: 'setpts', value: `PTS+${fmt(fx.at)}/TB` };
 }
 
@@ -79,7 +83,7 @@ export function shiftTo(fx: FxContext): Filter {
  * Seeded, temporal dither on the light's ALPHA (what a light layer is quantised by), inside the light only:
  * the floor zeroes the noise where the layer is empty. Converts the layer to yuva444p.
  */
-export function ditherFilters(fx: FxContext): Filter[] {
+export function ditherFilters(fx: AnyFxContext): Filter[] {
   return [
     { type: 'format', value: 'yuva444p' },
     { type: 'noise', value: `c3s=${DITHER.strength}:c3f=t+u:all_seed=${fx.seed % 2147483647}` },
@@ -88,14 +92,14 @@ export function ditherFilters(fx: FxContext): Filter[] {
 }
 
 /** Eased 0→1 progress of the current pass at section time `t` (passes repeat `every` seconds). */
-export function passProgress(fx: FxContext): string {
+export function passProgress(fx: AnyFxContext): string {
   const time = fx.passes > 1 ? `(${fmt(fx.at)}+mod(t-${fmt(fx.at)},${fmt(fx.every)}))` : 't';
 
   return easedProgressExpr(parseEasing(fx.ease), { delay: fx.at, duration: fx.duration }, time);
 }
 
 /** The reduced-motion stand-in: a still highlight of `alpha` over the whole target, faded in then out. */
-export function staticHighlight(fx: FxContext, alpha: number): FxLayer {
+export function staticHighlight(fx: AnyFxContext, alpha: number): FxLayer {
   const p = fx.prefix;
   const half = (fx.end - fx.at) / 2;
   const { w, h } = fx.target;
@@ -112,7 +116,7 @@ export function staticHighlight(fx: FxContext, alpha: number): FxLayer {
 }
 
 // The target's shape as a mask chain, or null when the target is a plain rectangle (the crop clips it).
-function maskChains(fx: FxContext, from: string, out: string): FilterGraphChain[] | null | false {
+function maskChains(fx: AnyFxContext, from: string, out: string): FilterGraphChain[] | null | false {
   const { x, y, w, h, radius, mask } = fx.target;
   const p = fx.prefix;
 
@@ -140,7 +144,7 @@ function maskChains(fx: FxContext, from: string, out: string): FilterGraphChain[
 }
 
 /** The whole sub-graph: `layers` lit inside the target, clipped to its shape, during the window only. */
-export function lightInTarget(fx: FxContext, layers: FxLayer[]): FilterGraphChain[] | null {
+export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphChain[] | null {
   const p = fx.prefix;
   const { x, y, w, h } = fx.target;
   const lit = layers.map((layer, i): FilterGraphChain => {

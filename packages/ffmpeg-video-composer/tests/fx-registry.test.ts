@@ -3,7 +3,7 @@ import type { Filter, FilterGraphChain, Section } from '@/core/types';
 import { motionCatalog } from '@/core/motion/catalog';
 import { graphicTiming, graphicsToFilters } from '@/editor/presets/graphics';
 import { defaultLightColor, lowerFx } from '@/editor/presets/fx';
-import { lightInTarget, passProgress, staticHighlight, type FxContext } from '@/editor/presets/fx-kit';
+import { lightInTarget, passProgress, staticHighlight, type AnyFxContext } from '@/editor/presets/fx-kit';
 import type { SugarContext } from '@/editor/presets/sugar-context';
 import { FX_PRIMITIVES } from '@/schemas/fx.schemas';
 import { GraphicSchema, type Graphic } from '@/schemas/graphics.schemas';
@@ -32,7 +32,7 @@ function section(graphics: unknown[]): Section {
   return { name: 's', type: 'color_background', options: { duration: 3 }, graphics } as unknown as Section;
 }
 
-function fakeContext(overrides: Partial<FxContext> = {}): FxContext {
+function fakeContext(overrides: Partial<AnyFxContext> = {}): AnyFxContext {
   return {
     graphic: { type: 'fx', effect: 'sheen' },
     target: { x: 200, y: 120, w: 400, h: 240, radius: 0, mask: 'none' },

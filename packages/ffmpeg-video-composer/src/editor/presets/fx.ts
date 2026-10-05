@@ -28,11 +28,14 @@ import { FX_PRIMITIVES, type FxEffectName } from '../../schemas/fx.schemas';
 import { FX_PASS_REST } from './fx-spec';
 import { resolveFxTarget, type FxTargetRect } from './fx-target';
 import { spriteUrl } from './fx-sprites';
-import { lightInTarget, type FxContext, type FxEffect } from './fx-kit';
+import { lightInTarget, type AnyFxContext, type FxEffect } from './fx-kit';
+import { SHEEN } from './fx-sheen';
 import type { FxRequest } from './sugar-context';
 
 /** The registry: one line per primitive. */
-const FX_EFFECTS: { readonly [N in FxEffectName]?: FxEffect<N> } = {};
+const FX_EFFECTS: { readonly [N in FxEffectName]?: FxEffect<N> } = {
+  sheen: SHEEN,
+};
 
 /** Names of the primitives with a lowering (the rest of FX_PRIMITIVES validate but render nothing yet). */
 export const REGISTERED_FX = Object.keys(FX_EFFECTS) as FxEffectName[];
@@ -58,10 +61,16 @@ export function defaultLightColor(theme: unknown): string {
 
   if (!accent) return WARM_WHITE;
 
-  const mixed = base.map((value, i) => Math.round(value + (accent[i] - value) * ACCENT_TINT));
+  const mixed = base.map((value, i) => value + (accent[i] - value) * ACCENT_TINT);
+  // Re-brighten so the brightest channel is full: a tinted light is still a light, never a grey.
+  const gain = 255 / Math.max(...mixed);
 
   return `#${mixed
-    .map((value) => value.toString(16).padStart(2, '0'))
+    .map((value) =>
+      Math.round(value * gain)
+        .toString(16)
+        .padStart(2, '0')
+    )
     .join('')
     .toUpperCase()}`;
 }
@@ -100,7 +109,7 @@ function timing(request: FxRequest, energy: number): Timing | null {
   return end > at ? { at, duration, passes, every, end } : null;
 }
 
-function context(request: FxRequest, target: FxTargetRect, time: Timing): FxContext {
+function context(request: FxRequest, target: FxTargetRect, time: Timing): AnyFxContext {
   const { graphic: g, ctx, index } = request;
   const [width, height] = ctx.scale.split(':').map(Number);
   const defaults = FX_PRIMITIVES[g.effect].defaults;
@@ -147,7 +156,7 @@ function targetOf(request: FxRequest): FxTargetRect | null {
 
 /** One fx graphic as filters: a single sub-graph, or nothing (with a warning) when it cannot render. */
 export function lowerFx(request: FxRequest): Filter[] {
-  const effect: FxEffect | undefined = FX_EFFECTS[request.graphic.effect];
+  const effect: FxEffect<FxEffectName> | undefined = FX_EFFECTS[request.graphic.effect];
 
   if (!effect) {
     warn(request, 'fx_unavailable', 'this primitive has no lowering in this engine version; skipped');

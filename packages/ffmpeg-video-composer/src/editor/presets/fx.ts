@@ -12,8 +12,11 @@
 //      lets `lightInTarget` crop, clip and composite them. Derive omitted parameters from the context
 //      (target size and aspect, fx.random, fx.energy, fx.color) so untuned effects differ per template.
 //      Use only on-device filters (scripts/ffmpeg/common.sh), gate optional ones with `fx.has(...)` and
-//      keep a fallback (compile-time sprites: fx-sprites.ts, fx.sprite). Honour `fx.reduced`.
-//   3. One line in FX_EFFECTS below. Then add the primitive to tests/lgpl-filter-audit.test.ts (FX_AUDIT).
+//      keep a fallback (compile-time sprites: fx-sprites.ts, fx.sprite). Honour `fx.reduced` (return [] for
+//      "absent": no warning). Light built from the picture itself (halation, grain) asks the kit for copies of
+//      the region through a layer's `taps`; marks or light that leave the target (a ring, confetti, a glow
+//      around a card) widen the composited region with fx-kit's `drawIn` (unmasked, clamped to the frame).
+//   3. One line in FX_EFFECTS (fx-registry.ts). Then add the primitive to tests/lgpl-filter-audit.test.ts (FX_AUDIT).
 //
 // The dispatcher owns everything shared: target resolution (fx-target.ts), timing (`at` snapped to a frame,
 // one pass = whole frames, `repeat`/`every`, `until`), energy-scaled default duration, colour (theme tokens
@@ -30,26 +33,8 @@ import { FX_PASS_REST } from './fx-spec';
 import { resolveFxTarget, type FxTargetRect } from './fx-target';
 import { spriteUrl } from './fx-sprites';
 import { lightInTarget, type AnyFxContext, type FxEffect } from './fx-kit';
-import { SHEEN } from './fx-sheen';
-import { RIPPLE } from './fx-ripple';
-import { GLINT } from './fx-glint';
-import { CONFETTI } from './fx-confetti';
-import { BOKEH, DUST } from './fx-particles';
-import { GLASS } from './fx-glass';
-import { RESOLVE } from './fx-resolve';
+import { FX_EFFECTS } from './fx-registry';
 import type { FxRequest } from './sugar-context';
-
-/** The registry: one line per primitive. */
-const FX_EFFECTS: { readonly [N in FxEffectName]?: FxEffect<N> } = {
-  sheen: SHEEN,
-  ripple: RIPPLE,
-  glint: GLINT,
-  confetti: CONFETTI,
-  bokeh: BOKEH,
-  dust: DUST,
-  glass: GLASS,
-  resolve: RESOLVE,
-};
 
 /** Names of the primitives with a lowering (the rest of FX_PRIMITIVES validate but render nothing yet). */
 export const REGISTERED_FX = Object.keys(FX_EFFECTS) as FxEffectName[];
@@ -187,10 +172,10 @@ export function lowerFx(request: FxRequest): Filter[] {
   const fx = context(request, target, time);
   const layers = effect.lower(fx);
 
-  // No layers at all: deliberately absent (ambient particles under reduced motion), not a failure.
+  // An empty list is a deliberate "nothing" (ambient particles or texture under reduced motion): no warning.
   if (layers?.length === 0) return [];
 
-  const graph = layers && layers.length > 0 ? lightInTarget(fx, layers) : null;
+  const graph = layers ? lightInTarget(fx, layers) : null;
 
   if (!graph) {
     warn(request, 'fx_skipped', 'this build or segment cannot draw it (missing filter or extra input); skipped');

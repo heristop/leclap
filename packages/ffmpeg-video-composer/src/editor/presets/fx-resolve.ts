@@ -183,7 +183,7 @@ function glowLayer(fx: FxContext<'resolve'>, look: Look, mask: string[] | null):
     outputs: [`${p}gc`],
   };
 
-  return { chains: [...split, glow, ...edge, clear], label: `${p}gc`, x: '0', y: '0', region: `${p}c0` };
+  return { chains: [...split, glow, ...edge, clear], label: `${p}gc`, x: '0', y: '0', taps: [`${p}c0`] };
 }
 
 // The element resolving: settle, defocus steps, feather, then its alpha fades in from `at`.
@@ -202,7 +202,7 @@ function elementLayer(fx: FxContext<'resolve'>, look: Look, mask: string[] | nul
     outputs: [`${p}rv`],
   };
 
-  return { chains: [...zoom, sharp, ...edge, fade], label: `${p}rv`, x: '0', y: '0', region: `${p}c1` };
+  return { chains: [...zoom, sharp, ...edge, fade], label: `${p}rv`, x: '0', y: '0', taps: [`${p}c1`] };
 }
 
 function lower(fx: FxContext<'resolve'>): FxLayer[] | null {

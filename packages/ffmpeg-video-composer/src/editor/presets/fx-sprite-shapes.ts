@@ -4,7 +4,18 @@
 
 import { bokehCoverage, featherCoverage, rimCoverage } from './fx-sprite-shapes-soft';
 
-export type SpriteKind = 'disc' | 'ring' | 'star' | 'stroke' | 'mask' | 'piece' | 'band' | 'bokeh' | 'rim' | 'feather';
+export type SpriteKind =
+  | 'disc'
+  | 'ring'
+  | 'star'
+  | 'stroke'
+  | 'mask'
+  | 'piece'
+  | 'band'
+  | 'bokeh'
+  | 'rim'
+  | 'feather'
+  | 'glow';
 
 /** Light profiles across a band: a specular core with bloom, one soft wash, or two thin parallel glints. */
 export const BAND_PROFILES = ['specular', 'soft', 'twin'] as const;
@@ -25,6 +36,8 @@ export type BandProfile = (typeof BAND_PROFILES)[number];
  * - bokeh, rim, feather (fx-sprite-shapes-soft.ts): a defocused disc of `radius` with a `halo` px edge and
  *   peak `peak`; a top-lit rounded outline (`stroke`, `radius`, `peak`); a GRAYSCALE rounded mask whose edge
  *   fades in over `halo` px.
+ * - glow: gaussian bloom of σ `sigma` px, peak alpha `peak`, OUTSIDE a centred rounded rectangle inset
+ *   `inset` px from every image edge (corner `radius` px); exactly transparent inside it.
  */
 export interface SpriteSpec {
   kind: SpriteKind;
@@ -41,6 +54,7 @@ export interface SpriteSpec {
   tilt?: number;
   bloom?: number;
   peak?: number;
+  inset?: number;
   shape?: 'rect' | 'disc';
   profile?: BandProfile;
 }
@@ -141,6 +155,19 @@ function band(spec: SpriteSpec): Coverage {
   return (x, y) => bandProfile(x * nx + y * ny, spec);
 }
 
+// Light that starts at the rectangle's edge (anti-aliased over 1 px) and falls off outward only.
+function glow(spec: SpriteSpec): Coverage {
+  const inset = spec.inset ?? 0;
+  const rect = { w: spec.w - 2 * inset, h: spec.h - 2 * inset, radius: spec.radius };
+  const sigma = spec.sigma ?? 10;
+
+  return (x, y) => {
+    const d = roundedRectDistance(x, y, rect);
+
+    return (spec.peak ?? 1) * clamp01(d + 0.5) * gauss(Math.max(0, d), sigma);
+  };
+}
+
 const SHAPES: Record<SpriteKind, (spec: SpriteSpec) => Coverage> = {
   disc,
   ring,
@@ -152,6 +179,7 @@ const SHAPES: Record<SpriteKind, (spec: SpriteSpec) => Coverage> = {
   bokeh: bokehCoverage,
   rim: (spec) => rimCoverage(spec, roundedRectDistance),
   feather: (spec) => featherCoverage(spec, roundedRectDistance),
+  glow,
 };
 
 /** The coverage function of a sprite, in pixel-centre coordinates relative to the image centre. */

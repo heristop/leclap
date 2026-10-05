@@ -146,7 +146,7 @@ function lower(fx: FxContext<'glass'>): FxLayer[] {
       label: `${p}gl`,
       x: '0',
       y: '0',
-      region: `${p}g`,
+      taps: [`${p}g`],
     },
   ];
 }

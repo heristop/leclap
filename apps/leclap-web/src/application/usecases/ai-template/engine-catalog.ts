@@ -78,17 +78,18 @@ function entryLines(entries: CatalogEntry[]): string {
 // The motion catalog for the prompt, minus what the builder cannot author: partials (never in a builder
 // template) and the take-editing guide (user LUT files, B-roll URLs, Node-only silence trimming). With a
 // known genre, only that genre's doctrine travels (the others are noise for this brief and cost tokens).
-// The schema digest already carries every fx field's description, so the prompt keeps each primitive's
-// design intent and only the names of its parameters (and of the shared fields): no prose twice.
+// The schema digest already lists every fx field (own and shared, with its description), and reduced motion
+// is applied by the engine on its own, so the prompt keeps only each primitive's design intent (summary,
+// when to use or avoid it, what to vary): no field twice.
 function fxForPrompt(fx: MotionCatalog['fx']): MotionCatalog['fx'] {
   const primitives = Object.fromEntries(
-    Object.entries(fx.primitives).map(([name, { params, defaults: _defaults, ...intent }]) => [
-      name,
-      { ...intent, params: Object.keys(params) },
-    ])
+    Object.entries(fx.primitives).map(
+      ([name, { params: _params, defaults: _defaults, reduced: _reduced, ...intent }]) => [name, intent]
+    )
   );
+  const { shared: _shared, ...rest } = fx;
 
-  return { ...fx, shared: Object.keys(fx.shared), primitives } as unknown as MotionCatalog['fx'];
+  return { ...rest, primitives } as unknown as MotionCatalog['fx'];
 }
 
 export function motionForPrompt(motion: MotionCatalog, genre?: string): Omit<MotionCatalog, 'partials'> {

@@ -14,7 +14,7 @@ import {
 } from './art-direction';
 import { formatCatalog, type EngineCatalog } from './engine-catalog';
 import { sampleJson } from './sample-picker';
-import { fitSchema } from './schema-digest';
+import { CLOSED_OBJECTS, fitSchema } from './schema-digest';
 
 export type Orientation = 'landscape' | 'portrait' | 'square';
 
@@ -104,7 +104,11 @@ export function buildSystemPrompt(input: PromptInput): BuiltPrompt {
   // Headroom for the separators and the schema heading.
   const room = budget - fixedLength - examples.length - 200;
   const schema = fitSchema(input.schema, Math.max(0, Math.min(SCHEMA_CAP, room)));
-  const blocks = [...fixed, ...(examples ? [examples] : []), `Template JSON Schema (compacted):\n${schema.text}`];
+  const blocks = [
+    ...fixed,
+    ...(examples ? [examples] : []),
+    `Template JSON Schema (compacted; ${CLOSED_OBJECTS}):\n${schema.text}`,
+  ];
 
   return {
     system: blocks.join('\n\n'),

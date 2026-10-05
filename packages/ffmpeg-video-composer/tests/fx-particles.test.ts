@@ -92,7 +92,7 @@ describe('fx bokeh', () => {
     expect(discs.length).toBeGreaterThanOrEqual(6);
     expect(discs.length).toBeLessThanOrEqual(10);
     expect(Math.max(...discs)).toBeLessThanOrEqual(0.12);
-    expect(text).toContain('noise=c3s=3:c3f=t+u');
+    expect(text).toContain('noise=c3s=3:c3f=u:');
     expect(text).toMatch(/fade=t=in:st=0\.\d+:d=[\d.]+:alpha=1/);
     expect(text).toContain("overlay=0:0:eof_action=pass:enable='between(t,0.2,5.2)'");
   });

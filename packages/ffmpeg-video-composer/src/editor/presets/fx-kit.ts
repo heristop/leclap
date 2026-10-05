@@ -11,7 +11,7 @@ import type { Filter, FilterGraphChain } from '@/core/types';
 import { parseEasing, type EasingSpec } from '@/core/motion/easing';
 import { easedProgressExpr, fmt } from '@/core/motion/hermite';
 import type { FxEffectName, FxGraphicOf } from '../../schemas/fx.schemas';
-import type { FxTargetRect } from './fx-target';
+import { snapToFrame, type FxTargetRect } from './fx-target';
 import type { SpriteSpec } from './fx-sprites';
 
 /** Everything a primitive needs, resolved by the dispatcher (defaults already derived from the context). */
@@ -66,15 +66,43 @@ export interface FxLayer {
   x: string;
   y: string;
   /**
-   * When set, the kit hands this layer a copy of the target region (the section's own pixels, cropped and
-   * trimmed like the composite) under this label, for primitives that reshape what is there (frost, focus).
+   * Labels the kit feeds with copies of the picture under the effect (the region, cropped and bounded to
+   * the window, before any light), for light built from the frame itself: halation, grain, a leak that
+   * spares the shadows. Each label is consumed once by the layer's chains.
    */
-  region?: string;
+  taps?: string[];
 }
 
 const STRETCH = "y='clip((val-16)*255/219,0,255)'";
 /** Dither amplitude on the light's alpha plane, and the floor that keeps empty pixels exactly empty. */
 const DITHER = { strength: 3, floor: 3 };
+
+export interface Region {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * Makes `box` (frame px) the region the light is drawn in and composited over (marks that leave
+ * their target, a glow AROUND a card): no mask, even pixels, inside the
+ * frame. Returns the snapped region, or null when it lies outside the frame.
+ */
+export function drawIn(fx: AnyFxContext, box: Region): Region | null {
+  const region = snapToFrame(box, fx.frame.width, fx.frame.height);
+
+  if (!region) return null;
+
+  fx.target = { ...region, radius: 0, mask: 'none' };
+
+  return region;
+}
+
+/** The whole frame as the region (particles that may fly anywhere). */
+export function drawInFrame(fx: AnyFxContext): Region {
+  return drawIn(fx, { x: 0, y: 0, w: fx.frame.width, h: fx.frame.height }) as Region;
+}
 
 /** A lavfi source's timing for the effect window: `r=<fps>:d=<span>` (pair it with `shiftTo`). */
 export function sourceTiming(fx: AnyFxContext): string {
@@ -87,13 +115,15 @@ export function shiftTo(fx: AnyFxContext): Filter {
 }
 
 /**
- * Seeded, temporal dither on the light's ALPHA (what a light layer is quantised by), inside the light only:
- * the floor zeroes the noise where the layer is empty. Converts the layer to yuva444p.
+ * Seeded dither on the light's ALPHA (what a light layer is quantised by), inside the light only: the floor
+ * zeroes the noise where the layer is empty. ±1 alpha step (well under one code value once composited)
+ * and STATIC: the pattern rides with the layer instead of fizzing every frame, so it breaks the 8-bit
+ * steps of a slow falloff without adding texture an encoder smears into blotches. Converts to yuva444p.
  */
 export function ditherFilters(fx: AnyFxContext): Filter[] {
   return [
     { type: 'format', value: 'yuva444p' },
-    { type: 'noise', value: `c3s=${DITHER.strength}:c3f=t+u:all_seed=${fx.seed % 2147483647}` },
+    { type: 'noise', value: `c3s=${DITHER.strength}:c3f=u:all_seed=${fx.seed % 2147483647}` },
     { type: 'lutyuv', value: `a='if(lt(val,${DITHER.floor}),0,val)'` },
   ];
 }
@@ -161,23 +191,19 @@ export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphC
   });
   const litLabel = `${p}o${layers.length - 1}`;
   const masked = maskChains(fx, litLabel, `${p}l`);
+  const taps = layers.flatMap((layer) => layer.taps ?? []);
+  const fork: Filter[] = taps.length > 0 ? [{ type: 'split', value: String(taps.length + 1) }] : [];
 
   if (masked === false) return null;
 
   const window = `enable='between(t,${fmt(fx.at)},${fmt(fx.end)})'`;
-  const regions = layers.flatMap((layer) => (layer.region ? [layer.region] : []));
-  const copies: Filter[] = regions.length > 0 ? [{ type: 'split', value: String(regions.length + 1) }] : [];
 
   return [
     { filters: [{ type: 'split', value: '2' }], outputs: [`${p}m`, `${p}r0`] },
     {
       inputs: [`${p}r0`],
-      filters: [
-        { type: 'trim', value: `end=${fmt(fx.end)}` },
-        { type: 'crop', value: `${w}:${h}:${x}:${y}` },
-        ...copies,
-      ],
-      outputs: [`${p}r`, ...regions],
+      filters: [{ type: 'trim', value: `end=${fmt(fx.end)}` }, { type: 'crop', value: `${w}:${h}:${x}:${y}` }, ...fork],
+      outputs: [`${p}r`, ...taps],
     },
     ...layers.flatMap((layer) => layer.chains),
     ...lit,

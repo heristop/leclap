@@ -186,15 +186,13 @@ describe('buildSystemPrompt', () => {
 
   it('drops samples before squeezing the schema below a minimum', () => {
     const context = generationContext();
-    const built = buildSystemPrompt({
-      schema: context.schema,
-      catalog: context.catalog,
-      samples: context.samples.slice(0, 3),
-      hints: {},
-      budget: 80_000,
-    });
+    const input = { schema: context.schema, catalog: context.catalog, samples: context.samples.slice(0, 3), hints: {} };
+    // Room for a few KB of schema past the fixed blocks (catalog, rules): less than the schema minimum, so
+    // the samples go first. Derived from the fixed size, which grows with the engine's vocabulary.
+    const budget = buildSystemPrompt({ ...input, schema: {}, samples: [] }).system.length + 4_000;
+    const built = buildSystemPrompt({ ...input, budget });
 
-    expect(built.system.length).toBeLessThanOrEqual(80_000);
+    expect(built.system.length).toBeLessThanOrEqual(budget);
     expect(built.sampleIds.length).toBeLessThan(3);
   });
 

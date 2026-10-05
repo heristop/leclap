@@ -1,13 +1,16 @@
 // Shrinks the engine's template JSON Schema to fit a prompt. The raw schema is ~570 KB minified,
 // mostly because every section variant repeats the same option/filter subtrees. Three lossless-ish
 // passes bring it under a quarter of that: descriptions are clipped (they stay, shortened, because they
-// carry units and ranges), the fields every variant of a union repeats are stated once (factorUnions), and
+// carry units and ranges), `additionalProperties: false` is dropped (every object is closed: the prompt
+// states it once, CLOSED_OBJECTS), the fields every variant of a union repeats are stated once (factorUnions), and
 // every repeated subtree is hoisted once into `$defs` and referenced. If the result is still over budget,
 // descriptions are clipped harder, then dropped.
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 const DROPPED_KEYS = new Set(['$schema', 'examples', 'title']);
+/** Said once next to the digest instead of `"additionalProperties":false` on ~150 objects. */
+export const CLOSED_OBJECTS = 'objects accept only their listed properties unless additionalProperties says otherwise';
 // Subtrees shorter than this are cheaper inline than as a `$ref`.
 const MIN_HOIST = 90;
 // Description clip lengths tried in order until the digest fits; 0 drops descriptions.
@@ -41,7 +44,7 @@ function cleanNode(node: Json, maxDescription: number): Json {
   const out: { [key: string]: Json } = {};
 
   for (const [key, value] of Object.entries(node)) {
-    if (DROPPED_KEYS.has(key)) continue;
+    if (DROPPED_KEYS.has(key) || (key === 'additionalProperties' && value === false)) continue;
 
     if (key === 'description') {
       const clipped = clipDescription(value, maxDescription);

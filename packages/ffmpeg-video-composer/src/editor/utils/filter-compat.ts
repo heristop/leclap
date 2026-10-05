@@ -163,6 +163,8 @@ export const ENGINE_EMITTED_FILTERS = [
   'colorkey',
   'gradients',
   'setpts',
+  // fx vignette-breathe (fx-vignette.ts): the breathing falloff mask
+  'vignette',
   // colour metadata (core/encoding.ts buildColorMetadataFilter, appended as every segment's final node)
   'setparams',
   // footage edits (footage-lowering.ts: clip range trim, freeze loop, the audio concat of ramp pieces

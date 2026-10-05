@@ -35,8 +35,22 @@ const KINDS: readonly SpriteKind[] = [
   'bokeh',
   'rim',
   'feather',
+  'glow',
 ];
-const NUMERIC = ['w', 'h', 'sigma', 'radius', 'stroke', 'halo', 'flare', 'width', 'tilt', 'bloom', 'peak'] as const;
+const NUMERIC = [
+  'w',
+  'h',
+  'sigma',
+  'radius',
+  'stroke',
+  'halo',
+  'flare',
+  'width',
+  'tilt',
+  'bloom',
+  'peak',
+  'inset',
+] as const;
 const WORDS = ['shape', 'profile'] as const;
 const ALLOWED: Record<(typeof WORDS)[number], readonly string[]> = {
   shape: ['rect', 'disc'],

@@ -2,9 +2,9 @@
 // confetti): compile-time sprites moved, scaled, turned and faded per frame, laid over a REGION that may
 // be larger than the target (a ring grows past the button it taps, confetti flies over the whole frame).
 //
-// - drawIn widens the context's target to that region before the dispatcher composites (fx-kit's
-//   lightInTarget crops, overlays and composites back fx.target): the region is unmasked, snapped to even
-//   pixels and clamped to the frame, so nothing outside it changes, bit for bit.
+// - drawIn (fx-kit, re-exported here) widens the context's target to that region before the dispatcher
+//   composites: the region is unmasked, snapped to even pixels and clamped to the frame, so nothing outside
+//   it changes, bit for bit.
 // - spriteStream turns one sprite input (a looped still, 25 fps by default) into N branches on the section
 //   frame rate, trimmed to the effect window, so per-frame expressions (scale, rotate) step on every
 //   output frame and nothing runs before the window opens.
@@ -17,7 +17,6 @@ import { resolveTheme } from '@/core/theme/resolve';
 import type { ThemeSpec } from '@/core/theme/themes';
 import type { AnyFxContext } from './fx-kit';
 import type { SpriteSpec } from './fx-sprites';
-import { snapToFrame } from './fx-target';
 
 /** Output frames per 1080 px of the frame's short side: sizes authored "at 1080p" scale by this. */
 export function frameScale(fx: AnyFxContext): number {
@@ -46,31 +45,7 @@ export function themeColors(fx: AnyFxContext, names: readonly string[]): string[
   });
 }
 
-export interface Region {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-/**
- * Makes `box` (frame px) the region the dispatcher composites over: no mask, even pixels, inside the
- * frame. Returns the snapped region, or null when it lies outside the frame.
- */
-export function drawIn(fx: AnyFxContext, box: Region): Region | null {
-  const region = snapToFrame(box, fx.frame.width, fx.frame.height);
-
-  if (!region) return null;
-
-  fx.target = { ...region, radius: 0, mask: 'none' };
-
-  return region;
-}
-
-/** The whole frame as the region (particles that may fly anywhere). */
-export function drawInFrame(fx: AnyFxContext): Region {
-  return drawIn(fx, { x: 0, y: 0, w: fx.frame.width, h: fx.frame.height }) as Region;
-}
+export { drawIn, drawInFrame, type Region } from './fx-kit';
 
 /**
  * One sprite as `count` branches on the section frame rate, trimmed to the effect window, with `filters`

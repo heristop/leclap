@@ -1,6 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/server';
-import { TemplateDescriptorSchema } from 'ffmpeg-video-composer';
+import { TemplateDescriptorSchema, motionCatalog } from 'ffmpeg-video-composer';
 import { z } from 'zod';
+
+// Every fx primitive the engine lowers, named in the guide (derived, so a new primitive is listed with no edit).
+const FX_EFFECTS = Object.keys(motionCatalog().fx.primitives).join(', ');
 
 // Short authoring guide prepended to the JSON Schema so an agent knows how to read it.
 const GUIDE = [
@@ -29,9 +32,10 @@ const GUIDE = [
     'global.motion holds tokens and the energy dial; global.seed makes every random-looking choice repeatable. ' +
     'Kinetic `trail` adds echo smears; section `graphics` add hits (flash, glitch, focus), shapes and data / ' +
     'broadcast graphics (progress, ticker, bars-chart); `type: "fx"` graphics are procedural light primitives ' +
-    '(effect: sheen, …) clipped to a `target` (a card rect, pane, layer or kinetic block): compose them by ' +
-    'tuning their parameters (profile, width, tilt, direction, colour, intensity, timing, repeat, seed) for ' +
-    'the template instead of using one stock look (get_motion_catalog → fx); ' +
+    `and marks on a \`target\` (a card rect, pane, layer or kinetic block), effect one of: ${FX_EFFECTS}. ` +
+    'Compose them by ' +
+    "tuning each one's parameters (shape, colour, intensity, timing, repeat, seed) for the template instead " +
+    'of using one stock look (get_motion_catalog → fx lists every field and when to use it); ' +
     'designed transitions include whip-left/right/up/down; ' +
     '`lowerThird.style` picks clean-bar, side-rule, kicker, stack-bars or pill. ' +
     'Call get_motion_catalog for presets, defaults, art-direction rules and a starter.',

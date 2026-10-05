@@ -72,16 +72,71 @@ function bandOf(fx: FxContext<'sheen'>): Band {
   return { horizontal, forward, width, tilt, along, across, margin };
 }
 
-/** The profile at each of the 7 evenly spaced stops across ±width; the ends are exactly transparent. */
+/** Stops from the centre outward (centre, two inner, the transparent end); `gradients` interpolates linearly. */
+const HALF = (STOPS - 1) / 2;
+const FIT_STEPS = { inner: [0.7, 1.1], outer: [0.3, 1.2], step: 0.02 } as const;
+const FIT_SAMPLES = 12;
+
+// The linear interpolation of half-band stops `v` (centre first) at `u` = offset / width (0..1).
+function between(v: readonly number[], u: number): number {
+  const at = Math.min(HALF, u * HALF);
+  const i = Math.min(HALF - 1, Math.floor(at));
+
+  return v[i] + (v[i + 1] - v[i]) * (at - i);
+}
+
+/** The gblur that follows the stops, in units of the band's half-width (σ = SMOOTHING × stop spacing). */
+const BLUR_U = SMOOTHING / HALF;
+const TAPS = [-2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2].map((t) => ({ t: t * BLUR_U, w: Math.exp(-(t * t) / 2) }));
+const TAP_SUM = TAPS.reduce((sum, tap) => sum + tap.w, 0);
+
+// The stops as rendered: interpolated, then blurred (symmetric about the centre).
+function rendered(v: readonly number[], u: number): number {
+  return TAPS.reduce((sum, tap) => sum + tap.w * between(v, Math.abs(u + tap.t)), 0) / TAP_SUM;
+}
+
+// Worst gap between the rendered band and the profile, both normalised to their own peak.
+function worstError(v: readonly number[], target: readonly number[]): number {
+  const shape = target.map((_, k) => rendered(v, k / FIT_SAMPLES));
+  const peak = Math.max(...shape);
+  const goal = Math.max(...target);
+
+  return Math.max(...shape.map((value, k) => Math.abs(value / peak - target[k] / goal)));
+}
+
+function range([from, to]: readonly number[]): number[] {
+  return Array.from({ length: Math.round((to - from) / FIT_STEPS.step) + 1 }, (_, i) => from + i * FIT_STEPS.step);
+}
+
+/**
+ * The two inner stops each side, scaled so the band AS RENDERED (linear between stops, then the smoothing
+ * blur) follows the profile between the stops too: sampled stops alone overshoot the gaussian's shoulder by
+ * ~9 % of the peak. A coarse minimax search over scale factors: deterministic, ~10⁵ multiply-adds.
+ */
+function fitHalf(profile: (u: number) => number): number[] {
+  const sampled = [0, 1, 2].map((i) => profile(i / HALF));
+  const target = Array.from({ length: FIT_SAMPLES + 1 }, (_, k) => profile(k / FIT_SAMPLES));
+  let best = { error: Infinity, v: [...sampled, 0] };
+
+  for (const a of range(FIT_STEPS.inner)) {
+    for (const b of range(FIT_STEPS.outer)) {
+      const v = [sampled[0], sampled[1] * a, sampled[2] * b, 0];
+      const error = worstError(v, target);
+
+      if (error < best.error - 1e-9) best = { error, v };
+    }
+  }
+
+  return best.v;
+}
+
+/** The band's 7 evenly spaced stops across ±width, fitted to the profile; the ends are exactly transparent. */
 export function sheenStops(fx: FxContext<'sheen'>, width: number): number[] {
   const g = fx.graphic;
   const spec = { width, peak: fx.peak, bloom: g.bloom ?? 0.25, profile: g.profile ?? 'specular' };
+  const half = fitHalf((u) => bandProfile(u * width, spec));
 
-  return Array.from({ length: STOPS }, (_, i) => {
-    const edge = i === 0 || i === STOPS - 1;
-
-    return edge ? 0 : bandProfile(((2 * i) / (STOPS - 1) - 1) * width, spec);
-  });
+  return Array.from({ length: STOPS }, (_, i) => half[Math.abs(i - HALF)]);
 }
 
 function clampTo(value: number, size: number): number {

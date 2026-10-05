@@ -2,6 +2,8 @@ import { z } from 'zod';
 import { confetti, glint, ripple } from './fx-celebrate.schemas';
 import { bokeh, dust } from './fx-particles.schemas';
 import { glass, resolve } from './fx-surface.schemas';
+import { BLOOM, GRAIN, VIGNETTE_BREATHE } from './fx-ambient.schemas';
+import { EDGE_GLOW, LEAK } from './fx-light.schemas';
 
 // ── fx primitives: the parameter surface of every procedural effect ─────────────
 //
@@ -24,7 +26,7 @@ export interface FxIntent {
   avoidWhen: string;
   /** Which parameters make it yours: what to vary and in which direction. */
   vary: string;
-  /** What reduced motion (global.motion.energy 0) turns it into. */
+  /** What reduced motion (global.motion.energy 0) turns it into; starts with "absent" when it draws nothing. */
   reduced: string;
 }
 
@@ -65,12 +67,23 @@ const sheen = {
 
 /**
  * Every fx primitive, keyed by `effect`. Adding one: a row here (fields + defaults), its prose in FX_DOCS
- * (fx-docs.ts), its lowering module editor/presets/fx-<name>.ts and one line in the registry of
- * editor/presets/fx.ts.
+ * (fx-docs.ts), its lowering module editor/presets/fx-<name>.ts and one line in the registry
+ * (editor/presets/fx-registry.ts).
  */
-export const FX_PRIMITIVES = { sheen, ripple, glint, confetti, bokeh, dust, glass, resolve } as const satisfies Record<
-  string,
-  FxPrimitive
->;
+export const FX_PRIMITIVES = {
+  sheen,
+  ripple,
+  glint,
+  confetti,
+  bokeh,
+  dust,
+  glass,
+  resolve,
+  leak: LEAK,
+  'edge-glow': EDGE_GLOW,
+  bloom: BLOOM,
+  'vignette-breathe': VIGNETTE_BREATHE,
+  grain: GRAIN,
+} as const satisfies Record<string, FxPrimitive>;
 
 export type FxEffectName = keyof typeof FX_PRIMITIVES;

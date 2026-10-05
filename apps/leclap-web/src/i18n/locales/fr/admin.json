@@ -117,8 +117,8 @@
       "label": "Réglages avancés",
       "summary": "Mixage audio · Variables",
       "wholeVideo": {
-        "label": "Animations sur toute la vidéo",
-        "hint": "Des incrustations qui couvrent toute la vidéo, sur chaque section."
+        "label": "Fichiers d’animation sur toute la vidéo",
+        "hint": "Des fichiers d’animation joués tels quels sur toute la vidéo, sur chaque section. Les effets s’ajoutent scène par scène."
       },
       "wholeVideoLook": {
         "label": "Look et étalonnage de toute la vidéo",
@@ -562,9 +562,9 @@
     "upload": "Importer",
     "uploadHint": "Importe un fichier .apng ou .webm",
     "uploaded": "Importé",
-    "dropAnimation": "Dépose une animation ou clique pour parcourir",
+    "dropAnimation": "Dépose un fichier d’animation ou clique pour parcourir",
     "animationFormats": "APNG, WebM · conservé en ligne dans le modèle",
-    "removeUpload": "Supprimer l’animation importée",
+    "removeUpload": "Supprimer le fichier d’animation importé",
     "invalidType": "Choisis un fichier .apng ou .webm.",
     "previewBg": "Arrière-plan de l’aperçu",
     "bgChecker": "Damier",
@@ -668,21 +668,18 @@
       "celebrate": "Célébration",
       "frames": "Cadres",
       "ambient": "Ambiance",
-      "samples": "Exemples",
-      "samplesHint": "Calques prêts à l’emploi, identiques dans chaque modèle. Préférez un effet ci-dessus : il est dessiné par le moteur et ajusté à cette scène."
+      "samples": "Fichiers prêts à l’emploi",
+      "samplesHint": "Des fichiers tout faits, identiques dans chaque modèle."
     },
     "picker": {
-      "sampleBadge": "Exemple",
-      "sampleLabel": "{{label}} (exemple prêt à l’emploi)",
-      "addLabel": "Ajouter l’effet {{label}}",
+      "sampleLabel": "Fichier d’animation : {{label}} ({{format}})",
+      "addLabel": "Ajouter l’effet {{label}} (dessiné par le moteur, réglable)",
       "upgrade": "Utiliser l’effet",
-      "upgradeHint": "Un exemple prêt à l’emploi. L’effet {{label}} reprend la même idée, ajustée à cette scène."
+      "upgradeHint": "Un fichier joué tel quel. L’effet {{label}} reprend la même idée, ajustée à cette scène."
     },
     "fx": {
       "timing": "Minutage",
       "auto": "Auto",
-      "kindFx": "Effet du moteur",
-      "kindGraphic": "Graphisme animé",
       "reroll": "Nouvelle variante",
       "remove": "Retirer l’effet",
       "target": "S’applique à",
@@ -775,7 +772,26 @@
       "origin": "Origine",
       "caps": "Extrémités",
       "settle": "Rebond"
-    }
+    },
+    "kind": {
+      "switch": "Effets ou fichiers d’animation",
+      "effect": {
+        "name": "Effet",
+        "title": "Effets",
+        "badge": "Moteur · réglable",
+        "subtitle": "Dessiné par LeClap et adapté à cette scène",
+        "adjustable": "Réglable une fois ajouté"
+      },
+      "file": {
+        "name": "Fichier d’animation",
+        "title": "Fichiers d’animation",
+        "badge": "Fichier",
+        "subtitle": "Un clip joué tel quel par-dessus la scène",
+        "detail": "joué tel quel",
+        "source": "Source du fichier d’animation"
+      }
+    },
+    "urlPlaceholder": "https://example.com/overlay.webm"
   },
   "element": {
     "resize": "Redimensionner l’élément",
@@ -786,7 +802,7 @@
     "addBackgroundImage": "Image d’arrière-plan",
     "addText": "Texte",
     "addImageOverlay": "Image / logo",
-    "addAnimation": "Animation",
+    "addAnimation": "Fichier d’animation",
     "addShapeRect": "Rectangle",
     "addShapeEllipse": "Cercle",
     "empty": "Ajoute ton premier élément",
@@ -798,7 +814,7 @@
     "layer": "Arrière-plan",
     "image": "Image",
     "shape": "Forme",
-    "animation": "Animation",
+    "animation": "Fichier d’animation",
     "backgroundImage": "Image d’arrière-plan",
     "titleCard": "Carte de titre",
     "lowerThird": "Bandeau",
@@ -810,7 +826,12 @@
     "addLowerThird": "Bandeau",
     "sugarGroup": "Textes prêts à l'emploi",
     "reorderHint": "Les éléments se superposent par type. Réorganisez les éléments d'un même type avec les flèches ou par glisser-déposer.",
-    "effect": "Effet"
+    "effect": "Effet",
+    "addEffect": "Effet",
+    "effectAddHint": "Dessiné par le moteur · réglable",
+    "animationAddHint": "APNG ou WebM · joué tel quel",
+    "animationPending": "Effet ou fichier",
+    "kindLabel": "{{kind}} : {{name}}"
   },
   "shape": {
     "kind": "Forme",
@@ -905,11 +926,11 @@
     "count_other": "{{count}} images"
   },
   "animationOverlay": {
-    "add": "Ajouter une animation",
-    "label": "Animation",
-    "remove": "Supprimer l’animation",
-    "count_one": "{{count}} animation",
-    "count_other": "{{count}} animations"
+    "add": "Ajouter un fichier d’animation",
+    "label": "Fichier d’animation",
+    "remove": "Supprimer le fichier d’animation",
+    "count_one": "{{count}} fichier d’animation",
+    "count_other": "{{count}} fichiers d’animation"
   },
   "summaryChip": {
     "none": "Aucun",

@@ -28,6 +28,7 @@ import { TitleCardField } from '../editor/SectionFields/TitleCardField';
 import { LowerThirdField } from '../editor/SectionFields/LowerThirdField';
 import { EDITOR_INPUT_CLASS } from '../editor/editorStyles';
 import { removeElement, reorderElement, type SugarKind } from './sectionElements';
+import type { AnimationPickMode } from '../editor/animationSource';
 import { sugarToOverlays } from './sugarToOverlays';
 import type { ElementRef } from './useSectionSelection';
 
@@ -42,6 +43,8 @@ interface ElementInspectorProps {
   salt?: number;
   onPatchSection: (patch: Partial<EditorSection>) => void;
   onSelectElement: (ref: ElementRef | null) => void;
+  /** The picker side a freshly added animation slot opens on (the add menu's "Effect" vs "Animation file"). */
+  slotMode?: { index: number; mode: AnimationPickMode } | null;
 }
 
 // Immutable single-index patch shared by every array-backed kind.
@@ -74,6 +77,7 @@ export const ElementInspector = ({
   salt,
   onPatchSection,
   onSelectElement,
+  slotMode,
 }: ElementInspectorProps) => {
   const { t } = useTranslation('admin');
 
@@ -145,6 +149,9 @@ export const ElementInspector = ({
 
   return (
     <AnimationSettings
+      // Keyed by index so each animation keeps its own picker state (side, tab) instead of inheriting it.
+      key={activeRef.index}
+      initialMode={slotMode?.index === activeRef.index ? slotMode.mode : undefined}
       section={section}
       activeRef={activeRef}
       orientation={orientation}
@@ -361,6 +368,7 @@ const ImageSettings = ({ section, activeRef, orientation, t, onPatchSection }: P
 
 interface AnimationSettingsProps extends PlacementSettingsProps {
   salt?: number;
+  initialMode?: AnimationPickMode;
   onSelectElement: (ref: ElementRef | null) => void;
 }
 
@@ -372,6 +380,7 @@ const AnimationSettings = ({
   activeRef,
   orientation,
   salt,
+  initialMode,
   t,
   onPatchSection,
   onSelectElement,
@@ -397,6 +406,7 @@ const AnimationSettings = ({
         kind="animation"
         orientation={orientation}
         value={animation}
+        initialMode={initialMode}
         onChange={(patch) => {
           onPatchSection({ animations: patchAt(animations, activeRef.index, patch) });
         }}

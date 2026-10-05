@@ -1,7 +1,7 @@
 // @vitest-environment node
-// Renders the engine-effect parameter panel and the animation library picker to static markup (no
-// jsdom/RTL in the web app): the panel's controls come from the engine schema (a sheen's profile, width,
-// tilt…), unset parameters read Auto, and the picker leads with the engine groups and ends with Samples.
+// Renders the engine-effect parameter panel to static markup (no jsdom/RTL in the web app): the panel's
+// controls come from the engine schema (a sheen's profile, width, tilt…), unset parameters read Auto, and
+// its header states the kind (an effect: drawn by the engine, adjustable).
 import { beforeAll, describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { I18nextProvider } from 'react-i18next';
@@ -10,7 +10,6 @@ import admin from '@/i18n/locales/en/admin.json';
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import { newSection, type EditorSection } from '../templateEditorModel';
 import { FxParamPanel } from './FxParamPanel';
-import { AnimationLibraryPicker } from './AnimationLibraryPicker';
 
 beforeAll(async () => {
   await i18n.init({ lng: 'en', fallbackLng: 'en', ns: ['admin'], defaultNS: 'admin', resources: { en: { admin } } });
@@ -35,7 +34,8 @@ describe('FxParamPanel', () => {
     const html = panel({ type: 'fx', effect: 'sheen', target: 'layer:1', width: 0.12 });
 
     expect(html).toContain('Sheen');
-    expect(html).toContain('Engine effect');
+    expect(html).toContain('>Effect<');
+    expect(html).toContain('Engine · adjustable');
     expect(html).toContain('Applies to');
     for (const label of ['Profile', 'Width', 'Tilt (°)', 'Direction', 'Bloom', 'Intensity', 'Color']) {
       expect(html).toContain(label);
@@ -66,35 +66,5 @@ describe('FxParamPanel', () => {
 
   it('points a graphic it has no controls for to the JSON editor', () => {
     expect(panel({ type: 'flash', at: 1 })).toContain('JSON editor');
-  });
-});
-
-describe('AnimationLibraryPicker', () => {
-  const render = (engine: boolean) =>
-    renderToStaticMarkup(
-      <I18nextProvider i18n={i18n}>
-        <AnimationLibraryPicker onPickSample={noop} onPickEngine={engine ? noop : undefined} onPickRecipe={noop} />
-      </I18nextProvider>
-    );
-
-  it('leads with the engine groups and their recipes, and ends with the samples', () => {
-    const html = render(true);
-    const order = ['Effect combinations', '>Light<', '>Focus<', '>Celebrate<', '>Frames<', '>Ambient<', '>Samples<'];
-    const at = order.map((label) => html.indexOf(label));
-
-    expect(at.every((index) => index >= 0)).toBe(true);
-    expect([...at].sort((a, b) => a - b)).toEqual(at);
-    expect(html).toContain('Add the Sheen effect');
-    expect(html).toContain('/assets/animation-thumbs/sheen.webp');
-    expect(html).toContain('prefers-reduced-motion: reduce');
-    expect(html).not.toContain('Animation icons');
-  });
-
-  it('lists only the samples where the host cannot hold engine effects', () => {
-    const html = render(false);
-
-    expect(html).not.toContain('>Light<');
-    expect(html).toContain('>Samples<');
-    expect(html).toContain('Shine sweep (stock sample)');
   });
 });

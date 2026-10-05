@@ -17,9 +17,11 @@ import {
   type Reveal,
 } from '../templateEditorModel';
 import { Button } from '@/presentation/components/ui';
+import { Sparkles } from '@/presentation/components/icons';
 import { MediaPicker } from '../MediaPicker';
 import { PlacementFields, type OverlayPlacementValue } from '../editor/placementFields';
-import { AnimationSource, AnimationPlayback, NumberRow } from '../editor/animationSource';
+import { AnimationSource, AnimationPlayback, NumberRow, type AnimationPickMode } from '../editor/animationSource';
+import { FileElementHeader } from '../editor/animationKinds';
 import { RevealControl } from '../editor/RevealControl';
 import { SectionDisclosure } from '../editor/SectionDisclosure';
 import { showWindowSeconds } from '../editor/SectionFields/image-show-window';
@@ -101,6 +103,8 @@ interface AnimationVariant {
   onPickEngine?: (entry: EngineLibraryEntry) => void;
   /** Replace this overlay with a two-part recipe. */
   onPickRecipe?: (preset: AnimationEffectPreset) => void;
+  /** The picker side an empty slot opens on (the add menu's "Effect" vs "Animation file"). */
+  initialMode?: AnimationPickMode;
 }
 
 export type PlacementControlsProps = ImageVariant | AnimationVariant;
@@ -116,6 +120,7 @@ export const PlacementControls = (props: PlacementControlsProps) => {
       onChange={props.onChange}
       onPickEngine={props.onPickEngine}
       onPickRecipe={props.onPickRecipe}
+      initialMode={props.initialMode}
     />
   );
 };
@@ -227,6 +232,7 @@ interface AnimationPlacementProps {
   onChange: (patch: Partial<AnimationOverlay>) => void;
   onPickEngine?: (entry: EngineLibraryEntry) => void;
   onPickRecipe?: (preset: AnimationEffectPreset) => void;
+  initialMode?: AnimationPickMode;
 }
 
 // A legacy stock sample offers its engine replacement: the same idea, tuned to this section.
@@ -239,8 +245,8 @@ const SampleUpgrade = ({ url, onPick }: { url: string; onPick: (entry: EngineLib
   const label = t(libraryLabelKey(entry.id));
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-brand-500/25 bg-brand-500/[0.07] px-2.5 py-2">
-      <p className="min-w-0 flex-1 text-xs leading-snug text-gray-600 dark:text-gray-300">
+    <div className="flex flex-col items-start gap-2 rounded-lg border border-brand-500/25 bg-brand-500/[0.07] px-2.5 py-2">
+      <p className="text-xs leading-snug text-gray-600 dark:text-gray-300">
         {t('animation.picker.upgradeHint', { label })}
       </p>
       <Button
@@ -251,6 +257,7 @@ const SampleUpgrade = ({ url, onPick }: { url: string; onPick: (entry: EngineLib
           onPick(entry);
         }}
       >
+        <Sparkles className="h-3.5 w-3.5 text-brand-500" aria-hidden />
         {t('animation.picker.upgrade')}
       </Button>
     </div>
@@ -261,7 +268,7 @@ const SampleUpgrade = ({ url, onPick }: { url: string; onPick: (entry: EngineLib
 // it into the current overlay via onChange, or (an engine card) hand the pick to the host, which swaps this
 // overlay for the primitive. Placement and playback only show once a source is set; they tuck under
 // disclosures so the essentials (the source) lead, with summaries so nothing hides silently.
-const AnimationPlacement = ({ value, onChange, onPickEngine, onPickRecipe }: AnimationPlacementProps) => {
+const AnimationPlacement = ({ value, onChange, onPickEngine, onPickRecipe, initialMode }: AnimationPlacementProps) => {
   const { t } = useTranslation('admin');
 
   if (!value.url) {
@@ -270,6 +277,7 @@ const AnimationPlacement = ({ value, onChange, onPickEngine, onPickRecipe }: Ani
         value={undefined}
         onPickEngine={onPickEngine}
         onPickRecipe={onPickRecipe}
+        initialMode={initialMode}
         onChange={(next) => {
           if (next) onChange(next);
         }}
@@ -279,6 +287,7 @@ const AnimationPlacement = ({ value, onChange, onPickEngine, onPickRecipe }: Ani
 
   return (
     <div className="space-y-3">
+      <FileElementHeader url={value.url} label={value.label} />
       {onPickEngine ? <SampleUpgrade url={value.url} onPick={onPickEngine} /> : null}
       <AnimationSource
         value={value}

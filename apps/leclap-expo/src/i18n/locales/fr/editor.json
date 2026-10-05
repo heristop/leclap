@@ -370,9 +370,9 @@
     "mirror": "Miroir",
     "mirrorHorizontal": "Horizontal",
     "mirrorVertical": "Vertical",
-    "add": "Ajouter une animation",
-    "layer": "Animation {{number}}",
-    "remove": "Retirer l’animation",
+    "add": "Ajouter un fichier d’animation",
+    "layer": "Fichier d’animation {{number}}",
+    "remove": "Retirer le fichier d’animation",
     "effects": {
       "label": "Combinaisons d’effets",
       "interface-focus": {
@@ -441,8 +441,8 @@
       "samplesHint": "Calques prêts à l’emploi, identiques dans chaque modèle. Préférez un effet ci-dessus : il est dessiné par le moteur et ajusté à cette scène."
     },
     "engine": {
-      "engineLabel": "Effets du moteur",
-      "engineHelp": "Dessinés par le moteur sur cette scène, ajustés à elle. Réglez-les dans l’éditeur web.",
+      "engineLabel": "Effets",
+      "engineHelp": "Dessinés par LeClap et adaptés à cette scène. Réglez-les dans l’éditeur web.",
       "added": "Effets de cette scène",
       "removeEffect": "Retirer {{label}}",
       "addEffect": "Ajouter {{label}}"
@@ -451,7 +451,7 @@
   },
   "overlays": {
     "kind": "Surimpressions",
-    "animation": "Animation",
+    "animation": "Fichier d’animation",
     "image": "Image"
   },
   "watermark": {

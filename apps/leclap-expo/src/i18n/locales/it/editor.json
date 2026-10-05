@@ -370,9 +370,9 @@
     "mirror": "Specchia",
     "mirrorHorizontal": "Orizzontale",
     "mirrorVertical": "Verticale",
-    "add": "Aggiungi un'animazione",
-    "layer": "Animazione {{number}}",
-    "remove": "Rimuovi animazione",
+    "add": "Aggiungi un file di animazione",
+    "layer": "File di animazione {{number}}",
+    "remove": "Rimuovi il file di animazione",
     "effects": {
       "label": "Combinazioni di effetti",
       "interface-focus": {
@@ -441,8 +441,8 @@
       "samplesHint": "Overlay di serie, identici in ogni modello. Meglio un effetto qui sopra: lo disegna il motore, su misura per questa scena."
     },
     "engine": {
-      "engineLabel": "Effetti del motore",
-      "engineHelp": "Disegnati dal motore su questa scena, su misura. Regolali nell’editor web.",
+      "engineLabel": "Effetti",
+      "engineHelp": "Disegnati da LeClap e adattati a questa scena. Regolali nell’editor web.",
       "added": "Effetti di questa scena",
       "removeEffect": "Rimuovi {{label}}",
       "addEffect": "Aggiungi {{label}}"
@@ -451,7 +451,7 @@
   },
   "overlays": {
     "kind": "Sovrimpressioni",
-    "animation": "Animazione",
+    "animation": "File di animazione",
     "image": "Immagine"
   },
   "watermark": {

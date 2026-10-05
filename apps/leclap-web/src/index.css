@@ -1377,6 +1377,25 @@ body {
   }
 }
 
+/* A scene card a browser agent just changed: its ring (the utilities on the element) breathes a soft
+   brand glow while it shows; under reduced motion the ring stays static. A filter, not box-shadow, so the
+   glow never replaces the ring's own box-shadow. */
+@keyframes agent-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  40% {
+    filter: drop-shadow(0 0 10px color-mix(in oklch, var(--color-brand-400) 70%, transparent));
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .agent-highlight {
+    animation: agent-glow 1s ease-in-out 2;
+  }
+}
+
 /* The active-tool rail indicator stretches vertically mid-travel, then settles — the same magnetic
    feel as the segmented-control thumb. transform-origin (set inline per travel direction) makes it
    reach toward the destination. */

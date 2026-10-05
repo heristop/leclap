@@ -7,7 +7,7 @@ export * from './animated-1';
 export * from './animated-2';
 export * from './animated-3';
 
-export { AlertCircle, AlertTriangle, BookOpen, Braces, Camera, CameraOff, Circle } from 'lucide-react';
+export { AlertCircle, AlertTriangle, BookOpen, Bot, Braces, Camera, CameraOff, Circle } from 'lucide-react';
 export { Captions, CaptionsOff, CheckCircle2, Clapperboard, Code2, Crop } from 'lucide-react';
 export { File, FileCode } from 'lucide-react';
 export { FileVideo, Film, Globe, HardDrive, Hash, Image } from 'lucide-react';

@@ -12,6 +12,9 @@ import { buildMasterTimeline } from './program-timeline.logic';
 import { useProgramClock } from './use-program-clock';
 import { saveBlocker, saveFeedback, type SaveBlocker } from './save-blocker.logic';
 
+// The browser-agent (WebMCP) port and registration, surfaced here so the shell spends no import on it.
+export { useBuilderAgent } from '../agent/use-builder-agent';
+
 // Editor state -> persisted user Template (same projection as TemplateEditor.toUserTemplate).
 function toUserTemplate(state: EditorState): Template {
   const descriptor = buildDescriptor(state);

@@ -192,7 +192,15 @@ export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphC
   const litLabel = `${p}o${layers.length - 1}`;
   const masked = maskChains(fx, litLabel, `${p}l`);
   const taps = layers.flatMap((layer) => layer.taps ?? []);
-  const fork: Filter[] = taps.length > 0 ? [{ type: 'split', value: String(taps.length + 1) }] : [];
+  // Every output of a split shares one negotiated pixel format: without a pinned format, a tap converted to
+  // `gray` (a luma mask) drags the region, and the whole section with it, to greyscale.
+  const fork: Filter[] =
+    taps.length > 0
+      ? [
+          { type: 'format', value: 'yuv420p' },
+          { type: 'split', value: String(taps.length + 1) },
+        ]
+      : [];
 
   if (masked === false) return null;
 

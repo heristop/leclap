@@ -31,7 +31,7 @@ describe('fx leak: graph', () => {
   it('keeps the shadows: a tap of the picture, alphamerged with a luma ramp, laid back on top', () => {
     const { text } = leak({ edge: 'right' });
 
-    expect(text).toMatch(/crop=1280:720:0:0,split=2\[fx0_r\]\[fx0_tap\]/);
+    expect(text).toMatch(/crop=1280:720:0:0,format=yuv420p,split=2\[fx0_r\]\[fx0_tap\]/);
     expect(text).toContain('[fx0_tap]trim=start=0.3,split=2[fx0_sc][fx0_sm]');
     expect(text).toMatch(/\[fx0_sm\]format=gray,lutyuv=y='255\*max\(1\*\(1-clip\(val\/46,0,1\)/);
     expect(text).toContain('[fx0_sc][fx0_sa]alphamerge[fx0_sh]');

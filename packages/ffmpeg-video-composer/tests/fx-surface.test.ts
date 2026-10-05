@@ -64,7 +64,7 @@ describe('fx glass', () => {
     const { text, inputs, warnings } = lower({ target: CARD, duration: 3 });
 
     expect(warnings).toEqual([]);
-    expect(text).toMatch(/crop=640:140:120:480,split=2/);
+    expect(text).toMatch(/crop=640:140:120:480,format=yuv420p,split=2/);
     expect(text).toMatch(/gblur=sigma=[\d.]+,lutyuv=y='[\d.]+\+[\d.]+\*clip\(val,16,235\)':u='[\d.]+\+[\d.]+\*val'/);
     expect(text).toContain('noise=c0s=2:c0f=t+u');
     expect(text).toContain('fade=t=in:st=0.4:d=0.3:alpha=1');

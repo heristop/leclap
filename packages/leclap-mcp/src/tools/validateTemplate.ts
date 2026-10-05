@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import {
+  invalidTemplateText,
   effectiveOrientation,
   geometryApproxNote,
   nodeGeometryWarnings,
@@ -17,7 +18,7 @@ import { templateRevision } from '../effects/template-revision.js';
 import type { McpConfig } from '../config.js';
 import { assertDescriptorSafe } from '../compose/descriptorGuard.js';
 import { runGeometryCheck } from '../compose/renderRunner.js';
-import { invalidTemplateText, validateTemplate } from '../compose/validation.js';
+import { validateTemplate } from '../compose/validation.js';
 import { motionNote, motionWarnings, motionWarningsSchema } from './motionWarnings.js';
 import { capabilityWarnings } from '../compose/capabilities.js';
 import { featureNote, featureWarningsSchema } from './featureWarnings.js';

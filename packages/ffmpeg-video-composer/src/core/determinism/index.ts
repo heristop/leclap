@@ -2,6 +2,7 @@
 // every entry point can re-export.
 export { fnv1a32, deriveSeed, seededRandom, canonicalJson } from './hash';
 export { sha256Hex } from './sha256';
+export { templateRevision } from './template-revision';
 export { MAX_SEED, resolveSeed, resolveDeterministic } from './contract';
 export { findNondeterministicExpressions, type NondeterministicFinding } from './hygiene';
 export { BITEXACT_OUTPUT_ARGS, X264_THREADS, applyDeterministicProfile, injectOutputArgs } from './command-tap';

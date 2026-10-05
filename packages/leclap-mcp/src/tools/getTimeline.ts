@@ -1,9 +1,9 @@
 import type { McpServer } from '@modelcontextprotocol/server';
-import { videoTimeline } from 'ffmpeg-video-composer';
+import { invalidTemplateText, videoTimeline } from 'ffmpeg-video-composer';
 import { z } from 'zod';
 
 import { applyComposeFormat, formatArg } from '../compose/format.js';
-import { invalidTemplateText, validateTemplate } from '../compose/validation.js';
+import { validateTemplate } from '../compose/validation.js';
 
 // get_timeline: where everything sits on the whole video, without rendering — each section's absolute
 // start/end, every motion event (kinetic, graphic, camera, reveal, exit, transition) on video seconds,

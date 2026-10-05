@@ -9,7 +9,7 @@ import { FFmpegError } from '../../core/errors/FFmpegError';
 import { reportedTraits } from '../../core/footage/media-traits';
 import { parseCommand } from './parse-command';
 import { FFPROBE_MISSING_MESSAGE, resolveStaticFfprobe } from './resolve-ffprobe';
-import { tailStderr } from './tail-stderr';
+import { spawnFailure, tailStderr } from './tail-stderr';
 import { withFilterScripts } from './filter-scripts-node';
 import { measureLoudness } from './analyze-node';
 
@@ -78,7 +78,7 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
 
-      throw new FFmpegError('FFmpeg command failed (static)', tailStderr(execError.stderr || execError.message));
+      throw new FFmpegError('FFmpeg command failed (static)', tailStderr(execError.stderr) || spawnFailure(execError));
     }
   };
 

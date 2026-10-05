@@ -7,7 +7,7 @@ import { createHash } from 'node:crypto';
 import { bundledVideoFor, fieldsFor, videoFor } from './fixtures.ts';
 import { previewVideoArgs } from './preview-export.ts';
 import { loadDescriptor } from './load-descriptor.ts';
-import { prepareSynthetic, previewMedia, withVariables } from './synthetic-media.ts';
+import { prepareSynthetic, prerenderedFor, previewMedia, withVariables } from './synthetic-media.ts';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const catalog = JSON.parse(await fs.readFile(path.join(root, 'examples/showcase/catalog.json'), 'utf8'));
@@ -57,6 +57,7 @@ const POSTER_AT = {
   'theme-roles': 2,
   'footage-edit': 1,
   'sound-design': 3.3,
+  'effects-tour': 2.2,
 };
 const fields = {
   form_1_name: 'KILN',
@@ -217,6 +218,13 @@ async function nativeInputs(sample, template) {
   const clips = {};
 
   if (sample.category === 'evidence') return evidenceInputs(sample, template);
+  const prerendered = prerenderedFor(sample.id);
+
+  if (prerendered) {
+    run('bash', [prerendered.script, '--chapters-only']);
+
+    return { template, assetRoot: path.join(root, prerendered.assets), clips, sampleFields: fields };
+  }
   const expanded = validatedDescriptor(template, sample.id);
   const sampleFields = fieldsFor(
     expanded,

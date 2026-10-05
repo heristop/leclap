@@ -244,8 +244,8 @@ describe('QC expectations', () => {
       30
     );
 
-    // 3 + 1 + 2 − min(0.8, 1/2) − 0.001 (a cut inside the xfade assembly).
-    expect(plan.durationSeconds).toBeCloseTo(5.499);
+    // 3 + 1 + 2 − min(0.8, 1/2); a cut inside the xfade assembly is a concat, with no overlap.
+    expect(plan.durationSeconds).toBeCloseTo(5.5);
     expect(plan.audioExpected).toBe(true);
   });
 

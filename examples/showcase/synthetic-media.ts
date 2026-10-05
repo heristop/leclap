@@ -137,6 +137,18 @@ export function syntheticFor(sampleId: string): SyntheticInputs {
   return SAMPLE_SYNTHETIC[sampleId] ?? {};
 }
 
+export type Prerendered = { script: string; assets: string };
+
+// Samples assembled from their own chapter renders: the script renders the chapter templates (with their
+// generated clips) into `assets`, and the sample's descriptor plays those renders back as video sections.
+const PRERENDERED: Record<string, Prerendered> = {
+  'effects-tour': { script: 'examples/motion-design/effects-tour.sh', assets: 'build/effects-tour/assets' },
+};
+
+export function prerenderedFor(sampleId: string): Prerendered | undefined {
+  return PRERENDERED[sampleId];
+}
+
 type RenderContext = { library: string; work: string; ffmpeg: (args: string[]) => unknown };
 export type SyntheticMedia = { clips: Partial<Record<string, string>>; variables: Record<string, string> };
 
@@ -206,7 +218,7 @@ export function previewMedia(
   expanded: { global: { orientation?: string }; sections: Array<{ type: string }> },
   bundled: string | undefined
 ): { mediaSource?: string; media: string } {
-  const synthetic = Object.keys(syntheticFor(sample.id)).length > 0;
+  const synthetic = Object.keys(syntheticFor(sample.id)).length > 0 || prerenderedFor(sample.id) !== undefined;
   const recorded = expanded.sections.some((section) => section.type === 'project_video');
   const portrait = expanded.global.orientation === 'portrait' && recorded && !synthetic;
   const kind = synthetic ? 'synthetic' : 'bundled';

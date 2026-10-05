@@ -16,10 +16,6 @@ export function round(value: number): number {
   return Math.round(value * 1000) / 1000;
 }
 
-function transitionName(transition: Transition): string {
-  return transition.type === 'cut' ? 'fade' : transition.type;
-}
-
 /** Output geometry designed transitions need to compose frames (VideoEditor passes the project's). */
 export type TransitionFrame = { scale: string; fps: number };
 
@@ -62,8 +58,8 @@ export function computeOffsets(probes: SegmentProbe[], effectiveDurations: numbe
 }
 
 /**
- * Per-boundary transition duration fed to xfade/acrossfade. A `cut` is a near-zero fade so the graph
- * stays uniform. Every other transition is capped to at most HALF the shorter adjacent segment: an
+ * Per-boundary transition duration fed to xfade/acrossfade. A `cut` has no overlap: it is joined with
+ * `concat` (an xfade shorter than one frame ends the output early on FFmpeg 6.x). Every other transition is capped to at most HALF the shorter adjacent segment: an
  * xfade overlaps both neighbours, so a transition as long as a clip collapses the cumulative offset
  * to ≤0 and the whole timeline folds into one clip (the xfade-short-segment-collapse). Capping to half
  * keeps each clip ≥50% non-overlap so offsets stay strictly increasing. Normal multi-second clips pass
@@ -72,7 +68,7 @@ export function computeOffsets(probes: SegmentProbe[], effectiveDurations: numbe
 export function effectiveDurations(transitions: Transition[], probes: SegmentProbe[]): number[] {
   return transitions.map((transition, k) => {
     if (transition.type === 'cut') {
-      return 0.001;
+      return 0;
     }
 
     return round(Math.min(transition.duration, Math.min(probes[k].duration, probes[k + 1].duration) / 2));
@@ -107,9 +103,11 @@ function boundaryLink(
     });
   }
 
-  const name = transitionName(transition);
+  if (transition.type === 'cut') {
+    return `${labels.left}${labels.right}concat=n=2:v=1:a=0${labels.out}`;
+  }
 
-  return `${labels.left}${labels.right}xfade=transition=${name}:duration=${timing.duration}:offset=${timing.offset}${labels.out}`;
+  return `${labels.left}${labels.right}xfade=transition=${transition.type}:duration=${timing.duration}:offset=${timing.offset}${labels.out}`;
 }
 
 export function buildVideoGraph(
@@ -143,7 +141,11 @@ export function buildAudioGraph(
     const left = k === 0 ? `[${audioInputIndex[0]}:a]` : `[a${k - 1}]`;
     const out = k === transitions.length - 1 ? '[aout]' : `[a${k}]`;
 
-    links.push(`${left}[${audioInputIndex[k + 1]}:a]acrossfade=d=${effectiveDurationsList[k]}:c1=tri:c2=tri${out}`);
+    const right = `[${audioInputIndex[k + 1]}:a]`;
+    const join =
+      transitions[k].type === 'cut' ? 'concat=n=2:v=0:a=1' : `acrossfade=d=${effectiveDurationsList[k]}:c1=tri:c2=tri`;
+
+    links.push(`${left}${right}${join}${out}`);
   }
 
   return links.join(';');

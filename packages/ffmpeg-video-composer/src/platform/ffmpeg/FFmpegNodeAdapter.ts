@@ -6,7 +6,7 @@ import AbstractFFmpeg, { type FFmpegBinaries } from './AbstractFFmpeg';
 import { FFmpegError } from '../../core/errors/FFmpegError';
 import { reportedTraits } from '../../core/footage/media-traits';
 import { parseCommand } from './parse-command';
-import { tailStderr } from './tail-stderr';
+import { spawnFailure, tailStderr } from './tail-stderr';
 import { withFilterScripts } from './filter-scripts-node';
 import { measureLoudness } from './analyze-node';
 import { getPerfTimer } from '../../utils/perf-timer';
@@ -48,8 +48,9 @@ class FFmpegNodeAdapter extends AbstractFFmpeg {
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
 
-      // A spawn failure (E2BIG, ENOENT) has no stderr: report its message instead of an empty tail.
-      throw new FFmpegError('FFmpeg command failed', tailStderr(execError.stderr || execError.message));
+      // A spawn failure (E2BIG, ENOENT) never reaches FFmpeg, so there is no stderr: report the system
+      // error instead. Oversized filtergraphs go through script files (filter-scripts-node.ts).
+      throw new FFmpegError('FFmpeg command failed', tailStderr(execError.stderr) || spawnFailure(execError));
     }
   };
 

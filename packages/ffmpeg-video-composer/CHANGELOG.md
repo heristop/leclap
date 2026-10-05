@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Effects tour (`examples/motion-design/effects-tour.json`): a five-minute tour of every motion effect in nine chapters, first in the Effects & editing showcase (47 samples).
 - `samples`: new `effects` category with 11 native samples (FX pack, word captions, formats, kinetic fills, split layouts, right-to-left type, emoji type, beat grid, theme/roles/safe zones, footage editing, sound design).
 - Determinism contract. `global.seed` roots every procedural effect. A deterministic encoder profile
   (bit-exact muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on
@@ -145,6 +146,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A cut between sections that also use designed transitions is joined with `concat`: the 0.001 s xfade shorter than a frame ended the output early on FFmpeg 6.x.
+- A command FFmpeg cannot start (E2BIG, ENOENT) reports the system error instead of an empty failure.
+- No false text-collision warning for a global overlay on back-to-back sections (sub-millisecond overlaps are ignored).
 - Node renders pass a filtergraph longer than 64 KB through a script file (`-filter_script:v`, `-filter_complex_script`): a long stepped or per-frame graph no longer fails to spawn with E2BIG, and a spawn failure now reports its reason instead of an empty error.
 - FFmpeg 8 no longer crashes on animated text sizes: a drawtext whose `fontsize` changes over time (kinetic scale presets, the karaoke word pop, `animate.scale`) is drawn as one constant-size drawtext per run of frames.
 - A footage-edited clip pads its audio only up to the edited length (`apad=whole_dur`), so `-shortest` no longer lets the audio overrun the picture on FFmpeg 8.

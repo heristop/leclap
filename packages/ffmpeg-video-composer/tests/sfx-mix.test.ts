@@ -25,7 +25,8 @@ describe('sound-effect timeline', () => {
       ],
     };
 
-    expect(videoTimeline(segments, fades)).toEqual({ starts: [0, 3.5, 6.499], total: 11.499 });
+    // A cut inside an xfade assembly is a concat: no overlap.
+    expect(videoTimeline(segments, fades)).toEqual({ starts: [0, 3.5, 6.5], total: 11.5 });
     expect(videoTimeline(segments, { ...cuts, transitions: [] })).toEqual({ starts: [0, 4, 7], total: 12 });
   });
 

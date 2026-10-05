@@ -1,6 +1,6 @@
 # Motion showcase
 
-The web app’s public `/showcase` page brings together every shared app template and the runnable example compositions. Drink & Code is the default selected film. Its 46 samples include native JSON typography, effects and editing demos, registered Remotion effects, overlays, app demos and review evidence. Search or filter the library, watch a sample, then open **Direction & source** to read its authored creative direction or download the JSON. Shared app templates also open directly in Studio.
+The web app’s public `/showcase` page brings together every shared app template and the runnable example compositions. Drink & Code is the default selected film. Its 47 samples include native JSON typography, effects and editing demos, registered Remotion effects, overlays, app demos and review evidence. Search or filter the library, watch a sample, then open **Direction & source** to read its authored creative direction or download the JSON. Shared app templates also open directly in Studio.
 
 The showcase uses the same FilmPlayer and sound/volume controls as the home page. Sound starts muted and can be enabled; narration captions appear only when the film supplies a caption track. Only one film plays at a time. Playback starts on request and pauses when the player leaves the viewport or the tab is hidden. Posters load lazily; previews are 960×540 H.264 at 24 fps with AAC sound when the source has audio, with portrait and square compositions letterboxed. They illustrate the effect with bundled media, synthetic fixtures or the recorded LeClap canvas demo; they are not footage uploaded by a user.
 
@@ -16,6 +16,7 @@ The **Effects & editing** category (`effects`) demonstrates the native motion, c
 
 | Sample          | What it shows                                                                                                     |
 | --------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `effects-tour`  | The whole vocabulary in nine chapters, every effect named on screen (assembled from chapter renders)              |
 | `fx-pack`       | Whip transitions, glitch and rack-focus hits, bar chart, progress bar, ticker, kinetic trails, lower-third styles |
 | `word-captions` | Word-timed captions with karaoke and two caption DNA styles                                                       |
 | `formats`       | One story authored for landscape, portrait and square (the landscape cut is previewed)                            |
@@ -29,6 +30,8 @@ The **Effects & editing** category (`effects`) demonstrates the native motion, c
 | `sound-design`  | Placed and automatic sound effects, a riser into a drop cue, a voice preset and clip volume automation            |
 
 `footage-edit` and `sound-design` record their scenes with clips that [`synthetic-media.ts`](./synthetic-media.ts) generates on the fly: the bundled background photographs set in motion by FFmpeg (a slow drift, a push-in, a running clock that makes speed ramps and freezes readable, a waveform over a voice-like test tone). The LUT and B-roll fixtures replace the descriptor's `{{ lut }}` and `{{ broll }}` variables for the preview only; the downloaded JSON keeps its defaults. Those previews illustrate the controls, not real footage.
+
+`effects-tour` plays back its nine chapter templates (`examples/motion-design/effects-tour/`), so its preview runs [`effects-tour.sh --chapters-only`](../motion-design/effects-tour.sh) first: the script generates the same kind of clips, renders every chapter into `build/effects-tour/assets/videos/effects-tour/`, and the preview renders the tour from that staging directory. The downloaded JSON is the assembly; the chapter templates sit next to it in the repository.
 
 ## Rebuild previews
 

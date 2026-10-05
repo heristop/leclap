@@ -1,6 +1,9 @@
 // The catalog sections beyond motion presets, indexed for catalog search: lower-third styles, caption
 // identities, sound effects and voice presets, footage fits and speed ramps, motion roles, compositing
-// fills and layouts, and the format guide. Pure; catalog-search.ts ranks them with everything else.
+// fills and layouts, the format guide, the fx primitives and the library animation samples. Pure;
+// catalog-search.ts ranks them with everything else, library samples always after every engine match: a
+// need ("a light sweep on the card") ranks the primitive that composes it (fx sheen) above the stock
+// overlay that only shows it, and a sample surfaces only when nothing in the engine answers.
 
 import type { MotionCatalog } from './catalog';
 
@@ -13,6 +16,8 @@ export const EXTRA_CATALOG_KINDS = [
   'role',
   'compositing',
   'format',
+  'fx',
+  'sample',
 ] as const;
 
 export type ExtraCatalogKind = (typeof EXTRA_CATALOG_KINDS)[number];
@@ -83,7 +88,46 @@ function styleEntries(catalog: MotionCatalog): Array<SearchEntry<ExtraCatalogKin
   ];
 }
 
+// An fx primitive also answers the needs of the samples it replaces (their composeWith names it).
+function fxEntries(catalog: MotionCatalog): Array<SearchEntry<ExtraCatalogKind>> {
+  return Object.entries(catalog.fx.primitives).map(([name, fx]) => {
+    const replaces = catalog.samples.animations
+      .filter((sample) => new RegExp(`\\b${name}\\b`).test(sample.composeWith))
+      .map((sample) => `${sample.name} ${sample.looksLike}`);
+    const fields: Array<[string, number]> = [
+      [name, NAME_WEIGHT],
+      [`fx effect ${fx.summary} ${fx.useWhen}`, 2],
+      [`${fx.vary} ${replaces.join(' ')}`, 1.5],
+    ];
+
+    return { kind: 'fx' as const, name, fields, against: fx.avoidWhen, entry: { effect: name, ...fx } };
+  });
+}
+
+function sampleEntries(catalog: MotionCatalog): Array<SearchEntry<ExtraCatalogKind>> {
+  return catalog.samples.animations.map((sample) => {
+    const fields: Array<[string, number]> = [
+      [sample.name, NAME_WEIGHT],
+      [`library animation sample ${sample.looksLike}`, 1.5],
+    ];
+
+    return {
+      kind: 'sample' as const,
+      name: sample.name,
+      fields,
+      against: '',
+      entry: { ...sample, note: catalog.samples.note },
+    };
+  });
+}
+
 /** Every entry of the non-motion catalog sections. */
 export function extraEntries(catalog: MotionCatalog): Array<SearchEntry<ExtraCatalogKind>> {
-  return [...styleEntries(catalog), ...audioEntries(catalog), ...footageEntries(catalog)];
+  return [
+    ...styleEntries(catalog),
+    ...audioEntries(catalog),
+    ...footageEntries(catalog),
+    ...fxEntries(catalog),
+    ...sampleEntries(catalog),
+  ];
 }

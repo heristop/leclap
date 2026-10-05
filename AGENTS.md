@@ -106,7 +106,7 @@ Git hooks run via vite-plus staged checks (`vp fmt` on `*.{ts,tsx,js,cjs,mjs,jso
 
 Repo-specific skills live in [`.agents/skills/`](./.agents/skills/). Load the matching one when its trigger applies:
 
-- **authoring-video-templates** — creating/editing template JSON, sections, filters, maps, variables, or fixing validation errors.
+- **authoring-video-templates** — creating/editing template JSON, sections, filters, maps, variables, or fixing validation errors. Compose motion with the motion engine; the library animations are samples, not building blocks.
 - **core-architecture-patterns** — adding a segment type, platform adapter, or core service in `packages/ffmpeg-video-composer`.
 - **monorepo-dev-workflow** — building, testing, linting, formatting, or running any app/package.
 - **cross-platform-ffmpeg** — working across Node/Static/WASM FFmpeg, the PlatformBridge, or browser/RN constraints.

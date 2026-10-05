@@ -612,6 +612,28 @@ The types match `reveal` (`none`/`fade`/`rise`/`slide-left`/`slide-right`). The 
 
 The motion system gives every template motion tokens, physical springs, CSS-style curves, keyframe tracks and an energy dial, on top of the [determinism contract](#determinism) (frame-grid conform, seeded noise, bit-exact muxing). Everything compiles to plain FFmpeg expression arithmetic, so it renders identically on Node, WASM and on-device. The study [`examples/motion-design/spring-kinetics.json`](../examples/motion-design/spring-kinetics.json) uses every feature. Examples for every native motion, caption, footage and audio control live in [`examples/motion-design/`](../examples/motion-design/README.md) and play at `/showcase` under **Effects & editing**.
 
+### Compose motion, don't pick stock animations
+
+Motion assembled from stock parts looks the same in every template. Compose it for the brief:
+
+1. Start from the creative direction (`meta.creativeDirection`): audience, brand and energy (`global.motion.energy`).
+2. Write a motion intent for each section: what moves, why, and how it should feel.
+3. Build each intent from engine primitives: [kinetic typography](#kinetic-typography), [`animate` tracks](#keyframe-tracks-animate) with [ease tokens or springs](#easing), the [camera](#camera), [designed transitions](#designed-transitions), [graphics](#graphics) including `type: "fx"` light primitives clipped to a `target`, [motion roles](#motion-roles), and [beats and cues](#time-references) for timing.
+4. Tune the parameters that define the look. For an fx, that means profile, width, tilt, direction, colour token, intensity, duration and ease. For a preset, it means delay, stagger, distance and accent. Never ship all defaults.
+5. Keep one or two signature moves per video. The other beats stay simpler.
+
+The creative-kit library animations (`animations/*.apng`, such as `shine_sweep`, `confetti` and `light_leak`) are **samples** of what an [overlay input](#overlay-inputs-animations--images) can do. Use one only as a last resort. `motionCatalog().samples` (MCP `get_motion_catalog`) maps each sample to the primitives that replace it. Catalog search always ranks engine primitives above samples.
+
+The sameness lint runs on the [motion feedback](#motion-feedback) channel. Its findings are advisory, and each one has a `hint`:
+
+| Code                       | When                                                                                                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fx_untuned`               | An fx graphic sets none of its look parameters (primitive fields, `color`, `intensity`, `duration`, `ease`, `repeat`, `every`, `seed`, `role`). |
+| `effect_repeated`          | One fx effect, decorative graphic, kinetic preset or camera preset drives more than 3 sections and more than half of them.                      |
+| `library_animation_sample` | A section input or `global.animations` entry uses a library sample (`animations/<name>.apng`). The hint names the replacement.                  |
+| `effect_off_theme`         | An fx, `frame` or `corners` colour is a literal in a themed template, or (unthemed) a hex used nowhere else in the template.                    |
+| `decor_overload`           | More than 2 decorative effects (fx, flash, glitch, frame, corners, wipe, focus, animation overlays) in one section.                             |
+
 ### Easing
 
 Every `easing` (reveal, exit, overlay `motion`) and every keyframe `ease` accepts:
@@ -780,6 +802,8 @@ Whole-video text/colour, the sibling of `global.animations`: authored once in `g
 `inputs[]` composites overlays on top of a section. Each input is one of two `type`s — `animation` (a single-file animated input) or `image` (a single still picture). Both share the same `position`/`scale` placement convention and composite in array order (later entries paint on top), so a section can carry any number of them — e.g. a branded backdrop, a logo, and a confetti animation at once.
 
 ### `type: "animation"`
+
+The bundled `animations/*.apng` files are samples. In a new template, compose the motion with the engine instead (see [Compose motion](#compose-motion-dont-pick-stock-animations)). `validate_template` reports `library_animation_sample` for them.
 
 An animation is **one** single-file animated input. **APNG** and **WebM** (VP9 with alpha) are the two recommended formats — APNG decodes natively on every platform (incl. on-device) with lossless alpha; WebM is much smaller. `.webp` and `.gif` also work:
 
@@ -1083,6 +1107,7 @@ The same channel carries the advisories of the features documented above, run pe
 | Codes                                                                                                       | See                                                                                                    |
 | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | `overshoot_overuse`, `headline_hold_short`                                                                  | [Motion roles](#motion-roles)                                                                          |
+| `fx_untuned`, `effect_repeated`, `library_animation_sample`, `effect_off_theme`, `decor_overload`           | [Compose motion](#compose-motion-dont-pick-stock-animations)                                           |
 | `section_without_purpose`                                                                                   | [Base fields](#base-fields-native-sections)                                                            |
 | `accent_overuse`, `palette_drift`                                                                           | [Themes](#themes)                                                                                      |
 | `caption_split`, `caption_shrunk`, `subtitle_past_end`, `caption_crown_repeated`                            | [Subtitles](#subtitles-word-timed-captions)                                                            |

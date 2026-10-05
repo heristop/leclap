@@ -22,6 +22,9 @@ export const BUILDER_GUIDE = [
   'Fields the builder has no place for are dropped on apply and reported in `dropped`; an edit that only touches ' +
     'such fields fails with no_effect. Prefer the structured fields (titleCard, overlays as drawtext filters, look, ' +
     'grade, transition, motion) over raw filters.',
+  'Compose motion, do not pick it: derive a motion intent per section from the creative direction, build it from ' +
+    'kinetic, animate tracks, camera, transitions, graphics and fx primitives (get_motion_catalog), tune their ' +
+    'parameters, and keep one or two signature moves. Library animation overlays are samples, a last resort.',
   'Validate with validate_template before large edits. Rendering and saving are done by the user in the page.',
 ].join('\n');
 
@@ -119,8 +122,10 @@ const getMotionCatalog = defineTool({
   title: 'Get Motion Catalog',
   description:
     'Return the motion catalog: kinetic typography presets, exits, easing grammar, motion tokens, built-in themes, ' +
-    'art-direction rules, genre doctrine, scene blueprints and a starter — or, with `query` (and optionally `kind`), ' +
-    'the ranked matches only. Call it before authoring animated copy, camera moves, graphics or designed transitions.',
+    'art-direction rules, genre doctrine, scene blueprints, fx primitives and a starter — or, with `query` (and ' +
+    'optionally `kind`), the ranked matches only, engine primitives first. Call it before authoring animated copy, ' +
+    'camera moves, graphics or designed transitions: compose motion from these primitives, tuned to the brief. ' +
+    'Library animations appear only as `samples` (stock demo overlays, a last resort).',
   kind: 'read',
   input: z.object({
     query: z
@@ -135,7 +140,8 @@ const getMotionCatalog = defineTool({
       .max(40)
       .optional()
       .describe(
-        'Limit a query to one part: kinetic, camera, graphic, transition, blueprint, doctrine, theme, platform, easing…'
+        'Limit a query to one part: kinetic, camera, graphic, fx, transition, blueprint, doctrine, theme, platform, ' +
+          'easing, sample…'
       ),
   }),
   run: async (args) => {

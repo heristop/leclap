@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
+import { FX_PRIMITIVES } from 'ffmpeg-video-composer/src/schemas/fx-primitives.schemas.ts';
 import { compactSchema, fitSchema } from './schema-digest';
 import { generationContext, promptFor } from './generation-context';
 import { buildSystemPrompt, buildUserBrief, DEFAULT_PROMPT_BUDGET, REFERENCE_STYLE_HEADING } from './system-prompt';
@@ -35,6 +36,47 @@ describe('art direction', () => {
   });
 });
 
+type Node = Record<string, unknown>;
+
+// The fx primitives' union inside the JSON Schema (variants with `type: "fx"` and an `effect` const).
+function fxUnion(node: unknown): Node[] {
+  if (node === null || typeof node !== 'object') return [];
+
+  const record = node as Node;
+  const variants = Array.isArray(record.oneOf) ? (record.oneOf as Node[]) : [];
+  const isFx = (variant: Node) => (variant.properties as Node | undefined)?.effect !== undefined;
+
+  if (variants.length > 0 && variants.every(isFx)) return variants;
+
+  for (const child of Object.values(record)) {
+    const found = fxUnion(child);
+
+    if (found.length > 0) return found;
+  }
+
+  return [];
+}
+
+// A new primitive shaped like sheen: its own effect name, own field descriptions and summary.
+function primitiveLike(sheen: Node, own: string[], index: number): Node {
+  const clone = structuredClone(sheen);
+  const properties = clone.properties as Record<string, Node>;
+
+  properties.effect = { type: 'string', const: `primitive-${String(index)}` };
+
+  for (const key of own) {
+    properties[`${key}${String(index)}`] = {
+      ...properties[key],
+      description: `Primitive ${String(index)}: ${String(properties[key].description)}`,
+    };
+    delete properties[key];
+  }
+
+  clone.description = `Primitive ${String(index)}. ${String(clone.description)}`;
+
+  return clone;
+}
+
 describe('schema digest', () => {
   it('shrinks the engine schema by an order of magnitude and stays valid JSON', () => {
     const raw = JSON.stringify(templateDescriptorJsonSchema).length;
@@ -42,6 +84,38 @@ describe('schema digest', () => {
 
     expect(digest.length).toBeLessThan(raw / 4);
     expect(() => JSON.parse(digest) as unknown).not.toThrow();
+  });
+
+  it('stays under a quarter of the schema as the fx union grows (12 more primitives)', () => {
+    const schema = structuredClone(templateDescriptorJsonSchema) as unknown;
+    const union = fxUnion(schema);
+    const [sheen] = union;
+    const own = Object.keys(FX_PRIMITIVES.sheen.params);
+
+    for (let index = 1; index <= 12; index++) {
+      union.push(primitiveLike(sheen, own, index));
+    }
+
+    const raw = JSON.stringify(schema).length;
+    const digest = compactSchema(schema, 120);
+
+    expect(digest.length).toBeLessThan(raw / 4);
+    // Each extra primitive costs its own fields only: the shared fx fields are stated once.
+    expect(digest.length - compactSchema(templateDescriptorJsonSchema, 120).length).toBeLessThan(12 * 1_600);
+  });
+
+  it('states the fields every variant of a union repeats once', () => {
+    const shared = { at: { type: 'number', description: 'Start, in seconds from the section start.' } };
+    const variant = (name: string) => ({
+      type: 'object',
+      properties: { type: { const: name }, ...shared, color: { type: 'string', description: 'A long colour note.' } },
+    });
+    const parsed = JSON.parse(compactSchema({ oneOf: ['a', 'b', 'c'].map(variant) }, 160)) as {
+      oneOf: Array<{ properties: Record<string, unknown>; allOf: unknown[] }>;
+    };
+
+    expect(parsed.oneOf.map((entry) => Object.keys(entry.properties))).toEqual([['type'], ['type'], ['type']]);
+    expect(new Set(parsed.oneOf.map((entry) => JSON.stringify(entry.allOf))).size).toBe(1);
   });
 
   it('keeps field names that collide with schema keywords (a section has a title and a description)', () => {
@@ -93,6 +167,21 @@ describe('buildSystemPrompt', () => {
     expect(built.sampleIds.length).toBeGreaterThan(0);
     expect(built.sampleIds).toContain('product-launch');
     expect(built.schemaTruncated).toBe(false);
+  });
+
+  it('steers the model to compose motion from the engine, with library animations as labelled samples', () => {
+    const { system } = promptFor('30s product launch for a note-taking app', { genre: 'product-launch' });
+    const motion = system.indexOf('Motion catalog (');
+    const samples = system.indexOf('Sample animation overlays (stock demo assets, last resort only');
+
+    expect(system).toContain("Compose motion, don't pick it");
+    expect(system).toContain('Never ship an effect with all-default parameters.');
+    expect(system).toContain('One or two signature moves for the whole video');
+    expect(system).toContain('"samples":{"note":"Sample assets, not building blocks');
+    expect(system).not.toContain('Animation overlays (inputs[].url');
+    expect(motion).toBeGreaterThan(0);
+    // The engine catalog comes first; the stock overlays come after it, labelled.
+    expect(samples).toBeGreaterThan(motion);
   });
 
   it('drops samples before squeezing the schema below a minimum', () => {

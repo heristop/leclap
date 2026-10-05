@@ -1,8 +1,9 @@
-// Shrinks the engine's template JSON Schema to fit a prompt. The raw schema is ~390 KB minified,
-// mostly because every section variant repeats the same option/filter subtrees. Two lossless-ish
-// passes bring it to ~60 KB: descriptions are clipped (they stay, shortened, because they carry
-// units and ranges), and every repeated subtree is hoisted once into `$defs` and referenced. If the
-// result is still over budget, descriptions are clipped harder, then dropped.
+// Shrinks the engine's template JSON Schema to fit a prompt. The raw schema is ~570 KB minified,
+// mostly because every section variant repeats the same option/filter subtrees. Three lossless-ish
+// passes bring it under a quarter of that: descriptions are clipped (they stay, shortened, because they
+// carry units and ranges), the fields every variant of a union repeats are stated once (factorUnions), and
+// every repeated subtree is hoisted once into `$defs` and referenced. If the result is still over budget,
+// descriptions are clipped harder, then dropped.
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
@@ -11,6 +12,10 @@ const DROPPED_KEYS = new Set(['$schema', 'examples', 'title']);
 const MIN_HOIST = 90;
 // Description clip lengths tried in order until the digest fits; 0 drops descriptions.
 const DESCRIPTION_STEPS = [160, 90, 40, 0];
+// Union factoring: a union needs this many object variants sharing this many identical fields.
+const UNION_KEYS = new Set(['oneOf', 'anyOf']);
+const MIN_FACTORED_VARIANTS = 3;
+const MIN_SHARED_FIELDS = 2;
 
 function clipDescription(value: Json, max: number): Json | undefined {
   if (max <= 0 || typeof value !== 'string') return undefined;
@@ -48,6 +53,63 @@ function cleanNode(node: Json, maxDescription: number): Json {
   }
 
   return out;
+}
+
+type JsonObject = { [key: string]: Json };
+
+function isObject(node: Json | undefined): node is JsonObject {
+  return node !== null && typeof node === 'object' && !Array.isArray(node);
+}
+
+// The property entries (name + identical schema) every variant of a union declares.
+function sharedProperties(variants: JsonObject[]): Map<string, string> {
+  const [first, ...rest] = variants.map(
+    (variant) =>
+      new Map(Object.entries(variant.properties as JsonObject).map(([name, value]) => [name, JSON.stringify(value)]))
+  );
+
+  return new Map([...first].filter(([name, text]) => rest.every((other) => other.get(name) === text)));
+}
+
+function withBase(variant: JsonObject, shared: Map<string, string>): JsonObject {
+  const own = Object.entries(variant.properties as JsonObject).filter(([name]) => !shared.has(name));
+  const base: JsonObject = {
+    properties: Object.fromEntries([...shared].map(([name, text]) => [name, JSON.parse(text) as Json])),
+  };
+
+  return { ...variant, allOf: [base], properties: Object.fromEntries(own) };
+}
+
+// A union whose object variants repeat the same fields (every graphic's id/at/ease/colour…, every fx
+// primitive's target/timing/colour…, every section's base fields) states them once: each variant becomes
+// `{ allOf: [<shared fields>], properties: <its own> }`, and the hoist pass then keeps a single copy of the
+// shared block. The digest then grows by a variant's own fields only, however many variants a union gets.
+function factorUnion(items: Json[]): Json[] {
+  const variants = items.filter(
+    (item): item is JsonObject => isObject(item) && isObject(item.properties) && !('allOf' in item)
+  );
+
+  if (variants.length < MIN_FACTORED_VARIANTS) return items;
+
+  const shared = sharedProperties(variants);
+
+  if (shared.size < MIN_SHARED_FIELDS) return items;
+
+  return items.map((item) => (variants.includes(item as JsonObject) ? withBase(item as JsonObject, shared) : item));
+}
+
+function factorUnions(node: Json): Json {
+  if (Array.isArray(node)) return node.map(factorUnions);
+
+  if (!isObject(node)) return node;
+
+  return Object.fromEntries(
+    Object.entries(node).map(([key, value]) => {
+      const factored = factorUnions(value);
+
+      return [key, UNION_KEYS.has(key) && Array.isArray(factored) ? factorUnion(factored) : factored];
+    })
+  );
 }
 
 function countSubtrees(node: Json, counts: Map<string, number>): void {
@@ -96,7 +158,7 @@ function hoist(node: Json, hoister: Hoister, isRoot: boolean): Json {
 
 // One compaction pass at a given description length. Returns minified JSON text.
 export function compactSchema(schema: unknown, maxDescription: number): string {
-  const cleaned = cleanNode(schema as Json, maxDescription);
+  const cleaned = factorUnions(cleanNode(schema as Json, maxDescription));
   const counts = new Map<string, number>();
   countSubtrees(cleaned, counts);
   const hoister: Hoister = { counts, ids: new Map(), defs: {} };

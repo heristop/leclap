@@ -364,7 +364,8 @@ export function registerValidateTemplate(server: McpServer, config: RenderConfig
         'milliseconds before the slower compose_video render. Also catches, render-free, text that ' +
         'runs off the frame or out of title-safe, collides with other text, sits under a band, is too ' +
         'small, lacks contrast, or sits over footage with no box/outline/shadow — see the `geometry` field — and ' +
-        'flags motion pacing (monotonous eases, front-loaded beats, dead air, flat tempo) in `motionWarnings`; ' +
+        'flags motion pacing (monotonous eases, front-loaded beats, dead air, flat tempo) and stock motion ' +
+        '(untuned or repeated effects, library sample animations) in `motionWarnings`; ' +
         'section `assert` entries that fail are errors; `featureWarnings` lists what the local FFmpeg cannot ' +
         'render (feature_unavailable, see get_capabilities). ' +
         'Pass `render: true` to also render the text-bearing sections and measure contrast from real pixels ' +

@@ -108,7 +108,8 @@ const validateTemplate = defineTool({
   title: 'Validate Template',
   description:
     'Dry-run the current template (or a candidate `template`) against the engine schema and the builder’s limits, ' +
-    'render-free. Returns valid plus what filming needs (requiredClips, formFields), motionWarnings (pacing advice) ' +
+    'render-free. Returns valid plus what filming needs (requiredClips, formFields), motionWarnings (pacing advice, and ' +
+    'sameness: fx_untuned, effect_repeated, library_animation_sample, effect_off_theme, decor_overload), ' +
     'geometry (render-free text fit, collisions, safe zones, contrast) and, for a candidate, builder advisories ' +
     'naming fields the builder would drop. Invalid: isError with every ' +
     'finding in errors[] (path, code, message, hint, suggestion). `render: true` is not available here.',

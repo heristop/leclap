@@ -102,6 +102,24 @@ describe('formatPlan', () => {
     expect(text).toContain('1. section "hook" [hook] TYPES — 1.5 s — on screen: "Write one line."');
     expect(text.indexOf('section "claim"')).toBeLessThan(text.indexOf('section "demo"'));
   });
+
+  it('carries each beat motion intent and the signature moves into the template call', () => {
+    const beats = PLAN.beats.map((beat, index) =>
+      index === 0 ? { ...beat, motion: 'typewriter on $snappy, a twin fx sheen across the line at 1 s' } : beat
+    );
+    const parsed = validatePlan({ ...PLAN, beats, signature: ['the typed line turns into a page'] }, vocabulary);
+    const text = parsed.ok ? formatPlan(parsed.plan) : '';
+
+    expect(text).toContain('— motion: typewriter on $snappy, a twin fx sheen across the line at 1 s');
+    expect(text).toContain('Signature moves (the only beats that get the strongest, most tuned effects)');
+    expect(text).toContain('no library animation overlays');
+  });
+
+  it('allows at most two signature moves', () => {
+    const parsed = validatePlan({ ...PLAN, signature: ['a', 'b', 'c'] }, vocabulary);
+
+    expect(parsed.ok ? [] : parsed.errors).toEqual(['signature: at most 2 signature moves for the whole video']);
+  });
 });
 
 describe('buildPlanPrompt', () => {
@@ -116,6 +134,9 @@ describe('buildPlanPrompt', () => {
     expect(prompt).toContain('Story spine:');
     expect(prompt).toContain('Lazy defaults to avoid');
     expect(prompt).toContain('Genre doctrine (product-launch)');
+    expect(prompt).toContain("Compose motion, don't pick it");
+    expect(prompt).toContain('"motion":"<motion intent');
+    expect(prompt).toContain('"signature":[');
     expect(verbList(catalog)).toContain('SLAMS (impact)');
     expect(prompt).not.toContain('Template JSON Schema');
   });

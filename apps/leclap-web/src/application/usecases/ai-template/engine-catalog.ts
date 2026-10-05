@@ -98,12 +98,15 @@ export function formatCatalog(catalog: EngineCatalog, genre?: string): string {
     `Text reveal types: ${catalog.reveals.join(', ')}; easings: ${catalog.easings.join(', ')}`,
     `Fonts (drawtext "fontfile", use the exact file name):\n${entryLines(catalog.fonts)}`,
     `Music files (global.music.name takes the file name; global.allowedMusic takes ids = file name without extension): ${catalog.music.join(', ')}`,
-    `Animation overlays (inputs[].url, type "animation"): ${catalog.animations.map((file) => `/assets/animations/${file}`).join(', ')}`,
+    `Motion catalog (kinetic type, easing, camera, transitions, graphics, fx primitives, platforms; follow its rules and compose your motion from it):\n${JSON.stringify(motionForPrompt(catalog.motion, genre))}`,
   ];
 
-  blocks.push(
-    `Motion catalog (kinetic type, easing, camera, transitions, graphics, platforms; follow its rules):\n${JSON.stringify(motionForPrompt(catalog.motion, genre))}`
-  );
+  // Listed last and labelled: the stock overlays are samples, the engine above is the building material.
+  if (catalog.animations.length > 0) {
+    blocks.push(
+      `Sample animation overlays (stock demo assets, last resort only; the motion catalog "samples" entry names the engine primitives that replace each one; inputs[].url, type "animation"): ${catalog.animations.map((file) => `/assets/animations/${file}`).join(', ')}`
+    );
+  }
 
   return blocks.join('\n\n');
 }

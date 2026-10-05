@@ -9,7 +9,7 @@ import { Check } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { ANIMATION_PICKER, type PickerCard, type PickerGroup } from '@/data/mediaCatalog';
 import { ANIMATION_EFFECT_PRESETS, type AnimationEffectPreset, type EngineLibraryEntry } from '../templateEditorModel';
-import { AnimationThumb } from './AnimationMedia';
+import { AnimationThumb, SampleThumb } from './AnimationMedia';
 import { CANVAS_DND_MIME, type DropPayload } from '../editor-shell/canvasDrop';
 
 export interface AnimationLibraryPickerProps {
@@ -127,6 +127,8 @@ const PickerSection = ({ group, selectedUrl, onPick, hint }: PickerSectionProps)
   );
 };
 
+const THUMB_CLASS = 'aspect-video w-full overflow-hidden transition-transform duration-300 group-hover:scale-[1.03]';
+
 const PickerCardButton = ({
   card,
   selected,
@@ -159,12 +161,11 @@ const PickerCardButton = ({
         selected ? 'border-brand-500 ring-2 ring-brand-500/30' : 'border-foreground/10 hover:border-brand-500/40'
       )}
     >
-      <AnimationThumb
-        thumb={card.thumb}
-        poster={card.poster}
-        fallback={label}
-        className="aspect-video w-full overflow-hidden transition-transform duration-300 group-hover:scale-[1.03]"
-      />
+      {sample ? (
+        <SampleThumb url={sample.url} className={THUMB_CLASS} />
+      ) : (
+        <AnimationThumb thumb={card.thumb} poster={card.poster} fallback={label} className={THUMB_CLASS} />
+      )}
       <span className="flex items-center gap-1 px-2 py-1.5">
         <span className="min-w-0 flex-1 truncate text-[0.7rem] font-semibold text-foreground">{label}</span>
         {sample ? (

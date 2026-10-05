@@ -63,3 +63,13 @@ export const AnimationThumb = ({ thumb, poster, fallback, className }: Animation
     </picture>
   );
 };
+
+// A legacy sample's preview: the real overlay file playing on the same neutral stage the engine thumbs use
+// (a dark card with a mid-grey rounded subject), so every sample shows its own animation, not a frame cut
+// from a showcase video. The stage stays still under reduced motion; the overlay is hidden there.
+export const SampleThumb = ({ url, className }: { url: string; className?: string }) => (
+  <span aria-hidden className={cn('relative block bg-[#1A1D24]', className)}>
+    <span className="absolute inset-[22%_26%] rounded-lg bg-[#5a5f6b]" />
+    <AnimationMedia url={url} className="absolute inset-0 h-full w-full object-contain motion-reduce:hidden" />
+  </span>
+);

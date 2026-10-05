@@ -63,6 +63,11 @@ export interface FxLayer {
   /** Overlay position expressions in target pixels (evaluated per frame, `t` = section time). */
   x: string;
   y: string;
+  /**
+   * When set, the kit hands this layer a copy of the target region (the section's own pixels, cropped and
+   * trimmed like the composite) under this label, for primitives that reshape what is there (frost, focus).
+   */
+  region?: string;
 }
 
 const STRETCH = "y='clip((val-16)*255/219,0,255)'";
@@ -158,6 +163,8 @@ export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphC
   if (masked === false) return null;
 
   const window = `enable='between(t,${fmt(fx.at)},${fmt(fx.end)})'`;
+  const regions = layers.flatMap((layer) => (layer.region ? [layer.region] : []));
+  const copies: Filter[] = regions.length > 0 ? [{ type: 'split', value: String(regions.length + 1) }] : [];
 
   return [
     { filters: [{ type: 'split', value: '2' }], outputs: [`${p}m`, `${p}r0`] },
@@ -166,8 +173,9 @@ export function lightInTarget(fx: AnyFxContext, layers: FxLayer[]): FilterGraphC
       filters: [
         { type: 'trim', value: `end=${fmt(fx.end)}` },
         { type: 'crop', value: `${w}:${h}:${x}:${y}` },
+        ...copies,
       ],
-      outputs: [`${p}r`],
+      outputs: [`${p}r`, ...regions],
     },
     ...layers.flatMap((layer) => layer.chains),
     ...lit,

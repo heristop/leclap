@@ -215,7 +215,11 @@ describe('LGPL device filter audit', () => {
       )
     );
 
-    expect(lowered.length).toBe(REGISTERED_FX.length * targets.length * 4);
+    // Ambient primitives (bokeh, dust) are absent under reduced motion: two of their four runs draw nothing.
+    const ambient = new Set(['bokeh', 'dust']);
+    const runs = REGISTERED_FX.reduce((n, effect) => n + targets.length * (ambient.has(effect) ? 2 : 4), 0);
+
+    expect(lowered.length).toBe(runs);
 
     for (const type of types(lowered)) {
       expect(enabled.has(type), `fx emits "${type}"`).toBe(true);

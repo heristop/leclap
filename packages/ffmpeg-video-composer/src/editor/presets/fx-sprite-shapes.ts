@@ -2,7 +2,9 @@
 // Kept apart from the encoder/URL plumbing (fx-sprites.ts). Light shapes fall off as gaussians (no edge
 // anywhere); solid shapes (strokes, masks, confetti) get a 1 px anti-aliased edge from a signed distance.
 
-export type SpriteKind = 'disc' | 'ring' | 'star' | 'stroke' | 'mask' | 'piece' | 'band';
+import { bokehCoverage, featherCoverage, rimCoverage } from './fx-sprite-shapes-soft';
+
+export type SpriteKind = 'disc' | 'ring' | 'star' | 'stroke' | 'mask' | 'piece' | 'band' | 'bokeh' | 'rim' | 'feather';
 
 /** Light profiles across a band: a specular core with bloom, one soft wash, or two thin parallel glints. */
 export const BAND_PROFILES = ['specular', 'soft', 'twin'] as const;
@@ -20,6 +22,9 @@ export type BandProfile = (typeof BAND_PROFILES)[number];
  * - band: tilted light band through the centre, `tilt` degrees off vertical, peak alpha `peak`, shaped by
  *   `profile` (bandProfile): specular = core of extent `width` px (±2σ) plus a bloom twice as wide
  *   carrying `bloom` of the peak; soft = one wider gaussian (σ = width / 3); twin = two thin cores.
+ * - bokeh, rim, feather (fx-sprite-shapes-soft.ts): a defocused disc of `radius` with a `halo` px edge and
+ *   peak `peak`; a top-lit rounded outline (`stroke`, `radius`, `peak`); a GRAYSCALE rounded mask whose edge
+ *   fades in over `halo` px.
  */
 export interface SpriteSpec {
   kind: SpriteKind;
@@ -136,7 +141,18 @@ function band(spec: SpriteSpec): Coverage {
   return (x, y) => bandProfile(x * nx + y * ny, spec);
 }
 
-const SHAPES: Record<SpriteKind, (spec: SpriteSpec) => Coverage> = { disc, ring, star, stroke, mask, piece, band };
+const SHAPES: Record<SpriteKind, (spec: SpriteSpec) => Coverage> = {
+  disc,
+  ring,
+  star,
+  stroke,
+  mask,
+  piece,
+  band,
+  bokeh: bokehCoverage,
+  rim: (spec) => rimCoverage(spec, roundedRectDistance),
+  feather: (spec) => featherCoverage(spec, roundedRectDistance),
+};
 
 /** The coverage function of a sprite, in pixel-centre coordinates relative to the image centre. */
 export function spriteCoverage(spec: SpriteSpec): Coverage {

@@ -1,3 +1,4 @@
+import { stripVTControlCharacters } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { beats, formatBeats, templateBeats } from '../src/commands/beats';
 
@@ -27,7 +28,7 @@ const ANALYSIS = {
   cues: { build: 8.1, drop: 15.37, end: 29.9 },
 };
 
-const plain = (s: string): string => s.replace(/\[[0-9;]*m/g, '');
+const plain = (s: string): string => stripVTControlCharacters(s);
 
 describe('formatBeats', () => {
   it('reports the grid and the global.beats block to paste', () => {

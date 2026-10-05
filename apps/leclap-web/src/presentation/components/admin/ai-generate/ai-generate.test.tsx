@@ -75,6 +75,9 @@ describe('BriefFields', () => {
     expect(html).toMatch(/<label for="[^"]+"[^>]*>What should the video be\?<\/label>/);
     expect(html).toContain(ai.examples.launch);
     expect(html).toContain(ai.examples.tutorial);
+    // The guidance under the brief is its description.
+    expect(html).toMatch(/<textarea id="([^"]+)"[^>]*aria-describedby="\1-help"/);
+    expect(html).toContain(ai.brief.hint.replace("'", '&#x27;'));
   });
 });
 
@@ -140,6 +143,30 @@ describe('DialogFooterActions', () => {
     expect(footer({ kind: 'thinking', receivedChars: 0 })).toContain('Cancel');
     expect(footer({ kind: 'error', error: { key: 'network' } })).toContain('Try again');
     expect(footer({ kind: 'ready', result: {} as never, summary: {} as never })).toContain('Open in builder');
+  });
+
+  it('explains a disabled Generate and offers the fix inline', () => {
+    const html = render(
+      <DialogFooterActions
+        status={{ kind: 'idle' }}
+        confirming={false}
+        canGenerate={false}
+        blockedReason="Generating needs your Anthropic API key."
+        blockedAction={{ label: ai.footer.addKey, onClick: noop }}
+        onGenerate={noop}
+        onCancel={noop}
+        onOpen={noop}
+        onConfirmReplace={noop}
+        onKeepEditing={noop}
+        onRegenerate={noop}
+      />
+    );
+    const reasonId = /<p id="([^"]+)"[^>]*>/.exec(html)?.[1];
+
+    expect(html).toContain('Generating needs your Anthropic API key.');
+    expect(html).toMatch(new RegExp(`<button type="button"[^>]*>${ai.footer.addKey}</button>`));
+    expect(html).toContain(`aria-describedby="${reasonId}"`);
+    expect(html).toContain('aria-keyshortcuts="Meta+Enter Control+Enter"');
   });
 
   it('spells out what replacing the draft does before confirming', () => {

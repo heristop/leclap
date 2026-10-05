@@ -7,7 +7,10 @@
     "label": "What should the video be?",
     "placeholder": "A 30-second launch for a note-taking app. Bold, punchy kinetic type, ends on the download link.",
     "examples": "Try an example",
-    "tooShort": "Add a few more words so the model knows what to make."
+    "tooShort": "Add a few more words so the model knows what to make.",
+    "hint": "Say who it's for, the tone, and how it ends. One to three sentences is plenty.",
+    "count_one": "{{count}} character",
+    "count_other": "{{count}} characters"
   },
   "examples": {
     "launch": "30s product launch for a note-taking app, bold, punchy kinetic type",
@@ -89,8 +92,10 @@
     "seed": "Starts like “{{title}}”"
   },
   "footer": {
-    "needKey": "Add your {{provider}} key to generate.",
-    "needBrief": "Describe the video to generate."
+    "needKey": "Generating needs your {{provider}} API key.",
+    "needBrief": "Describe the video to generate.",
+    "addKey": "Add key",
+    "ctrlKey": "Ctrl"
   },
   "actions": {
     "generate": "Generate",
@@ -176,13 +181,16 @@
     "footage": "Footage, no copy",
     "facts": "Plan details",
     "transitions": "Transitions: {{primary}}",
-    "transitionsWithAccents": "Transitions: {{primary}} + {{accents}}"
+    "transitionsWithAccents": "Transitions: {{primary}} + {{accents}}",
+    "section": "Before writing"
   },
   "reference": {
     "label": "Match a reference",
     "hint": "Optional: attach a reference look. Generation then follows its palette and pacing as binding rules.",
     "use": "Use as style guide",
     "attached": "Style guide attached: the generated template follows this palette and pacing.",
-    "detach": "Detach style guide"
+    "detach": "Detach style guide",
+    "summaryNone": "Optional",
+    "summaryAttached": "Attached"
   }
 }

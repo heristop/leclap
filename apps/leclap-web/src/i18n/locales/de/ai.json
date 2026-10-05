@@ -7,7 +7,10 @@
     "label": "Worum soll es im Video gehen?",
     "placeholder": "Ein 30-Sekunden-Launch für eine Notiz-App. Kräftige, knackige Kinetic Type, endet mit dem Download-Link.",
     "examples": "Probier ein Beispiel",
-    "tooShort": "Füge noch ein paar Wörter hinzu, damit das Modell weiß, was es erstellen soll."
+    "tooShort": "Füge noch ein paar Wörter hinzu, damit das Modell weiß, was es erstellen soll.",
+    "hint": "Für wen, in welchem Ton, und wie es endet. Ein bis drei Sätze genügen.",
+    "count_one": "{{count}} Zeichen",
+    "count_other": "{{count}} Zeichen"
   },
   "examples": {
     "launch": "30-s-Produktlaunch für eine Notiz-App, kräftig, knackige Kinetic Type",
@@ -89,8 +92,10 @@
     "seed": "Beginnt wie „{{title}}“"
   },
   "footer": {
-    "needKey": "Füge deinen {{provider}}-Schlüssel hinzu, um zu erstellen.",
-    "needBrief": "Beschreibe das Video, um zu erstellen."
+    "needKey": "Zum Erstellen brauchst du deinen {{provider}}-API-Schlüssel.",
+    "needBrief": "Beschreibe das Video, um zu erstellen.",
+    "addKey": "Schlüssel hinzufügen",
+    "ctrlKey": "Strg"
   },
   "actions": {
     "generate": "Erstellen",
@@ -176,13 +181,16 @@
     "footage": "Filmmaterial, kein Text",
     "facts": "Plandetails",
     "transitions": "Übergänge: {{primary}}",
-    "transitionsWithAccents": "Übergänge: {{primary}} + {{accents}}"
+    "transitionsWithAccents": "Übergänge: {{primary}} + {{accents}}",
+    "section": "Vor dem Schreiben"
   },
   "reference": {
     "label": "Referenz übernehmen",
     "hint": "Optional: einen Referenz-Look anhängen. Die Generierung folgt dann verbindlich seiner Palette und seinem Tempo.",
     "use": "Als Styleguide verwenden",
     "attached": "Styleguide angehängt: die generierte Vorlage folgt dieser Palette und diesem Tempo.",
-    "detach": "Styleguide entfernen"
+    "detach": "Styleguide entfernen",
+    "summaryNone": "Optional",
+    "summaryAttached": "Angehängt"
   }
 }

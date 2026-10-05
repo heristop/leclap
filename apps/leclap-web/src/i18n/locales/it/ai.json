@@ -7,7 +7,10 @@
     "label": "Come deve essere il video?",
     "placeholder": "Un lancio di 30 secondi per un'app di appunti. Tipografia cinetica audace e incisiva, chiude con il link per il download.",
     "examples": "Prova un esempio",
-    "tooShort": "Aggiungi qualche parola in più perché il modello sappia cosa creare."
+    "tooShort": "Aggiungi qualche parola in più perché il modello sappia cosa creare.",
+    "hint": "Di per chi è, il tono e come finisce. Bastano da una a tre frasi.",
+    "count_one": "{{count}} carattere",
+    "count_other": "{{count}} caratteri"
   },
   "examples": {
     "launch": "Lancio prodotto di 30 s per un'app di appunti, audace, tipografia cinetica incisiva",
@@ -89,8 +92,10 @@
     "seed": "Inizia come «{{title}}»"
   },
   "footer": {
-    "needKey": "Aggiungi la tua chiave {{provider}} per generare.",
-    "needBrief": "Descrivi il video per generare."
+    "needKey": "Per generare serve la tua chiave API {{provider}}.",
+    "needBrief": "Descrivi il video per generare.",
+    "addKey": "Aggiungi chiave",
+    "ctrlKey": "Ctrl"
   },
   "actions": {
     "generate": "Genera",
@@ -176,13 +181,16 @@
     "footage": "Riprese, senza testo",
     "facts": "Dettagli del piano",
     "transitions": "Transizioni: {{primary}}",
-    "transitionsWithAccents": "Transizioni: {{primary}} + {{accents}}"
+    "transitionsWithAccents": "Transizioni: {{primary}} + {{accents}}",
+    "section": "Prima della stesura"
   },
   "reference": {
     "label": "Ispirati a un riferimento",
     "hint": "Facoltativo: allega uno stile di riferimento. La generazione seguirà palette e ritmo come regole vincolanti.",
     "use": "Usa come guida di stile",
     "attached": "Guida di stile allegata: il template generato segue questa palette e questo ritmo.",
-    "detach": "Rimuovi guida di stile"
+    "detach": "Rimuovi guida di stile",
+    "summaryNone": "Facoltativo",
+    "summaryAttached": "Allegata"
   }
 }

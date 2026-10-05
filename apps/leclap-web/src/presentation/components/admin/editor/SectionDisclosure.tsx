@@ -19,10 +19,22 @@ interface SectionDisclosureProps {
   children: ReactNode;
   /** Start expanded (e.g. when the group holds something the user must fill in first). */
   defaultOpen?: boolean;
+  /** Controlled expansion, for a host that opens the group from elsewhere (pair with `onOpenChange`). */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const SectionDisclosure = ({ label, icon, summary, children, defaultOpen = false }: SectionDisclosureProps) => {
-  const [open, setOpen] = useState(defaultOpen);
+export const SectionDisclosure = ({
+  label,
+  icon,
+  summary,
+  children,
+  defaultOpen = false,
+  open: controlled,
+  onOpenChange,
+}: SectionDisclosureProps) => {
+  const [uncontrolled, setUncontrolled] = useState(defaultOpen);
+  const open = controlled ?? uncontrolled;
   const bodyId = useId();
   const { ref: chevronRef, hoverProps: chevronHoverProps } = useIconHover();
 
@@ -31,7 +43,8 @@ export const SectionDisclosure = ({ label, icon, summary, children, defaultOpen 
       <button
         type="button"
         onClick={() => {
-          setOpen((prev) => !prev);
+          setUncontrolled(!open);
+          onOpenChange?.(!open);
         }}
         aria-expanded={open}
         aria-controls={bodyId}

@@ -13,6 +13,8 @@ interface KeyFieldProps {
   placeholder: string;
   keyUrl: string;
   looksLikeKey?: (key: string) => boolean;
+  // A fixed id for the input, so a host can focus it ("Add key"); generated when omitted.
+  inputId?: string;
 }
 
 const LINK =
@@ -20,9 +22,10 @@ const LINK =
 const QUIET =
   'tap inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-divider px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40';
 
-export const KeyField = ({ providerId, providerLabel, placeholder, keyUrl, looksLikeKey }: KeyFieldProps) => {
+export const KeyField = ({ providerId, providerLabel, placeholder, keyUrl, looksLikeKey, inputId }: KeyFieldProps) => {
   const { t } = useTranslation('ai');
-  const id = useId();
+  const generatedId = useId();
+  const id = inputId ?? generatedId;
   const { key, save, forget } = useApiKey(providerId);
   const [visible, setVisible] = useState(false);
   const [persistFailed, setPersistFailed] = useState(false);
@@ -32,7 +35,7 @@ export const KeyField = ({ providerId, providerLabel, placeholder, keyUrl, looks
   return (
     <div className="grid gap-2">
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor={id} className="text-sm font-medium text-foreground">
+        <label htmlFor={id} className="text-[0.8125rem] font-medium leading-tight text-foreground">
           {t('key.label', { provider: providerLabel })}
         </label>
         <a href={keyUrl} target="_blank" rel="noopener noreferrer" className={LINK}>
@@ -50,7 +53,7 @@ export const KeyField = ({ providerId, providerLabel, placeholder, keyUrl, looks
           spellCheck={false}
           aria-describedby={`${id}-privacy`}
           aria-invalid={suspicious || undefined}
-          className="font-mono text-sm"
+          className="h-10 font-mono text-sm"
           onChange={(event) => {
             setForgotten(false);
             setPersistFailed(!save(event.target.value) && event.target.value.trim() !== '');

@@ -4,6 +4,7 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
+import { FIELD_HELP, FIELD_LABEL } from './ai-form-styles';
 
 interface PlanOptionsProps {
   planFirst: boolean;
@@ -29,15 +30,16 @@ const Option = ({ id, checked, onChange, disabled, label, hint }: OptionProps) =
       checked={checked}
       disabled={disabled}
       aria-describedby={`${id}-hint`}
+      className="size-5 rounded-[0.3rem] [&_svg]:size-3.5"
       onCheckedChange={(value) => {
         onChange(value === true);
       }}
     />
-    <div className="grid gap-0.5">
-      <label htmlFor={id} className="text-sm font-medium text-foreground">
+    <div className={disabled ? 'grid gap-1 pt-px opacity-60' : 'grid gap-1 pt-px'}>
+      <label htmlFor={id} className="text-[0.8125rem] font-medium leading-tight text-foreground">
         {label}
       </label>
-      <p id={`${id}-hint`} className="text-xs text-pretty text-muted-foreground">
+      <p id={`${id}-hint`} className={FIELD_HELP}>
         {hint}
       </p>
     </div>
@@ -49,7 +51,8 @@ export const PlanOptions = (props: PlanOptionsProps) => {
   const id = useId();
 
   return (
-    <div className="grid gap-3">
+    <fieldset className="grid gap-4">
+      <legend className={FIELD_LABEL}>{t('plan.section')}</legend>
       <Option
         id={`${id}-plan`}
         checked={props.planFirst}
@@ -66,6 +69,6 @@ export const PlanOptions = (props: PlanOptionsProps) => {
         label={t('plan.review')}
         hint={t('plan.reviewHint')}
       />
-    </div>
+    </fieldset>
   );
 };

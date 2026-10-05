@@ -6,9 +6,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { findProvider } from '@/infrastructure/ai/registry';
 import { JEV_KEY_ID } from '@/infrastructure/ai/typesafe-jev';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
 import type { EditorState } from '../templateEditorModel';
 import { canGenerate, isRunning } from './ai-generation.logic';
+import { AiDialogFrame } from './AiDialogFrame';
 import { BriefFields } from './BriefFields';
 import { DialogFooterActions } from './DialogFooterActions';
 import { GenerationStatus } from './GenerationStatus';
@@ -38,6 +38,19 @@ export interface GenerateWithAiDialogProps {
   // The current draft has edits (Undo is available): replacing it asks first.
   hasUnsavedWork: boolean;
   onLoad: (state: EditorState) => void;
+}
+
+const KEY_INPUT_ID = 'ai-generate-provider-key';
+
+// Brings the provider key field into view and focuses it, once the disclosure holding it has opened.
+function focusKeyField(): void {
+  requestAnimationFrame(() => {
+    const input = document.getElementById(KEY_INPUT_ID);
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    input?.focus({ preventScroll: true });
+    input?.scrollIntoView({ block: 'center', behavior: smooth ? 'smooth' : 'auto' });
+  });
 }
 
 function useBriefState() {
@@ -78,6 +91,18 @@ function useBriefState() {
   };
 }
 
+// Why Generate is disabled, and — when the key is what's missing — the one-tap way to add it.
+type AiT = ReturnType<typeof useTranslation<'ai'>>['t'];
+
+function blockedCopy(t: AiT, hasKey: boolean, provider: string, onAddKey: () => void) {
+  if (hasKey) return { blockedReason: t('footer.needBrief') };
+
+  return {
+    blockedReason: t('footer.needKey', { provider }),
+    blockedAction: { label: t('footer.addKey'), onClick: onAddKey },
+  };
+}
+
 const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: GenerateWithAiDialogProps) => {
   const { t } = useTranslation('ai');
   const form = useBriefState();
@@ -87,10 +112,13 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
   const [pending, setPending] = useState<EditorState | null>(null);
   // Binding style rules from "Match a reference", or null when no reference is attached.
   const [referenceStyle, setReferenceStyle] = useState<string | null>(null);
+  // The provider group starts open while the chosen provider has no key; "Add key" reopens it.
+  const [providerOpen, setProviderOpen] = useState(key === '');
   const chips = run.route.kind === 'ready' ? routeChips(run.route.route, form.overrides) : [];
   const running = isRunning(run.status) || run.route.kind === 'routing';
   // A plan under review belongs to the current brief: the form waits until it is written or dropped.
   const locked = running || run.status.kind === 'plan-ready';
+  const ready = canGenerate(form.brief, key, run.status) && run.route.kind !== 'routing';
   const userHints = {
     orientation: form.orientation,
     durationSeconds: form.duration === 'auto' ? null : Number(form.duration),
@@ -130,83 +158,30 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
   };
 
   return (
-    <Dialog
+    <AiDialogFrame
       open={open}
-      onOpenChange={(next) => {
-        if (!next) close();
-      }}
-    >
-      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-2xl overflow-y-auto overscroll-contain">
-        <DialogHeader>
-          <DialogTitle className="pr-10">{t('title')}</DialogTitle>
-          <DialogDescription className="text-pretty">{t('subtitle')}</DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-6">
-          <BriefFields
-            brief={form.brief}
-            onBriefChange={(value) => {
-              form.setBrief(value);
-              form.resetOverrides();
-              run.clearRoute();
-            }}
-            orientation={form.orientation}
-            onOrientationChange={form.setOrientation}
-            duration={form.duration}
-            onDurationChange={form.setDuration}
-            disabled={locked}
-          />
-          <JevPanel
-            hasKey={jev.key !== ''}
-            brief={form.brief}
-            route={run.route}
-            chips={chips}
-            onToggle={form.toggle}
-            onAnalyse={() => {
-              run.analyse(form.brief, jev.key).catch(() => {});
-            }}
-            onStartFromMatch={load}
-            disabled={locked}
-          />
-          <PlanOptions
-            planFirst={form.planFirst}
-            onPlanFirstChange={form.setPlanFirst}
-            reviewPlan={form.reviewPlan}
-            onReviewPlanChange={form.setReviewPlan}
-            disabled={locked}
-          />
-          <ReferenceStyleSection
-            attached={referenceStyle !== null}
-            onAttach={(style) => {
-              setReferenceStyle(style.promptRules);
-            }}
-            onDetach={() => {
-              setReferenceStyle(null);
-            }}
-            disabled={running}
-          />
-          <ProviderSettings
-            provider={form.provider}
-            model={form.model}
-            onProviderChange={form.setProviderId}
-            onModelChange={form.setModel}
-          />
-          {run.status.kind === 'plan-ready' && <PlanReview plan={run.status.plan} onChange={run.editPlan} />}
-          {run.status.kind === 'ready' && (
-            <ResultCard
-              summary={run.status.summary}
-              warnings={run.status.result.warnings}
-              advisories={run.status.result.advisories}
-            />
-          )}
-        </div>
+      onClose={close}
+      title={t('title')}
+      subtitle={t('subtitle')}
+      onSubmit={
+        ready && pending === null
+          ? () => {
+              generate().catch(() => {});
+            }
+          : undefined
+      }
+      footer={
         <DialogFooterActions
           status={run.status}
           confirming={pending !== null}
-          canGenerate={canGenerate(form.brief, key, run.status) && run.route.kind !== 'routing'}
+          canGenerate={ready}
           statusSlot={
             <GenerationStatus status={run.status} providerLabel={form.provider.label} planned={form.planFirst} />
           }
-          blockedReason={key ? t('footer.needBrief') : t('footer.needKey', { provider: form.provider.label })}
+          {...blockedCopy(t, key !== '', form.provider.label, () => {
+            setProviderOpen(true);
+            focusKeyField();
+          })}
           onGenerate={() => {
             generate().catch(() => {});
           }}
@@ -233,8 +208,72 @@ const GenerateWithAiDialog = ({ open, onOpenChange, hasUnsavedWork, onLoad }: Ge
             run.reset();
           }}
         />
-      </DialogContent>
-    </Dialog>
+      }
+    >
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-7">
+        <BriefFields
+          brief={form.brief}
+          onBriefChange={(value) => {
+            form.setBrief(value);
+            form.resetOverrides();
+            run.clearRoute();
+          }}
+          orientation={form.orientation}
+          onOrientationChange={form.setOrientation}
+          duration={form.duration}
+          onDurationChange={form.setDuration}
+          disabled={locked}
+        />
+        <JevPanel
+          hasKey={jev.key !== ''}
+          brief={form.brief}
+          route={run.route}
+          chips={chips}
+          onToggle={form.toggle}
+          onAnalyse={() => {
+            run.analyse(form.brief, jev.key).catch(() => {});
+          }}
+          onStartFromMatch={load}
+          disabled={locked}
+        />
+        <PlanOptions
+          planFirst={form.planFirst}
+          onPlanFirstChange={form.setPlanFirst}
+          reviewPlan={form.reviewPlan}
+          onReviewPlanChange={form.setReviewPlan}
+          disabled={locked}
+        />
+        <div className="grid gap-3">
+          <ReferenceStyleSection
+            attached={referenceStyle !== null}
+            onAttach={(style) => {
+              setReferenceStyle(style.promptRules);
+            }}
+            onDetach={() => {
+              setReferenceStyle(null);
+            }}
+            disabled={running}
+          />
+          <ProviderSettings
+            open={providerOpen}
+            onOpenChange={setProviderOpen}
+            keyInputId={KEY_INPUT_ID}
+            provider={form.provider}
+            model={form.model}
+            onProviderChange={form.setProviderId}
+            onModelChange={form.setModel}
+          />
+        </div>
+        {run.status.kind === 'plan-ready' && <PlanReview plan={run.status.plan} onChange={run.editPlan} />}
+        {run.status.kind === 'ready' && (
+          <ResultCard
+            summary={run.status.summary}
+            warnings={run.status.result.warnings}
+            advisories={run.status.result.advisories}
+          />
+        )}
+      </div>
+    </AiDialogFrame>
   );
 };
 

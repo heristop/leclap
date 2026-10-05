@@ -1212,6 +1212,21 @@ body {
   animation: ai-progress 1.6s var(--ease-smooth) infinite;
 }
 
+/* The Generate-with-AI body: the one scrolling region of the panel. The gutter is reserved so the
+   content doesn't jump sideways when the scrollbar appears, and stays left-aligned with the header and
+   footer; the bar itself is thin and quiet (divider thumb, no track) and brightens on hover. Scroll
+   padding keeps a field that receives focus clear of the panel's top and bottom bars. */
+.ai-scroll-body {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-divider) transparent;
+  scroll-padding-block: 1.25rem;
+}
+
+.ai-scroll-body:hover {
+  scrollbar-color: var(--color-gray-600) transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ai-progress-bar {
     animation: none;

@@ -10,6 +10,7 @@ import { JEV_KEY_ID, JEV_KEY_URL } from '@/infrastructure/ai/typesafe-jev';
 import { Input, Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { EditorSelectContent } from '../editor/editor-select-content';
 import { SectionDisclosure } from '../editor/SectionDisclosure';
+import { FIELD_HELP, FIELD_LABEL } from './ai-form-styles';
 import { KeyField } from './KeyField';
 import { useApiKey, useStoredKeyCount } from './use-api-key';
 
@@ -20,7 +21,13 @@ interface ProviderSettingsProps {
   onModelChange: (model: string) => void;
 }
 
-const LABEL = 'mb-1.5 block text-sm font-medium text-foreground';
+interface DisclosureProps {
+  // The provider group's expansion, owned by the dialog so the footer's "Add key" can open it.
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  // The id given to the provider key's input, so "Add key" can focus it.
+  keyInputId: string;
+}
 
 const ModelField = ({ provider, model, onModelChange }: Omit<ProviderSettingsProps, 'onProviderChange'>) => {
   const { t } = useTranslation('ai');
@@ -29,7 +36,7 @@ const ModelField = ({ provider, model, onModelChange }: Omit<ProviderSettingsPro
   if (!provider.freeformModel) {
     return (
       <div>
-        <span id={id} className={LABEL}>
+        <span id={id} className={FIELD_LABEL}>
           {t('provider.model')}
         </span>
         <Select value={model} onValueChange={onModelChange}>
@@ -50,7 +57,7 @@ const ModelField = ({ provider, model, onModelChange }: Omit<ProviderSettingsPro
 
   return (
     <div>
-      <label htmlFor={id} className={LABEL}>
+      <label htmlFor={id} className={FIELD_LABEL}>
         {t('provider.model')}
       </label>
       <Input
@@ -70,7 +77,7 @@ const ModelField = ({ provider, model, onModelChange }: Omit<ProviderSettingsPro
           <option key={option} value={option} />
         ))}
       </datalist>
-      <p id={`${id}-hint`} className="mt-1 text-xs text-muted-foreground">
+      <p id={`${id}-hint`} className={`mt-1.5 ${FIELD_HELP}`}>
         {t('provider.modelFree')}
       </p>
     </div>
@@ -94,7 +101,15 @@ const ForgetAll = () => {
   );
 };
 
-export const ProviderSettings = ({ provider, model, onProviderChange, onModelChange }: ProviderSettingsProps) => {
+export const ProviderSettings = ({
+  provider,
+  model,
+  onProviderChange,
+  onModelChange,
+  open,
+  onOpenChange,
+  keyInputId,
+}: ProviderSettingsProps & DisclosureProps) => {
   const { t } = useTranslation('ai');
   const providerLabelId = useId();
   const { key } = useApiKey(provider.id);
@@ -103,11 +118,11 @@ export const ProviderSettings = ({ provider, model, onProviderChange, onModelCha
 
   return (
     <div className="grid gap-3">
-      <SectionDisclosure label={t('provider.section')} summary={summary} defaultOpen={key === ''}>
-        <div className="grid gap-4">
-          <div className="grid gap-3 sm:grid-cols-2">
+      <SectionDisclosure label={t('provider.section')} summary={summary} open={open} onOpenChange={onOpenChange}>
+        <div className="grid gap-5">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <span id={providerLabelId} className={LABEL}>
+              <span id={providerLabelId} className={FIELD_LABEL}>
                 {t('provider.label')}
               </span>
               <Select value={provider.id} onValueChange={onProviderChange}>
@@ -126,6 +141,7 @@ export const ProviderSettings = ({ provider, model, onProviderChange, onModelCha
             <ModelField provider={provider} model={model} onModelChange={onModelChange} />
           </div>
           <KeyField
+            inputId={keyInputId}
             providerId={provider.id}
             providerLabel={provider.label}
             placeholder={provider.keyPlaceholder}
@@ -137,7 +153,7 @@ export const ProviderSettings = ({ provider, model, onProviderChange, onModelCha
       </SectionDisclosure>
       <SectionDisclosure label={t('jev.section')} summary={jev.key ? t('provider.keySet') : t('jev.provider')}>
         <div className="grid gap-3">
-          <p className="text-sm text-pretty text-muted-foreground">{t('jev.about')}</p>
+          <p className={FIELD_HELP}>{t('jev.about')}</p>
           <KeyField providerId={JEV_KEY_ID} providerLabel={t('jev.provider')} placeholder="" keyUrl={JEV_KEY_URL} />
         </div>
       </SectionDisclosure>

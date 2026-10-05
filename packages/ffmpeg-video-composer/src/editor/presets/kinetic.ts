@@ -2,7 +2,6 @@
 
 import type { Filter } from '@/core/types';
 import type { KineticBlock } from '../../schemas/kinetic.schemas';
-import { fmt } from '@/core/motion/hermite';
 import type { Layout, LayoutPiece } from '@/core/kinetic/layout';
 import {
   blockTop,
@@ -14,10 +13,10 @@ import {
 } from '@/core/kinetic/resolve';
 import { layoutWithin, type FittedLayout } from '@/core/kinetic/fit';
 import { unitTracks } from '@/core/kinetic/units';
-import { caretBoxes, counterText, markerSweep, scrambleDecoys } from '@/core/kinetic/extras';
+import { caretBoxes, markerSweep, scrambleDecoys } from '@/core/kinetic/extras';
+import { COUNTER_LOCALE_PROBE, counterBlockFilters } from './text-counter';
 import { trailEchoes } from './kinetic-trail';
-import { ALIGN_ANCHOR, pieceFilter, quoted, type PieceDraw, type PieceStyle } from './kinetic-piece';
-import { applyTextEffect } from './text';
+import { pieceFilter, type PieceDraw, type PieceStyle } from './kinetic-piece';
 import { fillGraph, type FillBox, type FillEnv } from './kinetic-fill';
 import type { SugarContext } from './sugar-context';
 
@@ -42,25 +41,6 @@ function accentWords(block: KineticBlock, layout: Layout): Set<number> {
   if (words === 'first') return new Set([0]);
 
   return new Set(words);
-}
-
-function counterFilters(block: KineticBlock, settings: ResolvedKinetic, ctx: KineticContext): Filter[] {
-  const counter = block.counter ?? { from: 0, to: 100 };
-  const window = { delay: settings.delay, duration: settings.duration };
-  const anchor = ALIGN_ANCHOR[settings.align];
-  const top = blockTop(block.y, settings.lineHeight, ctx);
-  const values: Record<string, unknown> = {
-    textExpr: counterText(counter, window, settings.ease),
-    fontfile: settings.font,
-    fontsize: settings.size,
-    fontcolor: settings.color,
-    x: quoted(`${fmt(settings.x)}${anchor}`),
-    y: fmt(top),
-    alpha: quoted(`clip((t-${fmt(settings.delay)})/0.18,0,1)`),
-  };
-  applyTextEffect(values, block.effect);
-
-  return [{ type: 'drawtext', values }];
 }
 
 interface Choreography {
@@ -178,7 +158,7 @@ function filledBlock(block: KineticBlock, plan: Choreography, draws: PieceDraw[]
 export function kineticToFilters(block: KineticBlock, ctx: KineticContext): Filter[] {
   const base = resolveKinetic(block, ctx, ctx.text);
 
-  if (block.preset === 'counter') return counterFilters(block, base, ctx);
+  if (block.preset === 'counter') return counterBlockFilters(block, base, ctx);
 
   const laid = ctx.text.trim() ? layoutWithin(base, ctx.text) : null;
 
@@ -244,7 +224,8 @@ export function kineticBlocksToFilters(blocks: KineticBlock[] | undefined, ctx: 
       duration: ctx.duration,
       energy: motion.energy,
       seed: motion.seedFor(`kinetic[${index}]`),
-      text: block.preset === 'counter' ? '' : motion.resolveText(block.text),
+      // A counter ignores its copy; resolving the locale probe hands it the active locale instead.
+      text: motion.resolveText(block.preset === 'counter' ? COUNTER_LOCALE_PROBE : block.text),
       fill: fillEnv(block, index, ctx),
     })
   );

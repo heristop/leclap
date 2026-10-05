@@ -121,6 +121,62 @@ export const TitleCardSchema = z
   .strict()
   .describe('A kicker / headline / subtitle title card rendered onto a color_background section.');
 
+// ── counter ────────────────────────────────────────────────────────────────────
+
+/** Locales whose digit grouping and decimal mark the counter knows; anything else formats as "en". */
+export const COUNTER_LOCALES = ['en', 'fr', 'de', 'es', 'it', 'pt', 'nl', 'de-CH', 'ja', 'zh', 'ko'] as const;
+
+// The rolling number of a kinetic `counter` block (editor/presets/text-counter.ts). Its timing is the
+// block's own (`delay`, `duration`, `ease`); these fields shape the number.
+export const CounterSchema = z
+  .object({
+    from: z.number().min(0).max(1e11).describe('Start value (non-negative; use prefix "-" for negatives).'),
+    to: z.number().min(0).max(1e11).describe('End value (non-negative). Shown exactly once the roll ends, and held.'),
+    decimals: z.number().int().min(0).max(4).optional().describe('Digits after the decimal mark (default 0).'),
+    prefix: z.string().max(12).optional().describe('Text before the number, e.g. "$" or "EUR ".'),
+    suffix: z.string().max(12).optional().describe('Text after the number, e.g. "%" or " K".'),
+    locale: z
+      .enum(COUNTER_LOCALES)
+      .optional()
+      .describe(
+        'Number formatting: the grouping separator and decimal mark (en 1,234.5; fr 1 234,5; de 1.234,5; ' +
+          'de-CH 1’234.5). Default: the template’s active locale.'
+      ),
+    grouping: z
+      .boolean()
+      .optional()
+      .describe(
+        'Group thousands with the locale separator. Default: on when the largest value has 5+ integer digits ' +
+          '(12,500), off below it so years and short figures (2024, 1500) stay plain.'
+      ),
+    tabular: z
+      .boolean()
+      .optional()
+      .describe(
+        'Tabular digits (default true): every digit sits in a fixed-width slot, so the number does not ' +
+          'jitter sideways while it rolls; it only widens when it gains a digit. false draws proportional ' +
+          'figures (tighter, but the width breathes every frame).'
+      ),
+    overshoot: z
+      .number()
+      .min(0)
+      .max(0.1)
+      .optional()
+      .describe(
+        'Run past the final value by this share of the travelled range, then settle back onto it inside the ' +
+          'block duration (0..0.1, default 0). Keep it at 0.02–0.04 for a physical settle; visible only when ' +
+          'the share is worth at least one shown unit.'
+      ),
+  })
+  .strict()
+  .describe(
+    'counter preset: the rolling number (the block text is ignored). It rolls over the block ' +
+      '`delay` + `duration` on the block `ease` (a token such as "$expo", a cubic-bezier or a spring), lands ' +
+      'exactly on `to` and holds. Without a block duration, the roll lasts 0.6–1.6 s, longer for bigger ranges.'
+  );
+
+export type CounterSpec = z.infer<typeof CounterSchema>;
+
 // ── lower third ────────────────────────────────────────────────────────────────
 
 export const LOWER_THIRD_STYLES = ['clean-bar', 'side-rule', 'kicker', 'stack-bars', 'pill'] as const;

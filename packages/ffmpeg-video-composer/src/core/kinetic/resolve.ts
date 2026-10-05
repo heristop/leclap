@@ -70,6 +70,17 @@ function unitDuration(authored: number | undefined, ease: EasingSpec, fallback: 
   return parseEasing(ease).settle ?? fallback;
 }
 
+// A counter without an authored duration rolls for longer the more units it travels: a short count ticks
+// briskly (0.6 s), a six-figure one gets time to read (1.6 s).
+function presetDuration(block: KineticBlock, fallback: number): number {
+  if (block.preset !== 'counter' || !block.counter) return fallback;
+
+  const units = Math.abs(block.counter.to - block.counter.from) * 10 ** (block.counter.decimals ?? 0);
+  const seconds = 0.5 + 0.25 * Math.log10(Math.max(1, units));
+
+  return Math.round(Math.min(1.6, Math.max(0.6, seconds)) * 100) / 100;
+}
+
 function anchorX(block: KineticBlock, align: KineticAlign, frame: KineticFrame): number {
   if (block.x !== undefined) return block.x;
 
@@ -120,7 +131,7 @@ export function resolveKinetic(block: KineticBlock, frame: KineticFrame, text = 
     unit,
     delay: seconds(block.delay) ?? 0.2,
     stagger: block.stagger ?? preset.stagger[unit],
-    duration: unitDuration(block.duration, ease, preset.duration),
+    duration: unitDuration(block.duration, ease, presetDuration(block, preset.duration)),
     ease,
     distance: (block.distance ?? preset.travel * type.size) * frame.energy,
     direction: block.direction ?? (block.preset === 'drop' ? 'down' : 'left'),

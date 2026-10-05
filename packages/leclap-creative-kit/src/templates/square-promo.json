@@ -340,8 +340,8 @@
         {
           "type": "corners",
           "at": 0.5,
-          "inset": 40,
-          "length": 72,
+          "inset": 64,
+          "length": 56,
           "thickness": 6,
           "color": "#ffffff"
         }

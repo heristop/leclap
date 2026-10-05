@@ -338,12 +338,180 @@
       ],
       "graphics": [
         {
-          "type": "corners",
+          "type": "panel",
           "at": 0.4,
-          "inset": 40,
-          "length": 64,
-          "thickness": 4,
-          "color": "#F5F3F7@0.8"
+          "duration": 0.5,
+          "x": 38,
+          "y": 38,
+          "width": 68,
+          "height": 8,
+          "from": "left",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 38,
+          "y": 46,
+          "width": 8,
+          "height": 60,
+          "from": "top",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1174,
+          "y": 38,
+          "width": 68,
+          "height": 8,
+          "from": "right",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1234,
+          "y": 46,
+          "width": 8,
+          "height": 60,
+          "from": "top",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 38,
+          "y": 536,
+          "width": 68,
+          "height": 8,
+          "from": "left",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 38,
+          "y": 476,
+          "width": 8,
+          "height": 60,
+          "from": "bottom",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1174,
+          "y": 536,
+          "width": 68,
+          "height": 8,
+          "from": "right",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1234,
+          "y": 476,
+          "width": 8,
+          "height": 60,
+          "from": "bottom",
+          "color": "#0d1b2a@0.45"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 40,
+          "y": 40,
+          "width": 64,
+          "height": 4,
+          "from": "left",
+          "color": "#F5F3F7"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 40,
+          "y": 40,
+          "width": 4,
+          "height": 64,
+          "from": "top",
+          "color": "#F5F3F7"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1176,
+          "y": 40,
+          "width": 64,
+          "height": 4,
+          "from": "right",
+          "color": "#F5F3F7"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1236,
+          "y": 40,
+          "width": 4,
+          "height": 64,
+          "from": "top",
+          "color": "#F5F3F7"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 40,
+          "y": 538,
+          "width": 64,
+          "height": 4,
+          "from": "left",
+          "color": "#F5F3F7"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 40,
+          "y": 478,
+          "width": 4,
+          "height": 64,
+          "from": "bottom",
+          "color": "#F5F3F7"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1176,
+          "y": 538,
+          "width": 64,
+          "height": 4,
+          "from": "right",
+          "color": "#F5F3F7"
+        },
+        {
+          "type": "panel",
+          "at": 0.4,
+          "duration": 0.5,
+          "x": 1236,
+          "y": 478,
+          "width": 4,
+          "height": 64,
+          "from": "bottom",
+          "color": "#F5F3F7"
         }
       ]
     },

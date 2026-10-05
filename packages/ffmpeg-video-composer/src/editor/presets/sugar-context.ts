@@ -1,6 +1,7 @@
 import type { LayoutSectionRef } from '@/core/layout/sources';
 import type { Filter, Section } from '@/core/types';
 import type { FxGraphic } from '../../schemas/fx.schemas';
+import type { Graphic } from '../../schemas/graphics.schemas';
 
 /** One fx graphic to lower (editor/presets/fx.ts): the element, its window and where it sits. */
 export type FxRequest = {
@@ -13,6 +14,11 @@ export type FxRequest = {
   index: number;
   section: Section;
   ctx: SugarContext;
+};
+
+/** One v2 stroke graphic (frame, corners, underline) to lower (editor/presets/stroke-graphics.ts). */
+export type StrokeRequest = Omit<FxRequest, 'graphic'> & {
+  graphic: Extract<Graphic, { type: 'frame' | 'corners' | 'underline' }>;
 };
 
 // Context a sugar compiler needs to lower time/space-dependent effects (motion calibrates its
@@ -58,6 +64,11 @@ export type MaskSugarContext = {
    * out of the browser's eager load; without it (validation) fx graphics lower to nothing, as they draw no text.
    */
   effects?: (request: FxRequest) => Filter[];
+  /**
+   * Lowers v2 stroke graphics (editor/presets/stroke-graphics.ts), compile path only like `effects`; without
+   * it they draw their legacy rectangles. Null also falls back to them.
+   */
+  strokes?: (request: StrokeRequest) => Filter[] | null;
 };
 
 export type KineticSugarContext = {

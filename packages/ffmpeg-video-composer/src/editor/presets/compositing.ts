@@ -6,6 +6,7 @@ import { engineCapabilities, hasFilter, type EngineFeatures } from '../utils/fil
 import { ExtraInputs } from '../utils/extra-inputs';
 import type { MaskSugarContext } from './sugar-context';
 import { lowerFx } from './fx';
+import { lowerStroke } from './stroke-graphics';
 
 /** A fresh per-segment registry of extra inputs. */
 export function createExtraInputs(): ExtraInputs {
@@ -36,5 +37,6 @@ export function compositingContext(options: CompositingOptions): MaskSugarContex
     warn: options.warn,
     has: (filter) => hasFilter(caps, filter),
     effects: lowerFx,
+    strokes: lowerStroke,
   };
 }

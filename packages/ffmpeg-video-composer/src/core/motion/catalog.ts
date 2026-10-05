@@ -167,9 +167,15 @@ const BASIC_TRANSITIONS: Record<string, string> = {
 const GRAPHICS: Record<string, string> = {
   flash: 'Full-frame light hit that decays (at, duration, color, intensity).',
   bars: 'Cinema letterbox bars slide in (aspect).',
-  underline: 'A rule that draws itself (x, y, width, thickness, origin).',
-  frame: 'A rectangle outline tracing itself clockwise (inset, thickness).',
-  corners: 'Viewfinder brackets extending from the corners (inset, length, thickness).',
+  underline:
+    'A rule that draws itself (x, y, width, thickness, origin). v2: caps round, settle (overshoot), exit; ' +
+    'drawn above text by default (CTA-safe).',
+  frame:
+    'A rectangle outline tracing itself clockwise (inset, thickness). v2: radius, trace path|split|sides|fade ' +
+    'from the top-left, exit fade|retract|expand, target + clearance, contrast auto|shadow.',
+  corners:
+    'Viewfinder brackets extending from the corners (inset, length, thickness). v2: target + clearance ' +
+    '(default 24 px), spread (close-in), trace clockwise|together|fade, radius, exit, contrast auto|shadow.',
   wipe: 'A colour panel sweeping across the frame: covers then uncovers (direction).',
   panel: 'A solid block growing from one edge: a backing plate for text (x, y, width, height, from).',
   glitch: 'A seeded digital tear: RGB split, jitter, grain and colour slices for a short hit (intensity).',

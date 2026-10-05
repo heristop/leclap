@@ -10,7 +10,6 @@ import { resolvedTimes, seconds } from '@/core/timing/seconds';
 import type { SugarContext } from './sugar-context';
 import {
   BRAND,
-  INK,
   MAX_FRAMES,
   boxes,
   windowExpr,
@@ -25,52 +24,11 @@ import {
 import { FX_SPECS } from './graphics-fx';
 import { CHART_SPECS } from './graphics-chart';
 import { fxSpec } from './fx-spec';
+import { cornersSpec, frameSpec, underlineSpec } from './graphics-lines';
 
 export type { Frame, GraphicEnv, Rect } from './graphics-spec';
 
 const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
-
-function growFrom(origin: 'left' | 'center' | 'right', x: number, width: number, p: number): { x: number; w: number } {
-  const w = width * p;
-
-  if (origin === 'center') return { x: x + (width - w) / 2, w };
-
-  return origin === 'right' ? { x: x + width - w, w } : { x, w };
-}
-
-// Progress of the k-th quarter of a clockwise trace.
-function quarter(p: number, k: number): number {
-  return Math.max(0, Math.min(1, p * 4 - k));
-}
-
-// Clockwise trace: top (left→right), right (top→bottom), bottom (right→left), left (bottom→top).
-function frameRects(inset: number, t: number, frame: Frame, p: number): Rect[] {
-  const [left, top] = [inset, inset];
-  const [w, h] = [frame.width - 2 * inset, frame.height - 2 * inset];
-
-  return [
-    { x: left, y: top, w: w * quarter(p, 0), h: t },
-    { x: left + w - t, y: top, w: t, h: h * quarter(p, 1) },
-    { x: left + w - w * quarter(p, 2), y: top + h - t, w: w * quarter(p, 2), h: t },
-    { x: left, y: top + h - h * quarter(p, 3), w: t, h: h * quarter(p, 3) },
-  ];
-}
-
-function cornerRects(inset: number, length: number, t: number, frame: Frame, p: number): Rect[] {
-  const l = length * p;
-  const [r, b] = [frame.width - inset, frame.height - inset];
-
-  return [
-    { x: inset, y: inset, w: l, h: t },
-    { x: inset, y: inset, w: t, h: l },
-    { x: r - l, y: inset, w: l, h: t },
-    { x: r - t, y: inset, w: t, h: l },
-    { x: inset, y: b - t, w: l, h: t },
-    { x: inset, y: b - l, w: t, h: l },
-    { x: r - l, y: b - t, w: l, h: t },
-    { x: r - t, y: b - l, w: t, h: l },
-  ];
-}
 
 // Covers during the first half, uncovers during the second, travelling in `direction`.
 function wipeRects(direction: 'left' | 'right' | 'up' | 'down', frame: Frame, p: number): Rect[] {
@@ -128,38 +86,6 @@ function barsSpec(g: Of<'bars'>, frame: Frame, base: Base): Spec {
       { x: 0, y: 0, w: frame.width, h: bar * p },
       { x: 0, y: frame.height - bar * p, w: frame.width, h: bar * p },
     ],
-  };
-}
-
-function underlineSpec(g: Of<'underline'>, frame: Frame, base: Base): Spec {
-  const x = g.x ?? frame.width * 0.08;
-  const width = g.width ?? frame.width * 0.3;
-  const y = g.y ?? frame.height * 0.62;
-  const thickness = g.thickness ?? 6;
-
-  return {
-    ...base,
-    duration: g.duration ?? 0.45,
-    color: g.color ?? BRAND,
-    rects: (p) => [{ ...growFrom(g.origin ?? 'left', x, width, p), y, h: thickness }],
-  };
-}
-
-function frameSpec(g: Of<'frame'>, frame: Frame, base: Base): Spec {
-  return {
-    ...base,
-    duration: g.duration ?? 0.9,
-    color: g.color ?? withAlpha(INK, 0.9),
-    rects: (p) => frameRects(g.inset ?? 48, g.thickness ?? 4, frame, p),
-  };
-}
-
-function cornersSpec(g: Of<'corners'>, frame: Frame, base: Base): Spec {
-  return {
-    ...base,
-    duration: g.duration ?? 0.5,
-    color: g.color ?? INK,
-    rects: (p) => cornerRects(g.inset ?? 56, g.length ?? 72, g.thickness ?? 5, frame, p),
   };
 }
 
@@ -230,7 +156,9 @@ export function graphicToFilters(graphic: Graphic, frame: Frame, env: GraphicEnv
   const s = spec(graphic, frame);
   const at = g.at ?? 0;
 
-  if (s.render) return s.render({ at, until: g.until }, env);
+  const rendered = s.render?.({ at, until: g.until }, env);
+
+  if (rendered) return rendered;
 
   const curve = parseEasing(s.ease).fn;
   const frames = Math.min(MAX_FRAMES, Math.max(1, Math.ceil(s.duration * frame.fps)));

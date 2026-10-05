@@ -5,7 +5,9 @@ import { graphicTiming, graphicsToFilters } from '@/editor/presets/graphics';
 import { defaultLightColor, lowerFx } from '@/editor/presets/fx';
 import { lightInTarget, passProgress, staticHighlight, type AnyFxContext } from '@/editor/presets/fx-kit';
 import type { SugarContext } from '@/editor/presets/sugar-context';
-import { FX_PRIMITIVES } from '@/schemas/fx.schemas';
+import { FX_PRIMITIVES, FxGraphicSchema } from '@/schemas/fx.schemas';
+import { describeFxPrimitives } from '@/schemas/fx-docs';
+import { templateDescriptorJsonSchema } from '@/schemas/template.schemas';
 import { GraphicSchema, type Graphic } from '@/schemas/graphics.schemas';
 
 const FRAME = { width: 1280, height: 720, fps: 30 };
@@ -81,6 +83,12 @@ describe('fx schema', () => {
   const MARKS = new Set(['ripple', 'glint', 'confetti']);
 
   it('documents every parameter of every primitive', () => {
+    describeFxPrimitives();
+
+    for (const variant of FxGraphicSchema.options) {
+      expect(variant.description, variant.shape.effect.value).toMatch(/ Tune: /);
+    }
+
     for (const [name, row] of Object.entries(FX_PRIMITIVES)) {
       for (const [key, schema] of Object.entries(row.params)) {
         expect((schema as { description?: string }).description?.length ?? 0, `${name}.${key}`).toBeGreaterThan(20);
@@ -90,6 +98,19 @@ describe('fx schema', () => {
       expect(row.defaults.ceiling).toBeLessThanOrEqual(MARKS.has(name) ? 1 : 0.35);
       expect(row.defaults.ceiling * row.defaults.intensity).toBeLessThanOrEqual(row.defaults.ceiling);
     }
+  });
+});
+
+describe('fx prose', () => {
+  // The JSON schema LLM authors read carries every field's description and each primitive's intent, although
+  // the rows themselves hold none (the browser's validation never loads fx-docs.ts).
+  it('reaches the JSON schema', () => {
+    const json = JSON.stringify(templateDescriptorJsonSchema);
+
+    expect(json).toContain('Light profile across the band: specular');
+    expect(json).toContain('Where the burst starts, as fractions of the target');
+    expect(json).toContain('Drift heading in degrees, screen convention');
+    expect(json).toContain('A frosted glass panel on the target rectangle');
   });
 });
 

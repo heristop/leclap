@@ -1,6 +1,7 @@
 // The fx vocabulary as the motion catalog presents it: primitives with open parameters and design intent,
-// not a menu of finished looks. Derived from schemas/fx-primitives.schemas.ts, so a new primitive shows up
-// here with its fields and notes as soon as its row exists.
+// not a menu of finished looks. Derived from schemas/fx-primitives.schemas.ts (fields, defaults) and
+// schemas/fx-docs.ts (their prose), so a new primitive shows up here with its fields and notes as soon as
+// its rows exist.
 
 import type { z } from 'zod';
 import {
@@ -10,6 +11,7 @@ import {
   type FxDefaults,
   type FxIntent,
 } from '../../schemas/fx.schemas';
+import { FX_DOCS, describeFxPrimitives } from '../../schemas/fx-docs';
 import { LIBRARY_ANIMATION_SAMPLES, LIBRARY_SAMPLE_NOTE, type LibrarySample } from './library-samples';
 
 export interface FxPrimitiveEntry extends FxIntent {
@@ -55,6 +57,8 @@ export function samplesCatalog(): SamplesCatalog {
 }
 
 export function fxCatalog(): FxCatalog {
+  describeFxPrimitives();
+
   return {
     description:
       'section.graphics[] entries { type: "fx", effect, ...parameters }: procedural light primitives lowered at ' +
@@ -65,7 +69,7 @@ export function fxCatalog(): FxCatalog {
     primitives: Object.fromEntries(
       Object.entries(FX_PRIMITIVES).map(([name, row]) => [
         name,
-        { ...row.intent, params: describe(row.params), defaults: row.defaults },
+        { ...FX_DOCS[name as keyof typeof FX_DOCS].intent, params: describe(row.params), defaults: row.defaults },
       ])
     ),
   };

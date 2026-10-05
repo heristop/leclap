@@ -10,7 +10,10 @@ import { glass, resolve } from './fx-surface.schemas';
 // here, and an omitted field gets a default derived from the context (target size, theme accent, motion
 // energy, the element's seed), so two templates using the same primitive do not look alike unless they
 // ask to. One row per primitive: its own fields (merged with the shared fx fields in fx.schemas.ts) and
-// the design intent the motion catalog shows to authors. The lowering lives in editor/presets/fx-<name>.ts.
+// its defaults. The prose — what each field does and the design intent the motion catalog shows to
+// authors — lives in a matching row of fx-docs.ts, attached to these schemas only where it is read (the
+// JSON schema, the motion catalog), so the browser's synchronous validation never loads it. The lowering
+// lives in editor/presets/fx-<name>.ts.
 
 export interface FxIntent {
   /** What the primitive is, in one line. */
@@ -39,66 +42,31 @@ export interface FxPrimitive {
   /** Primitive-specific fields; every one optional, with a context-derived default. */
   params: z.ZodRawShape;
   defaults: FxDefaults;
+}
+
+/** A primitive's prose (a row of FX_DOCS, fx-docs.ts): what each of its fields does, and its design intent. */
+export interface FxDoc<P extends z.ZodRawShape = z.ZodRawShape> {
+  /** One description per field: its range, its default and what it changes. */
+  params: { [K in keyof P]: string };
   intent: FxIntent;
 }
 
 const sheen = {
   params: {
-    profile: z
-      .enum(['specular', 'soft', 'twin'])
-      .optional()
-      .describe(
-        'Light profile across the band: specular (tight gaussian core + a bloom twice as wide, default: glass, ' +
-          'metal, screens), soft (one wide gaussian wash: paper, fabric, matte cards), twin (two thin parallel ' +
-          'glints: chrome, lenses, techy UI).'
-      ),
-    width: z
-      .number()
-      .min(0.02)
-      .max(0.6)
-      .optional()
-      .describe(
-        "Band width as a fraction of the target's short side (default ~0.15, varied by target shape and seed). " +
-          '0.05–0.1 = a crisp glint, 0.2–0.4 = a broad wash.'
-      ),
-    tilt: z
-      .number()
-      .min(-60)
-      .max(60)
-      .optional()
-      .describe(
-        'Band angle in degrees off the perpendicular of its travel (default 14–26, from the seed). 0 = square ' +
-          'to the path; negative leans the other way.'
-      ),
-    direction: z
-      .enum(['right', 'left', 'down', 'up'])
-      .optional()
-      .describe(
-        'Travel path across the target (default: right on wide targets, down on tall ones). Match the ' +
-          "scene's motion or reading direction."
-      ),
-    bloom: z
-      .number()
-      .min(0)
-      .max(0.6)
-      .optional()
-      .describe('Share of the peak carried by the soft bloom around a specular core (default 0.25; 0 = bare core).'),
+    profile: z.enum(['specular', 'soft', 'twin']).optional(),
+    width: z.number().min(0.02).max(0.6).optional(),
+    tilt: z.number().min(-60).max(60).optional(),
+    direction: z.enum(['right', 'left', 'down', 'up']).optional(),
+    bloom: z.number().min(0).max(0.6).optional(),
   },
   // Peak alpha 0.32 by default: a glint, never a wash (doctrine: light ≤ 0.35).
   defaults: { duration: 0.75, ease: 'cubic-bezier(0.45, 0, 0.2, 1)', ceiling: 0.35, intensity: 0.32 / 0.35 },
-  intent: {
-    summary:
-      'A specular light band that crosses its target once (or `repeat` times), clipped to the target shape: light on the glass of a card, a screen, a product shot or the letters of a title.',
-    useWhen: 'a hero object lands or resolves; a CTA card or price settles; a title locks up',
-    avoidWhen: 'over faces or footage with skin (keep intensity ≤ 0.6 there); more than one sheen per beat',
-    vary: 'profile and width set the material (crisp glint vs. broad wash); tilt and direction set the light source; colour (e.g. "$color.accent") tints it; duration and ease set the speed (0.6–0.9 s reads as a glint, 1.2 s+ as a slow reflection); repeat + every turn it into a periodic glint.',
-    reduced: 'a static 8% highlight that fades in and out on the target',
-  },
 } satisfies FxPrimitive;
 
 /**
- * Every fx primitive, keyed by `effect`. Adding one: a row here (fields + intent), its lowering module
- * editor/presets/fx-<name>.ts and one line in the registry of editor/presets/fx.ts.
+ * Every fx primitive, keyed by `effect`. Adding one: a row here (fields + defaults), its prose in FX_DOCS
+ * (fx-docs.ts), its lowering module editor/presets/fx-<name>.ts and one line in the registry of
+ * editor/presets/fx.ts.
  */
 export const FX_PRIMITIVES = { sheen, ripple, glint, confetti, bokeh, dust, glass, resolve } as const satisfies Record<
   string,

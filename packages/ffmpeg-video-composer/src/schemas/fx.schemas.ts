@@ -6,6 +6,7 @@ import { FX_PRIMITIVES, type FxEffectName } from './fx-primitives.schemas';
 export {
   FX_PRIMITIVES,
   type FxDefaults,
+  type FxDoc,
   type FxEffectName,
   type FxIntent,
   type FxPrimitive,
@@ -123,10 +124,8 @@ export function fxSharedFields(): Record<string, string> {
 function fxObject<N extends FxEffectName>(effect: N) {
   const primitive = FX_PRIMITIVES[effect];
 
-  return z
-    .object({ type: z.literal('fx'), effect: z.literal(effect), ...FX_COMMON, ...primitive.params })
-    .strict()
-    .describe(`${primitive.intent.summary} Tune: ${primitive.intent.vary}`);
+  // Described by describeFxPrimitives (fx-docs.ts): its summary and tuning note, like every field of the row.
+  return z.object({ type: z.literal('fx'), effect: z.literal(effect), ...FX_COMMON, ...primitive.params }).strict();
 }
 
 type FxObject = ReturnType<typeof fxObject<FxEffectName>>;

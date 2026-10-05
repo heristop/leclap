@@ -1,10 +1,8 @@
-import {
-  TemplateDescriptorSchema,
-  SectionSchema,
-  FilterValuesSchema,
-  type TemplateDescriptor,
-  type Section,
-} from '../schemas/template.schemas';
+// The schemas themselves, not template.schemas.ts: that module also builds the JSON schema (with the fx prose
+// it attaches), which a browser page that only validates never needs.
+import { TemplateDescriptorSchema, SectionSchema } from '../schemas/section.schemas';
+import { FilterValuesSchema } from '../schemas/filter.schemas';
+import type { TemplateDescriptor, Section } from '../schemas/template.schemas';
 import { findUnknownKeys, type UnknownKey } from './validation/schema-walk';
 import { knownNames, referenceFinding } from './validation/reference-finding';
 import {

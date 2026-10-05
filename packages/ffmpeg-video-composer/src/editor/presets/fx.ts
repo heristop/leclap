@@ -2,9 +2,10 @@
 //
 // EXTENSION CONTRACT (adding a primitive, e.g. "leak"):
 //   1. schemas/fx-primitives.schemas.ts: one row in FX_PRIMITIVES — its own zod fields (every look-defining
-//      parameter, all optional, each `.describe()`d with its range and what it changes), its defaults
-//      (duration at energy 1, ease, doctrine ceiling, default intensity) and its design intent (summary,
-//      useWhen, avoidWhen, vary, reduced). The schema, the JSON schema and the motion catalog derive from it.
+//      parameter, all optional) and its defaults (duration at energy 1, ease, doctrine ceiling, default
+//      intensity); and its prose in FX_DOCS (schemas/fx-docs.ts): each field's description (its range and
+//      what it changes) and its design intent (summary, useWhen, avoidWhen, vary, reduced). The schema, the
+//      JSON schema and the motion catalog derive from them; the browser's validation loads only the first.
 //   2. editor/presets/fx-<name>.ts: export an FxEffect (fx-kit.ts). `lower(fx)` gets an FxContext with the
 //      target already resolved and snapped, timing on the frame grid, colour/peak/seed/energy resolved, and a
 //      seeded `random` for context defaults; it returns light layers (or null to skip after a warning) and

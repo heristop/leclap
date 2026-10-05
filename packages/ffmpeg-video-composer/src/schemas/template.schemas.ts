@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TemplateDescriptorSchema, type SectionSchema, type InputSchema } from './section.schemas';
 import type { TemplatePartialSchema } from './partial.schemas';
+import { describeFxPrimitives } from './fx-docs';
 import type { FilterSchema, MapSchema } from './filter.schemas';
 import type {
   GlobalConfigSchema,
@@ -31,6 +32,10 @@ export * from './graphics.schemas';
 export * from './formats.schemas';
 
 // ── JSON Schema export ─────────────────────────────────────────────────────────
+
+// The fx primitives' prose (fx-docs.ts) is attached before the schema is generated, so the JSON schema (and
+// any later z.toJSONSchema of these schemas) describes every fx field.
+describeFxPrimitives();
 
 export const templateDescriptorJsonSchema = z.toJSONSchema(TemplateDescriptorSchema);
 

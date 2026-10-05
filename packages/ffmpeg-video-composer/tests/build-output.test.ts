@@ -28,6 +28,25 @@ function instantiateProject(Project: new () => unknown): void {
   new Project();
 }
 
+// browser.js and every chunk it imports statically, with their code.
+async function browserEagerFiles(): Promise<Map<string, string>> {
+  const files = new Map<string, string>();
+  const walk = async (file: string): Promise<void> => {
+    if (files.has(file)) return;
+
+    const code = await readFile(path.join(DIST_DIR, file), 'utf-8');
+
+    files.set(file, code);
+    const imports = [...code.matchAll(/(?:^|\n)\s*(?:import|export)\s[^;]*?from\s*["']\.\/([^"']+)["']/g)];
+
+    await Promise.all(imports.map((match) => walk(match[1])));
+  };
+
+  await walk('browser.js');
+
+  return files;
+}
+
 describe('Build Output', () => {
   describe('File Existence', () => {
     it('should have index.js in dist', async () => {
@@ -292,21 +311,23 @@ describe('Build Output', () => {
     // The size a page actually loads before its first compile: browser.js plus every chunk it imports
     // statically (lazy `import()` chunks are fetched later). Guards the shared chunk from regrowing.
     it('browser entry eager load (browser.js + static chunks) should be under 600KB', async () => {
-      const seen = new Set<string>();
-      const walk = async (file: string): Promise<number> => {
-        if (seen.has(file)) return 0;
-
-        seen.add(file);
-        const code = await readFile(path.join(DIST_DIR, file), 'utf-8');
-        const imports = [...code.matchAll(/(?:^|\n)\s*(?:import|export)\s[^;]*?from\s*["']\.\/([^"']+)["']/g)];
-        const sizes = await Promise.all(imports.map((match) => walk(match[1])));
-
-        return (await stat(path.join(DIST_DIR, file))).size + sizes.reduce((a, b) => a + b, 0);
-      };
-      const total = await walk('browser.js');
+      const files = await browserEagerFiles();
+      const sizes = await Promise.all(
+        [...files.keys()].map(async (file) => (await stat(path.join(DIST_DIR, file))).size)
+      );
+      const total = sizes.reduce((a, b) => a + b, 0);
 
       expect(total).toBeLessThan(600 * 1024);
-      console.log(`  browser eager load: ${(total / 1024).toFixed(2)} KB across ${seen.size} files`);
+      console.log(`  browser eager load: ${(total / 1024).toFixed(2)} KB across ${files.size} files`);
+    });
+
+    // Validation needs the schemas, not their authoring prose: the fx rows' descriptions and intent
+    // (schemas/fx-docs.ts) and the JSON schema built from them (template.schemas.ts) load only where read.
+    it('browser entry eager load carries neither the fx prose nor the JSON schema build', async () => {
+      const code = [...(await browserEagerFiles()).values()].join('\n');
+
+      expect(code).not.toContain('toJSONSchema(');
+      expect(code).not.toContain('Light profile across the band');
     });
 
     it('sourcemaps should exist and be reasonable size', async () => {

@@ -57,6 +57,10 @@ export default defineConfig([
     target: 'es2024',
     platform: 'browser',
     globalName: 'FFmpegVideoComposer',
+    // The JSDoc of the sources ships in the .d.ts (and the sourcemaps point at the sources); repeated in the
+    // JS it only adds to what a page downloads before its first compile (tests/build-output.test.ts budget).
+    // Legal and annotation (`@__PURE__`) comments stay.
+    outputOptions: { comments: { legal: true, annotation: true, jsdoc: false } },
     deps: {
       onlyBundle: false,
       neverBundle: [

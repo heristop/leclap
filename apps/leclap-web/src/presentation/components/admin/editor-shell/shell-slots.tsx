@@ -1,6 +1,7 @@
 // The three self-contained slots of TemplateEditorShell's ShellChrome — the titlebar, the program
-// monitor (edit canvas or playback), and the help / starter-preset modals — lifted out so the shell
-// file stays under its dependency budget. Each is a thin presentational wrapper; the shell owns state.
+// monitor (edit canvas or playback), and the help / starter-preset / AI overlays (one at a time) —
+// lifted out so the shell file stays under its dependency budget. Each is a thin presentational
+// wrapper; the shell owns state.
 import { useState, type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ProgramMonitor } from '@/presentation/components/editor-shell';
@@ -16,6 +17,7 @@ import { ProgramPlayer } from './program-player';
 import { ProgramTransport } from './program-transport';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
 import type { SaveFeedback } from './save-blocker.logic';
+import { setModalOpen, type ShellModal } from './shell-modals.logic';
 import { GenerateWithAiButton, LazyGenerateWithAiDialog } from '../ai-generate/AiAssist';
 
 interface ShellTitlebarProps {
@@ -133,29 +135,34 @@ export const ShellMonitor = ({
 };
 
 export interface ShellModalState {
-  helpOpen: boolean;
-  setHelpOpen: (open: boolean) => void;
-  presetsOpen: boolean;
-  setPresetsOpen: (open: boolean) => void;
-  aiOpen: boolean;
-  setAiOpen: (open: boolean) => void;
-  // Any modal open: the editor's global shortcuts stand down so keys act on the dialog.
+  // The one overlay showing (help, starter presets or the AI drawer), or null.
+  active: ShellModal | null;
+  // Shows `kind`, closing whichever overlay was up: overlays never stack.
+  open: (kind: ShellModal) => void;
+  // Closes `kind` if it is still the one showing.
+  close: (kind: ShellModal) => void;
+  // Controlled-component adapter for an overlay's onOpenChange.
+  setOpen: (kind: ShellModal, open: boolean) => void;
+  // Any overlay open: the editor's global shortcuts stand down so keys act on it.
   anyOpen: boolean;
 }
 
 export function useShellModals(presetsInitiallyOpen: boolean): ShellModalState {
-  const [helpOpen, setHelpOpen] = useState(false);
-  const [presetsOpen, setPresetsOpen] = useState(presetsInitiallyOpen);
-  const [aiOpen, setAiOpen] = useState(false);
+  const [active, setActive] = useState<ShellModal | null>(presetsInitiallyOpen ? 'presets' : null);
+  const setOpen = (kind: ShellModal, open: boolean): void => {
+    setActive((current) => setModalOpen(current, kind, open));
+  };
 
   return {
-    helpOpen,
-    setHelpOpen,
-    presetsOpen,
-    setPresetsOpen,
-    aiOpen,
-    setAiOpen,
-    anyOpen: helpOpen || presetsOpen || aiOpen,
+    active,
+    open: (kind) => {
+      setOpen(kind, true);
+    },
+    close: (kind) => {
+      setOpen(kind, false);
+    },
+    setOpen,
+    anyOpen: active !== null,
   };
 }
 
@@ -169,28 +176,30 @@ interface ShellModalsProps {
 export const ShellModals = ({ modals, reset, canUndo }: ShellModalsProps) => (
   <>
     <ShortcutCheatSheet
-      open={modals.helpOpen}
+      open={modals.active === 'help'}
       onClose={() => {
-        modals.setHelpOpen(false);
+        modals.close('help');
       }}
     />
     <StarterPresetPicker
-      open={modals.presetsOpen}
+      open={modals.active === 'presets'}
       onPick={(preset) => {
         reset(preset.build());
-        modals.setPresetsOpen(false);
+        modals.close('presets');
       }}
       onBlank={() => {
-        modals.setPresetsOpen(false);
+        modals.close('presets');
       }}
       onGenerate={() => {
-        modals.setPresetsOpen(false);
-        modals.setAiOpen(true);
+        // Swaps the picker for the AI drawer (one overlay at a time).
+        modals.open('ai');
       }}
     />
     <LazyGenerateWithAiDialog
-      open={modals.aiOpen}
-      onOpenChange={modals.setAiOpen}
+      open={modals.active === 'ai'}
+      onOpenChange={(open) => {
+        modals.setOpen('ai', open);
+      }}
       hasUnsavedWork={canUndo}
       onLoad={reset}
     />

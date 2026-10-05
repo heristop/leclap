@@ -204,7 +204,7 @@ describe('plan step', () => {
     expect(html).toContain('<table');
     expect(html).toContain('<caption');
     expect(html).toContain(ai.plan.beats);
-    expect(html.match(/<th scope="col"/g)).toHaveLength(5);
+    expect(html.match(/<th scope="col"/g)).toHaveLength(4);
     expect(html.match(/<th scope="row"/g)).toHaveLength(2);
     expect(html).toContain('value="Worth the wait."');
     expect(html).toContain('value="SLAMS"');

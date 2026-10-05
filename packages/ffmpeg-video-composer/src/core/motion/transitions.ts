@@ -9,12 +9,13 @@
 //   [next] → in ‖ rest ────┘                           ├─ concat(head, mix, rest)
 //
 // Same timeline as xfade (offset + duration), so the audio crossfade and music windows are unchanged.
-// Only standard filters (split, trim, setpts, pad, overlay, crop, scale, zoompan, xfade, concat, gblur),
+// Only standard filters (split, trim, setpts, pad, overlay, crop, scale, format, zoompan, xfade, concat, gblur),
 // all in the on-device build.
 
 import { parseEasing, type EasingSpec } from './easing';
 import { easedProgressExpr, fmt } from './hermite';
 import { whipBlur, WHIP_EASE } from './whip';
+import { exactZoomFilters, ZOOM_TIME } from './zoom-exact';
 
 export const DESIGNED_TRANSITIONS = [
   'push-left',
@@ -109,15 +110,16 @@ function swipe(b: DesignedBoundary, p: Pads, e: string): string {
   );
 }
 
-function zoomChain(z: string, b: DesignedBoundary): string {
-  const { width: w, height: h, fps } = b;
+// The exact sub-pixel zoom (zoom-exact.ts): a whole-pixel crop would step visibly as the zoom slows down.
+function zoomChain(zoom: string, b: DesignedBoundary): string {
+  const { width, height, fps } = b;
 
-  return `scale=${2 * w}:${2 * h},zoompan=z='${z}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s=${w}x${h}:fps=${fps},settb=AVTB`;
+  return `${exactZoomFilters({ zoom }, { width, height, fps }).join(',')},settb=AVTB`;
 }
 
 function zoomThrough(b: DesignedBoundary, p: Pads): string {
   const ease = parseEasing(b.ease ?? DEFAULT_TRANSITION_EASE);
-  const e = easedProgressExpr(ease, { delay: 0, duration: b.duration }, `(on/${b.fps})`);
+  const e = easedProgressExpr(ease, { delay: 0, duration: b.duration }, `(${ZOOM_TIME})`);
 
   return (
     `[${p.tail}]${zoomChain(`1+0.6*(${e})`, b)}[${b.id}za];[${p.in}]${zoomChain(`1.25-0.25*(${e})`, b)}[${b.id}zb];` +

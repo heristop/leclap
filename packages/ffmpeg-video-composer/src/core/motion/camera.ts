@@ -1,6 +1,6 @@
-// Virtual camera lowering (docs/plans/motion-system-v2.md §4.2). The frame is pre-upscaled 2× (halving
-// zoompan's integer-pixel jitter, as Ken Burns does), framed by `zoompan` on the output frame clock, then
-// rolled by `rotate`. Every move is a P1 track or closed-form term, so it is deterministic; the frame is
+// Virtual camera lowering (docs/plans/motion-system-v2.md §4.2). The frame is framed by an exact
+// sub-pixel zoom/pan on the output frame clock (zoom-exact.ts: no whole-pixel stepping), then rolled by
+// `rotate`. Every move is a P1 track or closed-form term, so it is deterministic; the frame is
 // over-scanned just enough that pans, shake and roll never reveal an edge.
 
 import type { Camera } from '../../schemas/camera.schemas';
@@ -8,6 +8,7 @@ import { seededRandom } from '../determinism/hash';
 import { fmt } from './hermite';
 import { trackExpr, type TrackKey } from './tracks';
 import { seconds } from '../timing/seconds';
+import { exactZoomFilters, ZOOM_TIME, type ZoomMove } from './zoom-exact';
 
 export interface CameraFrame {
   width: number;
@@ -127,29 +128,44 @@ function axis(keys: TrackKey[] | undefined, time: string, sway: string): string 
   return `(${keys ? trackExpr(keys, 0, time) : '0'})+${sway}`;
 }
 
-/** The camera as raw filter strings for the end of a section chain ([] when there is nothing to do). */
-export function cameraFilters(camera: Camera | undefined, frame: CameraFrame): string[] {
-  const plan = camera ? rig(camera, frame) : null;
+interface CameraLowering {
+  move: ZoomMove;
+  roll: string | null;
+}
 
-  if (!camera || !plan) return [];
+function lower(camera: Camera, frame: CameraFrame): CameraLowering | null {
+  const plan = rig(camera, frame);
+
+  if (!plan) return null;
 
   const { tracks, shake } = plan;
-  const { width: w, height: h, fps } = frame;
-  const time = `(on/${fps})`;
+  const time = ZOOM_TIME;
+  // One seeded stream, drawn in a fixed order: x wander, y wander, then roll.
   const random = seededRandom(frame.seed);
   const scaleFactor = fmt(overscan({ ...camera, shake }, tracks, frame));
   const zoom = `(${tracks.zoom ? trackExpr(tracks.zoom, 0, time) : '1'})*(1${hitsTerm(camera, time)})*${scaleFactor}`;
-  const x = `max(0,min(iw-iw/zoom,iw/2-iw/zoom/2+(${axis(tracks.x, time, sway(shake, random, time))})*iw/zoom/${w}))`;
-  const y = `max(0,min(ih-ih/zoom,ih/2-ih/zoom/2+(${axis(tracks.y, time, sway(shake, random, time))})*ih/zoom/${h}))`;
-  const filters = [
-    `scale=${2 * w}:${2 * h}`,
-    `zoompan=z='max(1,${zoom})':x='${x}':y='${y}':d=1:s=${w}x${h}:fps=${fps}`,
-  ];
+  const panX = axis(tracks.x, time, sway(shake, random, time));
+  const panY = axis(tracks.y, time, sway(shake, random, time));
+  const rolls = Boolean(tracks.rotate) || Boolean(shake?.rotation);
+  const wobble = shake?.rotation ? wander(shake.rotation, (shake.frequency ?? 0.8) * 0.7, random, 't') : '0';
 
-  if (tracks.rotate || shake?.rotation) {
-    const roll = shake?.rotation ? wander(shake.rotation, (shake.frequency ?? 0.8) * 0.7, random, 't') : '0';
-    filters.push(`rotate=a='(${axis(tracks.rotate, 't', roll)})*PI/180':fillcolor=black`);
-  }
+  return { move: { zoom, panX, panY }, roll: rolls ? axis(tracks.rotate, 't', wobble) : null };
+}
+
+/** The camera's zoom and pan as expressions in ZOOM_TIME (null when there is nothing to do). */
+export function cameraMove(camera: Camera | undefined, frame: CameraFrame): ZoomMove | null {
+  return camera ? (lower(camera, frame)?.move ?? null) : null;
+}
+
+/** The camera as raw filter strings for the end of a section chain ([] when there is nothing to do). */
+export function cameraFilters(camera: Camera | undefined, frame: CameraFrame): string[] {
+  const lowered = camera ? lower(camera, frame) : null;
+
+  if (!lowered) return [];
+
+  const filters = exactZoomFilters(lowered.move, frame);
+
+  if (lowered.roll !== null) filters.push(`rotate=a='(${lowered.roll})*PI/180':fillcolor=black`);
 
   return filters;
 }

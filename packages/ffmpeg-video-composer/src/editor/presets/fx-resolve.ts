@@ -2,19 +2,20 @@
 //
 // The kit hands the effect two copies of the target region. The first becomes the GLOW: the region under a
 // heavy blur, what the element dissolves into. The second is the element resolving: zoompan settles it from
-// `scale` to 1 (on a 2× upscale, so the crop never jitters by a whole pixel), a run of gblur filters steps
+// `scale` to 1 (an exact sub-pixel zoom, so the edges never step by a whole pixel), a run of gblur filters steps
 // its defocus from `blur` to 0 one frame at a time on the eased curve (enable windows, merged where the
 // radius repeats: never fewer steps than frames, so no step is visible), and its alpha fades in over the
 // first `fade` of the pass. Both are feathered into the frame by a soft rounded mask sprite, so the
 // processed rectangle never shows an edge. The glow holds from the section start (the element is hidden
 // until `at`), so the effect owns the element's entrance. A text target resolves on its block's box,
 // widened by the blur reach (never the glyph mask, which would cut the defocus). Reduced motion: a plain
-// cross-fade from the glow to the element. Filters: split, gblur, scale, zoompan, format, alphamerge, fade
+// cross-fade from the glow to the element. Filters: split, gblur, setpts, scale, zoompan, format, alphamerge, fade
 // (on-device allowlist); without zoompan there is no scale, without alphamerge no feather.
 
 import type { Filter, FilterGraphChain } from '@/core/types';
 import { parseEasing } from '@/core/motion/easing';
 import { fmt } from '@/core/motion/hermite';
+import { exactZoomFilterObjects, ZOOM_TIME } from '@/core/motion/zoom-exact';
 import { mergeRuns, sampleSteps } from './graphics-spec';
 import type { AnyFxContext, FxContext, FxEffect, FxLayer } from './fx-kit';
 
@@ -95,7 +96,7 @@ export function blurSteps(fx: FxContext<'resolve'>, look: Look): Filter[] {
 }
 
 /**
- * The region settling from look.scale to 1 on the eased curve: zoompan on a 2× upscale (so its whole-pixel
+ * The region settling from look.scale to 1 on the eased curve: an exact sub-pixel zoom (zoom-exact.ts, so its
  * crop never jitters), laid over the untouched region only while the zoom still moves the edges by a
  * quarter pixel or more; from then on the element is the exact region (an up/down-scale is never identity).
  */
@@ -110,7 +111,9 @@ function settle(fx: FxContext<'resolve'>, look: Look, from: string): [FilterGrap
   const first = Math.round(look.at * fx.frame.fps);
   const zooms = Array.from({ length: frames + 1 }, (_, i) => look.scale - (look.scale - 1) * curve(i / frames));
   // Output frame `first + i` (zoompan counts its frames in `on`, from the section start) gets knot i.
-  const zoom = zooms.reduceRight((tail, value, i) => `if(lt(on,${first + i + 1}),${fmt(value)},${tail})`, '1');
+  const on = `round(${ZOOM_TIME}*${fx.frame.fps})`;
+  const zoom = zooms.reduceRight((tail, value, i) => `if(lt(${on},${first + i + 1}),${fmt(value)},${tail})`, '1');
+  const exact = exactZoomFilterObjects({ zoom }, { width: w, height: h, fps: fx.frame.fps });
   const settled = zooms.findIndex((value) => ((value - 1) * Math.max(w, h)) / 2 < 0.25);
   const until = (first + (settled === -1 ? frames : settled) - 0.5) / fx.frame.fps;
 
@@ -119,13 +122,7 @@ function settle(fx: FxContext<'resolve'>, look: Look, from: string): [FilterGrap
       { inputs: [from], filters: [{ type: 'split', value: '2' }], outputs: [`${p}zs`, `${p}zk`] },
       {
         inputs: [`${p}zs`],
-        filters: [
-          { type: 'scale', value: `${2 * w}:${2 * h}:flags=bicubic` },
-          {
-            type: 'zoompan',
-            value: `z='${zoom}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d=1:s=${w}x${h}:fps=${fx.frame.fps}`,
-          },
-        ],
+        filters: exact,
         outputs: [`${p}zz`],
       },
       {

@@ -31,6 +31,7 @@ const lgplCaps: EngineCapabilities = {
   colorkey: true,
   textShaping: false,
   deviceFilters: null,
+  missingFilters: null,
 };
 
 function isDeviceSafe(filterType: string, enabled: Set<string>): boolean {

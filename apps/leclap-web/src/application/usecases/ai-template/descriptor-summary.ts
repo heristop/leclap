@@ -53,7 +53,8 @@ function metaText(descriptor: TemplateDescriptor, key: 'name' | 'description'): 
 export function summarizeDescriptor(descriptor: TemplateDescriptor): DescriptorSummary {
   const visual = (descriptor.sections ?? []).filter((section) => VISUAL_TYPES.has(section.type));
   const durations = visual.map(sectionDuration);
-  const globalLook = descriptor.global?.look ? [`look: ${descriptor.global.look}`] : [];
+  const look = descriptor.global?.look;
+  const globalLook = look ? [`look: ${typeof look === 'string' ? look : look.preset}`] : [];
   const globalTransition =
     descriptor.global?.transition && descriptor.global.transition.type !== 'cut'
       ? [`transition: ${descriptor.global.transition.type}`]

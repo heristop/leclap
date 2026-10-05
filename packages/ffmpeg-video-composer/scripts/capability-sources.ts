@@ -49,6 +49,7 @@ function compatRuleFor(filterType: string): string | null {
     colorkey: true,
     textShaping: false,
     deviceFilters: null,
+    missingFilters: null,
   };
 
   for (const rule of FILTER_COMPAT) {

@@ -140,6 +140,21 @@ describe('whip transitions', () => {
     for (let i = 1; i < runs.length; i++) expect(runs[i].from).toBeGreaterThanOrEqual(runs[i - 1].to - 1e-9);
   });
 
+  it('follows the shutter: the blur fades in with the speed, and a longer whip blurs less', () => {
+    const ease = 'cubic-bezier(0.7, 0, 0.2, 1)';
+    const short = sigmas(whipBlur({ ease, duration: 0.4, ...FRAME, type: 'whip-left' }));
+    const long = sigmas(whipBlur({ ease, duration: 0.8, ...FRAME, type: 'whip-left' }));
+    const peak = (runs: typeof short) => Math.max(...runs.map((r) => r.h));
+
+    // No threshold: the first blurred frames are light, and the radius climbs before it peaks.
+    expect(short[0].h).toBeLessThanOrEqual(3);
+    expect(short.findIndex((r) => r.h === peak(short))).toBeGreaterThan(2);
+    expect(peak(long)).toBeLessThan(peak(short) * 0.7);
+    // Gated half a frame before each frame's instant, never on it.
+    const frame = 1 / FRAME.fps;
+    for (const r of short) expect(((r.from / frame) * 2) % 2).toBeCloseTo(1, 3);
+  });
+
   it('vertical whips blur vertically; a linear ease still peaks; graphs are deterministic', () => {
     const up = sigmas(whipBlur({ ease: 'linear', duration: 0.4, ...FRAME, type: 'whip-up' }));
 

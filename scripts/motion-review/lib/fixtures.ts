@@ -34,6 +34,8 @@ export interface Fixture {
   /** Merged into the stage descriptor's `global` (e.g. `{ "motion": { "reduced": true } }`). */
   global?: JsonObject;
   section: JsonObject;
+  /** A second stage section after the first (for transitions): this fragment over the same background. */
+  next?: JsonObject;
 }
 
 const DEFAULT_FRACTIONS = [0.2, 0.4, 0.6, 0.8];
@@ -102,8 +104,13 @@ function fixtureJob(fixture: Fixture, background: Background, format: Format, op
   const duration = round(Math.max(2, fixture.window.at + fixture.window.duration + (fixture.hold ?? 0.8)));
   const fragment = applyTokens(fixture.section, tokens) as JsonObject;
   const section = mergeSection(baseSection(background, format, tokens, duration), fragment);
+  const next = fixture.next && {
+    ...mergeSection(baseSection(background, format, tokens, duration), applyTokens(fixture.next, tokens) as JsonObject),
+    name: 'review-next',
+  };
   const key = `${fixture.id}__${background}__${format}`;
-  const clean = sanitize(sceneDescriptor(format, section, key, fixture.global), options.assets, format);
+  const sections = next ? [section, next] : section;
+  const clean = sanitize(sceneDescriptor(format, sections, key, fixture.global), options.assets, format);
   const effectGone = fixture.kind === 'legacy' && clean.dropped.length > 0;
 
   return {

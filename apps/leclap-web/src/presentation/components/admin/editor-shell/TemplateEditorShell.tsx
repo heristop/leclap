@@ -16,7 +16,7 @@ import { useEditorSelection, indexAfterReorder } from './useEditorSelection';
 import { useSectionSelection } from './useSectionSelection';
 import { EditorPanelSwitch } from './EditorPanelSwitch';
 import { EditorSceneTimeline } from './EditorSceneTimeline';
-import { useProgramMonitor, useTemplatePersistence } from './use-template-editor-shell';
+import { useBuilderAgent, useProgramMonitor, useTemplatePersistence } from './use-template-editor-shell';
 import { ShellTitlebar, ShellMonitor, ShellModals, useShellModals } from './shell-slots';
 import { sectionLabelKey, sectionTitle } from './section-label';
 
@@ -70,6 +70,8 @@ export const TemplateEditorShell = ({
   const [sel, dispatch] = useEditorSelection({ activeTool: 'scenes', selectedIndex: 0 });
   const sectionSelection = useSectionSelection(String(sel.selectedIndex));
   const monitor = useProgramMonitor(state);
+  // Browser agents (WebMCP): tools over this history/selection, an activity pill and its confirmations.
+  const agent = useBuilderAgent({ history, selectedIndex: sel.selectedIndex, dispatch, modals, localPartials });
   const save = useTemplatePersistence({
     state,
     t,
@@ -178,6 +180,7 @@ export const TemplateEditorShell = ({
             feedback={save.feedback}
             nameInvalid={save.blocker?.kind === 'name'}
             nameRef={save.nameRef}
+            agent={agent}
           />
         }
         dock={
@@ -226,6 +229,7 @@ export const TemplateEditorShell = ({
           <EditorSceneTimeline
             sections={state.sections}
             selectedIndex={sel.selectedIndex}
+            highlighted={agent.highlighted}
             onSelect={(i) => {
               // Picking a scene card returns to the edit canvas for that scene.
               if (monitor.playMode) monitor.exitPlayMode();
@@ -245,7 +249,7 @@ export const TemplateEditorShell = ({
           />
         }
       />
-      <ShellModals modals={modals} reset={reset} canUndo={canUndo} />
+      <ShellModals modals={modals} reset={reset} canUndo={canUndo} agent={agent} />
     </ColorVariablesProvider>
   );
 };

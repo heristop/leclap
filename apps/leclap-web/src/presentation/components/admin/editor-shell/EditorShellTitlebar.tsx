@@ -27,6 +27,8 @@ interface EditorShellTitlebarProps {
   preview?: ReactNode;
   // Optional assist control rendered before the preview — the template editor's "Generate with AI".
   assist?: ReactNode;
+  // Optional browser-agent (WebMCP) pill, rendered first in the action cluster.
+  agent?: ReactNode;
   t: TFunction<'admin'>;
 }
 
@@ -125,6 +127,7 @@ export const EditorShellTitlebar = ({
   nameRef,
   preview,
   assist,
+  agent,
   t,
 }: EditorShellTitlebarProps) => {
   const messageId = useId();
@@ -168,6 +171,7 @@ export const EditorShellTitlebar = ({
         />
         {/* Action cluster — `w-full` forces the wrap onto its own right-aligned row on phones. */}
         <div className="flex w-full items-center justify-end gap-2 sm:w-auto sm:gap-3">
+          {agent}
           <IconButton label={t('editor.toolbar.undo')} disabled={!canUndo} onClick={onUndo}>
             <Undo2 className="size-4" />
           </IconButton>

@@ -22,6 +22,7 @@
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",
     "@leclap/creative-kit": "workspace:*",
+    "@mcp-b/webmcp-polyfill": "5.1.0",
     "@radix-ui/react-checkbox": "1.3.11",
     "@radix-ui/react-dialog": "1.1.23",
     "@radix-ui/react-select": "2.3.7",
@@ -48,6 +49,7 @@
     "tailwind-merge": "^3.6.0",
     "tsyringe": "^4.10.0",
     "web-haptics": "^0.0.6",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

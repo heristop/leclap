@@ -7,6 +7,9 @@ describe('shell modals: one overlay at a time', () => {
     expect(setModalOpen('help', 'ai', true)).toBe('ai');
     expect(setModalOpen('ai', 'help', true)).toBe('help');
     expect(setModalOpen(null, 'presets', true)).toBe('presets');
+    // A browser agent's confirmation takes over from whatever is up, and help can take over from it.
+    expect(setModalOpen('ai', 'agent', true)).toBe('agent');
+    expect(setModalOpen('agent', 'help', true)).toBe('help');
   });
 
   it('closing clears only the overlay it names', () => {

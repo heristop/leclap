@@ -60,18 +60,50 @@ It is asset-free (bundled fonts), deterministic, and renders on every backend. S
 
 Each phrase is fitted to at most two balanced lines, held for at least a second, and drawn with plain `drawtext` / `drawbox` filters gated by `enable` windows. It needs no footage, and the same JSON renders the same bytes on every run.
 
-## FX pack
+## Motion FX pack
 
-[`fx-pack.json`](./fx-pack.json) gathers the newer native effects in one asset-free piece: kinetic echo trails, `whip-*` transitions, the `glitch`, `focus`, `progress`, `ticker` and `bars-chart` graphics, and the lower-third styles. It renders twice to the same bytes. See [graphics](../../docs/template-configuration.md#graphics) and [designed transitions](../../docs/template-configuration.md#designed-transitions).
+[`fx-pack.json`](./fx-pack.json) strings five beats together with whip transitions: a glitch hook whose punch word smears in on a kinetic `trail`, a rack-focus title framed by corners, a bar chart that grows and counts up under a progress bar, a looping ticker, and a close that shows the lower-third styles (`side-rule`, `clean-bar`, `kicker`, `stack-bars`, `pill`). Asset-free. Watch it at `/showcase?sample=fx-pack`.
 
-## Formats
+## One story, three formats
 
-[`formats.json`](./formats.json) tells one launch story three times: a 16:9 film, a 9:16 vertical cut (larger type, the aside dropped, a vertical camera path, Shorts safe zones) and a 1:1 feed post (the proof beat removed, shorter holds). See [formats](../../docs/template-configuration.md#formats-one-story-several-compositions).
+[`formats.json`](./formats.json) is one launch story composed for 16:9, 9:16 and 1:1. `$format` markers set per-format sizes, positions and holds; `formats.portrait` / `formats.square` patch sections by element id (the square cut drops the proof beat). Render every format with `leclap render formats.json --formats all` (one file per format); the showcase previews the landscape cut.
 
 ```bash
 leclap render examples/motion-design/formats.json --formats all \
   --assets packages/leclap-creative-kit/src/library -o formats.mp4
 ```
+
+## Filled type
+
+[`kinetic-fills.json`](./kinetic-fills.json) fills kinetic letters instead of colouring them: a two-colour `gradient`, the bundled golden-hour photograph as a `texture`, and a brand word with a three-stop gradient and a repeating shimmer `sweep`. Each block keeps a solid `color` as the fallback for engines without `alphamerge`.
+
+## Split screens and wipes
+
+[`split-layouts.json`](./split-layouts.json) uses `sections[].layout` with bundled photos: three panes side by side with a gap, two stacked panes with a divider, and a `before-after` wipe whose BEFORE and AFTER labels sit on either side of the moving edge.
+
+## Right-to-left type
+
+[`rtl-type.json`](./rtl-type.json) animates Arabic (`noto-arabic`) and Hebrew (`noto-hebrew`) headlines a line at a time (`unit: "line"`), so letters stay joined and shaped (`text_shaping` on FFmpeg builds with libfribidi). Each beat carries a small Latin gloss; the close sets both scripts side by side.
+
+## Emoji in type
+
+[`emoji-type.json`](./emoji-type.json) puts colour emoji in a kinetic headline, in an emoji-only row that pops one by one, and in a title card. Each emoji is composited as a bundled image in the measured gap of its line and animates with its word.
+
+## On the beat
+
+[`beat-grid.json`](./beat-grid.json) declares `global.beats` (120 BPM, 4/4). Sections last `{ "bars": 1 }` or `{ "bars": 2 }`, entrances use `beat:n` / `bar:n` references, the drop punches the camera on every beat and flashes on each downbeat, and `global.sfx` lays a click track (tick on beats, hit on downbeats, a riser and a boom into the drop) on the same grid. It needs no music file.
+
+## Theme, roles and safe zones
+
+[`theme-roles.json`](./theme-roles.json) is a portrait promo for `global.platform: "tiktok"` on the `neon` theme. Colours and fonts are `$color.*` / `$font.*` tokens; every animated element declares a motion `role` (headline, accent, panel, micro, camera, mascot) instead of an ease, and sections declare their narrative `role` and `purpose`. All copy stays inside TikTok's safe zones, so validation reports no `platform_ui_overlap`.
+
+## Footage editing
+
+[`footage-edit.json`](./footage-edit.json) shows one footage control per recorded scene: `fit: "blur"` for a vertical clip in a landscape frame, a keyframed `focus` pan with a user LUT (`grade.lut`), a `clip` range on the `bullet` speed ramp, a `freeze` with a flash and a shutter sound, and a B-roll `cutaways` entry under a LUT look at `strength: 0.6`. The B-roll and LUT are `{{ broll }}` / `{{ lut }}` variables: point them at your own clip and `.cube` file. The showcase preview records the scenes with generated clips (see the [showcase README](../showcase/README.md#effects--editing)).
+
+## Sound design
+
+[`sound-design.json`](./sound-design.json) scores an edit from JSON: `global.audio.sfx: "auto"` adds a hit on the impact landing and whooshes on the designed transitions, a `drop` cue gets an automatic riser plus an authored boom and flash, the recorded line uses the `clean` voice preset and `audioAutomation` to fade in and out, and the close rings once. Every sound comes from the bundled library.
 
 ## Native controls
 

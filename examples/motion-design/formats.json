@@ -90,6 +90,7 @@
           "text": { "en": "" },
           "preset": "counter",
           "counter": { "from": 0, "to": 3, "suffix": " formats" },
+          "duration": 1,
           "size": { "$format": { "landscape": 150, "portrait": 130, "square": 120 } },
           "y": "center",
           "color": "#FFF685"

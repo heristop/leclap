@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Seo } from '@/presentation/components/Seo';
 import { Callout, Code, DefList, DocSection, Prose } from '@/presentation/components/doc/DocBlocks';
-import { webMcpTools } from '@/presentation/components/doc/webmcpDocs';
+import { webMcpTools, type WebMcpToolKind } from '@/presentation/components/doc/webmcpDocs';
 import { DocPageHeader } from './DocLayout';
 
 // The browser-agent (WebMCP) reference. The tool table lives in `webmcpDocs.ts`, checked against the
@@ -12,6 +12,38 @@ const CONFIRM_LABEL = {
   'ask-before-edit': 'Confirmed when “Ask before every edit” is on',
   always: 'Always confirmed in the page',
 } as const;
+
+const countOf = (kind: WebMcpToolKind): string => String(webMcpTools.filter((tool) => tool.kind === kind).length);
+
+const TROUBLESHOOTING = [
+  {
+    term: 'No Agent button',
+    children:
+      'The browser exposes no document.modelContext. Turn on the flag or use a deployment with the origin trial, over HTTPS or localhost.',
+  },
+  {
+    term: 'The agent sees no tools',
+    children:
+      'The switch is off, or you left the builder: tools exist only while a builder page is open with the switch on.',
+  },
+  {
+    term: 'Some tools could not be registered',
+    children: 'The browser refused those names (a duplicate, or a policy refusal). The other tools still work.',
+  },
+  {
+    term: 'needs_user_attention',
+    children: 'The tab is in the background. Bring it to the front and ask the agent to retry.',
+  },
+  {
+    term: 'revision_conflict',
+    children:
+      'The draft changed since the agent read it, often by your own edit. The agent reads it again and retries.',
+  },
+  {
+    term: 'render_frames → not_found',
+    children: 'It reads the agent’s own open preview: allow a render_preview first and keep its dialog open.',
+  },
+];
 
 const toolRows = webMcpTools.map((tool) => ({
   term: tool.name,
@@ -48,11 +80,20 @@ export const DocWebMcp = () => (
           agents use this builder” (on by default), “Ask before every edit”, and the activity log with an Undo on each
           edit that is still current. Turning the switch off removes every tool at once.
         </p>
+        <p>
+          Then ask your browser&apos;s agent to work on the open template, for example “list the scenes, then set a
+          darker theme”. Each call shows up under Recent activity, changed scene cards glow, and Ctrl/Cmd+Z undoes an
+          agent edit like your own.
+        </p>
       </Prose>
     </DocSection>
 
     <DocSection id="tools" title="Tools" kicker={`${String(webMcpTools.length)} tools`}>
       <Prose>
+        <p>
+          {countOf('read')} read tools change nothing; {countOf('edit')} edit tools each land as one undo step;{' '}
+          {countOf('consequential')} consequential tools need your OK in the page.
+        </p>
         <p>
           Every edit checks <Code>expectedRevision</Code> (from <Code>get_template</Code>), is all-or-nothing, may not
           add validation errors and lands as one undo step, so Ctrl/Cmd+Z reverts it like your own edit. Fields the
@@ -69,7 +110,8 @@ export const DocWebMcp = () => (
           Cancel has the focus, and dismissing or ignoring the dialog for two minutes declines (the agent hears{' '}
           <Code>user_declined</Code>). A preview render shows its estimated time and can be allowed for the rest of the
           session; it runs one at a time, at most every 30 seconds. While the tab is in the background these tools
-          answer <Code>needs_user_attention</Code> instead of opening a dialog you cannot see.
+          answer <Code>needs_user_attention</Code> instead of opening a dialog you cannot see.{' '}
+          <Code>render_frames</Code> asks nothing new: it only reads stills from a preview you already allowed.
         </p>
       </Prose>
       <Callout label="Filming stays yours">
@@ -86,6 +128,10 @@ export const DocWebMcp = () => (
           for the agent.
         </p>
       </Prose>
+    </DocSection>
+
+    <DocSection id="troubleshooting" title="Troubleshooting" kicker="When the agent cannot reach the builder">
+      <DefList rows={TROUBLESHOOTING} />
     </DocSection>
 
     <DocSection id="compare" title="Which agent path" kicker="WebMCP, Generate with AI or MCP">

@@ -127,7 +127,9 @@ describe('fx resolve', () => {
   it('settles the scale with zoompan, glows from the section start and feathers its edge', () => {
     const { text, inputs } = lower({ effect: 'resolve', target: RECT });
 
-    expect(text).toMatch(/scale=800:400:flags=bicubic,zoompan=z='if\(lt\(on,11\),1\.0[3-5]\d*,/);
+    // The exact sub-pixel zoom on the region: knot table on the frame index, cropped back to the region.
+    expect(text).toMatch(/setpts=N\/\(25\*TB\),scale=w='st\(0,max\(1,if\(lt\(round\(t\*25\),11\),1\.0[3-5]\d*,/);
+    expect(text).toMatch(/zoompan=z='[^']*':x='[^']*':y='[^']*':d=1:s=\d+x\d+:fps=25/);
     expect(text).toMatch(/overlay=0:0:enable='lt\(t,[\d.]+\)'/);
     expect(text).toContain("overlay=440:260:eof_action=pass:enable='between(t,0,1.12)'");
     expect(text).toContain('fade=t=in:st=0.4:d=');

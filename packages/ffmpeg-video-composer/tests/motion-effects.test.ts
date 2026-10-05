@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { designedTransitionGraph, DESIGNED_TRANSITIONS, isDesignedTransition } from '@/core/motion/transitions';
-import { cameraFilters } from '@/core/motion/camera';
+import { cameraFilters, cameraMove } from '@/core/motion/camera';
+import { ZOOM_TIME } from '@/core/motion/zoom-exact';
 import { graphicToFilters } from '@/editor/presets/graphics';
 import { buildNormalizeGraph, buildVideoGraph } from '@/editor/utils/transition-graph';
-import { CameraSchema } from '@/schemas/camera.schemas';
+import { CameraSchema, type Camera } from '@/schemas/camera.schemas';
 import { GraphicSchema } from '@/schemas/graphics.schemas';
 import { TemplateValidator } from '@/services/TemplateValidator';
 import { evaluateExpr } from '@/services/geometry/drawtext-expr';
@@ -71,10 +72,12 @@ describe('designed transitions', () => {
 });
 
 describe('camera', () => {
-  function zoomAt(filters: string[], on: number): number | null {
-    const zoompan = filters.find((f) => f.startsWith('zoompan')) ?? '';
+  // The zoom the camera asks for at output frame `on` (the rendered geometry matches it to a few
+  // hundredths of a pixel: see zoom-exact.test.ts).
+  function zoomAt(camera: Camera, on: number): number | null {
+    const zoom = cameraMove(camera, FRAME)?.zoom ?? '';
 
-    return evaluateExpr(option(zoompan, 'z'), { on });
+    return evaluateExpr(zoom.replaceAll(ZOOM_TIME, `(${on}/${FRAME.fps})`), {});
   }
 
   it('does nothing without a move', () => {
@@ -83,19 +86,24 @@ describe('camera', () => {
   });
 
   it('push-in dollies from framed to closer over the section, on the frame clock', () => {
-    const filters = cameraFilters(CameraSchema.parse({ preset: 'push-in', amount: 0.2 }), FRAME);
+    const camera = CameraSchema.parse({ preset: 'push-in', amount: 0.2 });
+    const filters = cameraFilters(camera, FRAME);
 
-    expect(filters[0]).toBe('scale=2560:1440');
-    expect(zoomAt(filters, 0)).toBeCloseTo(1, 6);
-    expect(zoomAt(filters, 90)).toBeCloseTo(1.2, 3);
+    // Restamped on the frame clock, sized per frame, cropped back by zoompan at the output fps.
+    expect(filters[0]).toBe('setpts=N/(30*TB)');
+    expect(filters[1]).toMatch(/^scale=.*:eval=frame:flags=bicubic$/);
+    expect(filters[3]).toMatch(/^zoompan=.*:d=1:s=1280x720:fps=30$/);
+    expect(filters.join(',')).not.toContain('scale=2560:1440');
+    expect(zoomAt(camera, 0)).toBeCloseTo(1, 6);
+    expect(zoomAt(camera, 90)).toBeCloseTo(1.2, 3);
   });
 
   it('hits punch in and relax', () => {
-    const filters = cameraFilters(CameraSchema.parse({ hits: [{ at: 1, strength: 0.1, decay: 10 }] }), FRAME);
+    const camera = CameraSchema.parse({ hits: [{ at: 1, strength: 0.1, decay: 10 }] });
 
-    expect(zoomAt(filters, 29)).toBeCloseTo(1, 6);
-    expect(zoomAt(filters, 30)).toBeCloseTo(1.1, 6);
-    expect(zoomAt(filters, 60)).toBeLessThan(1.001);
+    expect(zoomAt(camera, 29)).toBeCloseTo(1, 6);
+    expect(zoomAt(camera, 30)).toBeCloseTo(1.1, 6);
+    expect(zoomAt(camera, 60)).toBeLessThan(1.001);
   });
 
   it('handheld shake is seeded: same seed, same path; new seed, new path', () => {
@@ -106,7 +114,7 @@ describe('camera', () => {
     expect(cameraFilters(camera, { ...FRAME, seed: 10 })).not.toEqual(a);
     expect(a.some((f) => f.startsWith('rotate='))).toBe(true);
     // Overscan keeps the roll and wander inside the frame.
-    expect(zoomAt(a, 0)).toBeGreaterThan(1.01);
+    expect(zoomAt(camera, 0)).toBeGreaterThan(1.01);
   });
 });
 

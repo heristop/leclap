@@ -128,6 +128,14 @@ export const DOC_ROUTES: readonly DocRoute[] = [
     changefreq: 'monthly',
   },
   {
+    path: '/doc/webmcp',
+    title: 'Browser agents (WebMCP) — drive the template builder',
+    description:
+      'Let the AI agent built into your browser read, validate and edit a LeClap template in the builder through WebMCP: enabling it, the tools, confirmations, undo and security.',
+    priority: '0.6',
+    changefreq: 'monthly',
+  },
+  {
     path: '/doc/reference',
     title: 'Template configuration — LeClap reference',
     description:

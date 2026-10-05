@@ -23,6 +23,7 @@
   },
   "log": {
     "title": "Recent activity",
+    "emptyTitle": "No activity yet",
     "empty": "Nothing yet. Ask your browser's agent to work on this template, and each step shows up here.",
     "undo": "Undo",
     "undoLabel": "Undo: {{action}}",
@@ -90,14 +91,23 @@
     "busy": "another step was running",
     "disabled": "agent tools are off",
     "aborted": "cancelled",
-    "unavailable": "unavailable"
+    "unavailable": "unavailable",
+    "render_failed": "the render failed",
+    "save_blocked": "cannot be saved yet"
   },
   "confirm": {
     "title": "Allow this browser agent action?",
     "description": "Your browser's agent wants to {{action}}.",
     "undoable": "You can undo it afterwards.",
     "allow": "Allow",
-    "deny": "Don't allow"
+    "deny": "Don't allow",
+    "allowSession": "Allow previews for the rest of this session",
+    "details": {
+      "replace_template": "It opens as a new draft named “{{name}}” with {{sections}} scenes; Undo brings your current draft back.",
+      "load_sample": "The sample “{{title}}” opens as a new draft; Undo brings your current draft back.",
+      "render_preview": "It renders about {{duration}} s of video in your browser with placeholder media, roughly {{seconds}} s of work, and opens the preview here.",
+      "save_template": "It saves “{{name}}” to your template library on this device; the builder stays open."
+    }
   },
   "live": {
     "changed_one": "Browser agent changed {{count}} scene",

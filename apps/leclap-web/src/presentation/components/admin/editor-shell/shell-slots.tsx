@@ -79,7 +79,7 @@ export const ShellTitlebar = ({
       feedback={feedback}
       nameInvalid={nameInvalid}
       nameRef={nameRef}
-      preview={<TestRenderButton state={state} disabled={state.sections.length === 0} />}
+      preview={<TestRenderButton state={state} disabled={state.sections.length === 0} preview={agent?.preview} />}
       assist={onGenerate ? <GenerateWithAiButton onClick={onGenerate} t={tAi} /> : undefined}
       agent={agent ? <AgentActivity agent={agent} /> : undefined}
       t={t}

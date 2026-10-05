@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { textOf } from './results';
 import { STARTER_PRESETS, addSection, patchSection, type EditorState } from '@leclap/creative-kit/editor';
 import { createFakePort, toolCaller } from './fake-port';
 import { resolvePosition } from './read-tools';
@@ -28,8 +29,8 @@ describe('get_template', () => {
       canRedo: false,
       saveBlocker: expect.any(String),
     });
-    expect(result.content[0].text).not.toContain('holiday-secret');
-    expect(result.content[0].text).toContain('media://abc123');
+    expect(textOf(result)).not.toContain('holiday-secret');
+    expect(textOf(result)).toContain('media://abc123');
     expect(Array.isArray(result.data.availablePartials)).toBe(true);
   });
 

@@ -23,6 +23,7 @@
   },
   "log": {
     "title": "Activité récente",
+    "emptyTitle": "Aucune activité pour l’instant",
     "empty": "Rien pour l'instant. Demandez à l'agent de votre navigateur de travailler sur ce modèle : chaque étape s'affichera ici.",
     "undo": "Annuler",
     "undoLabel": "Annuler : {{action}}",
@@ -90,14 +91,23 @@
     "busy": "une autre étape était en cours",
     "disabled": "les outils de l'agent sont désactivés",
     "aborted": "annulé",
-    "unavailable": "indisponible"
+    "unavailable": "indisponible",
+    "render_failed": "le rendu a échoué",
+    "save_blocked": "pas encore enregistrable"
   },
   "confirm": {
     "title": "Autoriser cette action de l'agent ?",
     "description": "L'agent de votre navigateur veut {{action}}.",
     "undoable": "Vous pourrez l'annuler ensuite.",
     "allow": "Autoriser",
-    "deny": "Ne pas autoriser"
+    "deny": "Ne pas autoriser",
+    "allowSession": "Autoriser les aperçus pour le reste de cette session",
+    "details": {
+      "replace_template": "Il s’ouvre comme nouveau brouillon nommé « {{name}} » avec {{sections}} scènes ; Annuler restaure votre brouillon actuel.",
+      "load_sample": "L’exemple « {{title}} » s’ouvre comme nouveau brouillon ; Annuler restaure votre brouillon actuel.",
+      "render_preview": "Il rend environ {{duration}} s de vidéo dans votre navigateur avec des médias provisoires, soit à peu près {{seconds}} s de travail, et ouvre l’aperçu ici.",
+      "save_template": "Il enregistre « {{name}} » dans votre bibliothèque de modèles sur cet appareil ; l’éditeur reste ouvert."
+    }
   },
   "live": {
     "changed_one": "L'agent du navigateur a modifié {{count}} scène",

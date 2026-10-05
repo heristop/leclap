@@ -1,18 +1,22 @@
-// The builder's side of WebMCP: implements the tool layer's BuilderPort over the shell's history,
-// selection and partials, and registers the tools with the browser's ModelContext — once per enabled /
-// capability change, never per render: tools read live state through a ref the layout effect keeps
-// current. The tool layer itself is a lazy chunk imported on idle, only when the browser has WebMCP
+// The builder's side of WebMCP: builds the tool layer's BuilderPort (agent-port.ts) over the shell's
+// history, selection, partials, preview dialog and library, and registers the tools with the browser's
+// ModelContext — once per enabled / capability change, never per render: tools read live state through
+// a ref the layout effect keeps current. It also owns the preview render the Preview button shares and the
+// agent drawer, which with the confirmations forms the shell's 'agent' overlay. The tool layer itself is a lazy chunk imported on idle, only when the browser has WebMCP
 // (natively, or the dev polyfill) and the user left the toggle on. Turning it off, or leaving the
 // builder, aborts every registration (the agent sees `toolchange`) and declines pending confirmations.
 import { useEffect, useLayoutEffect, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import type { EditorHistory } from '@/hooks/useEditorHistory';
 import type { StoredPartial } from '@/stores/userPartialStore';
 import type { ActivityInput, BuilderCapability, BuilderPort, ToolSpec } from '@/application/usecases/webmcp/types';
+import type { BuilderToolName } from '@/application/usecases/webmcp/tool-names';
 import { detectModelContext, registerTools } from '@/infrastructure/webmcp/model-context';
 import type { ModelContextLike, ModelContextTool } from '@/infrastructure/webmcp/types';
 import { loadWebMcpPolyfill, POLYFILL_BUILD, polyfillRequested } from '@/infrastructure/webmcp/polyfill';
 import { webMcpSettings, type WebMcpSettings } from '@/infrastructure/webmcp/settings-store';
 import type { SelectionAction } from '../editor-shell/useEditorSelection';
+import { usePreviewRender, type PreviewRender } from '../editor/usePreviewRender';
+import { createPort, type AgentModalHost, type AgentSession, type Live } from './agent-port';
 import {
   activityReducer,
   ANNOUNCE_DELAY_MS,
@@ -28,17 +32,24 @@ import { createConfirmQueue, type ConfirmQueue, type PendingConfirm } from './co
 
 /** `VITE_WEBMCP=0` removes the browser-agent tools from the build. */
 const WEBMCP_BUILD = import.meta.env.VITE_WEBMCP !== '0';
-/** Phase 1 registers no capability-gated tools; phase 2 derives this from the builder (render, save). */
-const CAPABILITIES: ReadonlySet<BuilderCapability> = new Set();
+
+/** What this builder offers the consequential tools: saving and replacing always, renders with WebAssembly. */
+export function builderCapabilities(): BuilderCapability[] {
+  const capabilities: BuilderCapability[] = ['replace', 'save'];
+
+  if (typeof WebAssembly === 'object') capabilities.push('preview-render');
+
+  return capabilities;
+}
+
+/** A stable effect dependency for a capability set. */
+function capabilityKey(capabilities: BuilderCapability[]): string {
+  return [...capabilities].sort().join(',');
+}
 
 export type WebMcpSupport = 'pending' | 'native' | 'polyfill' | 'none';
 
-/** The overlay host (useShellModals): the agent's confirmation is one of the shell's single overlays. */
-export interface AgentModalHost {
-  active: string | null;
-  open: (kind: 'agent') => void;
-  close: (kind: 'agent') => void;
-}
+export type { AgentModalHost } from './agent-port';
 
 export interface BuilderAgentArgs {
   history: EditorHistory;
@@ -64,70 +75,15 @@ export interface BuilderAgent {
   live: (LiveSummary & { id: number }) | null;
   /** The confirmation on screen while the shell shows the 'agent' overlay. */
   confirm: PendingConfirm | null;
-  answer: (id: number, accepted: boolean) => void;
+  /** The user's answer; `remember` allows that tool for the rest of the session (when it offers that). */
+  answer: (id: number, accepted: boolean, remember?: boolean) => void;
+  /** The activity drawer (the 'agent' overlay, opened from the pill). */
+  drawerOpen: boolean;
+  setDrawerOpen: (open: boolean) => void;
+  /** The preview dialog the Preview button and render_preview share. */
+  preview: PreviewRender;
   /** Tools the browser refused to register, if any. */
   problem: string | null;
-}
-
-interface Live {
-  history: EditorHistory;
-  selectedIndex: number;
-  dispatch: (action: SelectionAction) => void;
-  modals: AgentModalHost;
-  localPartials: StoredPartial[];
-  settings: WebMcpSettings;
-}
-
-interface Feedback {
-  report: (activity: ActivityInput) => void;
-  highlight: (changed: number[]) => void;
-}
-
-function createPort(live: { current: Live }, queue: ConfirmQueue, feedback: Feedback): BuilderPort {
-  const selectAndShow = (changed: number[]): void => {
-    const first = changed.at(0);
-
-    if (first !== undefined) live.current.dispatch({ type: 'selectScene', index: first });
-    feedback.highlight(changed);
-  };
-
-  return {
-    // The history closure, not the render mirror: a call right after an edit reads that edit.
-    getState: () => live.current.history.read().state,
-    getEditor: () => {
-      const { canUndo, canRedo } = live.current.history.read();
-
-      return { selectedIndex: live.current.selectedIndex, canUndo, canRedo };
-    },
-    commit: (next, meta) => {
-      live.current.history.set(next);
-      selectAndShow(meta.changed);
-    },
-    replace: (next, meta) => {
-      live.current.history.reset(next);
-      selectAndShow(meta.changed);
-    },
-    undoIfPresent: (state) => {
-      if (live.current.history.read().state !== state) return false;
-
-      live.current.history.undo();
-
-      return true;
-    },
-    selectScene: (position) => {
-      live.current.dispatch({ type: 'selectScene', index: position });
-    },
-    confirm: (request, signal) => {
-      const answer = queue.request(request, signal);
-      live.current.modals.open('agent');
-
-      return answer;
-    },
-    localPartials: () => live.current.localPartials,
-    report: feedback.report,
-    isDocumentVisible: () => document.visibilityState === 'visible',
-    askBeforeEdit: () => live.current.settings.askBeforeEdit,
-  };
 }
 
 // Whether this page can host tools: native WebMCP, else the dev polyfill when the page asks for it.
@@ -267,6 +223,7 @@ interface RegistrationArgs {
 // Registers the tools on idle while enabled; the cleanup unregisters them and declines what is waiting.
 function useAgentRegistration(enabled: boolean, args: RegistrationArgs): void {
   const { context, port, queue, track, onProblem } = args;
+  const capabilities = capabilityKey(builderCapabilities());
 
   useEffect(() => {
     if (!enabled || !context) return () => {};
@@ -277,7 +234,8 @@ function useAgentRegistration(enabled: boolean, args: RegistrationArgs): void {
 
       if (controller.signal.aborted) return;
 
-      const specs = buildBuilderTools(port, { capabilities: CAPABILITIES, origin: window.location.origin });
+      const offered = new Set(capabilities.split(',').filter(Boolean) as BuilderCapability[]);
+      const specs = buildBuilderTools(port, { capabilities: offered, origin: window.location.origin });
       const reports = await registerTools(
         context,
         specs.map((spec) => withProgress(spec, track)),
@@ -299,7 +257,34 @@ function useAgentRegistration(enabled: boolean, args: RegistrationArgs): void {
       controller.abort();
       queue.declineAll();
     };
-  }, [enabled, context, port, queue, track, onProblem]);
+  }, [enabled, context, port, queue, track, onProblem, capabilities]);
+}
+
+// The activity drawer and the confirmations share the shell's 'agent' overlay: a confirmation stacks over
+// an open drawer, and one that arrives with the drawer closed shows alone and closes the overlay once
+// answered. Another overlay taking over closes both (and declines what is waiting).
+function useAgentOverlay(modals: AgentModalHost, queue: ConfirmQueue, session: AgentSession) {
+  const [requested, setRequested] = useState(false);
+  const drawerOpen = requested && modals.active === 'agent';
+
+  return {
+    drawerOpen,
+    setDrawerOpen: (open: boolean): void => {
+      setRequested(open);
+
+      if (open) modals.open('agent');
+
+      if (!open && !queue.head()) modals.close('agent');
+    },
+    answer: (id: number, accepted: boolean, remember = false): void => {
+      const tool = queue.head()?.request.tool;
+
+      if (accepted && remember && tool) session.allowed.add(tool);
+      queue.answer(id, accepted);
+
+      if (!queue.head() && !drawerOpen) modals.close('agent');
+    },
+  };
 }
 
 export function useBuilderAgent({
@@ -311,7 +296,8 @@ export function useBuilderAgent({
 }: BuilderAgentArgs): BuilderAgent {
   const settings = useSyncExternalStore(webMcpSettings.subscribe, webMcpSettings.get, webMcpSettings.get);
   const support = useWebMcpSupport(settings.polyfill);
-  const live = useRef<Live>({ history, selectedIndex, dispatch, modals, localPartials, settings });
+  const preview = usePreviewRender();
+  const live = useRef<Live>({ history, selectedIndex, dispatch, modals, localPartials, settings, preview });
   const feed = useActivityFeed();
   const [highlighted, highlight] = useHighlight();
   const [inFlight, setInFlight] = useState(0);
@@ -320,12 +306,14 @@ export function useBuilderAgent({
   });
   const [problem, setProblem] = useState<string | null>(null);
   const [queue] = useState(createConfirmQueue);
-  const [port] = useState(() => createPort(live, queue, { report: feed.report, highlight }));
+  const [session] = useState<AgentSession>(() => ({ allowed: new Set<BuilderToolName>(), previewUrl: null }));
+  const [port] = useState(() => createPort(live, queue, { report: feed.report, highlight }, session));
   const pending = useSyncExternalStore(queue.subscribe, queue.head, queue.head);
   const available = support === 'native' || support === 'polyfill';
+  const overlay = useAgentOverlay(modals, queue, session);
 
   useLayoutEffect(() => {
-    live.current = { history, selectedIndex, dispatch, modals, localPartials, settings };
+    live.current = { history, selectedIndex, dispatch, modals, localPartials, settings, preview };
   });
 
   // One overlay at a time: another overlay replacing the confirmation declines it.
@@ -353,11 +341,8 @@ export function useBuilderAgent({
     highlighted,
     live: feed.live,
     confirm: modals.active === 'agent' ? pending : null,
-    answer: (id, accepted) => {
-      queue.answer(id, accepted);
-
-      if (!queue.head()) modals.close('agent');
-    },
     problem,
+    preview,
+    ...overlay,
   };
 }

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { capOutput, errorCode, fail, ok, revisionConflict } from './results';
+import { capOutput, errorCode, fail, ok, revisionConflict, textOf } from './results';
 
 describe('results', () => {
   it('ok carries a summary line and the structured payload as JSON', () => {
     const result = ok({ a: 1 }, 'Done.');
 
-    expect(result.content[0].text).toBe('Done.\n{"a":1}');
+    expect(textOf(result)).toBe('Done.\n{"a":1}');
     expect(result.structuredContent).toEqual({ a: 1 });
     expect(result.isError).toBeUndefined();
   });
@@ -14,13 +14,13 @@ describe('results', () => {
     const result = fail('busy', 'Wait.', { hint: 'Retry.' });
 
     expect(result.isError).toBe(true);
-    expect(JSON.parse(result.content[0].text)).toEqual({ code: 'busy', message: 'Wait.', hint: 'Retry.' });
+    expect(JSON.parse(textOf(result))).toEqual({ code: 'busy', message: 'Wait.', hint: 'Retry.' });
     expect(errorCode(result)).toBe('busy');
     expect(errorCode(ok({}))).toBeUndefined();
   });
 
   it('revision conflicts use the MCP wording', () => {
-    expect(revisionConflict().content[0].text).toContain('revision_conflict: template changed');
+    expect(textOf(revisionConflict())).toContain('revision_conflict: template changed');
   });
 
   it('caps oversized output with a hint', () => {

@@ -4,17 +4,21 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { STARTER_PRESETS } from '@leclap/creative-kit/editor';
-import { createFakePort, TEST_ORIGIN, toolCaller } from './fake-port';
+import { ALL_CAPABILITIES, createFakePort, TEST_ORIGIN, toolCaller } from './fake-port';
 import { BUILDER_TOOL_DEFINITIONS, buildBuilderTools } from './registry';
-import { BUILDER_TOOL_NAMES } from './tool-names';
+import { BUILDER_TOOL_NAMES, CORE_TOOL_NAMES } from './tool-names';
 import { defineTool, type ToolDefinition } from './types';
 import { ok } from './results';
 
 const options = { capabilities: new Set<never>(), origin: TEST_ORIGIN };
 
 describe('registry', () => {
-  it('registers exactly the phase-1 tools, each with a serializable object schema', () => {
-    const tools = buildBuilderTools(createFakePort(), options);
+  it('registers the core tools without capabilities, and every tool with them', () => {
+    const core = buildBuilderTools(createFakePort(), options);
+
+    expect(core.map((tool) => tool.name).sort()).toEqual([...CORE_TOOL_NAMES].sort());
+
+    const tools = buildBuilderTools(createFakePort(), { ...options, capabilities: ALL_CAPABILITIES });
 
     expect(tools.map((tool) => tool.name).sort()).toEqual([...BUILDER_TOOL_NAMES].sort());
 

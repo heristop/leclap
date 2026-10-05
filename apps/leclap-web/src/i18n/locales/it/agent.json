@@ -23,6 +23,7 @@
   },
   "log": {
     "title": "Attività recente",
+    "emptyTitle": "Ancora nessuna attività",
     "empty": "Ancora niente. Chiedi all'agente del tuo browser di lavorare su questo modello: ogni passaggio comparirà qui.",
     "undo": "Annulla",
     "undoLabel": "Annulla: {{action}}",
@@ -90,14 +91,23 @@
     "busy": "un altro passaggio era in corso",
     "disabled": "gli strumenti dell'agente sono disattivati",
     "aborted": "annullato",
-    "unavailable": "non disponibile"
+    "unavailable": "non disponibile",
+    "render_failed": "il rendering non è riuscito",
+    "save_blocked": "non ancora salvabile"
   },
   "confirm": {
     "title": "Consentire questa azione dell'agente del browser?",
     "description": "L'agente del tuo browser vuole {{action}}.",
     "undoable": "Potrai annullarla dopo.",
     "allow": "Consenti",
-    "deny": "Non consentire"
+    "deny": "Non consentire",
+    "allowSession": "Consenti le anteprime per il resto di questa sessione",
+    "details": {
+      "replace_template": "Si apre come nuova bozza «{{name}}» con {{sections}} scene; Annulla riporta la bozza attuale.",
+      "load_sample": "L’esempio «{{title}}» si apre come nuova bozza; Annulla riporta la bozza attuale.",
+      "render_preview": "Esegue il rendering di circa {{duration}} s di video nel browser con media segnaposto, circa {{seconds}} s di lavoro, e apre l’anteprima qui.",
+      "save_template": "Salva «{{name}}» nella libreria dei modelli su questo dispositivo; l’editor resta aperto."
+    }
   },
   "live": {
     "changed_one": "L'agente del browser ha modificato {{count}} scena",

@@ -162,10 +162,14 @@
           {
             "name": "patch_template",
             "description": "Apply effect-prop edits to inline template JSON atomically using an expected revision, returning the updated template."
+          },
+          {
+            "name": "edit_template",
+            "description": "Apply a JSON Patch (RFC 6902) to inline template JSON atomically using an expected revision; the result must validate."
           }
         ],
         "prompts": ["compose-video"],
-        "notes": "Fifteen tools are always registered. get_effect_schema, render_preview and render_remotion_clip require the Remotion opt-in. Registered JSON effects use operator-configured trusted source and require a configured backend for validation, patching and rendering; callers cannot select executable source through effect JSON. patch_template remains registered when Remotion is disabled."
+        "notes": "Sixteen tools are always registered. get_effect_schema, render_preview and render_remotion_clip require the Remotion opt-in. Registered JSON effects use operator-configured trusted source and require a configured backend for validation, patching and rendering; callers cannot select executable source through effect JSON. patch_template remains registered when Remotion is disabled."
       }
     }
   }

@@ -3,7 +3,16 @@
 import { createHistory, toEditorState, type EditorState } from '@leclap/creative-kit/editor';
 import type { StoredPartial } from '@/stores/userPartialStore';
 import { buildBuilderTools } from './registry';
-import type { ActivityInput, BuilderPort, CommitMeta, ConfirmRequest, ToolResult } from './types';
+import type {
+  ActivityInput,
+  AgentFramesOutcome,
+  AgentRenderOutcome,
+  BuilderCapability,
+  BuilderPort,
+  CommitMeta,
+  ConfirmRequest,
+  ToolResult,
+} from './types';
 
 export interface FakePort extends BuilderPort {
   activity: ActivityInput[];
@@ -15,6 +24,12 @@ export interface FakePort extends BuilderPort {
   visible: boolean;
   ask: boolean;
   partials: StoredPartial[];
+  replaces: CommitMeta[];
+  /** What previewRender / captureFrames answer, and how often they ran. */
+  renderOutcome: AgentRenderOutcome;
+  renders: number;
+  framesOutcome: AgentFramesOutcome;
+  saved: string[];
   /** A user edit, outside the agent. */
   userSet: (next: EditorState) => void;
   undo: () => void;
@@ -23,8 +38,14 @@ export interface FakePort extends BuilderPort {
 export const TEST_ORIGIN = 'https://leclap.test';
 
 /** Calls a tool by name through the registry (rate limits, parsing and reporting included). */
-export function toolCaller(port: BuilderPort, now: () => number = () => 0) {
-  const tools = buildBuilderTools(port, { capabilities: new Set(), origin: TEST_ORIGIN, now });
+export const ALL_CAPABILITIES: ReadonlySet<BuilderCapability> = new Set(['preview-render', 'save', 'replace']);
+
+export function toolCaller(
+  port: BuilderPort,
+  now: () => number = () => 0,
+  capabilities: ReadonlySet<BuilderCapability> = ALL_CAPABILITIES
+) {
+  const tools = buildBuilderTools(port, { capabilities, origin: TEST_ORIGIN, now });
 
   return async (name: string, args: unknown = {}): Promise<ToolResult & { data: Record<string, unknown> }> => {
     const tool = tools.find((candidate) => candidate.name === name);
@@ -48,6 +69,11 @@ export function createFakePort(initial: EditorState = toEditorState(null)): Fake
     visible: true,
     ask: false,
     partials: [],
+    replaces: [],
+    renderOutcome: { status: 'done', seconds: 12 },
+    renders: 0,
+    framesOutcome: { status: 'no_preview' },
+    saved: [],
     getState: () => history.state,
     getEditor: () => ({ selectedIndex: port.selected, canUndo: history.canUndo, canRedo: history.canRedo }),
     commit: (next, meta) => {
@@ -56,7 +82,18 @@ export function createFakePort(initial: EditorState = toEditorState(null)): Fake
     },
     replace: (next, meta) => {
       history.set(next);
-      port.commits.push(meta);
+      port.replaces.push(meta);
+    },
+    previewRender: () => {
+      port.renders += 1;
+
+      return Promise.resolve(port.renderOutcome);
+    },
+    captureFrames: () => Promise.resolve(port.framesOutcome),
+    save: () => {
+      port.saved.push(history.state.id);
+
+      return { saved: true, id: history.state.id };
     },
     undoIfPresent: (state) => {
       if (history.state !== state) return false;

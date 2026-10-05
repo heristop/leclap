@@ -7,6 +7,7 @@ import { SAMPLE_BACKENDS, SAMPLE_CATEGORIES } from 'ffmpeg-video-composer/src/sa
 import { parsePointer } from 'ffmpeg-video-composer/src/core/json-patch.ts';
 import { MAX_STRING } from './guard';
 import { capOutput, fail, ok } from './results';
+import { openable } from './sample-loader';
 import { defineTool } from './types';
 
 /** How the builder differs from a raw descriptor, prepended to the schema. */
@@ -177,7 +178,7 @@ const listSamplesTool = defineTool({
     const { listSamples } = await import('ffmpeg-video-composer/src/samples.ts');
     const samples = listSamples(args).map((sample) => ({
       ...sample,
-      openable: sample.backend === 'native' && sample.requirements.effects.length === 0,
+      openable: openable(sample),
     }));
 
     return capOutput(ok({ samples }, `${String(samples.length)} sample(s).`), 'Filter by category, backend or query.');
@@ -189,7 +190,7 @@ const getSampleTool = defineTool({
   title: 'Get Sample',
   description:
     'Retrieve one sample: metadata plus a self-contained descriptor (referenced partials embedded, summarized in ' +
-    'partialCatalog). Use it as a model for your own edits; the user opens samples themselves.',
+    'partialCatalog). Use it as a model for your own edits, or open it in place of the draft with load_sample.',
   kind: 'read',
   input: z.object({ id: z.string().min(1).max(200).describe('Sample id from list_samples.') }),
   run: async (args) => {

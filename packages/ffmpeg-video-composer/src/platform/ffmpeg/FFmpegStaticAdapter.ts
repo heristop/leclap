@@ -10,6 +10,7 @@ import { reportedTraits } from '../../core/footage/media-traits';
 import { parseCommand } from './parse-command';
 import { FFPROBE_MISSING_MESSAGE, resolveStaticFfprobe } from './resolve-ffprobe';
 import { tailStderr } from './tail-stderr';
+import { withFilterScripts } from './filter-scripts-node';
 import { measureLoudness } from './analyze-node';
 
 const requireModule = createRequire(import.meta.url);
@@ -70,13 +71,14 @@ class FFmpegStaticAdapter extends AbstractFFmpeg {
     try {
       // Errors only, as in FFmpegNodeAdapter: the default level buries the reason under the banner and
       // the stream dumps.
-      await execFileAsync(this.ffmpegPath, ['-loglevel', 'error', ...parseCommand(command)]);
+      const binary = this.ffmpegPath;
+      await withFilterScripts(['-loglevel', 'error', ...parseCommand(command)], (args) => execFileAsync(binary, args));
 
       return { rc: 0 };
     } catch (error) {
       const execError = error as ExecException & { stderr: string };
 
-      throw new FFmpegError('FFmpeg command failed (static)', tailStderr(execError.stderr));
+      throw new FFmpegError('FFmpeg command failed (static)', tailStderr(execError.stderr || execError.message));
     }
   };
 

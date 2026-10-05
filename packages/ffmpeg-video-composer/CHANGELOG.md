@@ -145,6 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Node renders pass a filtergraph longer than 64 KB through a script file (`-filter_script:v`, `-filter_complex_script`): a long stepped or per-frame graph no longer fails to spawn with E2BIG, and a spawn failure now reports its reason instead of an empty error.
 - FFmpeg 8 no longer crashes on animated text sizes: a drawtext whose `fontsize` changes over time (kinetic scale presets, the karaoke word pop, `animate.scale`) is drawn as one constant-size drawtext per run of frames.
 - A footage-edited clip pads its audio only up to the edited length (`apad=whole_dur`), so `-shortest` no longer lets the audio overrun the picture on FFmpeg 8.
 - Backslashes in drawtext text (captions, title cards, overlays, kinetic counter prefix/suffix) render

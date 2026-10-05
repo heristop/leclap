@@ -8,7 +8,7 @@ type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 const DROPPED_KEYS = new Set(['$schema', 'examples', 'title']);
 // Subtrees shorter than this are cheaper inline than as a `$ref`.
-const MIN_HOIST = 120;
+const MIN_HOIST = 90;
 // Description clip lengths tried in order until the digest fits; 0 drops descriptions.
 const DESCRIPTION_STEPS = [160, 90, 40, 0];
 

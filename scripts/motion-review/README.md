@@ -89,6 +89,10 @@ Optional fields:
 - `hold`: seconds the section holds after the window (default 0.8; sections last at least 2 s).
 - `global`: merged into the stage descriptor's `global` (for example `{ "motion": { "reduced": true } }`).
 - `id`: overrides the file name.
+- `next`: a second section fragment, laid over the same background as a second stage section (named
+  `review-next`, same duration). Use it to review transitions: put `"transition"` in `section` and set
+  `window.at` to the section length minus the transition duration (with `"hold": 0`, the section lasts
+  `at + duration`, 2 s at least). See `fixtures/whip.json`.
 
 How the fragment merges: arrays (`inputs`, `graphics`, `kinetic`, `filters`, …) are appended to the stage
 section's, objects (`options`) are merged key by key, scalars replace.

@@ -3,6 +3,7 @@ import { TranslationSchema } from './global.schemas';
 import { TextEffectSchema } from './effects.schemas';
 import { EasingSpecSchema, MotionRoleSchema } from './motion.schemas';
 import { ElementIdSchema, timeValue } from './time.schemas';
+import { CounterSchema } from './text.schemas';
 
 // ── kinetic typography (docs/plans/motion-system-v2.md §4.1) ──────────────────────
 //
@@ -227,17 +228,7 @@ export const KineticBlockSchema = z
       .max(120)
       .optional()
       .describe('scramble: characters to decode from (default A-Z0-9 and #%&*).'),
-    counter: z
-      .object({
-        from: z.number().min(0).describe('Start value (non-negative; use prefix "-" for negatives).'),
-        to: z.number().min(0).describe('End value (non-negative).'),
-        decimals: z.number().int().min(0).max(4).optional().describe('Digits after the point (default 0).'),
-        prefix: z.string().max(12).optional().describe('Text before the number, e.g. "$".'),
-        suffix: z.string().max(12).optional().describe('Text after the number, e.g. "%" or "K".'),
-      })
-      .strict()
-      .optional()
-      .describe('counter preset: the rolling number (text is ignored).'),
+    counter: CounterSchema.optional(),
     trail: z
       .object({
         echoes: z.number().int().min(2).max(6).describe('Ghost copies drawn behind each moving unit (2..6).'),

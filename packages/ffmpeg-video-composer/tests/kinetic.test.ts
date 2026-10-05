@@ -181,11 +181,14 @@ describe('kinetic presets', () => {
   });
 
   it('counter rolls a number with an eif expansion and escapes literals', () => {
-    const [values] = texts(
+    // Tabular layout (editor/presets/text-counter.ts, tests/text-counter.test.ts): one drawtext per figure.
+    const drawn = texts(
       filters(block({ preset: 'counter', counter: { from: 0, to: 98.6, decimals: 1, suffix: '%' } }))
-    );
+    ).map((values) => String(values.textExpr));
 
-    expect(String(values.textExpr)).toMatch(/^%\{eif\\:floor\(.*\\:d\}\.%\{eif\\:mod\(.*\\:d\\:1\}\\\\\\%$/);
+    expect(drawn.filter((text) => /^%\{eif\\:mod\(.*\\:d\}$/.test(text))).toHaveLength(3);
+    expect(drawn).toContain('.');
+    expect(drawn).toContain(String.raw`\\\%`);
   });
 
   it('coarsens units beyond the budget instead of exploding the graph', () => {

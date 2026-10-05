@@ -125,7 +125,7 @@ describe('caption wrapping and fitting', () => {
   const text = 'This is the story of how we built it from the ground up'.split(' ');
 
   it('measures characters outside the advance table as an "n"', () => {
-    expect(measureText(font, 'a—b', 40)).toBeCloseTo(measureText(font, 'anb', 40) as number, 6);
+    expect(measureText(font, 'a中b', 40)).toBeCloseTo(measureText(font, 'anb', 40) as number, 6);
     expect(measureText('Nope.ttf', 'a', 40)).toBeNull();
   });
 

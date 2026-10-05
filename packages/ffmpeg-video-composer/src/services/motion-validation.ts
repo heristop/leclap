@@ -11,6 +11,8 @@ import { keyTimesError, type TrackKey } from '@/core/motion/tracks';
 import { FONT_ADVANCES } from '@/core/font-advances.generated';
 import { findFont } from '@/core/fonts';
 import { KINETIC_PRESET_DEFAULTS } from '@/core/kinetic/presets';
+import { measureBundled } from '@/core/kinetic/layout';
+import { splitEmoji } from '@/core/emoji-clusters';
 import { parseTimeRef } from '@/core/timing/grammar';
 import { resolveTimeRefs } from '@/core/timing/resolve';
 
@@ -162,6 +164,38 @@ type KineticInput = NonNullable<
   Extract<NonNullable<TemplateDescriptor['sections']>[number], { kinetic?: unknown }>['kinetic']
 >[number];
 
+// The characters of the copy the font's advance table can't measure (spaces and emoji excepted): one of
+// them stops the word/glyph layout, and the block draws nothing.
+function unmeasurable(file: string, text: string): string[] {
+  const chars = splitEmoji(text)
+    .filter((segment) => !segment.emoji)
+    .flatMap((segment) => segment.text.match(/\S/gu) ?? [])
+    .filter((char) => /\S/.test(char) && measureBundled(file, char, 100) === null);
+
+  return [...new Set(chars)];
+}
+
+function glyphErrors(block: KineticInput, file: string, unit: string, path: string): ValidationError[] {
+  if (block.preset === 'counter' || unit === 'line' || !Object.hasOwn(FONT_ADVANCES, file)) return [];
+
+  return Object.entries(block.text).flatMap(([locale, text]) => {
+    const chars = unmeasurable(file, text);
+
+    if (chars.length === 0) return [];
+
+    return [
+      {
+        path: `${path}.text.${locale}`,
+        message: `${chars.map((char) => `"${char}"`).join(', ')} can't be measured in ${file}, so this block would draw nothing`,
+        code: 'kinetic_glyph_unmeasurable',
+        hint: 'Replace the character, pick a bundled font that draws it, or set unit to "line".',
+        suggestion: 'line',
+        kind: 'judgement' as const,
+      },
+    ];
+  });
+}
+
 // Word/glyph layout needs the advance table of a bundled font; counter needs its numbers.
 function kineticBlockErrors(block: KineticInput, path: string): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -178,6 +212,8 @@ function kineticBlockErrors(block: KineticInput, path: string): ValidationError[
       kind: 'judgement',
     });
   }
+
+  errors.push(...glyphErrors(block, file, unit, path));
 
   if (block.preset === 'counter' && !block.counter) {
     errors.push({

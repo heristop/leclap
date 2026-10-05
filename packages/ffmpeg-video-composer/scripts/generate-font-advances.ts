@@ -33,12 +33,16 @@ function readMetrics(file: string): FontMetrics {
   return metrics;
 }
 
-// Script blocks measured on top of the Latin range, only for fonts that draw them (sparse, so the Latin
-// faces carry nothing): Hebrew and Arabic. Isolated-form advances — a shaped Arabic word is somewhat
-// narrower, so wrapping is conservative and lines align on drawtext's own text_w (editor/presets/kinetic.ts).
+// Blocks measured on top of the Latin range, only for fonts that draw them (sparse, so a face that lacks a
+// block carries nothing for it). Hebrew and Arabic: isolated-form advances, so a shaped Arabic word is
+// somewhat narrower, wrapping is conservative and lines align on drawtext's own text_w
+// (editor/presets/kinetic.ts). General Punctuation (curly quotes and apostrophes, dashes, ellipsis, bullet,
+// primes, single guillemets) and the euro sign: everyday copy, typed or pasted from a word processor.
 const EXTRA_RANGES: ReadonlyArray<readonly [number, number]> = [
   [0x0590, 0x05ff],
   [0x0600, 0x06ff],
+  [0x2010, 0x203a],
+  [0x20ac, 0x20ac],
 ];
 
 type AdvanceTable = { unitsPerEm: number; advances: string; extra?: Array<{ start: number; advances: string }> };

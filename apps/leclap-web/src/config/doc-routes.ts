@@ -84,7 +84,7 @@ export const DOC_ROUTES: readonly DocRoute[] = [
     path: '/doc/animations',
     title: 'Animations & images — template descriptor',
     description:
-      'Animated (APNG / WebM) and still-image overlays composited over a section: formats, position, scale, loop and keep-last-frame.',
+      'Animated (APNG / WebM) and still-image overlays composited over a section, and six effect recipes built from engine primitives.',
     priority: '0.6',
     changefreq: 'monthly',
   },

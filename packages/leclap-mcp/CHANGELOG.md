@@ -40,6 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `get_template_schema` guide covers formats, footage editing, subtitles, voice/automation/sfx, music
   timing, motion roles and section purpose, trails, the new graphics, whips, lower-third styles, fills,
   layouts, right-to-left text and emoji.
+- `get_motion_catalog` lists the `type: "fx"` primitives (parameters, defaults, design intent, reduced
+  motion) under `fx`, and the library APNGs under `samples` with the primitives that replace them; `kind:
+"fx"` searches them. `get_template_schema` and the `compose-video` prompt steer agents to compose motion
+  from these primitives, tuned to the brief, and `validate_template` returns the sameness lint
+  (`fx_untuned`, `effect_repeated`, `library_animation_sample`, `effect_off_theme`, `decor_overload`).
 
 ### Changed
 

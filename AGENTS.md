@@ -92,6 +92,12 @@ when only a library build is needed. The dev `compile`/`diagnose` scripts also i
 - **Dependencies:** Radix is added per primitive (`@radix-ui/react-*`) plus `class-variance-authority`; pin versions old enough to satisfy the `minimumReleaseAge` supply-chain policy (`pnpm-workspace.yaml`).
 - **Path alias** in the web app: `@/*` → `apps/leclap-web/src/*` (distinct from core's `@/*`).
 
+### Motion effects (engine `fx` primitives)
+
+- The 13 `graphics[].type: "fx"` primitives are documented in [`docs/template-configuration.md`](./docs/template-configuration.md#light-and-effects-graphicstype-fx). Adding one follows the extension contract at the top of `packages/ffmpeg-video-composer/src/editor/presets/fx.ts`: a row in `FX_PRIMITIVES` (`schemas/fx-primitives.schemas.ts`), its prose in `FX_DOCS` (`schemas/fx-docs.ts`), a lowering module `editor/presets/fx-<name>.ts` (on-device filters only, with a fallback), one line in `fx-registry.ts`, and an entry in `tests/lgpl-filter-audit.test.ts`.
+- Review motion visually, not only through goldens: `pnpm motion:review` renders every effect fixture (`scripts/motion-review/fixtures/`) and bundled template as contact sheets with a before/after `index.html` (see [`scripts/motion-review/README.md`](./scripts/motion-review/README.md)).
+- After changing an effect's defaults or the builder's animation library, regenerate the picker thumbnails with `pnpm gen:animation-thumbs` (plain blobs under `packages/leclap-creative-kit/src/library/animation-thumbs/`).
+
 ### Browser-agent tools (web — WebMCP)
 
 - The builder's 23 WebMCP tools live in `apps/leclap-web/src/application/usecases/webmcp/` and reach the builder only through `BuilderPort`; names and kinds are in `tool-names.ts`. Keep the tool layer free of React, AI keys and media storage.

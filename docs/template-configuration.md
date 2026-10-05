@@ -261,7 +261,7 @@ The validator rejects:
 
 More in the [gallery](./gallery.md#transitions).
 
-`whip-left`, `whip-right`, `whip-up` and `whip-down` are pushes with motion blur. The push curve (default `cubic-bezier(0.7, 0, 0.2, 1)`) is differentiated per frame, and while it moves fast a gaussian blur stretched along the travel axis (up to 3% of the frame) is enabled for that frame. Keep whips at 0.3–0.5 s, on the beat.
+`whip-left`, `whip-right`, `whip-up` and `whip-down` are pushes with motion blur modelled on a 144° camera shutter. The push curve (default `cubic-bezier(0.7, 0, 0.2, 1)`) is differentiated around each frame, and the distance the picture travels while the shutter is open sets a gaussian blur stretched along the travel axis (capped at 4.5% of that axis). The blur ramps in and out with the speed, so a longer whip or a higher frame rate blurs less; a 0.4 s whip at 30 fps peaks at about 39 px on a 1280 px frame. Keep whips at 0.3–0.5 s, on the beat.
 
 ### xfade transition names
 
@@ -803,7 +803,7 @@ Whole-video text/colour, the sibling of `global.animations`: authored once in `g
 
 ### `type: "animation"`
 
-The bundled `animations/*.apng` files are samples. In a new template, compose the motion with the engine instead (see [Compose motion](#compose-motion-dont-pick-stock-animations)). `validate_template` reports `library_animation_sample` for them.
+The bundled `animations/*.apng` files are samples. In a new template, compose the motion with the engine instead (see [Compose motion](#compose-motion-dont-pick-stock-animations)). `validate_template` reports `library_animation_sample` for them. Each one has an engine counterpart: `shine_sweep` → an fx `sheen`, `sparkle` and `spec_orbit` → an fx `glint` (`path: "orbit"`), `light_leak` → an fx `leak`, `confetti` → an fx `confetti`, `pulse_ring` and `tap_pulse` → an fx `ripple`, `glow_border` → an fx `edge-glow`, `corner_brackets` → `corners`, and `white_border` / `rounded_border` → a v2 `frame`. Existing templates that reference a sample keep rendering it unchanged.
 
 An animation is **one** single-file animated input. **APNG** and **WebM** (VP9 with alpha) are the two recommended formats — APNG decodes natively on every platform (incl. on-device) with lossless alpha; WebM is much smaller. `.webp` and `.gif` also work:
 
@@ -1152,21 +1152,21 @@ More in the [gallery](./gallery.md#kinetic-typography).
 ]
 ```
 
-| Preset          | Default unit | What it does                                                                         |
-| --------------- | ------------ | ------------------------------------------------------------------------------------ |
-| `cascade`       | word         | Words rise into place one after another on a snappy spring.                          |
-| `rise` / `drop` | word         | Travel up / fall down into place (drop lands on a bouncy spring).                    |
-| `slide`         | word         | Slide in from `direction` (`left` = enters moving left).                             |
-| `pop`           | word         | Each unit springs up from 30% size around its own centre.                            |
-| `impact`        | word         | Each unit slams down from 180% size.                                                 |
-| `tracking-in`   | glyph        | Wide letter-spacing collapses to tight (keynote title).                              |
-| `typewriter`    | glyph        | Glyphs appear one by one behind a blinking caret (`caret: false` to hide it).        |
-| `scramble`      | glyph        | Glyphs decode from seeded random characters (`charset`).                             |
-| `wave`          | glyph        | Glyphs rise in, then bob on a travelling sine (`amplitude`, `frequency`).            |
-| `highlight`     | word         | Words cascade in, then a marker sweeps behind the accent words (`accent.marker`).    |
-| `counter`       | —            | A number rolls from `counter.from` to `counter.to` (`decimals`, `prefix`, `suffix`). |
-| `split`         | word         | Each line arrives as two halves from opposite sides.                                 |
-| `fade`          | word         | A plain staggered fade.                                                              |
+| Preset          | Default unit | What it does                                                                      |
+| --------------- | ------------ | --------------------------------------------------------------------------------- |
+| `cascade`       | word         | Words rise into place one after another on a snappy spring.                       |
+| `rise` / `drop` | word         | Travel up / fall down into place (drop lands on a bouncy spring).                 |
+| `slide`         | word         | Slide in from `direction` (`left` = enters moving left).                          |
+| `pop`           | word         | Each unit springs up from 30% size around its own centre.                         |
+| `impact`        | word         | Each unit slams down from 180% size.                                              |
+| `tracking-in`   | glyph        | Wide letter-spacing collapses to tight (keynote title).                           |
+| `typewriter`    | glyph        | Glyphs appear one by one behind a blinking caret (`caret: false` to hide it).     |
+| `scramble`      | glyph        | Glyphs decode from seeded random characters (`charset`).                          |
+| `wave`          | glyph        | Glyphs rise in, then bob on a travelling sine (`amplitude`, `frequency`).         |
+| `highlight`     | word         | Words cascade in, then a marker sweeps behind the accent words (`accent.marker`). |
+| `counter`       | —            | A number rolls from `counter.from` to `counter.to` (see **Counter** below).       |
+| `split`         | word         | Each line arrives as two halves from opposite sides.                              |
+| `fade`          | word         | A plain staggered fade.                                                           |
 
 | Field                                           | Default                                         | Notes                                                                                                                                                                           |
 | ----------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1186,6 +1186,12 @@ More in the [gallery](./gallery.md#kinetic-typography).
 | `role`                                          | —                                               | A [motion role](#motion-roles).                                                                                                                                                 |
 
 Moving boxes (the highlight marker, the typewriter caret) are emitted as one box per frame, each gated by an `enable` window, because FFmpeg evaluates `drawbox` geometry only once. They are frame-exact and deterministic. Validation codes: `kinetic_font_unmeasurable`, and `invalid_kinetic` (a counter without numbers). Agents get every preset, its defaults, art-direction rules and a starter from MCP `get_motion_catalog` (or `motionCatalog()` in the library). See [`examples/motion-design/kinetic-type.json`](../examples/motion-design/kinetic-type.json).
+
+**Counter.** The `counter` preset rolls a number: `counter: { from, to?, decimals?, prefix?, suffix?, locale?, grouping?, tabular?, overshoot? }`. Digits are tabular by default (each sits in a fixed-width slot, so the number never jitters sideways), the value lands exactly on `to` when the roll ends and holds, and `decimals` round rather than truncate. `locale` sets the grouping separator and decimal mark (`en` 1,234.5, `fr` 1 234,5, `de` 1.234,5, `de-CH` 1’234.5; default: the template's active locale). `grouping` defaults to on from five integer digits, so years stay plain. `overshoot` (0–0.1, keep it at 0.02–0.04) runs past the value and settles back inside the duration; leave it at 0 for prices. Omit `to` to roll up to the first number in the block's `text` once form fields resolve: `"{{ form_price }}"` → `"EUR 24"` gives prefix `EUR ` and 24, and its separators set decimals, grouping and locale. Text without a number fades in as is. Without a `duration`, the roll lasts 0.6–1.6 s depending on the range; it keeps the block's `delay` and `ease` (a token, a bezier or a spring).
+
+```jsonc
+"kinetic": [{ "text": { "en": "{{ form_price }}" }, "preset": "counter", "counter": { "from": 0 }, "ease": "$expo", "delay": 0.4 }]
+```
 
 **Filled text.** `fill: { gradient?: { from, to, angle? } | { stops: [2–8 colours], angle? }, texture?: url, sweep?: { duration?, width?, color?, delay?, every? } }` turns the block's units into a mask over the fill, keeping each unit's timing; `sweep` moves a soft band across it (a shimmer). The mask needs `alphamerge`: where the build lacks it, the block is drawn in its `color` and the advisory `mask_unavailable` is reported when the target build is known. Agents find it in `motionCatalog().compositing.kineticFill`.
 
@@ -1213,7 +1219,7 @@ More in the [gallery](./gallery.md#camera).
 
 ## Graphics
 
-`graphics` (up to 24 per section) are editorial shapes and light hits that animate on a curve. FFmpeg evaluates `drawbox` geometry only once, so each animated frame is its own box behind an `enable` window: frame-exact, deterministic, and on every backend. Every type takes `at` (default 0), `duration`, `ease`, `until` (default: hold to the cut), `color`, `role` and `above` (default: true for flash, wipe, glitch and focus, false otherwise).
+`graphics` (up to 24 per section) are editorial shapes and light hits that animate on a curve. FFmpeg evaluates `drawbox` geometry only once, so each animated frame is its own box behind an `enable` window: frame-exact, deterministic, and on every backend. Every type takes `at` (default 0), `duration`, `ease`, `until` (default: hold to the cut), `color`, `role` and `above` (see [Draw order](#draw-order-above)). Procedural light and texture primitives are `type: "fx"` graphics: see [Light and effects](#light-and-effects-graphicstype-fx).
 
 ![Every graphics type](./media/gallery/graphics.webp)
 
@@ -1223,9 +1229,9 @@ More in the [gallery](./gallery.md#graphics).
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `flash`      | `intensity`                                                                                                                                              | A full-frame light hit that decays (white, 0.3 s).                                                                                    |
 | `bars`       | `aspect` (2.39)                                                                                                                                          | Letterbox bars slide in from the top and bottom.                                                                                      |
-| `underline`  | `x`, `y`, `width`, `thickness`, `origin`                                                                                                                 | A rule that draws itself across.                                                                                                      |
-| `frame`      | `inset`, `thickness`                                                                                                                                     | A rectangle outline that traces itself clockwise.                                                                                     |
-| `corners`    | `inset`, `length`, `thickness`                                                                                                                           | Viewfinder brackets that extend from the corners.                                                                                     |
+| `underline`  | `x`, `y`, `width`, `thickness`, `origin`; v2: `caps`, `settle`, `exit`, `exitDuration`                                                                   | A rule that draws itself across.                                                                                                      |
+| `frame`      | `inset`, `thickness`; v2: `target`, `clearance`, `radius`, `trace`, `contrast`, `exit`, `exitDuration`                                                   | A rectangle outline that traces itself clockwise.                                                                                     |
+| `corners`    | `inset`, `length`, `thickness`; v2: `target`, `clearance`, `spread`, `radius`, `trace`, `contrast`, `exit`, `exitDuration`                               | Viewfinder brackets that extend from the corners.                                                                                     |
 | `wipe`       | `direction`                                                                                                                                              | A colour panel sweeping across the frame: it covers, then uncovers.                                                                   |
 | `panel`      | `x`, `y`, `width`, `height`, `from`                                                                                                                      | A block that grows from one edge (a backing plate for text).                                                                          |
 | `glitch`     | `intensity` (0.6)                                                                                                                                        | Seeded RGB split, jitter, grain and colour slices (0.35 s); changes with `global.seed`.                                               |
@@ -1233,8 +1239,355 @@ More in the [gallery](./gallery.md#graphics).
 | `progress`   | `position`, `thickness` (8), `track`, `x`, `y`, `width`, `duration` (3 s, up to 600)                                                                     | A bar that fills (linear by default), then holds.                                                                                     |
 | `ticker`     | `text`, `speed` (160 px/s), `position`, `height`, `font`, `size`, `textColor`                                                                            | A band grows in; the copy scrolls right to left and loops.                                                                            |
 | `bars-chart` | `values`, `labels`, `max`, `x`, `y`, `width`, `height`, `stagger` (0.08), `gap` (0.3), `showValues`, `decimals`, `prefix`, `suffix`, `font`, `textColor` | Bars grow one after another (`duration` is per bar, 0.7 s) while their values count up.                                               |
+| `fx`         | `effect`, `target`, `intensity`, `repeat`, `every`, `seed` and the primitive's own parameters                                                            | A procedural light or texture primitive clipped to its target: see [Light and effects](#light-and-effects-graphicstype-fx).           |
 
-See [`examples/motion-design/fx-pack.json`](../examples/motion-design/fx-pack.json) for trails, whips, these graphics and the lower-third styles.
+See [`examples/motion-design/fx-pack.json`](../examples/motion-design/fx-pack.json) for trails, whips, these graphics and the lower-third styles. A graphic's `duration` is at most 3 s, except `progress` (600 s) and `fx` (30 s).
+
+### Strokes v2 (`frame`, `corners`, `underline`)
+
+`frame`, `corners` and `underline` take optional v2 fields. A graphic that sets none of them renders exactly as before. Setting any of them switches it to the v2 lowering: even-pixel strokes, a trace that starts at the top-left with a short head fade, a visible exit before `until` (or the end of the section) and, for `frame` and `corners`, contrast-aware colour.
+
+![The legacy and v2 strokes side by side](./media/gallery/strokes-v2.webp)
+
+| Field          | Types              | Default (v2)                      | Notes                                                                                                                                                                                            |
+| -------------- | ------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `target`       | `frame`, `corners` | —                                 | What the strokes frame instead of the whole frame: `"layer:<i>"`, `"pane:<i>"`, `"text:<i>"` or a `{ x, y, w, h }` rectangle (see [fx targets](#targets)). `inset` is then ignored.              |
+| `clearance`    | `frame`, `corners` | 24                                | Px between the target edge and the strokes (−200–400; negative = inside it), clamped inside the frame.                                                                                           |
+| `radius`       | `frame`, `corners` | 0                                 | Corner radius in px (0–400), raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.                                                          |
+| `trace`        | `frame`            | `path`                            | `path` (one head travels clockwise at constant speed), `split` (two heads leave the top-left and meet bottom-right), `sides` (each side in turn, the legacy look), `fade` (no draw-on).          |
+| `trace`        | `corners`          | `clockwise`                       | `clockwise` (the brackets start one after another from the top-left), `together`, `fade`.                                                                                                        |
+| `spread`       | `corners`          | 1.06                              | Size the bracket rectangle starts at, relative to its rest size (1–1.3): the brackets close in on the subject on the entrance curve. 1 = no travel.                                              |
+| `contrast`     | `frame`, `corners` | `auto`                            | `auto`: on a known solid background an unset colour becomes light or dark ink, and a low-contrast colour or footage gets a soft offset shadow. `shadow`: always the shadow. `none`: as authored. |
+| `caps`         | `underline`        | `round`                           | `round` (anti-aliased half discs) or `square`.                                                                                                                                                   |
+| `settle`       | `underline`        | 0.03                              | Overshoot of the draw-on as a fraction of the width (0–0.12): the line runs past its end, then settles back.                                                                                     |
+| `exit`         | all three          | `fade` (`expand` for `corners`)   | How it leaves before `until`: `fade`, `retract` (undraws in its trace order), `expand` (grows about 4 % outward while fading; `frame` and `corners`), `none` (holds to the cut).                 |
+| `exitDuration` | all three          | 60 % of the entrance, 0.15–0.35 s | Seconds the exit takes on `$smooth` (0.1–1.5).                                                                                                                                                   |
+
+A v2 `underline` is drawn above text by default, so a CTA card or a text plate never hides it. In v2, `corners` strokes default to 4 px, and with a `target` their arms default to about 18 % of its short side (24–160 px).
+
+```jsonc
+"graphics": [
+  { "type": "frame", "at": 0.2, "target": "layer:0", "clearance": 16, "radius": 24, "trace": "path", "exit": "fade", "color": "$color.fg" },
+  { "type": "corners", "at": 0.2, "target": "text:0", "clearance": 32, "spread": 1.08, "exit": "expand", "color": "$color.accent" },
+  { "type": "underline", "at": 0.6, "x": 440, "y": 520, "width": 400, "thickness": 8, "caps": "round", "settle": 0.03, "exit": "fade" }
+]
+```
+
+### Draw order (`above`)
+
+A graphic with `above: false` is drawn under the section's text: kinetic blocks, captions, title cards and lower thirds. With `above: true`, it is drawn over everything the section draws, including the section's own authored `filters` and masks, so an authored mask or a text plate never hides it. Defaults: `true` for `flash`, `wipe`, `glitch`, `focus` and a v2 `underline`; for an `fx`, `true` on a `text:<i>` target; `false` otherwise.
+
+## Light and effects (`graphics[].type: "fx"`)
+
+An `fx` graphic is a procedural light or texture primitive. It is rendered at output resolution, anchored to a `target`, and clipped to that target's shape, so one descriptor adapts to landscape, portrait and square. Each primitive is a set of open parameters, not a finished look: an omitted field gets a default derived from the target size, the theme accent, `global.motion.energy` and the seed, so two untuned placements never look alike. Same descriptor, same pixels.
+
+![Every fx primitive near its peak](./media/gallery/fx.webp)
+
+More in the [gallery](./gallery.md#light-and-effects).
+
+```jsonc
+"graphics": [
+  { "type": "fx", "effect": "sheen", "target": "layer:0", "at": 0.6, "profile": "specular", "width": 0.12, "tilt": 20, "color": "$color.accent", "intensity": 0.8 },
+  { "type": "fx", "effect": "leak", "edge": "top-right", "duration": 2.4, "drift": -0.08, "secondary": "$color.accent2" }
+]
+```
+
+There are 13 primitives in four families:
+
+| Family   | Primitives                                   | Character                                                                                                  |
+| -------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Light    | `sheen`, `leak`, `edge-glow`, `bloom`        | Adds luminance and never greys: a highlight stays inside its target (an edge-glow blooms just outside it). |
+| Marks    | `ripple`, `glint`, `confetti`                | Start from a point of the target and may leave it: a tap, a sparkle, a burst.                              |
+| Ambient  | `bokeh`, `dust`, `vignette-breathe`, `grain` | Faint textures (≤ 0.12) that last the section. They are absent at `global.motion.energy: 0`.               |
+| Surfaces | `glass`, `resolve`                           | Rework the pixels inside the target: a frosted plate under text, a title that lands in focus.              |
+
+### Targets
+
+`target` names what the effect lives on. It resolves at compile time to an even-pixel rectangle, snapped inward and clamped to the frame. An effect never draws outside it, except the marks and the edge-glow halo.
+
+| `target`                  | What it is                                                                                                 |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `"frame"` (default)       | The whole frame.                                                                                           |
+| `"pane:<i>"`              | Pane `i` of the section's [layout](#layouts) (split screen).                                               |
+| `"layer:<i>"`             | `options.layers[i]` of a `color_background`.                                                               |
+| `"text:<i>"`              | Kinetic block `i`, clipped to its letters.                                                                 |
+| `{ x, y, w, h, radius? }` | A rectangle in px or frame fractions (`"iw*0.5"`, `"ih*0.25"`), with rounded corners when `radius` is set. |
+
+A shaped target (`text:<i>`, or a rectangle with a `radius`) needs `alphamerge`. Where the build lacks it, the effect is skipped with the `mask_unavailable` warning.
+
+### Shared fields
+
+Every primitive takes these fields, on top of its own parameters:
+
+| Field        | Default                                     | Notes                                                                                                                                                                                     |
+| ------------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `effect`     | (required)                                  | The primitive's name.                                                                                                                                                                     |
+| `target`     | `"frame"`                                   | See [Targets](#targets).                                                                                                                                                                  |
+| `at`         | 0                                           | Seconds from the section start, or a [time reference](#time-references) (`"card.end"`).                                                                                                   |
+| `duration`   | per primitive                               | Seconds one pass takes (up to 30). Defaults are given at energy 1 and scale by 1/√energy (energy clamped to 0.5–2). Set a surface or an ambient texture to the section length to hold it. |
+| `ease`       | per primitive                               | Any [easing](#easing) or `$token`.                                                                                                                                                        |
+| `until`      | —                                           | Hard stop: nothing of the effect draws after it.                                                                                                                                          |
+| `repeat`     | 1                                           | Passes (1–8).                                                                                                                                                                             |
+| `every`      | `duration` + 1.2                            | Seconds from one pass start to the next when `repeat` > 1.                                                                                                                                |
+| `color`      | warm white tinted by the theme accent       | `#rrggbb`, a colour name or a theme token (`"$color.accent"`). Its `@alpha` is ignored: use `intensity`.                                                                                  |
+| `intensity`  | per primitive                               | 0–1 of the primitive's ceiling (below). Keep it ≤ 0.6 over skin.                                                                                                                          |
+| `seed`       | —                                           | Mixed with `global.seed` and the graphic's path: re-rolls the context defaults and the dither.                                                                                            |
+| `above`      | `true` on a `text:<i>` target, else `false` | See [Draw order](#draw-order-above).                                                                                                                                                      |
+| `role`, `id` | —                                           | A [motion role](#motion-roles), and an id for time references.                                                                                                                            |
+
+### Ceilings and restraint
+
+`intensity` 1 maps to the primitive's ceiling, the highest peak alpha it may reach:
+
+| Ceiling  | Primitives                                                                           |
+| -------- | ------------------------------------------------------------------------------------ |
+| 0.12     | `bloom`, `bokeh`, `dust`, `vignette-breathe`, `grain` (`grain` is noise strength 12) |
+| 0.25     | `leak`                                                                               |
+| 0.3–0.35 | `sheen`, `edge-glow`, `resolve` (0.35), `glass` (0.3)                                |
+| 0.85–1   | `ripple` (0.85), `glint` (0.9), `confetti` (1): small marks that must read           |
+
+Keep one hero effect per beat and at most two layered (ambient textures count). Land it on the beat its target resolves. Effects never cover text you need read or faces. Tie colour to the palette (`$color.accent`, `$color.fg`) and timing to the motion tokens. The [sameness lint](#compose-motion-dont-pick-stock-animations) flags an untuned fx (`fx_untuned`), a repeated effect, an off-theme colour and more than two decorative effects in one section.
+
+### Reduced motion, devices and warnings
+
+At `global.motion.energy: 0`, every primitive switches to its reduced form (each table below names it): light holds still or becomes a faint static highlight, marks rest in place and fade in and out, and the ambient textures and `bloom` are dropped. Every primitive lowers to filters on the [on-device allowlist](./on-device-compilation.md). Where a build lacks an optional filter, it falls back: `sheen` and `leak` use compile-time sprites without `gradients`, `vignette-breathe` uses a gradient mask without `vignette`, and `confetti` and `glint` drop their spin without `rotate`. When an fx cannot render, it is skipped with a warning: `fx_target` (the target names nothing in the section), `mask_unavailable` (a shaped target without `alphamerge`) or `fx_skipped` (a missing filter or input). Effects are drawn in "Preview render" in the builder, not on its editing canvas.
+
+Agents get every primitive, its parameters, defaults and design intent from MCP `get_motion_catalog` (`motionCatalog().fx` in the library). The prose comes from `FX_DOCS` ([`fx-docs.ts`](../packages/ffmpeg-video-composer/src/schemas/fx-docs.ts)), the tables below included.
+
+### Primitives
+
+Every parameter is optional. Sizes in px are given at 1080p and scale with the frame.
+
+#### `sheen` (light)
+
+A specular light band that crosses its target once (or `repeat` times), clipped to the target shape: light on the glass of a card, a screen, a product shot or the letters of a title. Defaults: 0.75 s on `cubic-bezier(0.45, 0, 0.2, 1)`, ceiling 0.35, intensity 0.91. Reduced motion: a static 8% highlight that fades in and out on the target.
+
+| Field       | Range                               | What it does                                                                                                                                                                                                                                 |
+| ----------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `profile`   | `specular` \| `soft` \| `twin`      | Light profile across the band: specular (tight gaussian core + a bloom twice as wide, default: glass, metal, screens), soft (one wide gaussian wash: paper, fabric, matte cards), twin (two thin parallel glints: chrome, lenses, techy UI). |
+| `width`     | 0.02–0.6                            | Band width as a fraction of the target's short side (default ~0.15, varied by target shape and seed). 0.05–0.1 = a crisp glint, 0.2–0.4 = a broad wash.                                                                                      |
+| `tilt`      | -60–60                              | Band angle in degrees off the perpendicular of its travel (default 14–26, from the seed). 0 = square to the path; negative leans the other way.                                                                                              |
+| `direction` | `right` \| `left` \| `down` \| `up` | Travel path across the target (default: right on wide targets, down on tall ones). Match the scene's motion or reading direction.                                                                                                            |
+| `bloom`     | 0–0.6                               | Share of the peak carried by the soft bloom around a specular core (default 0.25; 0 = bare core).                                                                                                                                            |
+
+Use when: a hero object lands or resolves; a CTA card or price settles; a title locks up. Avoid: over faces or footage with skin (keep intensity ≤ 0.6 there); more than one sheen per beat.
+
+#### `leak` (light)
+
+A warm light leak: two soft radial lobes from an off-frame source at one edge, drifting slowly along it, rising and fading like film exposure. It lifts the mid-tones, never the blacks, never greys a bright surface, and has no edge anywhere. Defaults: 2.6 s on `cubic-bezier(0.4, 0, 0.2, 1)`, ceiling 0.25, intensity 0.88. Reduced motion: a still, dimmer leak that fades in and out without drifting.
+
+| Field       | Range                                                                                                  | What it does                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `edge`      | `left` \| `right` \| `top` \| `bottom` \| `top-left` \| `top-right` \| `bottom-left` \| `bottom-right` | Where the off-frame source sits (default from the seed: a side or a top corner, top corners on tall targets). The light pours in from there and never reaches the far side.                          |
+| `size`      | 0.2–1.5                                                                                                | Lobe radius as a fraction of the target's long side (default 0.3–0.42 from the seed). 0.25 = a tight flare at the edge, 1+ = a wash over half the frame.                                             |
+| `stretch`   | 0.5–3                                                                                                  | Lobe elongation along its edge (default 1–1.3): 1 = round, 2+ = a long streak hugging the edge.                                                                                                      |
+| `drift`     | -0.3–0.3                                                                                               | Travel along the edge over one pass, as a fraction of the edge's length; the sign sets the direction (default ±0.06–0.10 from the seed). 0 = a still leak.                                           |
+| `secondary` | colour                                                                                                 | Colour of the second lobe: "#rrggbb" or a theme token (default rose #FF7A88; the first lobe is `color`, default amber #FFB36B, both nudged toward the theme accent).                                 |
+| `balance`   | 0–1                                                                                                    | Strength of the second lobe relative to the first (default 0.55–0.8). 0 = a single lobe.                                                                                                             |
+| `spread`    | 0–1.5                                                                                                  | Offset of the second lobe along the edge, in lobe radii (default 0.5–0.9).                                                                                                                           |
+| `shadows`   | 0–1                                                                                                    | How much the shadows are kept clean (default 1: the light lifts the mid-tones and never the blacks; 0 = a wash into the shadows too). Surfaces brighter than the light itself are always left alone. |
+| `rise`      | 0.05–0.6                                                                                               | Share of the life spent fading in (default 0.3); ease-in, so it blooms rather than switches on.                                                                                                      |
+| `fall`      | 0.1–0.8                                                                                                | Share of the life spent fading out (default 0.5): a leak leaves more slowly than it arrives.                                                                                                         |
+
+Use when: a beat change or an entrance on footage or photos; a warm, analogue transition accent. Avoid: over text-heavy cards or UI screenshots; several leaks in a row (one per scene change at most).
+
+#### `edge-glow` (light)
+
+A glow around a card or video rect: a crisp inner hairline plus a soft bloom outside the target's (rounded) shape only, breathing gently. Defaults: 4 s on `cubic-bezier(0.4, 0, 0.2, 1)`, ceiling 0.35, intensity 0.51. Reduced motion: the same glow, still (no breathing).
+
+| Field       | Range  | What it does                                                                                                                        |
+| ----------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `line`      | 0–1    | Opacity of the inner hairline (default 0.55; 0 = glow only).                                                                        |
+| `lineWidth` | 0.5–8  | Hairline width in px at 1080p, scaled with the frame (default 1.5).                                                                 |
+| `spread`    | 2–48   | Bloom radius (gaussian σ) in px at 1080p, scaled with the frame (default 8–12 from the seed).                                       |
+| `glow`      | colour | Bloom colour: "#rrggbb" or a theme token (default: the light colour pushed toward the theme accent). The hairline stays near-white. |
+| `breathe`   | 0–0.25 | Opacity swing of the bloom, ± share (default 0.06; 0 = steady).                                                                     |
+| `period`    | 1.5–12 | Seconds per breath (default 3.6–4.8 from the seed).                                                                                 |
+
+Use when: a name card, a CTA or a product card that should read as lit or active; a focused pane. Avoid: on the full frame (use leak or bloom); on more than one card at once.
+
+#### `bloom` (light)
+
+Highlight halation: the brightest parts of the picture bleed a soft, warm glow into their surroundings, as film does. Built from the frame itself, so it follows the footage. Defaults: 6 s on `cubic-bezier(0.4, 0, 0.2, 1)`, ceiling 0.12, intensity 0.85. Reduced motion: absent.
+
+| Field       | Range      | What it does                                                                                                                                                       |
+| ----------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `threshold` | 0.3–0.98   | Luma (0..1 of the video range) above which highlights halate (default 0.68–0.78 from the seed). Lower = more of the picture glows; 0.9 = only speculars and skies. |
+| `knee`      | 0.02–0.4   | Softness of the threshold, in luma (default 0.12): small = only clipped highlights, large = gradual.                                                               |
+| `radius`    | 0.002–0.06 | Halation spread (gaussian σ) as a fraction of the target's short side (default ~0.011, i.e. 12 px at 1080p, from the seed). 0.03+ = a dreamy haze.                 |
+| `ramp`      | 0.13–2     | Seconds of fade-in and fade-out at both ends of the life (default 0.5).                                                                                            |
+
+Use when: bright skies, windows, product speculars; a filmic, warm finish on photos or footage. Avoid: on flat UI cards or text-only sections (nothing to bloom); stacked with leak and vignette at once.
+
+#### `ripple` (marks)
+
+Expanding anti-aliased rings (or a pressed dot plus a ring) from a point of the target: a tap, a pulse, a "look here". Defaults: 0.88 s on `cubic-bezier(0.16, 1, 0.3, 1)`, ceiling 0.85, intensity 1. Reduced motion: one still ring at its middle size that fades in and out (an opacity pulse, no growth).
+
+| Field     | Range               | What it does                                                                                                                                                                                    |
+| --------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variant` | `ring` \| `tap`     | ring (default): anti-aliased rings expanding from the origin and fading out (a pulse, a radar, a "look here"). tap: a filled dot pressed in and released, then one ring (a UI tap on a button). |
+| `origin`  | `{x, y}` (−0.5–1.5) | Ring centre, as fractions of the target ({x, y}; default the target centre).                                                                                                                    |
+| `radius`  | 0.1–3               | The rings' final radius as a share of the target's short side (default 0.9–1.2 from the seed, so the ring clears its target; a tap on a small button: 0.9–1.4 so the ring clears it).           |
+| `rings`   | int 1–3             | Rings per pass (default 2 for ring, 1 for tap).                                                                                                                                                 |
+| `stagger` | 0–0.6               | Seconds between ring starts (default 0.18). The pass duration covers every ring.                                                                                                                |
+| `start`   | 0.1–0.9             | Ring size when it appears, as a share of its final size (default 0.375: 0.6 → 1.6).                                                                                                             |
+| `stroke`  | 1–16                | Ring stroke in px at 1080p, at full size (default 5; scaled to the output frame).                                                                                                               |
+| `halo`    | 0–24                | Gaussian halo around the stroke, σ in px at 1080p (default 6; 0 = a bare line).                                                                                                                 |
+| `dot`     | 0.05–0.8            | tap: the pressed dot's radius as a share of the final ring radius (default 0.28).                                                                                                               |
+| `press`   | 0–0.3               | tap: how far the dot sinks on press, as a share of its size (default 0.09: 0.9 → 0.82 → 1).                                                                                                     |
+
+Use when: a UI tap in a product demo; a call to action or a hotspot that needs one beat of attention. Avoid: on every element of a section; over faces; more than two passes in a row (it reads as an alarm).
+
+#### `glint` (marks)
+
+Four-point star glints that twinkle once on a target (scale up, turn, vanish), or small lights orbiting it: the sparkle of something new or polished. Defaults: 0.9 s on `cubic-bezier(0.34, 1.56, 0.64, 1)`, ceiling 0.9, intensity 0.85. Reduced motion: the stars appear at rest at half size and fade in and out (no scale, turn or travel).
+
+| Field     | Range                             | What it does                                                                                                                                                                                                                                                                    |
+| --------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path`    | `scatter` \| `corners` \| `orbit` | Where the light sits: scatter (default: seeded points on the target, biased to its upper half and corners, like specular highlights), corners (just inside its corners), orbit (lights travelling around the target's edge with a short trail: a spec orbit for product shots). |
+| `points`  | 1–6 points `{x, y}` (−0.5–1.5)    | Exact star positions as target fractions; overrides path and count (scatter/corners only).                                                                                                                                                                                      |
+| `count`   | int 1–6                           | Stars (default 3–5 from the seed, fewer on small targets) or orbiting lights (default 2).                                                                                                                                                                                       |
+| `size`    | 8–96                              | Star span in px at 1080p (default 36–52 per star from the seed, 34 for orbit lights; scaled to the output frame).                                                                                                                                                               |
+| `stagger` | 0–0.4                             | Seconds between star twinkles (default 0.12). The pass duration covers every star.                                                                                                                                                                                              |
+| `spin`    | -90–90                            | Degrees each star turns while it twinkles (default 15; 0 = no turn).                                                                                                                                                                                                            |
+| `trail`   | 0–1                               | orbit: strength of the trail behind each light (default 0.4; 0 = none).                                                                                                                                                                                                         |
+| `speed`   | 0.2–3                             | orbit: revolutions per second (default 0.9).                                                                                                                                                                                                                                    |
+
+Use when: a product, a logo or a price lands; a "new" badge; jewellery, glass, chrome. Avoid: over text you need read; on footage with busy highlights; together with confetti in one beat.
+
+#### `confetti` (marks)
+
+A ballistic burst of tumbling paper pieces in the theme colours: launched from a point, slowed by drag, pulled down by gravity, swaying as they fall. Defaults: 2.2 s on `linear`, ceiling 1, intensity 1. Reduced motion: a few pieces appear at rest around the origin and fade in and out (no flight, no tumble).
+
+| Field     | Range               | What it does                                                                                                                |
+| --------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `count`   | int 4–36            | Pieces in the burst (default 28–36, from the seed). Repeated passes share 36.                                               |
+| `origin`  | `{x, y}` (−0.5–1.5) | Where the burst starts, as fractions of the target ({x, y}; default the target centre, {x: 0.5, y: 0.5}).                   |
+| `angle`   | -180–180            | Burst direction in degrees: -90 = up (default), 0 = right, 90 = down, ±180 = left.                                          |
+| `spread`  | 0–360               | Cone the pieces leave in, degrees around angle (default 90–130 from the seed; 360 = all around).                            |
+| `speed`   | 0.2–4               | Launch speed in frame heights per second (default 1.5; each piece varies ±25 %).                                            |
+| `gravity` | 0–8                 | Downward pull in frame heights per s² (default 1.6; 0 = floating).                                                          |
+| `drag`    | 0.1–8               | Air drag per second (default 3.2): higher = pieces stall and drift down slowly, like paper.                                 |
+| `sway`    | 0–0.1               | Side-to-side flutter while falling, in frame widths (default 0.012).                                                        |
+| `spin`    | 0–4                 | Maximum tumble in turns per second (default 1.4; each piece gets its own rate and sense).                                   |
+| `size`    | 4–64                | A piece's long side in px at 1080p (default 28; scaled to the output frame).                                                |
+| `discs`   | 0–1                 | Share of round pieces; the rest are 2:1 strips (default 0.2).                                                               |
+| `colors`  | 1–5 colours         | Palette, 1–5 colours ("#rrggbb", names or "$color.*" tokens). Default: the theme accent, accent2, brand and a neutral (fg). |
+| `depth`   | 0–1                 | Depth tiers: 1 (default) gives pieces at 0.6 / 0.8 / 1.0 size with slight alpha; 0 = all equal.                             |
+| `fade`    | 0.1–2               | Seconds faded out at the end of the burst (default 0.5).                                                                    |
+
+Use when: a real celebration: a launch, a milestone, a win, a sign-up count; once per video. Avoid: serious, corporate or editorial tones; behind text that must be read; more than one burst per video.
+
+#### `bokeh` (ambient)
+
+Out-of-focus light discs drifting slowly in three depth tiers (near discs larger, brighter and faster), clipped to the target: depth and warmth behind a title card or an intro. Defaults: 6 s on `linear`, ceiling 0.12, intensity 0.75. Reduced motion: absent (ambient motion is dropped).
+
+| Field      | Range    | What it does                                                                                                                                                                                     |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `count`    | int 2–16 | Number of out-of-focus discs (default 6–10 from the seed). Fewer, larger discs read calmer.                                                                                                      |
+| `size`     | 0.02–0.3 | Radius of the nearest discs as a share of the target's short side (default ~0.1–0.15). The middle and far depth tiers are 0.6× and 0.35× that.                                                   |
+| `softness` | 0–1      | Edge roll-off as a share of the radius (default 0.25–0.45): 0 = crisp lens discs, 1 = soft glowing blobs.                                                                                        |
+| `drift`    | -180–360 | Drift heading in degrees, screen convention: 0 = right, 90 = down, -90 (or 270) = up. Default from the seed (bokeh: rising within ±70° of up; dust: settling or rising within ±35° of vertical). |
+| `speed`    | 0–0.2    | Drift of the nearest tier in target short sides per second (default 0.035, scaled by motion energy); far tiers move slower (parallax).                                                           |
+| `depth`    | 0–1      | Parallax spread between depth tiers (default 0.5): 0 = all tiers drift together, 1 = far tiers almost still.                                                                                     |
+| `clear`    | 0–0.8    | Half-size of the empty zone kept at the target's centre, as a share of the target (default 0.3 for bokeh, 0.2 for dust): where titles sit. 0 = particles anywhere.                               |
+
+Use when: a calm title or name card needs depth; an intro or outro card over a flat or dark background. Avoid: busy footage, product shots, data or UI screens; more than one ambient texture per section.
+
+#### `dust` (ambient)
+
+Fine motes of dust drifting and catching the light (1–2 px, seeded positions and lives), clipped to the target: air in a still photo or a quiet interview intro. Defaults: 6 s on `linear`, ceiling 0.12, intensity 1. Reduced motion: absent (ambient motion is dropped).
+
+| Field     | Range    | What it does                                                                                                                                                                                     |
+| --------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `count`   | int 4–40 | Motes visible at once on average (default 16–24 from the seed).                                                                                                                                  |
+| `size`    | 0.5–4    | Mote diameter in px at 720p, scaled to the frame (default 2.5: about 2 and 3 px motes; smaller ones vanish under video compression at the 0.12 ceiling).                                         |
+| `drift`   | -180–360 | Drift heading in degrees, screen convention: 0 = right, 90 = down, -90 (or 270) = up. Default from the seed (bokeh: rising within ±70° of up; dust: settling or rising within ±35° of vertical). |
+| `speed`   | 0–0.1    | Drift in target short sides per second (default 0.012, scaled by motion energy, ±50% per mote).                                                                                                  |
+| `flicker` | 0–1      | How often motes catch and lose the light (default 0.5): 0 = every mote stays for the whole effect, 1 = short lives (about a third of the effect) fading in and out.                              |
+| `clear`   | 0–0.8    | Half-size of the empty zone kept at the target's centre, as a share of the target (default 0.3 for bokeh, 0.2 for dust): where titles sit. 0 = particles anywhere.                               |
+
+Use when: a still photo, a backdrop or a slow interview intro needs air and texture. Avoid: fast cuts, bright flat UI screens; together with bokeh or grain in the same section.
+
+#### `vignette-breathe` (ambient)
+
+A slow, barely-there vignette that breathes: the edges of the target darken a little and the falloff drifts in and out, steering the eye to a focus point. Defaults: 6 s on `cubic-bezier(0.4, 0, 0.2, 1)`, ceiling 0.12, intensity 1. Reduced motion: absent.
+
+| Field    | Range          | What it does                                                                                         |
+| -------- | -------------- | ---------------------------------------------------------------------------------------------------- |
+| `angle`  | 0.15–1.2       | Lens angle in radians: how far in the falloff reaches (default 0.55–0.7 from the seed; PI/5 ≈ 0.63). |
+| `swing`  | 0–0.15         | Breathing amplitude of the angle in radians (default 0.04; 0 = a still vignette).                    |
+| `period` | 2–16           | Seconds per breath (default 5.4–6.6 from the seed). Keep ≥ 4 s: it should never be noticed.          |
+| `focus`  | `{x, y}` (0–1) | Centre of attention as fractions of the target (e.g. the speaker's face); the falloff rings it.      |
+
+Use when: interviews, portraits, photo backdrops: a quiet focus on the subject. Avoid: bright, graphic cards where dark corners read as dirt; together with another darkening grade.
+
+#### `grain` (ambient)
+
+Fine, seeded, luma-only film grain under a low ceiling (noise strength 12 at intensity 1): binds mixed footage and flat cards into one texture. Defaults: 6 s on `cubic-bezier(0.4, 0, 0.2, 1)`, ceiling 0.12, intensity 0.85. Reduced motion: absent.
+
+| Field      | Range   | What it does                                                                          |
+| ---------- | ------- | ------------------------------------------------------------------------------------- |
+| `size`     | 1–4     | Grain size in px at 1080p, scaled with the frame (default 1: fine; 2–3 = 16 mm-like). |
+| `animated` | boolean | A new grain pattern every frame, like film (default true); false = a still texture.   |
+| `ramp`     | 0.13–2  | Seconds of fade-in and fade-out at both ends of the life (default 0.3).               |
+
+Use when: mixed sources (phone footage, screenshots, renders) cut together; a filmic finish. Avoid: crisp UI demos and text-heavy cards; on top of grade.grain.
+
+#### `glass` (surfaces)
+
+A frosted glass panel on the target rectangle (blurred, toned and desaturated footage behind it, a top-lit edge, rounded corners from the target radius) that keeps the text on it legible: a lower third, a name card or a caption plate. Defaults: 4 s on `linear`, ceiling 0.3, intensity 0.5. Reduced motion: unchanged (it does not move; it still frosts in and out over its ramp).
+
+| Field        | Range             | What it does                                                                                                                                                                                                           |
+| ------------ | ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tone`       | `dark` \| `light` | dark: smoked glass for light text (its brightest point stays dark enough for white text at ≥ 4.5:1); light: milk glass for dark text (its darkest point stays light enough for #1A1A1A text at ≥ 4.5:1). Default dark. |
+| `frost`      | 0–0.3             | Frost blur σ as a share of the card's short side (default ~0.08–0.12, at most 40 px): 0.03 = clear glass, 0.2 = heavy frost where nothing behind is legible.                                                           |
+| `saturation` | 0–1               | Colour kept from what is behind the glass (default ~0.45–0.65): 0 = neutral grey glass.                                                                                                                                |
+| `highlight`  | 0–1               | Strength of the top-lit edge highlight (a 1 px rim, 2 px from a 1080 px short side; default ~0.6–0.85, peaking at 0.35 alpha at 1). 0 = no rim.                                                                        |
+| `ramp`       | 0.1–1.5           | Seconds the card takes to frost in and to clear out (default 0.3, at least 4 frames).                                                                                                                                  |
+
+Use when: text sits over footage or a busy photo and needs a plate that still shows the scene. Avoid: flat colour backgrounds (a plain card is cleaner); more than one glass panel per beat.
+
+#### `resolve` (surfaces)
+
+A logo or title resolves into place: the target region starts defocused, slightly enlarged and dissolved into a soft glow of itself, then sharpens (per-frame blur steps, no visible step), settles to scale 1 and becomes opaque. Before `at` the target shows that glow. Defaults: 0.7 s on `cubic-bezier(0.16, 1, 0.3, 1)`, ceiling 0.35, intensity 1. Reduced motion: a plain cross-fade from the glow into the sharp element (no defocus steps, no scale).
+
+| Field   | Range | What it does                                                                                                                                |
+| ------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `blur`  | 0–0.2 | Starting defocus σ as a share of the target's short side (default ~0.035–0.055, e.g. 8 px on a 180 px logo box), eased to 0 frame by frame. |
+| `scale` | 1–1.2 | Starting scale, settling to 1 (default 1.03–1.05). 1 = no scale.                                                                            |
+| `fade`  | 0.1–1 | Share of the duration the element takes to become opaque (default 0.55).                                                                    |
+
+Use when: an intro logo, a brand lock-up or a one-word title lands on a calm card. Avoid: text that already has a kinetic entrance (pick one); over moving footage (the region is processed as a rectangle with a feathered edge).
+
+### Examples
+
+A product card that lands, catches the light and holds (one hero, one supporting mark):
+
+```jsonc
+"graphics": [
+  { "type": "fx", "effect": "sheen", "target": { "x": "iw*0.25", "y": "ih*0.2", "w": "iw*0.5", "h": "ih*0.6", "radius": 24 }, "at": 0.5, "profile": "specular", "width": 0.1, "direction": "right", "duration": 0.8, "ease": "$smooth" },
+  { "type": "fx", "effect": "glint", "target": { "x": "iw*0.25", "y": "ih*0.2", "w": "iw*0.5", "h": "ih*0.6", "radius": 24 }, "at": 1.1, "path": "corners", "count": 3, "size": 40, "color": "$color.accent" }
+]
+```
+
+An interview: smoked glass under the lower third and a quiet vignette on the speaker:
+
+```jsonc
+"graphics": [
+  { "type": "fx", "effect": "glass", "target": { "x": 64, "y": 520, "w": 720, "h": 140, "radius": 20 }, "duration": 6, "tone": "dark", "frost": 0.1 },
+  { "type": "fx", "effect": "vignette-breathe", "duration": 6, "focus": { "x": 0.45, "y": 0.4 }, "swing": 0.04, "period": 6 }
+]
+```
+
+A UI demo tap on the exact control, and a payoff burst once per video:
+
+```jsonc
+{ "type": "fx", "effect": "ripple", "variant": "tap", "target": { "x": 900, "y": 560, "w": 220, "h": 64, "radius": 32 }, "at": 1.4, "color": "$color.accent" }
+{ "type": "fx", "effect": "confetti", "at": "cta.end", "origin": { "x": 0.5, "y": 1 }, "angle": -90, "spread": 100, "colors": ["$color.accent", "$color.accent2", "$color.fg"] }
+```
+
+See [`examples/motion-design/effects-tour/05-compositing.json`](../examples/motion-design/effects-tour/05-compositing.json) (one section per primitive) and the six two-part recipes in [`examples/overlay-effects/preview-template.json`](../examples/overlay-effects/preview-template.json).
 
 ## Time references
 

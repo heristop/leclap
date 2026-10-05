@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Effects tour",
-    "description": "A guided tour of the LeClap motion vocabulary in nine chapters: kinetic type, camera and graphics, transitions, captions, compositing, themes, looks and grade, footage editing and sound. Each chapter is its own template (effects-tour/*.json); this one strings their renders together with chapter cards and designed transitions.",
+    "description": "A guided tour of the LeClap motion vocabulary in nine chapters: kinetic type, camera and graphics, transitions, captions, compositing and light (the fx primitives), themes, looks and grade, footage editing and sound. Each chapter is its own template (effects-tour/*.json); this one strings their renders together with chapter cards and designed transitions.",
     "creativeDirection": "Audience: creators and agents deciding what LeClap can do. Direction: a product demo that names every effect while it plays: ink chapter cards with a kicker, a headline and the chapter contents, a designed transition into each chapter and a whip out of it, and a small mono label naming each effect inside the chapters. Review: every card holds long enough to read, chapters run in order, every effect label is legible at 960x540, and the tour ends on a single ding."
   },
   "global": {
@@ -466,7 +466,7 @@
         "duration": 3.0
       },
       "role": "bridge",
-      "purpose": "Announce chapter 05: Compositing.",
+      "purpose": "Announce chapter 05: Compositing and light.",
       "camera": {
         "preset": "push-in",
         "amount": 0.04
@@ -512,7 +512,7 @@
         },
         {
           "text": {
-            "en": "Splits and a wipe"
+            "en": "Splits, a wipe and every fx primitive"
           },
           "preset": "rise",
           "font": "oswald",
@@ -534,10 +534,10 @@
       "name": "compositing",
       "type": "video",
       "role": "proof",
-      "purpose": "Play the rendered compositing chapter.",
+      "purpose": "Play the rendered compositing and light chapter.",
       "options": {
         "videoUrl": "{{ chapter_05 }}",
-        "duration": 9.2
+        "duration": 40.1
       },
       "transition": {
         "type": "push-up",

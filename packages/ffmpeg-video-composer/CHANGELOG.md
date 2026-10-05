@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   synchronous and platform-neutral; matches a `node:crypto` digest of the same JSON byte for byte.
 - `findingLine`, `invalidTemplateText` and `summarizeErrors` (Node entry): the plain-text renderings of
   validation findings `@leclap/mcp` uses, now shared with other agent surfaces.
-- Effects tour (`examples/motion-design/effects-tour.json`): a five-minute tour of every motion effect in nine chapters, first in the Effects & editing showcase (47 samples).
+- Effects tour (`examples/motion-design/effects-tour.json`): a six-minute tour of every motion effect in nine chapters (chapter 5 now shows every fx primitive), first in the Effects & editing showcase (47 samples).
 - `samples`: new `effects` category with 11 native samples (FX pack, word captions, formats, kinetic fills, split layouts, right-to-left type, emoji type, beat grid, theme/roles/safe zones, footage editing, sound design).
 - Determinism contract. `global.seed` roots every procedural effect. A deterministic encoder profile
   (bit-exact muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on
@@ -146,8 +146,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - On-device engine: `acompressor`, `adelay`, `agate`, `alimiter`, `equalizer` and `alphamerge` join the
   filter allowlist and the build links libfribidi (rebuild the engine).
 
+- Light and effects: `graphics[]` entries with `type: "fx"`, 13 procedural primitives lowered at output
+  resolution and clipped to a `target` (`"frame"`, `"pane:<i>"`, `"layer:<i>"`, `"text:<i>"` or a
+  `{ x, y, w, h, radius }` rectangle in px or frame fractions). Light: `sheen`, `leak`, `edge-glow`, `bloom`.
+  Marks: `ripple` (`ring` / `tap`), `glint` (`scatter` / `corners` / `orbit`), `confetti`. Ambient (≤ 0.12,
+  absent at `global.motion.energy: 0`): `bokeh`, `dust`, `vignette-breathe`, `grain`. Surfaces: `glass`,
+  `resolve`. Shared fields `at`, `duration` (≤ 30 s), `ease`, `until`, `repeat`, `every`, `color` (theme
+  tokens), `intensity` (0–1 of the primitive's ceiling), `seed` and `above`; omitted parameters derive from the
+  target size, the theme accent, the motion energy and the seed, deterministically. Every primitive uses
+  on-device filters with fallbacks (compile-time sprites without `gradients`), has a reduced-motion form, and
+  is skipped with `fx_target`, `mask_unavailable` or `fx_skipped` when it cannot render. `motionCatalog().fx`
+  (and `searchMotionCatalog` kind `fx`) lists each primitive's parameters, defaults and design intent from
+  `FX_DOCS`; that prose is loaded lazily, outside the browser's eager load.
+- v2 strokes: `frame`, `corners` and `underline` take `target`, `clearance` (24), `radius`, `trace`, `exit`,
+  `exitDuration` and `contrast` (`auto` | `shadow` | `none`); `corners` adds `spread`, `underline` adds round
+  `caps` and `settle`. Setting any of them opts in; graphics without them render as before.
+- Kinetic `counter`: tabular digits, locale grouping and decimal marks (`locale`, `grouping`), `overshoot`,
+  an exact landing on `to`, and `to` read from the first number of the block text (`"{{ form_price }}"`) when
+  omitted. Without a duration the roll lasts 0.6–1.6 s by range.
+- Sameness lint on the motion feedback channel: `fx_untuned`, `effect_repeated`, `library_animation_sample`,
+  `effect_off_theme`, `decor_overload`. `motionCatalog().samples` maps each library APNG to the primitives
+  that replace it.
+- Packaged samples: the six effect recipes (interface-focus, product-spotlight, celebration-burst,
+  focus-lock, light-pass, frame-reveal) are built from engine primitives instead of APNG overlays.
+
 ### Changed
 
+- `above: true` graphics are drawn after the section's own authored `filters` and masks, so an authored mask
+  or a text plate no longer hides them. A v2 `underline` and an fx on a `text:<i>` target default to above.
+- Whip transitions model a 144° shutter: the blur follows the push's real speed, ramps in and out with the
+  ease (no threshold), is centred on its frame and is capped at 4.5 % of the travel axis. Defaults peak at
+  the same blur as before.
 - Browser entry: `zod` is no longer inlined into `dist/browser.js`. It is imported from the `zod`
   runtime dependency (like `tslib`), so the host's bundler shares one copy with the app. Validation
   also no longer loads the background sugar presets or the rounded-panel PNG encoder at startup.

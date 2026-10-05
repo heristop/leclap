@@ -142,5 +142,14 @@ export const FxGraphicSchema = z
   );
 
 export type FxGraphic = z.infer<typeof FxGraphicSchema>;
+// One primitive's own fields (indexing the rows with a generic N in fxObject would merge them all).
+type FxParamsOf<N extends FxEffectName> = N extends FxEffectName
+  ? (typeof FX_PRIMITIVES)[N]['params'] extends infer P extends z.ZodRawShape
+    ? z.infer<z.ZodObject<P>>
+    : never
+  : never;
+
 /** The fx graphic of one primitive, with its own fields typed. */
-export type FxGraphicOf<N extends FxEffectName> = z.infer<ReturnType<typeof fxObject<N>>>;
+export type FxGraphicOf<N extends FxEffectName> = N extends FxEffectName
+  ? { type: 'fx'; effect: N } & z.infer<z.ZodObject<typeof FX_COMMON>> & FxParamsOf<N>
+  : never;

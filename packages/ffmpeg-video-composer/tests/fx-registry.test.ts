@@ -78,13 +78,16 @@ describe('fx schema', () => {
     expect(GraphicSchema.safeParse({ ...sheen, intensity: 2 }).success).toBe(false);
   });
 
+  const MARKS = new Set(['ripple', 'glint', 'confetti']);
+
   it('documents every parameter of every primitive', () => {
     for (const [name, row] of Object.entries(FX_PRIMITIVES)) {
       for (const [key, schema] of Object.entries(row.params)) {
         expect((schema as { description?: string }).description?.length ?? 0, `${name}.${key}`).toBeGreaterThan(20);
       }
 
-      expect(row.defaults.ceiling).toBeLessThanOrEqual(0.35);
+      // Light washes stay under the doctrine's 0.35; marks (a ring, a star point, paper confetti) are solid.
+      expect(row.defaults.ceiling).toBeLessThanOrEqual(MARKS.has(name) ? 1 : 0.35);
       expect(row.defaults.ceiling * row.defaults.intensity).toBeLessThanOrEqual(row.defaults.ceiling);
     }
   });

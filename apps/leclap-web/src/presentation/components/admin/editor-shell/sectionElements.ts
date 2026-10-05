@@ -8,8 +8,9 @@
 //   - background layers (`layers`):  color only
 //   - image overlays (`images`):     video, color, image
 //   - animation overlays (`animations`): video, color, image
-//   - engine effects (`graphics`: fx lights and stroke graphics): video, color, image — inserted from the
-//     animation picker (never from the "+ Add" menu), so a fresh one always starts from a library entry
+//   - engine effects (`graphics`: fx lights and stroke graphics): video, color, image — always inserted from
+//     the picker's Effects side (a library entry). The "+ Add" menu's "Effect" opens an empty slot on that
+//     side; its "Animation file" opens the same kind of slot on the files side.
 //
 // NOTE: a section-level background image is NOT a per-index array element (image/color sections carry
 // a single `color`/picked background, not an `image` ElementRef), so background-image is OUT of scope
@@ -30,6 +31,7 @@ import {
 import { libraryEntryOfGraphic, libraryLabelKey } from '@leclap/creative-kit/editor';
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import { newExtraLayer } from '../editor/layerGeometry';
+import { animationFileName } from '../editor/animationOverlay';
 import { newShapeImage } from './shape-image';
 import { translationText } from './sugarPreviewGeometry';
 import type { ElementRef } from './useSectionSelection';
@@ -44,6 +46,9 @@ export interface ElementDescriptor {
   previewText?: string;
   // An i18n key for the preview instead (an engine effect reads as its library label, e.g. "Sheen").
   previewKey?: string;
+  // Which of the two "animation" kinds the row is: an engine effect or an animation file played as-is.
+  // Absent on every other kind and on an empty slot whose picker has not been used yet.
+  family?: 'effect' | 'file';
 }
 
 type ArrayField = 'layers' | 'overlays' | 'images' | 'animations' | 'graphics';
@@ -57,8 +62,9 @@ export type SugarKind = 'caption' | 'titleCard' | 'lowerThird';
 // Everything the "+ Add" menu can offer: the selectable element kinds plus the two shape entries.
 // Shapes are NOT an ElementRef kind — a shape is an ImageOverlay carrying a `shape` recipe, so the
 // menu entries lower to an `images` append and select as `{ kind: 'image' }`.
-// Effects are absent: they come from the animation picker (a library entry), never as a blank element.
-export type AddableKind = Exclude<ElementRef['kind'], 'effect'> | 'shapeRect' | 'shapeEllipse';
+// "effect" adds no blank graphic: it opens an empty animation slot on the picker's Effects side, and the
+// effect picked there replaces the slot (an engine effect always starts from a library entry).
+export type AddableKind = ElementRef['kind'] | 'shapeRect' | 'shapeEllipse';
 
 type ShapeAddKind = 'shapeRect' | 'shapeEllipse';
 
@@ -171,7 +177,7 @@ function elementPreview(element: unknown, kind: ArrayKind): string | undefined {
       return mediaChoiceLabel(image.choice);
     }
 
-    if (kind === 'animation') return fileLabel((element as AnimationOverlay).url);
+    if (kind === 'animation') return animationFileName(element as AnimationOverlay);
 
     // A graphic the library does not offer (flash, bars…) reads as its type.
     if (kind === 'effect') return (element as Graphic).type;
@@ -182,9 +188,12 @@ function elementPreview(element: unknown, kind: ArrayKind): string | undefined {
   return truncatePreview(raw);
 }
 
-// The row label key: shape-bearing images read as "Shape", everything else as its kind.
+// The row label key: shape-bearing images read as "Shape", an animation slot with nothing picked yet as
+// "Effect or file", everything else as its kind.
 function elementLabelKey(element: unknown, kind: ArrayKind): string {
   if (kind === 'image' && (element as ImageOverlay).shape) return 'element.shape';
+
+  if (kind === 'animation' && !(element as AnimationOverlay).url) return 'element.animationPending';
 
   return `element.${kind}`;
 }
@@ -203,6 +212,15 @@ function truncatePreview(raw: string | undefined): string | undefined {
   return raw.length > 24 ? `${raw.slice(0, 24)}…` : raw;
 }
 
+// The animation family of an effect row or a chosen animation file (see ElementDescriptor.family).
+function familyOf(element: unknown, kind: ArrayKind): Pick<ElementDescriptor, 'family'> {
+  if (kind === 'effect') return { family: 'effect' };
+
+  if (kind === 'animation' && (element as AnimationOverlay).url) return { family: 'file' };
+
+  return {};
+}
+
 function descriptorsFor(section: EditorSection, kind: ArrayKind): ElementDescriptor[] {
   const list = sectionArray(section, kind);
 
@@ -216,6 +234,7 @@ function descriptorsFor(section: EditorSection, kind: ArrayKind): ElementDescrip
       kind,
       labelKey: elementLabelKey(element, kind),
       labelParams: { n: index + 1 },
+      ...familyOf(element, kind),
       ...(entry ? { previewKey: libraryLabelKey(entry.id) } : { previewText: elementPreview(element, kind) }),
     };
   });
@@ -321,16 +340,21 @@ export function addElement(
     return { patch: newSugar(kind), ref: { kind, index: 0 } };
   }
 
-  const list = sectionArray(section, kind);
+  // An effect starts as an empty animation slot (see AddableKind); gated on effect ownership above.
+  const slot = kind === 'effect' ? 'animation' : kind;
+
+  if (!canAddElement(section, kind)) return null;
+
+  const list = sectionArray(section, slot);
 
   if (!list) return null;
 
-  const next = [...list, newElement(kind)];
-  const field = FIELD_FOR_KIND[kind];
+  const next = [...list, newElement(slot)];
+  const field = FIELD_FOR_KIND[slot];
 
   return {
     patch: { [field]: next } as Partial<EditorSection>,
-    ref: { kind, index: list.length },
+    ref: { kind: slot, index: list.length },
   };
 }
 

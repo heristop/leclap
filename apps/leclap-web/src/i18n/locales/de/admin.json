@@ -117,8 +117,8 @@
       "label": "Erweiterte Einstellungen",
       "summary": "Audio-Mix · Variablen",
       "wholeVideo": {
-        "label": "Animationen über das ganze Video",
-        "hint": "Overlays, die sich über das gesamte Video erstrecken, über alle Abschnitte hinweg."
+        "label": "Animationsdateien über das ganze Video",
+        "hint": "Animationsdateien, die unverändert über das gesamte Video laufen, über alle Abschnitte hinweg. Effekte werden pro Szene hinzugefügt."
       },
       "wholeVideoLook": {
         "label": "Look & Farbkorrektur für das ganze Video",
@@ -562,9 +562,9 @@
     "upload": "Hochladen",
     "uploadHint": ".apng oder .webm hochladen",
     "uploaded": "Hochgeladen",
-    "dropAnimation": "Animation ablegen oder klicken zum Durchsuchen",
+    "dropAnimation": "Animationsdatei ablegen oder klicken zum Durchsuchen",
     "animationFormats": "APNG, WebM · inline in der Vorlage gehalten",
-    "removeUpload": "Hochgeladene Animation entfernen",
+    "removeUpload": "Hochgeladene Animationsdatei entfernen",
     "invalidType": "Bitte wähle eine .apng- oder .webm-Datei.",
     "previewBg": "Vorschau-Hintergrund",
     "bgChecker": "Schachbrett",
@@ -668,21 +668,18 @@
       "celebrate": "Feiern",
       "frames": "Rahmen",
       "ambient": "Atmosphäre",
-      "samples": "Beispiele",
-      "samplesHint": "Fertige Overlays, die in jeder Vorlage gleich aussehen. Nimm lieber einen Effekt oben: Die Engine zeichnet ihn passend zu dieser Szene."
+      "samples": "Fertige Dateien",
+      "samplesHint": "Fertige Dateien, die in jeder Vorlage gleich aussehen."
     },
     "picker": {
-      "sampleBadge": "Beispiel",
-      "sampleLabel": "{{label}} (fertiges Beispiel)",
-      "addLabel": "Effekt {{label}} hinzufügen",
+      "sampleLabel": "Animationsdatei: {{label}} ({{format}})",
+      "addLabel": "Effekt {{label}} hinzufügen (von der Engine gezeichnet, anpassbar)",
       "upgrade": "Effekt verwenden",
-      "upgradeHint": "Ein fertiges Beispiel. Der Effekt {{label}} zeichnet dieselbe Idee, passend zu dieser Szene."
+      "upgradeHint": "Eine unverändert abgespielte Datei. Der Effekt {{label}} zeichnet dieselbe Idee, passend zu dieser Szene."
     },
     "fx": {
       "timing": "Timing",
       "auto": "Auto",
-      "kindFx": "Engine-Effekt",
-      "kindGraphic": "Animierte Grafik",
       "reroll": "Neue Variante",
       "remove": "Effekt entfernen",
       "target": "Gilt für",
@@ -775,7 +772,26 @@
       "origin": "Ursprung",
       "caps": "Enden",
       "settle": "Nachfedern"
-    }
+    },
+    "kind": {
+      "switch": "Effekte oder Animationsdateien",
+      "effect": {
+        "name": "Effekt",
+        "title": "Effekte",
+        "badge": "Engine · anpassbar",
+        "subtitle": "Von LeClap gezeichnet und auf diese Szene abgestimmt",
+        "adjustable": "Nach dem Hinzufügen anpassbar"
+      },
+      "file": {
+        "name": "Animationsdatei",
+        "title": "Animationsdateien",
+        "badge": "Datei",
+        "subtitle": "Ein Clip, der unverändert über der Szene abgespielt wird",
+        "detail": "unverändert abgespielt",
+        "source": "Quelle der Animationsdatei"
+      }
+    },
+    "urlPlaceholder": "https://example.com/overlay.webm"
   },
   "element": {
     "resize": "Element skalieren",
@@ -786,7 +802,7 @@
     "addBackgroundImage": "Hintergrundbild",
     "addText": "Text",
     "addImageOverlay": "Bild / Logo",
-    "addAnimation": "Animation",
+    "addAnimation": "Animationsdatei",
     "addShapeRect": "Rechteck",
     "addShapeEllipse": "Kreis",
     "empty": "Füge dein erstes Element hinzu",
@@ -798,7 +814,7 @@
     "layer": "Hintergrund",
     "image": "Bild",
     "shape": "Form",
-    "animation": "Animation",
+    "animation": "Animationsdatei",
     "backgroundImage": "Hintergrundbild",
     "titleCard": "Titelkarte",
     "lowerThird": "Bauchbinde",
@@ -810,7 +826,12 @@
     "addLowerThird": "Bauchbinde",
     "sugarGroup": "Vorgefertigte Texte",
     "reorderHint": "Elemente werden nach Typ geschichtet. Ordne Elemente desselben Typs mit den Pfeilen oder per Ziehen neu an.",
-    "effect": "Effekt"
+    "effect": "Effekt",
+    "addEffect": "Effekt",
+    "effectAddHint": "Von der Engine gezeichnet · anpassbar",
+    "animationAddHint": "APNG oder WebM · unverändert abgespielt",
+    "animationPending": "Effekt oder Datei",
+    "kindLabel": "{{kind}}: {{name}}"
   },
   "shape": {
     "kind": "Form",
@@ -905,11 +926,11 @@
     "count_other": "{{count}} Bilder"
   },
   "animationOverlay": {
-    "add": "Eine Animation hinzufügen",
-    "label": "Animation",
-    "remove": "Animation entfernen",
-    "count_one": "{{count}} Animation",
-    "count_other": "{{count}} Animationen"
+    "add": "Eine Animationsdatei hinzufügen",
+    "label": "Animationsdatei",
+    "remove": "Animationsdatei entfernen",
+    "count_one": "{{count}} Animationsdatei",
+    "count_other": "{{count}} Animationsdateien"
   },
   "summaryChip": {
     "none": "Keine",

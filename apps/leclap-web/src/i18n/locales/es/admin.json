@@ -117,8 +117,8 @@
       "label": "Ajustes avanzados",
       "summary": "Mezcla de audio · Variables",
       "wholeVideo": {
-        "label": "Animaciones de todo el vídeo",
-        "hint": "Superposiciones que abarcan todo el vídeo, en cada sección."
+        "label": "Archivos de animación de todo el vídeo",
+        "hint": "Archivos de animación que se reproducen tal cual sobre todo el vídeo, en cada sección. Los efectos se añaden por escena."
       },
       "wholeVideoLook": {
         "label": "Look y etalonaje de todo el vídeo",
@@ -562,9 +562,9 @@
     "upload": "Subir",
     "uploadHint": "Sube un archivo .apng o .webm",
     "uploaded": "Subido",
-    "dropAnimation": "Suelta una animación o haz clic para explorar",
+    "dropAnimation": "Suelta un archivo de animación o haz clic para explorar",
     "animationFormats": "APNG, WebM · se mantiene incrustada en la plantilla",
-    "removeUpload": "Quitar la animación subida",
+    "removeUpload": "Quitar el archivo de animación subido",
     "invalidType": "Elige un archivo .apng o .webm.",
     "previewBg": "Fondo de la vista previa",
     "bgChecker": "Cuadrícula",
@@ -668,21 +668,18 @@
       "celebrate": "Celebrar",
       "frames": "Marcos",
       "ambient": "Ambiente",
-      "samples": "Muestras",
-      "samplesHint": "Superposiciones de serie que se ven igual en cada plantilla. Mejor un efecto de arriba: lo dibuja el motor, ajustado a esta escena."
+      "samples": "Archivos de serie",
+      "samplesHint": "Archivos listos para usar que se ven igual en cada plantilla."
     },
     "picker": {
-      "sampleBadge": "Muestra",
-      "sampleLabel": "{{label}} (muestra de serie)",
-      "addLabel": "Añadir el efecto {{label}}",
+      "sampleLabel": "Archivo de animación: {{label}} ({{format}})",
+      "addLabel": "Añadir el efecto {{label}} (dibujado por el motor, ajustable)",
       "upgrade": "Usar el efecto",
-      "upgradeHint": "Una muestra de serie. El efecto {{label}} dibuja la misma idea, ajustada a esta escena."
+      "upgradeHint": "Un archivo que se reproduce tal cual. El efecto {{label}} dibuja la misma idea, ajustada a esta escena."
     },
     "fx": {
       "timing": "Tiempos",
       "auto": "Auto",
-      "kindFx": "Efecto del motor",
-      "kindGraphic": "Gráfico animado",
       "reroll": "Nueva variación",
       "remove": "Quitar efecto",
       "target": "Se aplica a",
@@ -775,7 +772,26 @@
       "origin": "Origen",
       "caps": "Extremos",
       "settle": "Asentamiento"
-    }
+    },
+    "kind": {
+      "switch": "Efectos o archivos de animación",
+      "effect": {
+        "name": "Efecto",
+        "title": "Efectos",
+        "badge": "Motor · ajustable",
+        "subtitle": "Dibujado por LeClap y adaptado a esta escena",
+        "adjustable": "Ajustable una vez añadido"
+      },
+      "file": {
+        "name": "Archivo de animación",
+        "title": "Archivos de animación",
+        "badge": "Archivo",
+        "subtitle": "Un clip que se reproduce tal cual sobre la escena",
+        "detail": "se reproduce tal cual",
+        "source": "Origen del archivo de animación"
+      }
+    },
+    "urlPlaceholder": "https://example.com/overlay.webm"
   },
   "element": {
     "resize": "Redimensionar elemento",
@@ -786,7 +802,7 @@
     "addBackgroundImage": "Imagen de fondo",
     "addText": "Texto",
     "addImageOverlay": "Imagen / logotipo",
-    "addAnimation": "Animación",
+    "addAnimation": "Archivo de animación",
     "addShapeRect": "Rectángulo",
     "addShapeEllipse": "Círculo",
     "empty": "Añade tu primer elemento",
@@ -798,7 +814,7 @@
     "layer": "Fondo",
     "image": "Imagen",
     "shape": "Forma",
-    "animation": "Animación",
+    "animation": "Archivo de animación",
     "backgroundImage": "Imagen de fondo",
     "titleCard": "Tarjeta de título",
     "lowerThird": "Rótulo",
@@ -810,7 +826,12 @@
     "addLowerThird": "Rótulo",
     "sugarGroup": "Textos prediseñados",
     "reorderHint": "Los elementos se superponen por tipo. Reordena los elementos del mismo tipo con las flechas o arrastrándolos.",
-    "effect": "Efecto"
+    "effect": "Efecto",
+    "addEffect": "Efecto",
+    "effectAddHint": "Dibujado por el motor · ajustable",
+    "animationAddHint": "APNG o WebM · se reproduce tal cual",
+    "animationPending": "Efecto o archivo",
+    "kindLabel": "{{kind}}: {{name}}"
   },
   "shape": {
     "kind": "Forma",
@@ -905,11 +926,11 @@
     "count_other": "{{count}} imágenes"
   },
   "animationOverlay": {
-    "add": "Añadir una animación",
-    "label": "Animación",
-    "remove": "Quitar animación",
-    "count_one": "{{count}} animación",
-    "count_other": "{{count}} animaciones"
+    "add": "Añadir un archivo de animación",
+    "label": "Archivo de animación",
+    "remove": "Quitar archivo de animación",
+    "count_one": "{{count}} archivo de animación",
+    "count_other": "{{count}} archivos de animación"
   },
   "summaryChip": {
     "none": "Ninguno",

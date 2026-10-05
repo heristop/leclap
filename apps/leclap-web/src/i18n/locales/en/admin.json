@@ -117,8 +117,8 @@
       "label": "Advanced settings",
       "summary": "Audio mix · Variables",
       "wholeVideo": {
-        "label": "Whole-video animations",
-        "hint": "Overlays that span the entire video, across every section."
+        "label": "Whole-video animation files",
+        "hint": "Animation files played as-is over the entire video, across every section. Effects are added per scene."
       },
       "wholeVideoLook": {
         "label": "Whole-video look & grade",
@@ -562,9 +562,9 @@
     "upload": "Upload",
     "uploadHint": "Upload .apng or .webm",
     "uploaded": "Uploaded",
-    "dropAnimation": "Drop an animation or click to browse",
+    "dropAnimation": "Drop an animation file or click to browse",
     "animationFormats": "APNG, WebM · kept inline in the template",
-    "removeUpload": "Remove uploaded animation",
+    "removeUpload": "Remove uploaded animation file",
     "invalidType": "Please choose an .apng or .webm file.",
     "previewBg": "Preview background",
     "bgChecker": "Checkerboard",
@@ -668,21 +668,18 @@
       "celebrate": "Celebrate",
       "frames": "Frames",
       "ambient": "Ambient",
-      "samples": "Samples",
-      "samplesHint": "Stock overlays that look the same in every template. Prefer an effect above: it is drawn by the engine and tuned to this scene."
+      "samples": "Stock files",
+      "samplesHint": "Ready-made files that look the same in every template."
     },
     "picker": {
-      "sampleBadge": "Sample",
-      "sampleLabel": "{{label}} (stock sample)",
-      "addLabel": "Add the {{label}} effect",
+      "sampleLabel": "Animation file: {{label}} ({{format}})",
+      "addLabel": "Add the {{label}} effect (drawn by the engine, adjustable)",
       "upgrade": "Use the effect",
-      "upgradeHint": "A stock sample. The {{label}} effect draws the same idea, tuned to this scene."
+      "upgradeHint": "A file played as-is. The {{label}} effect draws the same idea, tuned to this scene."
     },
     "fx": {
       "timing": "Timing",
       "auto": "Auto",
-      "kindFx": "Engine effect",
-      "kindGraphic": "Animated graphic",
       "reroll": "New variation",
       "remove": "Remove effect",
       "target": "Applies to",
@@ -775,7 +772,26 @@
       "origin": "Origin",
       "caps": "Caps",
       "settle": "Settle"
-    }
+    },
+    "kind": {
+      "switch": "Effects or animation files",
+      "effect": {
+        "name": "Effect",
+        "title": "Effects",
+        "badge": "Engine · adjustable",
+        "subtitle": "Drawn by LeClap and tuned to this scene",
+        "adjustable": "Adjustable once added"
+      },
+      "file": {
+        "name": "Animation file",
+        "title": "Animation files",
+        "badge": "File",
+        "subtitle": "A clip played as-is on top of the scene",
+        "detail": "played as-is",
+        "source": "Animation file source"
+      }
+    },
+    "urlPlaceholder": "https://example.com/overlay.webm"
   },
   "element": {
     "resize": "Resize element",
@@ -786,7 +802,7 @@
     "addBackgroundImage": "Background image",
     "addText": "Text",
     "addImageOverlay": "Image / logo",
-    "addAnimation": "Animation",
+    "addAnimation": "Animation file",
     "addShapeRect": "Rectangle",
     "addShapeEllipse": "Circle",
     "empty": "Add your first element",
@@ -798,7 +814,7 @@
     "layer": "Background",
     "image": "Image",
     "shape": "Shape",
-    "animation": "Animation",
+    "animation": "Animation file",
     "backgroundImage": "Background image",
     "titleCard": "Title card",
     "lowerThird": "Lower third",
@@ -810,7 +826,12 @@
     "addLowerThird": "Lower third",
     "sugarGroup": "Ready-made text",
     "reorderHint": "Elements layer by type. Reorder items of the same type with the arrows or by dragging.",
-    "effect": "Effect"
+    "effect": "Effect",
+    "addEffect": "Effect",
+    "effectAddHint": "Drawn by the engine · adjustable",
+    "animationAddHint": "APNG or WebM · played as-is",
+    "animationPending": "Effect or file",
+    "kindLabel": "{{kind}}: {{name}}"
   },
   "shape": {
     "kind": "Shape",
@@ -905,11 +926,11 @@
     "count_other": "{{count}} images"
   },
   "animationOverlay": {
-    "add": "Add an animation",
-    "label": "Animation",
-    "remove": "Remove animation",
-    "count_one": "{{count}} animation",
-    "count_other": "{{count}} animations"
+    "add": "Add an animation file",
+    "label": "Animation file",
+    "remove": "Remove animation file",
+    "count_one": "{{count}} animation file",
+    "count_other": "{{count}} animation files"
   },
   "summaryChip": {
     "none": "None",

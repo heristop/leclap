@@ -458,7 +458,7 @@ export const OverlaysField = ({
         label={t('overlays.kind')}
         value={kind}
         options={[
-          { value: 'animation', label: t('overlays.animation'), icon: 'sparkles-outline' },
+          { value: 'animation', label: t('overlays.animation'), icon: 'film-outline' },
           { value: 'image', label: t('overlays.image'), icon: 'image-outline' },
         ]}
         onChange={setKind}

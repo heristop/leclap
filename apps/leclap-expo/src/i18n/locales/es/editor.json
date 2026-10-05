@@ -370,9 +370,9 @@
     "mirror": "Espejo",
     "mirrorHorizontal": "Horizontal",
     "mirrorVertical": "Vertical",
-    "add": "Añadir una animación",
-    "layer": "Animación {{number}}",
-    "remove": "Eliminar animación",
+    "add": "Añadir un archivo de animación",
+    "layer": "Archivo de animación {{number}}",
+    "remove": "Eliminar archivo de animación",
     "effects": {
       "label": "Combinaciones de efectos",
       "interface-focus": {
@@ -441,8 +441,8 @@
       "samplesHint": "Superposiciones de serie que se ven igual en cada plantilla. Mejor un efecto de arriba: lo dibuja el motor, ajustado a esta escena."
     },
     "engine": {
-      "engineLabel": "Efectos del motor",
-      "engineHelp": "Los dibuja el motor sobre esta escena, ajustados a ella. Ajústalos en el editor web.",
+      "engineLabel": "Efectos",
+      "engineHelp": "Los dibuja LeClap, adaptados a esta escena. Ajústalos en el editor web.",
       "added": "Efectos de esta escena",
       "removeEffect": "Quitar {{label}}",
       "addEffect": "Añadir {{label}}"
@@ -451,7 +451,7 @@
   },
   "overlays": {
     "kind": "Superposiciones",
-    "animation": "Animación",
+    "animation": "Archivo de animación",
     "image": "Imagen"
   },
   "watermark": {

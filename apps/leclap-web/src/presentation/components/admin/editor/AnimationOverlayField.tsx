@@ -1,9 +1,9 @@
-// Manage a visual section's animated overlays: a list of animations, each picked from the bundled
-// library (or uploaded) and dragged/resized on the preview. Reuses AnimationGallery for the per-overlay
-// pick + placement (one row each) and adds a trailing gallery to append more. The image counterpart is
-// ImageOverlayField; both share the same add / remove / drag-resize shape. It hosts the whole-video
-// overlays, which cannot hold section graphics, so its library lists the samples only (the engine
-// primitives and their recipes are picked per section, from the element inspector).
+// Manage a list of animation FILES (clips played as-is): each picked from the stock files (or uploaded, or
+// by URL) and dragged/resized on the preview. Reuses AnimationGallery for the per-overlay pick + placement
+// (one row each) and adds a trailing gallery to append more. The image counterpart is ImageOverlayField;
+// both share the same add / remove / drag-resize shape. It hosts the whole-video overlays, which cannot
+// hold section graphics, so it only ever shows the "Animation files" side of the picker (engine effects
+// and their recipes are picked per scene, from the element inspector).
 import { useTranslation } from 'react-i18next';
 import type { AnimationAsset } from '@/data/mediaCatalog';
 import { makeTemplateId, type AnimationOverlay, type Orientation } from '../templateEditorModel';

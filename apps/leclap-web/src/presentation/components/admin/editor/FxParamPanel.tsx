@@ -9,7 +9,7 @@ import type { TFunction } from 'i18next';
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import { resolveTheme } from 'ffmpeg-video-composer/src/core/theme/resolve.ts';
 import type { ThemeSpec } from 'ffmpeg-video-composer/src/core/theme/themes.ts';
-import { Sparkles, Trash2, X } from '@/presentation/components/icons';
+import { Shuffle, Trash2, X } from '@/presentation/components/icons';
 import {
   Button,
   Checkbox,
@@ -38,6 +38,7 @@ import {
 import { rangeFill, SegmentedControl } from './controls';
 import { EditorSelectContent } from './editor-select-content';
 import { SectionDisclosure } from './SectionDisclosure';
+import { KindLine } from './animationKinds';
 import { AnimationThumb } from './AnimationMedia';
 
 const LABEL_CLS = 'text-xs font-semibold uppercase tracking-widest text-gray-400';
@@ -137,44 +138,44 @@ const PanelHeader = ({
   const label = entry ? t(libraryLabelKey(entry.id), { defaultValue: card?.fallbackLabel }) : humanize(graphic.type);
 
   return (
-    <div className="flex items-center gap-2.5">
-      <AnimationThumb
-        thumb={card?.thumb}
-        poster={card?.poster}
-        fallback={label}
-        className="h-10 w-[4.5rem] shrink-0 overflow-hidden rounded-lg border border-foreground/10"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-foreground">{label}</p>
-        <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-          {t(graphic.type === 'fx' ? 'animation.fx.kindFx' : 'animation.fx.kindGraphic')}
-        </p>
-      </div>
-      {onReroll ? (
+    <div className="space-y-2">
+      <KindLine family="effect" />
+      <div className="flex items-center gap-2.5">
+        <AnimationThumb
+          thumb={card?.thumb}
+          poster={card?.poster}
+          fallback={label}
+          className="h-10 w-[4.5rem] shrink-0 overflow-hidden rounded-lg border border-brand-500/25"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">{label}</p>
+        </div>
+        {onReroll ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            title={t('animation.fx.reroll')}
+            aria-label={t('animation.fx.reroll')}
+            onClick={() => {
+              onReroll('seed', Math.floor(Math.random() * 10000));
+            }}
+          >
+            <Shuffle className="h-4 w-4" />
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          title={t('animation.fx.reroll')}
-          aria-label={t('animation.fx.reroll')}
-          onClick={() => {
-            onReroll('seed', Math.floor(Math.random() * 10000));
-          }}
+          aria-label={t('animation.fx.remove')}
+          title={t('animation.fx.remove')}
+          onClick={onRemove}
+          className="text-gray-400 hover:text-red-500"
         >
-          <Sparkles className="h-4 w-4" />
+          <Trash2 className="h-4 w-4" />
         </Button>
-      ) : null}
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        aria-label={t('animation.fx.remove')}
-        title={t('animation.fx.remove')}
-        onClick={onRemove}
-        className="text-gray-400 hover:text-red-500"
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      </div>
     </div>
   );
 };

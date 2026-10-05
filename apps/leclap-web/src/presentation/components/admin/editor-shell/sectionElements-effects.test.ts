@@ -44,10 +44,34 @@ describe('engine effects as section elements', () => {
     });
   });
 
-  it('never adds a blank effect from the add menu (effects start from the animation picker)', () => {
+  it('tells an effect row from an animation-file row', () => {
+    const [file, effect] = listSectionElements(withEffects());
+
+    expect(file).toMatchObject({ family: 'file', labelKey: 'element.animation', previewText: 'confetti.apng' });
+    expect(effect).toMatchObject({ family: 'effect', labelKey: 'element.effect' });
+  });
+
+  it('labels an animation slot with nothing picked yet as "effect or file", with no family', () => {
+    const section = { ...newSection('video'), animations: [{ id: 'a', url: '' }] } as EditorSection;
+    const [slot] = listSectionElements(section);
+
+    expect(slot.labelKey).toBe('element.animationPending');
+    expect(slot.family).toBeUndefined();
+  });
+
+  it('never adds a blank effect: "Effect" and "Animation file" both open an empty animation slot', () => {
     const section = withEffects();
 
+    expect(canAddElement(section, 'effect')).toBe(true);
     expect(canAddElement(section, 'animation')).toBe(true);
-    expect(addElement(section, 'animation')?.ref).toEqual({ kind: 'animation', index: 1 });
+    for (const kind of ['effect', 'animation'] as const) {
+      const added = addElement(section, kind);
+
+      expect(added?.ref).toEqual({ kind: 'animation', index: 1 });
+      expect(added?.patch).toEqual({
+        animations: [{ id: 'a', url: '/assets/animations/confetti.apng' }, expect.objectContaining({ url: '' })],
+      });
+    }
+    expect(canAddElement(newSection('music'), 'effect')).toBe(false);
   });
 });

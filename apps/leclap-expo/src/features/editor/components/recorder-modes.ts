@@ -29,3 +29,11 @@ export function recorderModeProps(options: CaptureOptions | undefined): {
 
   return { allowedModes: modes, initialMode: initial };
 }
+
+/**
+ * Whether the recorder should open the gallery instead of the camera: the camera can't be used (no
+ * permission, or no camera at all, as on a simulator) and the section allows an upload.
+ */
+export function uploadFallback(modes: readonly CaptureMode[], cameraReady: boolean): boolean {
+  return !cameraReady && modes.includes('upload');
+}

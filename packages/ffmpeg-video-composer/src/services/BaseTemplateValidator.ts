@@ -8,6 +8,7 @@ import { knownNames, referenceFinding } from './validation/reference-finding';
 import {
   dedupeFindings,
   unknownKeyFinding,
+  valueAt,
   zodIssueFindings,
   zodIssues,
   withoutHostFields,
@@ -79,7 +80,9 @@ export class BaseTemplateValidator {
     const found = findUnknownKeys(schema, data, { freeForm: FREE_FORM_SCHEMAS });
     const unknownKeys = envelope ? withoutHostFields(found) : found;
     const issues = error ? this.formatZodError(error, data, unknownKeys) : [];
-    const keyFindings = unknownKeys.map((entry) => unknownKeyFinding(entry.path.join('.'), entry.key, entry.allowed));
+    const keyFindings = unknownKeys.map((entry) =>
+      unknownKeyFinding(entry.path.join('.'), entry.key, entry.allowed, valueAt(data, entry.path))
+    );
 
     return dedupeFindings([...issues, ...keyFindings]);
   }

@@ -1,6 +1,6 @@
 import { withEasingHint } from './easing-hint';
 import { nearestKey } from './key-aliases';
-import { allowedKeysAt, findUnknownKeys, type UnknownKey, type WalkOptions } from './schema-walk';
+import { allowedKeysAt, type UnknownKey } from './schema-walk';
 import { formatOptions, nearest } from './suggest';
 import type { ValidationError } from './types';
 
@@ -30,10 +30,16 @@ export function zodIssues(error: IssueSource): SchemaIssue[] {
   }
 
   try {
-    return JSON.parse(error.message) as SchemaIssue[];
+    const parsed: unknown = JSON.parse(error.message);
+
+    if (Array.isArray(parsed) && parsed.every((entry) => entry !== null && typeof entry === 'object')) {
+      return parsed as SchemaIssue[];
+    }
   } catch {
-    return [{ path: [], message: error.message, code: 'zod_error' }];
+    // Not JSON: fall through to the message itself.
   }
+
+  return [{ path: [], message: error.message, code: 'zod_error' }];
 }
 
 function issuePath(issue: SchemaIssue): Path {
@@ -67,7 +73,7 @@ function bestBranch(branches: SchemaIssue[][], input: unknown): SchemaIssue[] | 
   if (viable.length === 0) return undefined;
 
   if (viable.every(isRootEnumMiss)) {
-    const values = viable.flatMap((branch) => branch[0].values ?? []);
+    const values = [...new Set(viable.flatMap((branch) => branch[0].values ?? []))];
 
     return [{ code: 'invalid_value', path: [], values, message: enumMessage(values) }];
   }
@@ -82,7 +88,7 @@ function flattenIssues(issues: SchemaIssue[], prefix: Path, data: unknown): Sche
 
     if (issue.code === 'invalid_union' && Array.isArray(issue.options) && issue.errors?.length === 0) {
       // A discriminated union whose discriminator matched no option: an enum miss on that key.
-      return [{ code: 'invalid_value', path, values: issue.options, message: issue.message }];
+      return [{ code: 'invalid_value', path, values: issue.options, message: enumMessage(issue.options) }];
     }
 
     const branch = issue.code === 'invalid_union' ? bestBranch(issue.errors ?? [], valueAt(data, path)) : undefined;
@@ -93,7 +99,8 @@ function flattenIssues(issues: SchemaIssue[], prefix: Path, data: unknown): Sche
   });
 }
 
-function valueAt(data: unknown, path: Path): unknown {
+/** The value at `path` inside `data`, or undefined when the path leaves the data. */
+export function valueAt(data: unknown, path: Path): unknown {
   return path.reduce<unknown>(
     (node, key) => (node !== null && typeof node === 'object' ? (node as Record<string, unknown>)[key] : undefined),
     data
@@ -116,20 +123,33 @@ function enumFinding(issue: SchemaIssue, path: string, data: unknown): Validatio
   return suggestion === undefined ? finding : { ...finding, suggestion };
 }
 
-/** One `unknown_key` finding, with the nearest allowed key as its suggestion when there is one. */
-export function unknownKeyFinding(objectPath: string, key: string, allowed: string[] | undefined): ValidationError {
+/**
+ * One `unknown_key` finding, with the nearest allowed key as its suggestion when there is one. `holder`
+ * is the object carrying the key: when the suggested key is already set there, renaming would overwrite
+ * it, so the fix needs the author (`judgement`) rather than being safe to apply.
+ */
+export function unknownKeyFinding(
+  objectPath: string,
+  key: string,
+  allowed: string[] | undefined,
+  holder?: unknown
+): ValidationError {
   const suggestion = allowed ? nearestKey(key, allowed) : undefined;
   const where = objectPath ? ` in ${objectPath}` : '';
   const path = objectPath ? `${objectPath}.${key}` : key;
 
   if (suggestion !== undefined) {
+    const taken = holder !== null && typeof holder === 'object' && Object.hasOwn(holder, suggestion);
+
     return {
       path,
       message: `Unknown key "${key}"${where} — did you mean "${suggestion}"?`,
       code: 'unknown_key',
-      hint: `Rename "${key}" to "${suggestion}".`,
+      hint: taken
+        ? `"${suggestion}" is already set: merge "${key}" into it or remove "${key}".`
+        : `Rename "${key}" to "${suggestion}".`,
       suggestion,
-      kind: 'format',
+      kind: taken ? 'judgement' : 'format',
     };
   }
 
@@ -148,7 +168,9 @@ function issueFindings(issue: SchemaIssue, data: unknown, unknownKeys: UnknownKe
   const path = Array.isArray(issue.path) ? issue.path.join('.') : 'unknown';
 
   if (issue.code === 'unrecognized_keys') {
-    return (issue.keys ?? []).map((key) => unknownKeyFinding(path, key, allowedKeysAt(unknownKeys, path, key)));
+    const holder = valueAt(data, issuePath(issue));
+
+    return (issue.keys ?? []).map((key) => unknownKeyFinding(path, key, allowedKeysAt(unknownKeys, path, key), holder));
   }
 
   if (issue.code === 'invalid_value') return [enumFinding(issue, path, data)];
@@ -180,34 +202,23 @@ export function withoutHostFields(found: UnknownKey[]): UnknownKey[] {
   return found.filter((entry) => entry.path.length > 0 || nearestKey(entry.key, entry.allowed) !== undefined);
 }
 
-/** Drops repeats of the same code at the same path, keeping the first (richest) finding. */
+/**
+ * Drops repeats of the same finding, keeping the first (richest). An unknown key is one finding per path
+ * (zod and the schema walk both report it); any other code also needs the same message, so two distinct
+ * refinements failing at one path both survive.
+ */
 export function dedupeFindings(findings: ValidationError[]): ValidationError[] {
   const seen = new Set<string>();
 
   return findings.filter((finding) => {
-    const id = `${finding.code}\u0000${finding.path}`;
+    const id =
+      finding.code === 'unknown_key'
+        ? `${finding.code}\u0000${finding.path}`
+        : `${finding.code}\u0000${finding.path}\u0000${finding.message}`;
 
     if (seen.has(id)) return false;
     seen.add(id);
 
     return true;
   });
-}
-
-/**
- * Every schema finding for `data` in one pass: zod's issues (unions resolved to their best branch,
- * enum misses and unknown keys with suggestions), plus the unknown keys a strip object dropped
- * silently. `issues` is empty when the parse succeeded.
- */
-export function schemaFindings(
-  schema: unknown,
-  data: unknown,
-  issues: SchemaIssue[],
-  options: WalkOptions = {}
-): ValidationError[] {
-  const unknownKeys = findUnknownKeys(schema, data, options);
-  const fromZod = zodIssueFindings(issues, data, unknownKeys);
-  const fromWalk = unknownKeys.map((entry) => unknownKeyFinding(entry.path.join('.'), entry.key, entry.allowed));
-
-  return dedupeFindings([...fromZod, ...fromWalk]);
 }

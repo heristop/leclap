@@ -5,6 +5,7 @@
 
 import { declaredFormats, resolveFormat, usesFormats } from '@/core/formats/resolve';
 import { mergeFormatFindings } from '@/core/formats/findings';
+import type { FormatName } from '@/core/formats/marker';
 import { expandPartialsSafe } from '@/core/partials';
 import type { ValidationError } from './types';
 
@@ -58,16 +59,23 @@ export async function adviseEachFormat<T extends { path: string; code: string; m
 ): Promise<T[]> {
   if (!usesFormats(descriptor)) return collect(descriptor);
 
-  const expanded = expandedForFormats(descriptor);
   const runs = await Promise.all(
-    declaredFormats(expanded).map(async (format) => {
-      const { descriptor: resolved, issues } = resolveFormat(expanded, format);
-
-      return [format, issues.length > 0 ? [] : await collect(resolved)] as const;
-    })
+    resolvedFormats(descriptor).map(async ([format, resolved]) => [format, await collect(resolved)] as const)
   );
 
   return mergeFormatFindings(runs);
+}
+
+// The formats that resolve cleanly, each with its resolved descriptor. A format that does not resolve is
+// left out rather than counted with no findings, so it never makes the others' findings look format-specific.
+function resolvedFormats(descriptor: unknown): (readonly [FormatName, unknown])[] {
+  const expanded = expandedForFormats(descriptor);
+
+  return declaredFormats(expanded).flatMap((format) => {
+    const { descriptor: resolved, issues } = resolveFormat(expanded, format);
+
+    return issues.length > 0 ? [] : [[format, resolved] as const];
+  });
 }
 
 /** adviseEachFormat for a synchronous collector. */
@@ -77,13 +85,7 @@ export function adviseEachFormatSync<T extends { path: string; code: string; mes
 ): T[] {
   if (!usesFormats(descriptor)) return collect(descriptor);
 
-  const expanded = expandedForFormats(descriptor);
-
   return mergeFormatFindings(
-    declaredFormats(expanded).map((format) => {
-      const { descriptor: resolved, issues } = resolveFormat(expanded, format);
-
-      return [format, issues.length > 0 ? [] : collect(resolved)] as const;
-    })
+    resolvedFormats(descriptor).map(([format, resolved]) => [format, collect(resolved)] as const)
   );
 }

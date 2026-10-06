@@ -61,7 +61,10 @@ describe('suggestion helpers', () => {
 
 describe('unknown keys', () => {
   it('reports a strict-object unknown key once per key, with a rename suggestion', () => {
-    const errors = errorsOf({ sections: [card({}, { colour: '#fff', durration: 2 })] });
+    const section = card({}, { colour: '#fff', durration: 2 });
+    delete (section.options as Record<string, unknown>).backgroundColor;
+    delete (section.options as Record<string, unknown>).duration;
+    const errors = errorsOf({ sections: [section] });
 
     expect(finding(errors, 'sections.0.options.colour')).toMatchObject({
       code: 'unknown_key',
@@ -72,6 +75,16 @@ describe('unknown keys', () => {
     expect(finding(errors, 'sections.0.options.durration')).toMatchObject({
       code: 'unknown_key',
       suggestion: 'duration',
+    });
+  });
+
+  it('does not mark a rename safe when the suggested key is already set', () => {
+    const errors = errorsOf({ sections: [card({}, { colour: '#fff' })] });
+
+    expect(finding(errors, 'sections.0.options.colour')).toMatchObject({
+      code: 'unknown_key',
+      suggestion: 'backgroundColor',
+      kind: 'judgement',
     });
   });
 

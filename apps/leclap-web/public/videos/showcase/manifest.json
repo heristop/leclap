@@ -6,14 +6,26 @@
     {
       "id": "drink-and-code",
       "source": "examples/drink-and-code/drink-and-code.json",
-      "duration": 31.5,
+      "duration": 31.625,
+      "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "0b18396a6619dca07baf0a2e9bf4ebd70256ab686edf8fe9a2cd5e55579fa32c",
-      "templateSha256": "1e14fa175a6d52bd2374729186314ea27a334e6f84bd61b26fb413a5815b208f",
-      "media": "Bundled catalog / synthetic app fixtures",
-      "bytes": 2853824,
-      "hasAudio": true
+      "sha256": "83f1149feff9e3094e37f89815fd5cfd937ede022736c364b7d3e01f8fcb8477",
+      "templateSha256": "436aef1785b057ef41a2d44a3f5c5e06adbbde30c7d2ba0412ed64c487db29d8",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 2944071
+    },
+    {
+      "id": "effects-tour",
+      "source": "examples/motion-design/effects-tour.json",
+      "duration": 377.125,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "f2ef9bbe1b3f7d2b156216bf1ccf491e50b9a373c59e27eb65631a88f019b3a6",
+      "templateSha256": "7c70548df287965461ed85c3477b4e406ab1b6708fc91b750e2802a38de22e1b",
+      "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
+      "bytes": 23376003
     },
     {
       "id": "type-impact",
@@ -432,18 +444,6 @@
       "media": "Synthetic demo-shop captures and house cards",
       "bytes": 326720,
       "hasAudio": true
-    },
-    {
-      "id": "effects-tour",
-      "source": "examples/motion-design/effects-tour.json",
-      "duration": 354.103991,
-      "hasAudio": true,
-      "orientation": "landscape",
-      "backend": "native",
-      "sha256": "3b7536bb66a338cf7a936f9bb25c35d808a2d3f02e12c554430ca0a04e27ee71",
-      "templateSha256": "7909017bf3832a6efba0fe46b16740e95ca81367a3161dd855819ff6ba6910de",
-      "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
-      "bytes": 17407893
     },
     {
       "id": "fx-pack",

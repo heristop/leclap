@@ -144,12 +144,33 @@ function steepest(fx: Buffer, none: Buffer): number {
   return steepestIn(fx, none, W, H);
 }
 
-function steepestIn(fx: Buffer, none: Buffer, width: number, height: number): number {
-  const lift = (x: number, y: number): number => lumaAt(fx, width, x, y) - lumaAt(none, width, x, y);
-  let max = 0;
+// The lift averaged over 3×3 pixels: the light's static dither grain (about ±1 code value, fx-light-kit
+// softDither) averages out, while a straight edge (a step of several code values) stays a cliff.
+function smoothLift(fx: Buffer, none: Buffer, width: number, height: number): Float32Array {
+  const out = new Float32Array(width * height);
 
   for (let y = 1; y < height - 1; y++) {
     for (let x = 1; x < width - 1; x++) {
+      let sum = 0;
+
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) sum += fx[(y + i) * width + x + j] - none[(y + i) * width + x + j];
+      }
+
+      out[y * width + x] = sum / 9;
+    }
+  }
+
+  return out;
+}
+
+function steepestIn(fx: Buffer, none: Buffer, width: number, height: number): number {
+  const smooth = smoothLift(fx, none, width, height);
+  const lift = (x: number, y: number): number => smooth[y * width + x];
+  let max = 0;
+
+  for (let y = 2; y < height - 2; y++) {
+    for (let x = 2; x < width - 2; x++) {
       const gx =
         lift(x + 1, y - 1) +
         2 * lift(x + 1, y) +

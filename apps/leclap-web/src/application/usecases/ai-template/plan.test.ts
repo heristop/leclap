@@ -56,7 +56,7 @@ describe('parsePlan', () => {
         concepts: [{ concept: 'only one', typicality: 2000 }],
         chosen: 4,
         beats: [{ section: 'x', role: '', verb: 'SLAMS', seconds: 0 }],
-        theme: 'sunset',
+        theme: 'lagoon',
         transitions: { accents: ['a', 'b', 'c'] },
       },
       vocabulary
@@ -76,7 +76,7 @@ describe('parsePlan', () => {
       'beats:',
       'beats[0].role',
       'beats[0].seconds',
-      'theme: "sunset"',
+      'theme: "lagoon"',
       'transitions.primary',
       'transitions.accents',
     ]) {

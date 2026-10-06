@@ -92,10 +92,24 @@ function fxForPrompt(fx: MotionCatalog['fx']): MotionCatalog['fx'] {
   return { ...rest, primitives } as unknown as MotionCatalog['fx'];
 }
 
+// Each sound with what it is for and, for a build, that it ends on its cue: the mix decides length and level.
+function audioForPrompt(audio: MotionCatalog['audio']): MotionCatalog['audio'] {
+  const sfx = audio.sfx.map(({ id, anchor, useWhen }) =>
+    anchor === 'end' ? { id, anchor, useWhen } : { id, useWhen }
+  );
+
+  return { ...audio, sfx } as unknown as MotionCatalog['audio'];
+}
+
 export function motionForPrompt(motion: MotionCatalog, genre?: string): Omit<MotionCatalog, 'partials'> {
-  const { partials: _partials, footage, fx, ...rest } = motion;
+  const { partials: _partials, footage, fx, audio, ...rest } = motion;
   const { take: _take, ...builderFootage } = footage;
-  const trimmed = { ...rest, fx: fxForPrompt(fx), footage: builderFootage as MotionCatalog['footage'] };
+  const trimmed = {
+    ...rest,
+    fx: fxForPrompt(fx),
+    audio: audioForPrompt(audio),
+    footage: builderFootage as MotionCatalog['footage'],
+  };
 
   if (!genre || !Object.hasOwn(motion.doctrine, genre)) return trimmed;
 

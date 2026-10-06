@@ -14,7 +14,7 @@ import {
 } from './art-direction';
 import { formatCatalog, type EngineCatalog } from './engine-catalog';
 import { sampleJson } from './sample-picker';
-import { CLOSED_OBJECTS, fitSchema } from './schema-digest';
+import { CLOSED_OBJECTS, compactSchema, fitSchema } from './schema-digest';
 
 export type Orientation = 'landscape' | 'portrait' | 'square';
 
@@ -84,9 +84,19 @@ function fixedBlocks(input: PromptInput): string[] {
   ];
 }
 
-// Drop samples (last first) until the fixed parts + samples leave room for a minimal schema.
-function fittingSamples(fixedLength: number, samples: SampleDetail[], budget: number): SampleDetail[] {
+// Drop samples (last first) until the whole schema fits, its descriptions trimmed if need be: a truncated
+// schema costs more than a third example. The first sample stays unless even a minimal schema cannot fit.
+function fittingSamples(
+  fixedLength: number,
+  samples: SampleDetail[],
+  budget: number,
+  schemaFloor: number
+): SampleDetail[] {
   let kept = samples;
+
+  while (kept.length > 1 && fixedLength + sampleBlock(kept).length + schemaFloor > budget) {
+    kept = kept.slice(0, -1);
+  }
 
   while (kept.length > 0 && fixedLength + sampleBlock(kept).length + MIN_SCHEMA > budget) {
     kept = kept.slice(0, -1);
@@ -99,7 +109,9 @@ export function buildSystemPrompt(input: PromptInput): BuiltPrompt {
   const budget = input.budget ?? DEFAULT_PROMPT_BUDGET;
   const fixed = fixedBlocks(input);
   const fixedLength = fixed.join('\n\n').length;
-  const samples = fittingSamples(fixedLength, input.samples, budget);
+  // The schema with every description dropped: the least it takes to arrive whole.
+  const schemaFloor = Math.min(SCHEMA_CAP, compactSchema(input.schema, 0).length) + 200;
+  const samples = fittingSamples(fixedLength, input.samples, budget, schemaFloor);
   const examples = sampleBlock(samples);
   // Headroom for the separators and the schema heading.
   const room = budget - fixedLength - examples.length - 200;

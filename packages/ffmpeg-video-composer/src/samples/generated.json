@@ -7433,7 +7433,7 @@
     "template": {
       "meta": {
         "name": "Kinetic type",
-        "description": "Motion system v2 kinetic typography: every preset, natively, per word and per glyph.",
+        "description": "Kinetic typography: every preset, natively, per word and per glyph.",
         "creativeDirection": "Audience: people deciding whether a tool feels premium. Direction: Apple-keynote confidence with a juicy edge. One idea per beat, copy as the hero, ink canvas, white Bebas Neue, lavender marker, pastel-yellow accents. Motion is physical (springs) and never decorative: every entrance lands before the next begins, every beat holds long enough to read. Review: no unit leaves the title-safe area at its overshoot peak, accent words read first, and the stat lands on its final value before it holds."
       },
       "global": {
@@ -7683,7 +7683,7 @@
     "template": {
       "meta": {
         "name": "Spring kinetics",
-        "description": "Motion system v2 study: springs, brand curves, motion tokens, keyframe tracks and the energy dial.",
+        "description": "Motion system study: springs, brand curves, motion tokens, keyframe tracks and the energy dial.",
         "creativeDirection": "Audience: people who judge motion by feel. Direction: physical, confident, never floaty. The headline lands on a spring and its scale settles a beat later; the support line follows on the brand's juicy curve; the counterpoint slides in on expo and leaves on smooth. Ink canvas, white Bebas Neue, lavender and pink accents. Review: overshoot stays inside the title-safe area, every word is settled for at least half a second before it leaves, and the final hold reads cleanly."
       },
       "global": {
@@ -7806,7 +7806,7 @@
               "type": "drawtext",
               "values": {
                 "text": {
-                  "en": "MOTION SYSTEM V2 / SPRINGS"
+                  "en": "MOTION SYSTEM / SPRINGS"
                 },
                 "fontfile": "BebasNeue.ttf",
                 "fontsize": 30,
@@ -7943,7 +7943,7 @@
     "template": {
       "meta": {
         "name": "Camera and graphics",
-        "description": "Motion system v2 effects: designed transitions, a virtual camera with hits and shake, and animated graphics.",
+        "description": "Motion system effects: designed transitions, a virtual camera with hits and shake, and animated graphics.",
         "creativeDirection": "Audience: creators who want a trailer feel from JSON alone. Direction: each beat has one camera idea and one graphic idea. A punch beat (impact type, camera hits, a flash on the downbeat, viewfinder corners), a slow dolly with a tracing frame and an underline, a cinema beat with bars and a handheld drift, a colour wipe that turns the page, and a calm close. Transitions are designed, not stock: push on a spring, zoom-through, iris, swipe. Review: no edge ever shows during camera moves, flashes never exceed three per second, text stays readable at every hit, every transition settles before the next beat's first entrance."
       },
       "global": {

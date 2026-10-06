@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Kinetic type",
-    "description": "Motion system v2 kinetic typography: every preset, natively, per word and per glyph.",
+    "description": "Kinetic typography: every preset, natively, per word and per glyph.",
     "creativeDirection": "Audience: people deciding whether a tool feels premium. Direction: Apple-keynote confidence with a juicy edge. One idea per beat, copy as the hero, ink canvas, white Bebas Neue, lavender marker, pastel-yellow accents. Motion is physical (springs) and never decorative: every entrance lands before the next begins, every beat holds long enough to read. Review: no unit leaves the title-safe area at its overshoot peak, accent words read first, and the stat lands on its final value before it holds."
   },
   "global": {

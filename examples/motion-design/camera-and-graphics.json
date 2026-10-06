@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Camera and graphics",
-    "description": "Motion system v2 effects: designed transitions, a virtual camera with hits and shake, and animated graphics.",
+    "description": "Motion system effects: designed transitions, a virtual camera with hits and shake, and animated graphics.",
     "creativeDirection": "Audience: creators who want a trailer feel from JSON alone. Direction: each beat has one camera idea and one graphic idea. A punch beat (impact type, camera hits, a flash on the downbeat, viewfinder corners), a slow dolly with a tracing frame and an underline, a cinema beat with bars and a handheld drift, a colour wipe that turns the page, and a calm close. Transitions are designed, not stock: push on a spring, zoom-through, iris, swipe. Review: no edge ever shows during camera moves, flashes never exceed three per second, text stays readable at every hit, every transition settles before the next beat's first entrance."
   },
   "global": {

@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Spring kinetics",
-    "description": "Motion system v2 study: springs, brand curves, motion tokens, keyframe tracks and the energy dial.",
+    "description": "Motion system study: springs, brand curves, motion tokens, keyframe tracks and the energy dial.",
     "creativeDirection": "Audience: people who judge motion by feel. Direction: physical, confident, never floaty. The headline lands on a spring and its scale settles a beat later; the support line follows on the brand's juicy curve; the counterpoint slides in on expo and leaves on smooth. Ink canvas, white Bebas Neue, lavender and pink accents. Review: overshoot stays inside the title-safe area, every word is settled for at least half a second before it leaves, and the final hold reads cleanly."
   },
   "global": {
@@ -67,7 +67,7 @@
         {
           "type": "drawtext",
           "values": {
-            "text": { "en": "MOTION SYSTEM V2 / SPRINGS" },
+            "text": { "en": "MOTION SYSTEM / SPRINGS" },
             "fontfile": "BebasNeue.ttf",
             "fontsize": 30,
             "fontcolor": "#FF8AAE",

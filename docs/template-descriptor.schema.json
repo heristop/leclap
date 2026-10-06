@@ -3593,7 +3593,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {
@@ -6358,7 +6358,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {
@@ -9192,7 +9192,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {
@@ -11698,7 +11698,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {
@@ -14527,7 +14527,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {
@@ -17193,7 +17193,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {
@@ -19705,7 +19705,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {
@@ -22217,7 +22217,7 @@
                     "exclusiveMinimum": 0
                   },
                   "muteSection": {
-                    "description": "When true, the source audio of this section is silenced (default false).",
+                    "description": "When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); video sections stay silent unless this is set to false.",
                     "type": "boolean"
                   },
                   "countdown": {

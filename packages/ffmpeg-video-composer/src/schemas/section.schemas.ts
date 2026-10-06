@@ -96,7 +96,10 @@ export const BaseSectionOptionsSchema = z
     muteSection: z
       .boolean()
       .optional()
-      .describe('When true, the source audio of this section is silenced (default false).'),
+      .describe(
+        'When true, the source audio of this section is silenced. Default: false for project_video (the recording is heard); ' +
+          'video sections stay silent unless this is set to false.'
+      ),
     countdown: z
       .boolean()
       .optional()

@@ -113,7 +113,8 @@ function settle(fx: FxContext<'resolve'>, look: Look, from: string): [FilterGrap
   // Output frame `first + i` (zoompan counts its frames in `on`, from the section start) gets knot i.
   const on = `round(${ZOOM_TIME}*${fx.frame.fps})`;
   const zoom = zooms.reduceRight((tail, value, i) => `if(lt(${on},${first + i + 1}),${fmt(value)},${tail})`, '1');
-  const exact = exactZoomFilterObjects({ zoom }, { width: w, height: h, fps: fx.frame.fps });
+  // It hands over to the untouched region, so zoom 1 must stay the identity (no rest over-scan).
+  const exact = exactZoomFilterObjects({ zoom }, { width: w, height: h, fps: fx.frame.fps, identityAtRest: true });
   const settled = zooms.findIndex((value) => ((value - 1) * Math.max(w, h)) / 2 < 0.25);
   const until = (first + (settled === -1 ? frames : settled) - 0.5) / fx.frame.fps;
 

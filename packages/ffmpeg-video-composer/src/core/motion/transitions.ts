@@ -111,10 +111,12 @@ function swipe(b: DesignedBoundary, p: Pads, e: string): string {
 }
 
 // The exact sub-pixel zoom (zoom-exact.ts): a whole-pixel crop would step visibly as the zoom slows down.
+// Zoom 1 stays the identity (no rest over-scan): the tail starts and the incoming lands on the untouched
+// picture the neighbouring frames show.
 function zoomChain(zoom: string, b: DesignedBoundary): string {
   const { width, height, fps } = b;
 
-  return `${exactZoomFilters({ zoom }, { width, height, fps }).join(',')},settb=AVTB`;
+  return `${exactZoomFilters({ zoom }, { width, height, fps, identityAtRest: true }).join(',')},settb=AVTB`;
 }
 
 function zoomThrough(b: DesignedBoundary, p: Pads): string {

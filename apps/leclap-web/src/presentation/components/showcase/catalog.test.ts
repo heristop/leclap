@@ -83,13 +83,14 @@ describe('showcase catalog', () => {
     }
   });
 
-  it('keeps the promo scene timing at the authored 11.6 seconds', () => {
+  // 2.2 + 6.4 + 3 s of sections, less the 0.6 s zoom-through and 0.5 s push-up that overlap them.
+  it('keeps the promo scene timing at the authored 10.5 seconds', () => {
     const manifest = JSON.parse(
       readFileSync(path.join(root, 'apps/leclap-web/public/videos/showcase/manifest.json'), 'utf8')
     );
     const promo = manifest.samples.find((sample: { id: string }) => sample.id === 'web-app-promo');
-    expect(promo.duration).toBeGreaterThanOrEqual(11.5);
-    expect(promo.duration).toBeLessThan(11.7);
+    expect(promo.duration).toBeGreaterThanOrEqual(10.4);
+    expect(promo.duration).toBeLessThan(10.6);
     expect(existsSync(path.join(root, promo.mediaSource))).toBe(true);
   });
 

@@ -9,7 +9,7 @@ import { Button } from '@/presentation/components/ui';
 import { FilmScreen, FilmStage, FrameButton, SoundControl, useFilmSound } from '@/presentation/components/film-frame';
 import { SectionHeading } from '@/presentation/components/home/section-heading';
 
-// The clip is an 18-second highlight reel cut from the effects tour (examples/motion-design/effects-tour.json),
+// The clip is a 19-second highlight reel cut from the effects tour (examples/motion-design/effects-tour.json),
 // an actual LeClap render (1280x720) under public/videos/home, over a bundled lo-fi track. It plays as an
 // ambient loop to show the product's output up front, with the landing's one sound: muted until the
 // visitor turns it on, here or anywhere else on the page. The corner pill turns the sound on and

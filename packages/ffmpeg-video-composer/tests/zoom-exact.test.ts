@@ -103,6 +103,16 @@ describe('exact zoom graph', () => {
     expect(filters[3]).toContain('cos(PI*min(it,2)/2)');
   });
 
+  it('rests a moving zoom just above 1, unless it hands over to the untouched picture', () => {
+    const frame = { width: W, height: H, fps: FPS };
+    const rest = 'st(0,ld(0)+0.004687*pow(max(0,1-(ld(0)-1)/0.05),2))';
+
+    expect(exactZoomFilters(PUSH, frame)[1]).toContain(rest);
+    expect(exactZoomFilters(PUSH, frame)[3]).toContain(rest);
+    expect(exactZoomFilters(PUSH, { ...frame, identityAtRest: true }).join()).not.toContain('pow(');
+    expect(exactZoomFilters({ zoom: '1.15', panX: `10*${ZOOM_TIME}` }, frame).join()).not.toContain('pow(');
+  });
+
   it('is deterministic text', () => {
     const camera = CameraSchema.parse({ preset: 'push-in', amount: 0.09 });
     const frame = { width: 1280, height: 720, fps: 30, duration: 3.5, seed: 4 };
@@ -112,6 +122,7 @@ describe('exact zoom graph', () => {
 });
 
 describe.skipIf(!ready)('exact zoom on real frames', () => {
+  let frames: Buffer[];
   let positions: [number, number][][];
 
   beforeAll(() => {
@@ -119,7 +130,8 @@ describe.skipIf(!ready)('exact zoom on real frames', () => {
     const chart = path.join(dir, 'dots.pgm');
 
     writeChart(chart);
-    positions = track(render(chart, exactZoomFilters(PUSH, { width: W, height: H, fps: FPS })));
+    frames = render(chart, exactZoomFilters(PUSH, { width: W, height: H, fps: FPS }));
+    positions = track(frames);
   });
 
   it('emits one frame per input frame', () => {
@@ -142,7 +154,7 @@ describe.skipIf(!ready)('exact zoom on real frames', () => {
         deviations.push(Math.hypot(dx - (bx - ax), dy - (by - ay)));
 
         // Wherever the dot should visibly move (over 7 px/s), it does, by about its share, forwards. Below
-        // that, as an eased move leaves or reaches rest, a held frame is under a quarter pixel of motion.
+        // that the centroid is too coarse to judge direction (the next test checks no frame is held).
         if (step > 0.25) expect(dx * (bx - ax) + dy * (by - ay)).toBeGreaterThan(0.5 * step * step);
       }
     }
@@ -150,6 +162,14 @@ describe.skipIf(!ready)('exact zoom on real frames', () => {
     const rms = Math.sqrt(deviations.reduce((sum, d) => sum + d * d, 0) / deviations.length);
 
     expect(rms).toBeLessThan(0.08);
+  });
+
+  // Near zoom 1 the integer rasters cannot draw a step under 1/max(W,H): an eased push used to hold its
+  // first five frames still here, then jump. The rest over-scan gives every frame its step.
+  it('holds no frame while the zoom moves, even where the ease leaves rest', () => {
+    const held = frames.slice(1).flatMap((frame, i) => (frame.equals(frames[i]) ? [i + 1] : []));
+
+    expect(held).toEqual([]);
   });
 
   it('lands on the requested zoom', () => {

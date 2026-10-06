@@ -140,8 +140,8 @@ cover the full video length.
 
 BACKGROUNDS (public/backgrounds/)
 ---------------------------------
-Photos from Unsplash (sourced via Lorem Picsum), free to use under the Unsplash
-License — https://unsplash.com/license
+Photos from Unsplash (the first six sourced via Lorem Picsum), free to use under
+the Unsplash License — https://unsplash.com/license
 
 - Forest & Sea — Paul Jarvis — https://unsplash.com/photos/6J--NXulQCs
 - Desk Flatlay — Aleks Dorohovich — https://unsplash.com/photos/nJdwUHmaY8A
@@ -149,6 +149,21 @@ License — https://unsplash.com/license
 - Rocky Coast — Austin Neill — https://unsplash.com/photos/erTjj730fMk
 - Laptop Desk — Luke Chesser — https://unsplash.com/photos/1uxV8fAfhVM
 - Golden Hour — Alexander Shustov — https://unsplash.com/photos/2FrX56QL7P8
+- Neon Alley — masahiro miyagi — https://unsplash.com/photos/mGs7oMPLB-c
+- Warm Bokeh — Md Mahdi — https://unsplash.com/photos/lmlfo8aespo
+- Pastel Gradient — Codioful — https://unsplash.com/photos/LeG68PrXA6Y
+- Sage Wall — David van Dijk — https://unsplash.com/photos/3LTht2nxd34
+- Snowy Peak — Rohit Tandon — https://unsplash.com/photos/9wg5jCEPBsw
+- Desert Dunes — Zetong Li — https://unsplash.com/photos/HEf0fKgJA1Q
+- Turquoise Sea — samsommer — https://unsplash.com/photos/J3ABLQjZQBg
+- Café Table — Kris Atomic — https://unsplash.com/photos/3b2tADGAWnU
+- Concrete Lines — Lukas S — https://unsplash.com/photos/ejGv_enkOBY
+- Milky Way — Dns Dgn — https://unsplash.com/photos/9wH624ALFQA
+- Autumn Leaves — Jeremy Thomas — https://unsplash.com/photos/O6N9RV2rzX8
+- Monstera Leaves — Natalie Kovach — https://unsplash.com/photos/ph7QQq63lCs
+- Rainy Window — C. G. — https://unsplash.com/photos/JgDUVGAXsso
+- Pink Sunset — Diego PH — https://unsplash.com/photos/BCuxVP5WEsU
+- Woodshop — Bailey Alexander — https://unsplash.com/photos/Yl7YJcUn_Oo
 
 Keep this file in sync with apps/leclap-web/src/data/mediaCatalog.ts.
 

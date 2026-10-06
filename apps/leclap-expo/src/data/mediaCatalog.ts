@@ -103,12 +103,27 @@ export const MUSIC_COVER_ASSETS: Record<string, number> = {
 
 // prettier-ignore
 export const BACKGROUND_ASSETS: Record<string, number> = {
-  'desk-flatlay.jpg': require('../../assets/backgrounds/desk-flatlay.jpg'),
-  'forest-sea.jpg':   require('../../assets/backgrounds/forest-sea.jpg'),
-  'golden-hour.jpg':  require('../../assets/backgrounds/golden-hour.jpg'),
-  'green-forest.jpg': require('../../assets/backgrounds/green-forest.jpg'),
-  'laptop-desk.jpg':  require('../../assets/backgrounds/laptop-desk.jpg'),
-  'rocky-coast.jpg':  require('../../assets/backgrounds/rocky-coast.jpg'),
+  'autumn-leaves.jpg':   require('../../assets/backgrounds/autumn-leaves.jpg'),
+  'cafe-table.jpg':      require('../../assets/backgrounds/cafe-table.jpg'),
+  'concrete-lines.jpg':  require('../../assets/backgrounds/concrete-lines.jpg'),
+  'desert-dunes.jpg':    require('../../assets/backgrounds/desert-dunes.jpg'),
+  'desk-flatlay.jpg':    require('../../assets/backgrounds/desk-flatlay.jpg'),
+  'forest-sea.jpg':      require('../../assets/backgrounds/forest-sea.jpg'),
+  'golden-hour.jpg':     require('../../assets/backgrounds/golden-hour.jpg'),
+  'green-forest.jpg':    require('../../assets/backgrounds/green-forest.jpg'),
+  'laptop-desk.jpg':     require('../../assets/backgrounds/laptop-desk.jpg'),
+  'milky-way.jpg':       require('../../assets/backgrounds/milky-way.jpg'),
+  'monstera-leaves.jpg': require('../../assets/backgrounds/monstera-leaves.jpg'),
+  'neon-alley.jpg':      require('../../assets/backgrounds/neon-alley.jpg'),
+  'pastel-gradient.jpg': require('../../assets/backgrounds/pastel-gradient.jpg'),
+  'pink-sunset.jpg':     require('../../assets/backgrounds/pink-sunset.jpg'),
+  'rainy-window.jpg':    require('../../assets/backgrounds/rainy-window.jpg'),
+  'rocky-coast.jpg':     require('../../assets/backgrounds/rocky-coast.jpg'),
+  'sage-wall.jpg':       require('../../assets/backgrounds/sage-wall.jpg'),
+  'snowy-peak.jpg':      require('../../assets/backgrounds/snowy-peak.jpg'),
+  'turquoise-sea.jpg':   require('../../assets/backgrounds/turquoise-sea.jpg'),
+  'warm-bokeh.jpg':      require('../../assets/backgrounds/warm-bokeh.jpg'),
+  'woodshop.jpg':        require('../../assets/backgrounds/woodshop.jpg'),
 };
 
 // Template drawtext fonts, keyed by the .ttf filename the core references. Staged into the on-device

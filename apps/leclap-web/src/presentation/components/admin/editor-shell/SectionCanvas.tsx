@@ -22,22 +22,13 @@ import { clampFraction, fontSizeFromResize } from '../overlayGeometry';
 import { BackgroundLayerBoxes } from '../BackgroundLayerBoxes';
 import { combinedLookGradeFilter } from '../editor/lookFilters';
 import type { ElementRef, SectionSelectionState } from './useSectionSelection';
+import { FRAME_FIT_CLASS } from './frame-fit';
 import { OverlayBox } from './sectionCanvasBox';
 import { AnimationOverlayItem, ImageOverlayItem } from './sectionCanvasMediaItems';
 import { SugarPreviewLayer } from './SugarPreviewLayer';
 import type { DropPayload, DropPoint } from './canvasDrop';
 import { useCanvasDropTarget } from './useCanvasDropTarget';
 import { LazyFxPreview, type FxPreviewLayerProps } from './fx-preview/LazyFxPreview';
-
-// Preview-surface aspect classes per orientation (portrait 9:16, square 1:1, landscape 16:9).
-// Height-driven, aspect-correct sizing: tall formats fill the stage HEIGHT (width derives from the
-// aspect ratio); landscape fills the WIDTH. `max-h-full`/`max-w-full` keep the frame inside the
-// stage, and the parent grid centers it on both axes.
-const previewAspectClass: Record<Orientation, string> = {
-  portrait: 'aspect-[9/16] h-full max-h-full w-auto max-w-full',
-  square: 'aspect-square h-full max-h-full w-auto max-w-full',
-  landscape: 'aspect-video w-full max-w-full h-auto max-h-full',
-};
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
 
@@ -303,7 +294,7 @@ export const SectionCanvas = ({
       className={cn(
         'relative touch-none overflow-hidden rounded-xl border border-foreground/10 select-none',
         drop.dragOver && 'ring-2 ring-brand-500/60',
-        previewAspectClass[orientation]
+        FRAME_FIT_CLASS[orientation]
       )}
     >
       {/* Backdrop group: everything the engine grades (the base frame) lives under one CSS filter.

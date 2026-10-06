@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { SectionCanvas, type CanvasBackground } from './SectionCanvas';
 import { useClipPreviewUrl } from './use-clip-preview-url';
 import { PartialPreview } from './PartialPreview';
+import { FRAME_STAGE_CLASS } from './frame-fit';
 import { previewEnvOf, sectionGraphics, selectedEffect } from './fx-preview/preview-env';
 import type { FxPreviewLayerProps } from './fx-preview/LazyFxPreview';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
@@ -153,7 +154,7 @@ export const EditorMonitor = ({
   };
 
   return (
-    <div className="grid h-full place-items-center overflow-auto p-4 sm:p-6">
+    <div className={`${FRAME_STAGE_CLASS} overflow-auto`}>
       <SectionCanvas
         overlays={section.overlays}
         orientation={state.orientation}

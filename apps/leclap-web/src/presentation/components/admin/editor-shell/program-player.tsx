@@ -15,6 +15,7 @@ import { useFrameHeight } from './SugarPreviewLayer';
 import { ProgramScene, sceneImages, sceneLayers, type ProgramSceneHandles, type VisualSection } from './program-scene';
 import type { ProgramClock } from './use-program-clock';
 import { previewEnvOf } from './fx-preview/preview-env';
+import { FRAME_FIT_CLASS, FRAME_STAGE_CLASS } from './frame-fit';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 interface Mounted {
@@ -133,13 +134,6 @@ function sceneTime(clock: ProgramClock, timeline: Segment[], index: number) {
     });
 }
 
-// Monitor frame aspect per template orientation.
-const ORIENTATION_ASPECT: Record<EditorState['orientation'], string> = {
-  landscape: 'aspect-video',
-  portrait: 'aspect-[9/16] max-h-full w-auto h-full',
-  square: 'aspect-square max-h-full',
-};
-
 interface ProgramPlayerProps {
   state: EditorState;
   clock: ProgramClock;
@@ -195,10 +189,10 @@ export const ProgramPlayer = ({ state, clock, timeline }: ProgramPlayerProps) =>
   if (timeline.length === 0) return null;
 
   return (
-    <div className="grid h-full place-items-center overflow-hidden p-4 sm:p-6">
+    <div className={`${FRAME_STAGE_CLASS} overflow-hidden`}>
       <div
         ref={frameRef}
-        className={`relative w-full max-w-full overflow-hidden rounded-xl border border-foreground/10 bg-black ${ORIENTATION_ASPECT[state.orientation]}`}
+        className={`relative overflow-hidden rounded-xl border border-foreground/10 bg-black ${FRAME_FIT_CLASS[state.orientation]}`}
       >
         {/* Incoming (second entry) stacks above the active scene for the blend window. */}
         {scenes.map(({ index, section }) => (

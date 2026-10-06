@@ -51,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Template revisions (`expectedRevision` / `revision`) and the validation finding text now come from the
   engine (`templateRevision`, `invalidTemplateText`), so other surfaces compute the same revision for the
   same JSON; values are unchanged.
+- Built on `ffmpeg-video-composer` 3: `validate_template`, `edit_template` and `compose_video` reject
+  templates with unknown keys (`unknown_key`) and text a bundled font cannot draw (`font_missing_glyphs`),
+  which 0.4.0 accepted.
 
 ## [0.4.0] - 2026-10-03
 

@@ -30,6 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `leclap snapshot`, `leclap compare` and `leclap timeline [--json]` look at a template's frames, compare
   variants and list where everything sits; all take `--format`.
 
+### Changed
+
+- Built on `ffmpeg-video-composer` 3: `leclap validate` and `leclap render` reject templates with unknown
+  keys (`unknown_key`) and text a bundled font cannot draw (`font_missing_glyphs`), which 0.3.0 accepted.
+
 ## [0.3.0] - 2026-10-03
 
 ### Added

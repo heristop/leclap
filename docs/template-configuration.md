@@ -803,7 +803,7 @@ Whole-video text/colour, the sibling of `global.animations`: authored once in `g
 
 ### `type: "animation"`
 
-The bundled `animations/*.apng` files are samples. In a new template, compose the motion with the engine instead (see [Compose motion](#compose-motion-dont-pick-stock-animations)). `validate_template` reports `library_animation_sample` for them. Each one has an engine counterpart: `shine_sweep` → an fx `sheen`, `sparkle` and `spec_orbit` → an fx `glint` (`path: "orbit"`), `light_leak` → an fx `leak`, `confetti` → an fx `confetti`, `pulse_ring` and `tap_pulse` → an fx `ripple`, `glow_border` → an fx `edge-glow`, `corner_brackets` → `corners`, and `white_border` / `rounded_border` → a v2 `frame`. Existing templates that reference a sample keep rendering it unchanged.
+The bundled `animations/*.apng` files are samples. In a new template, compose the motion with the engine instead (see [Compose motion](#compose-motion-dont-pick-stock-animations)). `validate_template` reports `library_animation_sample` for them. Each one has an engine counterpart: `shine_sweep` → an fx `sheen`, `sparkle` and `spec_orbit` → an fx `glint` (`path: "orbit"`), `light_leak` → an fx `leak`, `confetti` → an fx `confetti`, `pulse_ring` and `tap_pulse` → an fx `ripple`, `glow_border` → an fx `edge-glow`, `corner_brackets` → `corners`, and `white_border` / `rounded_border` → a `frame`. Existing templates that reference a sample keep rendering it unchanged.
 
 An animation is **one** single-file animated input. **APNG** and **WebM** (VP9 with alpha) are the two recommended formats — APNG decodes natively on every platform (incl. on-device) with lossless alpha; WebM is much smaller. `.webp` and `.gif` also work:
 
@@ -1229,9 +1229,9 @@ More in the [gallery](./gallery.md#graphics).
 | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `flash`      | `intensity`                                                                                                                                              | A full-frame light hit that decays (white, 0.3 s).                                                                                    |
 | `bars`       | `aspect` (2.39)                                                                                                                                          | Letterbox bars slide in from the top and bottom.                                                                                      |
-| `underline`  | `x`, `y`, `width`, `thickness`, `origin`; v2: `caps`, `settle`, `exit`, `exitDuration`                                                                   | A rule that draws itself across.                                                                                                      |
-| `frame`      | `inset`, `thickness`; v2: `target`, `clearance`, `radius`, `trace`, `contrast`, `exit`, `exitDuration`                                                   | A rectangle outline that traces itself clockwise.                                                                                     |
-| `corners`    | `inset`, `length`, `thickness`; v2: `target`, `clearance`, `spread`, `radius`, `trace`, `contrast`, `exit`, `exitDuration`                               | Viewfinder brackets that extend from the corners.                                                                                     |
+| `underline`  | `x`, `y`, `width`, `thickness`, `origin`, `caps`, `settle`, `exit`, `exitDuration`                                                                       | A rule that draws itself across.                                                                                                      |
+| `frame`      | `inset`, `thickness`, `target`, `clearance`, `radius`, `trace`, `contrast`, `exit`, `exitDuration`                                                       | A rectangle outline that traces itself clockwise.                                                                                     |
+| `corners`    | `inset`, `length`, `thickness`, `target`, `clearance`, `spread`, `radius`, `trace`, `contrast`, `exit`, `exitDuration`                                   | Viewfinder brackets that extend from the corners.                                                                                     |
 | `wipe`       | `direction`                                                                                                                                              | A colour panel sweeping across the frame: it covers, then uncovers.                                                                   |
 | `panel`      | `x`, `y`, `width`, `height`, `from`                                                                                                                      | A block that grows from one edge (a backing plate for text).                                                                          |
 | `glitch`     | `intensity` (0.6)                                                                                                                                        | Seeded RGB split, jitter, grain and colour slices (0.35 s); changes with `global.seed`.                                               |
@@ -1243,18 +1243,18 @@ More in the [gallery](./gallery.md#graphics).
 
 See [`examples/motion-design/fx-pack.json`](../examples/motion-design/fx-pack.json) for trails, whips, these graphics and the lower-third styles. A graphic's `duration` is at most 3 s, except `progress` (600 s) and `fx` (30 s).
 
-### Strokes v2 (`frame`, `corners`, `underline`)
+### Strokes (`frame`, `corners`, `underline`)
 
-`frame`, `corners` and `underline` take optional v2 fields. A graphic that sets none of them renders exactly as before. Setting any of them switches it to the v2 lowering: even-pixel strokes, a trace that starts at the top-left with a short head fade, a visible exit before `until` (or the end of the section) and, for `frame` and `corners`, contrast-aware colour.
+`frame`, `corners` and `underline` draw even-pixel strokes, a trace that starts at the top-left with a short head fade, a visible exit before `until` (or the end of the section) and, for `frame` and `corners`, contrast-aware colour.
 
-![The legacy and v2 strokes side by side](./media/gallery/strokes-v2.webp)
+![The stroke graphics and their options](./media/gallery/strokes.webp)
 
-| Field          | Types              | Default (v2)                      | Notes                                                                                                                                                                                            |
+| Field          | Types              | Default                           | Notes                                                                                                                                                                                            |
 | -------------- | ------------------ | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `target`       | `frame`, `corners` | —                                 | What the strokes frame instead of the whole frame: `"layer:<i>"`, `"pane:<i>"`, `"text:<i>"` or a `{ x, y, w, h }` rectangle (see [fx targets](#targets)). `inset` is then ignored.              |
 | `clearance`    | `frame`, `corners` | 24                                | Px between the target edge and the strokes (−200–400; negative = inside it), clamped inside the frame.                                                                                           |
 | `radius`       | `frame`, `corners` | 0                                 | Corner radius in px (0–400), raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.                                                          |
-| `trace`        | `frame`            | `path`                            | `path` (one head travels clockwise at constant speed), `split` (two heads leave the top-left and meet bottom-right), `sides` (each side in turn, the legacy look), `fade` (no draw-on).          |
+| `trace`        | `frame`            | `path`                            | `path` (one head travels clockwise at constant speed), `split` (two heads leave the top-left and meet bottom-right), `sides` (each side in turn), `fade` (no draw-on).                           |
 | `trace`        | `corners`          | `clockwise`                       | `clockwise` (the brackets start one after another from the top-left), `together`, `fade`.                                                                                                        |
 | `spread`       | `corners`          | 1.06                              | Size the bracket rectangle starts at, relative to its rest size (1–1.3): the brackets close in on the subject on the entrance curve. 1 = no travel.                                              |
 | `contrast`     | `frame`, `corners` | `auto`                            | `auto`: on a known solid background an unset colour becomes light or dark ink, and a low-contrast colour or footage gets a soft offset shadow. `shadow`: always the shadow. `none`: as authored. |
@@ -1263,7 +1263,7 @@ See [`examples/motion-design/fx-pack.json`](../examples/motion-design/fx-pack.js
 | `exit`         | all three          | `fade` (`expand` for `corners`)   | How it leaves before `until`: `fade`, `retract` (undraws in its trace order), `expand` (grows about 4 % outward while fading; `frame` and `corners`), `none` (holds to the cut).                 |
 | `exitDuration` | all three          | 60 % of the entrance, 0.15–0.35 s | Seconds the exit takes on `$smooth` (0.1–1.5).                                                                                                                                                   |
 
-A v2 `underline` is drawn above text by default, so a CTA card or a text plate never hides it. In v2, `corners` strokes default to 4 px, and with a `target` their arms default to about 18 % of its short side (24–160 px).
+An `underline` is drawn above text by default, so a CTA card or a text plate never hides it. Strokes default to 4 px (6 px for `underline`), and with a `target`, `corners` their arms default to about 18 % of its short side (24–160 px).
 
 ```jsonc
 "graphics": [
@@ -1275,7 +1275,7 @@ A v2 `underline` is drawn above text by default, so a CTA card or a text plate n
 
 ### Draw order (`above`)
 
-A graphic with `above: false` is drawn under the section's text: kinetic blocks, captions, title cards and lower thirds. With `above: true`, it is drawn over everything the section draws, including the section's own authored `filters` and masks, so an authored mask or a text plate never hides it. Defaults: `true` for `flash`, `wipe`, `glitch`, `focus` and a v2 `underline`; for an `fx`, `true` on a `text:<i>` target; `false` otherwise.
+A graphic with `above: false` is drawn under the section's text: kinetic blocks, captions, title cards and lower thirds. With `above: true`, it is drawn over everything the section draws, including the section's own authored `filters` and masks, so an authored mask or a text plate never hides it. Defaults: `true` for `flash`, `wipe`, `glitch`, `focus` and `underline`; for an `fx`, `true` on a `text:<i>` target; `false` otherwise.
 
 ## Light and effects (`graphics[].type: "fx"`)
 
@@ -1755,7 +1755,7 @@ The same template, assets, seed and platform profile always render the same byte
 
 - **`global.seed`** (uint32, default 0) is the root of every procedural effect. Each element derives `hash(seed, element path)`; every `noise` filter (grain, glitch) gets its own `all_seed`. Change the seed to reshuffle grain without touching anything else.
 - **Frame grid**: each section chain starts with a CFR `fps` conform, so `t` in every animated expression is an exact frame time.
-- **Raw-filter hygiene**: `%{localtime}`, `%{gmtime}`, `time(…)` and `random(…)` in raw filters fail validation (`nondeterministic_expression`). Set `meta.allowNondeterministic: true` to opt out.
+- **Raw-filter hygiene**: `%{localtime}`, `%{gmtime}`, `time(…)` and `random(…)` in raw filters raise the advisory `nondeterministic_expression`: the template still renders, but two renders of it differ, so the preview may not match the export and the section cache and `leclap verify` cannot vouch for it. Use `global.seed`-driven effects when the render must be reproducible.
 - **Deterministic encoder profile**: bit-exact muxing, no inherited metadata and pinned libx264 threads. It is on by default, in the CLI and in MCP renders; `ProjectConfig.deterministic: false` turns it off (see [engine configuration](./engine-configuration.md#deterministic)).
 - **Render manifest**: `compile(config, template, { onManifest })` (or `leclap render --manifest`) records the template, asset, normalized-filtergraph and output digests. `leclap verify <video>.manifest.json [--rerender]` checks a video against it.
 

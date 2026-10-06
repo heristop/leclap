@@ -23,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Determinism contract. `global.seed` roots every procedural effect. A deterministic encoder profile
   (bit-exact muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on
   by default and `ProjectConfig.deterministic: false` opts out. A render manifest is delivered through
-  `CompileReporter.onManifest`. Raw filters that read the wall clock or `random()` fail validation
-  (`nondeterministic_expression`).
+  `CompileReporter.onManifest`. Raw filters that read the wall clock or `random()` raise the advisory
+  `nondeterministic_expression` (their renders are not reproducible).
 - Motion system: physical springs, cubic-bezier, the named curve set,
   `steps()` and point curves, all lowered to piecewise polynomials in `t` within 0.1%. `global.motion`
   tokens (springs, curves, durations, energy) and built-ins mirror the app's motion curves. `animate`
@@ -68,6 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `platform_orientation_mismatch`. `platformCatalog()`.
 - Glyph coverage: text drawn with a bundled font that lacks glyphs fails validation with
   `font_missing_glyphs` (listing the characters and a bundled font that covers them). `pnpm generate:font-advances` also writes a per-font coverage table.
+  The advance tables cover General Punctuation (curly quotes and apostrophes, dashes, ellipsis, bullet,
+  primes, guillemets) and the euro sign; a character the kinetic font really lacks is reported as
+  `kinetic_glyph_unmeasurable` instead of the block vanishing.
 
 - Output QC (`ProjectConfig.qc`, `CompileReporter.onQc`, manifest `qc`): format checks (duration, frame
   count, A/V drift, pixel format, colour tags, audio present) and an optional content pass (black, frozen,
@@ -158,9 +161,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is skipped with `fx_target`, `mask_unavailable` or `fx_skipped` when it cannot render. `motionCatalog().fx`
   (and `searchMotionCatalog` kind `fx`) lists each primitive's parameters, defaults and design intent from
   `FX_DOCS`; that prose is loaded lazily, outside the browser's eager load.
-- v2 strokes: `frame`, `corners` and `underline` take `target`, `clearance` (24), `radius`, `trace`, `exit`,
+- Strokes: `frame`, `corners` and `underline` draw even-pixel strokes that trace from the top-left with a head
+  fade and leave before `until`, and take `target`, `clearance` (24), `radius`, `trace`, `exit`,
   `exitDuration` and `contrast` (`auto` | `shadow` | `none`); `corners` adds `spread`, `underline` adds round
-  `caps` and `settle`. Setting any of them opts in; graphics without them render as before.
+  `caps` and `settle`.
 - Kinetic `counter`: tabular digits, locale grouping and decimal marks (`locale`, `grouping`), `overshoot`,
   an exact landing on `to`, and `to` read from the first number of the block text (`"{{ form_price }}"`) when
   omitted. Without a duration the roll lasts 0.6–1.6 s by range.
@@ -172,8 +176,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking:** validation is stricter, so some templates that passed in 2.5.0 now fail:
+  - keys that strip objects used to drop silently (section options, transitions, discriminated unions) are
+    reported as `unknown_key` errors; remove or rename them (the finding suggests the nearest key);
+  - text drawn with a bundled font that lacks its glyphs fails with `font_missing_glyphs`.
+- **Breaking:** renders are no longer byte-identical to 2.5.0: the deterministic encoder profile is on by
+  default (`ProjectConfig.deterministic: false` restores the previous encoder settings), every section is
+  conformed to CFR, zooms are rendered at sub-pixel precision and `above: true` graphics change their
+  draw order (below). Pin golden files again after upgrading.
 - `above: true` graphics are drawn after the section's own authored `filters` and masks, so an authored mask
-  or a text plate no longer hides them. A v2 `underline` and an fx on a `text:<i>` target default to above.
+  or a text plate no longer hides them. An `underline` and an fx on a `text:<i>` target default to above.
 - Whip transitions model a 144° shutter: the blur follows the push's real speed, ramps in and out with the
   ease (no threshold), is centred on its frame and is capped at 4.5 % of the travel axis. Defaults peak at
   the same blur as before.
@@ -184,6 +196,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Zooms and pans (camera rig, Ken Burns, pulse, `resolve`, `zoom-through`) no longer stutter: `zoompan`
+  cropped a whole-pixel window, so a slow push-in held for one to four frames and then jumped by up to a
+  pixel, sometimes backwards. Every zoom now lowers to an exact sub-pixel zoom with the same on-device
+  filters, at about the same cost.
 - Eased camera, Ken Burns and pulse zooms no longer hold their first and last frames still before a half-pixel jump: a moving exact zoom rests at a 1.5 px over-scan that fades out by zoom 1.05.
 - `leak`, `bloom` and `vignette-breathe` no longer band after H.264 encoding: their soft-light dither is a fine static grain that survives libx264 at crf 23. Only renders using these effects change; their files grow somewhat.
 - A cut between sections that also use designed transitions is joined with `concat`: the 0.001 s xfade shorter than a frame ended the output early on FFmpeg 6.x.

@@ -29,10 +29,6 @@
         "requirePurpose": {
           "description": "When true, every rendering section should declare a `purpose` (advisory section_without_purpose).",
           "type": "boolean"
-        },
-        "allowNondeterministic": {
-          "description": "Opt out of the nondeterministic_expression check (wall-clock `%{localtime}`/`time(0)` or unseeded `random()` in raw filters). Default false: such templates fail validation.",
-          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -23793,7 +23789,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "intensity": {
@@ -23864,7 +23860,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "aspect": {
@@ -23935,7 +23931,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "x": {
@@ -23963,23 +23959,23 @@
               "enum": ["left", "center", "right"]
             },
             "exit": {
-              "description": "v2. How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default in v2: fade for frame and underline, expand for corners.",
+              "description": "How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default: fade for frame and underline, expand for corners.",
               "type": "string",
               "enum": ["none", "fade", "retract", "expand"]
             },
             "exitDuration": {
-              "description": "v2. Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
+              "description": "Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
               "type": "number",
               "minimum": 0.1,
               "maximum": 1.5
             },
             "caps": {
-              "description": "v2. Line ends: round (anti-aliased half discs, default in v2) or square.",
+              "description": "Line ends: round (anti-aliased half discs, default) or square.",
               "type": "string",
               "enum": ["square", "round"]
             },
             "settle": {
-              "description": "v2. Overshoot of the draw-on as a fraction of the width: the line runs that much past its end, then settles back (default 0.03 in v2; 0 = none).",
+              "description": "Overshoot of the draw-on as a fraction of the width: the line runs that much past its end, then settles back (default 0.03; 0 = none).",
               "type": "number",
               "minimum": 0,
               "maximum": 0.12
@@ -23987,7 +23983,7 @@
           },
           "required": ["type"],
           "additionalProperties": false,
-          "description": "A rule that draws itself across under a headline. v2 (set caps, settle, exit or exitDuration): round caps, an expo draw-on that settles, a fade exit, and drawn above text by default so a CTA card or plate under it never hides it."
+          "description": "A rule that draws itself across under a headline: round caps, an expo draw-on that settles, a fade exit, and drawn above text by default so a CTA card or plate under it never hides it."
         },
         {
           "type": "object",
@@ -24046,11 +24042,11 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "inset": {
-              "description": "Distance from the frame edge in px (default 48; ignored with a v2 target).",
+              "description": "Distance from the frame edge in px (default 48; ignored with a target).",
               "type": "number",
               "minimum": 0
             },
@@ -24061,46 +24057,46 @@
               "maximum": 40
             },
             "exit": {
-              "description": "v2. How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default in v2: fade for frame and underline, expand for corners.",
+              "description": "How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default: fade for frame and underline, expand for corners.",
               "type": "string",
               "enum": ["none", "fade", "retract", "expand"]
             },
             "exitDuration": {
-              "description": "v2. Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
+              "description": "Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
               "type": "number",
               "minimum": 0.1,
               "maximum": 1.5
             },
             "target": {
-              "description": "v2. What the strokes frame instead of the whole frame: \"layer:<i>\", \"pane:<i>\", \"text:<i>\" or a {x, y, w, h} rectangle in px or frame fractions. They sit `clearance` px outside it, clamped inside the frame.",
+              "description": "What the strokes frame instead of the whole frame: \"layer:<i>\", \"pane:<i>\", \"text:<i>\" or a {x, y, w, h} rectangle in px or frame fractions. They sit `clearance` px outside it, clamped inside the frame.",
               "$ref": "#/$defs/FxTarget"
             },
             "clearance": {
-              "description": "v2, with `target`. Px between the target edge and the strokes (default 24; negative = inside it).",
+              "description": "With `target`. Px between the target edge and the strokes (default 24; negative = inside it).",
               "type": "number",
               "minimum": -200,
               "maximum": 400
             },
             "radius": {
-              "description": "v2. Corner radius in px (default 0 = square corners); raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.",
+              "description": "Corner radius in px (default 0 = square corners); raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.",
               "type": "number",
               "minimum": 0,
               "maximum": 400
             },
             "contrast": {
-              "description": "v2. Keeps the strokes readable on any background. auto (default in v2): on a known solid background an unset colour becomes light or dark ink by its luminance, and a low-contrast colour or an unknown background (footage, images) gets a soft offset shadow. shadow: always the shadow. none: as authored.",
+              "description": "Keeps the strokes readable on any background. auto (default): on a known solid background an unset colour becomes light or dark ink by its luminance, and a low-contrast colour or an unknown background (footage, images) gets a soft offset shadow. shadow: always the shadow. none: as authored.",
               "type": "string",
               "enum": ["none", "auto", "shadow"]
             },
             "trace": {
-              "description": "v2. How the outline draws on, always starting at the top-left corner: path (one head travels clockwise at constant speed, default in v2), split (two heads leave the top-left and meet bottom-right), sides (each side in turn takes a quarter of the time, the legacy look), fade (no draw-on, fades in).",
+              "description": "How the outline draws on, always starting at the top-left corner: path (one head travels clockwise at constant speed, default), split (two heads leave the top-left and meet bottom-right), sides (each side in turn takes a quarter of the time), fade (no draw-on, fades in).",
               "type": "string",
               "enum": ["sides", "path", "split", "fade"]
             }
           },
           "required": ["type"],
           "additionalProperties": false,
-          "description": "A rectangle outline that traces itself clockwise. v2 (set any of radius, trace, exit, exitDuration, target, clearance, contrast): rounded corners, a constant-speed trace from the top-left with a head fade, a visible exit and contrast-aware colour."
+          "description": "A rectangle outline that traces itself clockwise: optional rounded corners, a constant-speed trace from the top-left with a head fade, a visible exit and contrast-aware colour."
         },
         {
           "type": "object",
@@ -24159,64 +24155,64 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "inset": {
-              "description": "Distance from the frame edge in px (default 56; ignored with a v2 target).",
+              "description": "Distance from the frame edge in px (default 56; ignored with a target).",
               "type": "number",
               "minimum": 0
             },
             "length": {
-              "description": "Arm length in px (default 72; with a v2 target ~18% of its short side, 24..160).",
+              "description": "Arm length in px (default 72; with a target ~18% of its short side, 24..160).",
               "type": "number",
               "exclusiveMinimum": 0
             },
             "thickness": {
-              "description": "Stroke in px (default 5; 4 in v2).",
+              "description": "Stroke in px (default 4).",
               "type": "number",
               "exclusiveMinimum": 0,
               "maximum": 40
             },
             "exit": {
-              "description": "v2. How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default in v2: fade for frame and underline, expand for corners.",
+              "description": "How it leaves before `until` (or the end of the section when `until` is unset): fade (opacity to 0), retract (the stroke undraws in its trace order), expand (grows ~4% outward while fading; frame/corners), none (holds to the cut). Default: fade for frame and underline, expand for corners.",
               "type": "string",
               "enum": ["none", "fade", "retract", "expand"]
             },
             "exitDuration": {
-              "description": "v2. Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
+              "description": "Seconds the exit takes on $smooth (default: 60% of the entrance, between 0.15 and 0.35).",
               "type": "number",
               "minimum": 0.1,
               "maximum": 1.5
             },
             "target": {
-              "description": "v2. What the strokes frame instead of the whole frame: \"layer:<i>\", \"pane:<i>\", \"text:<i>\" or a {x, y, w, h} rectangle in px or frame fractions. They sit `clearance` px outside it, clamped inside the frame.",
+              "description": "What the strokes frame instead of the whole frame: \"layer:<i>\", \"pane:<i>\", \"text:<i>\" or a {x, y, w, h} rectangle in px or frame fractions. They sit `clearance` px outside it, clamped inside the frame.",
               "$ref": "#/$defs/FxTarget"
             },
             "clearance": {
-              "description": "v2, with `target`. Px between the target edge and the strokes (default 24; negative = inside it).",
+              "description": "With `target`. Px between the target edge and the strokes (default 24; negative = inside it).",
               "type": "number",
               "minimum": -200,
               "maximum": 400
             },
             "radius": {
-              "description": "v2. Corner radius in px (default 0 = square corners); raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.",
+              "description": "Corner radius in px (default 0 = square corners); raised to the thickness when smaller. Rounded corners are anti-aliased arcs generated at their exact size.",
               "type": "number",
               "minimum": 0,
               "maximum": 400
             },
             "contrast": {
-              "description": "v2. Keeps the strokes readable on any background. auto (default in v2): on a known solid background an unset colour becomes light or dark ink by its luminance, and a low-contrast colour or an unknown background (footage, images) gets a soft offset shadow. shadow: always the shadow. none: as authored.",
+              "description": "Keeps the strokes readable on any background. auto (default): on a known solid background an unset colour becomes light or dark ink by its luminance, and a low-contrast colour or an unknown background (footage, images) gets a soft offset shadow. shadow: always the shadow. none: as authored.",
               "type": "string",
               "enum": ["none", "auto", "shadow"]
             },
             "trace": {
-              "description": "v2. together (all four brackets extend at once), clockwise (they start one after another from the top-left; default in v2), fade (no draw-on, they fade in at full length).",
+              "description": "together (all four brackets extend at once), clockwise (they start one after another from the top-left; default), fade (no draw-on, they fade in at full length).",
               "type": "string",
               "enum": ["together", "clockwise", "fade"]
             },
             "spread": {
-              "description": "v2. Size the bracket rectangle starts at relative to its rest size: 1.08 = they close in from 108% onto the subject on the entrance curve (default 1.06 in v2; 1 = no travel).",
+              "description": "Size the bracket rectangle starts at relative to its rest size: 1.08 = they close in from 108% onto the subject on the entrance curve (default 1.06; 1 = no travel).",
               "type": "number",
               "minimum": 1,
               "maximum": 1.3
@@ -24224,7 +24220,7 @@
           },
           "required": ["type"],
           "additionalProperties": false,
-          "description": "Four corner brackets that extend from the corners (viewfinder / focus framing). v2 (set any of target, clearance, spread, trace, radius, exit, exitDuration, contrast): brackets around a subject that close in on a spring, extend clockwise from the top-left, exit by expanding and fading, and stay readable on light backgrounds."
+          "description": "Four corner brackets that extend from the corners (viewfinder / focus framing): brackets around a subject that close in on a spring, extend clockwise from the top-left, exit by expanding and fading, and stay readable on light backgrounds."
         },
         {
           "type": "object",
@@ -24283,7 +24279,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "direction": {
@@ -24353,7 +24349,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "x": {
@@ -24441,7 +24437,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "intensity": {
@@ -24512,7 +24508,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "direction": {
@@ -24588,7 +24584,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "position": {
@@ -24681,7 +24677,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "text": {
@@ -24787,7 +24783,7 @@
               "type": "string"
             },
             "above": {
-              "description": "Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).",
+              "description": "Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).",
               "type": "boolean"
             },
             "values": {

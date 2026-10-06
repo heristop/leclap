@@ -41,7 +41,7 @@
       "kinetic": [
         {
           "text": {
-            "en": "transitions · the boundary after a section"
+            "en": "transitions · each one named as it plays"
           },
           "preset": "fade",
           "font": "mono",
@@ -70,7 +70,7 @@
       }
     },
     {
-      "name": "into-cut",
+      "name": "named-fade",
       "type": "image_background",
       "options": {
         "pictureUrl": "backgrounds/rocky-coast.jpg",
@@ -95,7 +95,7 @@
         },
         {
           "text": {
-            "en": "CUT"
+            "en": "FADE"
           },
           "preset": "rise",
           "size": 150,
@@ -135,7 +135,7 @@
       }
     },
     {
-      "name": "into-fade",
+      "name": "named-fadeblack",
       "type": "color_background",
       "options": {
         "backgroundColor": "#1B1830",
@@ -160,7 +160,7 @@
         },
         {
           "text": {
-            "en": "FADE"
+            "en": "FADEBLACK"
           },
           "preset": "rise",
           "size": 150,
@@ -186,7 +186,7 @@
       }
     },
     {
-      "name": "into-fadeblack",
+      "name": "named-dissolve",
       "type": "image_background",
       "options": {
         "pictureUrl": "backgrounds/forest-sea.jpg",
@@ -211,7 +211,7 @@
         },
         {
           "text": {
-            "en": "FADEBLACK"
+            "en": "DISSOLVE"
           },
           "preset": "rise",
           "size": 150,
@@ -251,62 +251,10 @@
       }
     },
     {
-      "name": "into-dissolve",
+      "name": "named-push-left",
       "type": "color_background",
       "options": {
         "backgroundColor": "#2A2238",
-        "duration": 2.1
-      },
-      "kinetic": [
-        {
-          "text": {
-            "en": "transition · basic"
-          },
-          "preset": "fade",
-          "font": "mono",
-          "size": 32,
-          "align": "left",
-          "x": 64,
-          "y": 40,
-          "color": "#B9B7C6",
-          "delay": 0.1,
-          "effect": {
-            "shadow": true
-          }
-        },
-        {
-          "text": {
-            "en": "DISSOLVE"
-          },
-          "preset": "rise",
-          "size": 150,
-          "y": "center",
-          "delay": 0.7,
-          "effect": {
-            "shadow": {
-              "color": "#000000@0.75",
-              "dx": 3,
-              "dy": 4
-            },
-            "outline": {
-              "color": "#000000@0.5",
-              "width": 2
-            }
-          },
-          "color": "#F5F3F7"
-        }
-      ],
-      "transition": {
-        "type": "push-left",
-        "duration": 0.6,
-        "ease": "$snappy"
-      }
-    },
-    {
-      "name": "into-push-left",
-      "type": "image_background",
-      "options": {
-        "pictureUrl": "backgrounds/golden-hour.jpg",
         "duration": 2.1
       },
       "kinetic": [
@@ -345,34 +293,20 @@
               "width": 2
             }
           },
-          "color": "#FFF685"
-        }
-      ],
-      "graphics": [
-        {
-          "type": "panel",
-          "at": 0,
-          "duration": 0.3,
-          "x": 0,
-          "y": 0,
-          "width": 1280,
-          "height": 84,
-          "color": "#141416@0.62",
-          "from": "top",
-          "ease": "linear"
+          "color": "#F5F3F7"
         }
       ],
       "transition": {
-        "type": "push-right",
+        "type": "push-left",
         "duration": 0.6,
         "ease": "$snappy"
       }
     },
     {
-      "name": "into-push-right",
-      "type": "color_background",
+      "name": "named-push-right",
+      "type": "image_background",
       "options": {
-        "backgroundColor": "#141416",
+        "pictureUrl": "backgrounds/golden-hour.jpg",
         "duration": 2.1
       },
       "kinetic": [
@@ -414,16 +348,31 @@
           "color": "#FFF685"
         }
       ],
+      "graphics": [
+        {
+          "type": "panel",
+          "at": 0,
+          "duration": 0.3,
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 84,
+          "color": "#141416@0.62",
+          "from": "top",
+          "ease": "linear"
+        }
+      ],
       "transition": {
-        "type": "push-up",
-        "duration": 0.6
+        "type": "push-right",
+        "duration": 0.6,
+        "ease": "$snappy"
       }
     },
     {
-      "name": "into-push-up",
-      "type": "image_background",
+      "name": "named-push-up",
+      "type": "color_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "backgroundColor": "#141416",
         "duration": 2.1
       },
       "kinetic": [
@@ -465,30 +414,16 @@
           "color": "#FFF685"
         }
       ],
-      "graphics": [
-        {
-          "type": "panel",
-          "at": 0,
-          "duration": 0.3,
-          "x": 0,
-          "y": 0,
-          "width": 1280,
-          "height": 84,
-          "color": "#141416@0.62",
-          "from": "top",
-          "ease": "linear"
-        }
-      ],
       "transition": {
-        "type": "push-down",
+        "type": "push-up",
         "duration": 0.6
       }
     },
     {
-      "name": "into-push-down",
-      "type": "color_background",
+      "name": "named-push-down",
+      "type": "image_background",
       "options": {
-        "backgroundColor": "#1B1830",
+        "pictureUrl": "backgrounds/green-forest.jpg",
         "duration": 2.1
       },
       "kinetic": [
@@ -530,16 +465,30 @@
           "color": "#FFF685"
         }
       ],
+      "graphics": [
+        {
+          "type": "panel",
+          "at": 0,
+          "duration": 0.3,
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 84,
+          "color": "#141416@0.62",
+          "from": "top",
+          "ease": "linear"
+        }
+      ],
       "transition": {
-        "type": "swipe-left",
+        "type": "push-down",
         "duration": 0.6
       }
     },
     {
-      "name": "into-swipe-left",
-      "type": "image_background",
+      "name": "named-swipe-left",
+      "type": "color_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "backgroundColor": "#1B1830",
         "duration": 2.1
       },
       "kinetic": [
@@ -581,30 +530,16 @@
           "color": "#FFF685"
         }
       ],
-      "graphics": [
-        {
-          "type": "panel",
-          "at": 0,
-          "duration": 0.3,
-          "x": 0,
-          "y": 0,
-          "width": 1280,
-          "height": 84,
-          "color": "#141416@0.62",
-          "from": "top",
-          "ease": "linear"
-        }
-      ],
       "transition": {
-        "type": "swipe-right",
+        "type": "swipe-left",
         "duration": 0.6
       }
     },
     {
-      "name": "into-swipe-right",
-      "type": "color_background",
+      "name": "named-swipe-right",
+      "type": "image_background",
       "options": {
-        "backgroundColor": "#2A2238",
+        "pictureUrl": "backgrounds/laptop-desk.jpg",
         "duration": 2.1
       },
       "kinetic": [
@@ -646,17 +581,31 @@
           "color": "#FFF685"
         }
       ],
+      "graphics": [
+        {
+          "type": "panel",
+          "at": 0,
+          "duration": 0.3,
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 84,
+          "color": "#141416@0.62",
+          "from": "top",
+          "ease": "linear"
+        }
+      ],
       "transition": {
-        "type": "zoom-through",
-        "duration": 0.7
+        "type": "swipe-right",
+        "duration": 0.6
       }
     },
     {
-      "name": "into-zoom-through",
-      "type": "image_background",
+      "name": "named-zoom-through",
+      "type": "color_background",
       "options": {
-        "pictureUrl": "backgrounds/desk-flatlay.jpg",
-        "duration": 2.2
+        "backgroundColor": "#2A2238",
+        "duration": 2.1
       },
       "kinetic": [
         {
@@ -682,7 +631,7 @@
           "preset": "rise",
           "size": 150,
           "y": "center",
-          "delay": 0.8,
+          "delay": 0.7,
           "effect": {
             "shadow": {
               "color": "#000000@0.75",
@@ -697,30 +646,16 @@
           "color": "#FFF685"
         }
       ],
-      "graphics": [
-        {
-          "type": "panel",
-          "at": 0,
-          "duration": 0.3,
-          "x": 0,
-          "y": 0,
-          "width": 1280,
-          "height": 84,
-          "color": "#141416@0.62",
-          "from": "top",
-          "ease": "linear"
-        }
-      ],
       "transition": {
-        "type": "iris",
+        "type": "zoom-through",
         "duration": 0.7
       }
     },
     {
-      "name": "into-iris",
-      "type": "color_background",
+      "name": "named-iris",
+      "type": "image_background",
       "options": {
-        "backgroundColor": "#141416",
+        "pictureUrl": "backgrounds/desk-flatlay.jpg",
         "duration": 2.2
       },
       "kinetic": [
@@ -762,17 +697,31 @@
           "color": "#FFF685"
         }
       ],
+      "graphics": [
+        {
+          "type": "panel",
+          "at": 0,
+          "duration": 0.3,
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 84,
+          "color": "#141416@0.62",
+          "from": "top",
+          "ease": "linear"
+        }
+      ],
       "transition": {
-        "type": "whip-left",
-        "duration": 0.4
+        "type": "iris",
+        "duration": 0.7
       }
     },
     {
-      "name": "into-whip-left",
-      "type": "image_background",
+      "name": "named-whip-left",
+      "type": "color_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
-        "duration": 1.9
+        "backgroundColor": "#141416",
+        "duration": 2.2
       },
       "kinetic": [
         {
@@ -798,7 +747,7 @@
           "preset": "rise",
           "size": 150,
           "y": "center",
-          "delay": 0.5,
+          "delay": 0.8,
           "effect": {
             "shadow": {
               "color": "#000000@0.75",
@@ -813,30 +762,16 @@
           "color": "#FFF685"
         }
       ],
-      "graphics": [
-        {
-          "type": "panel",
-          "at": 0,
-          "duration": 0.3,
-          "x": 0,
-          "y": 0,
-          "width": 1280,
-          "height": 84,
-          "color": "#141416@0.62",
-          "from": "top",
-          "ease": "linear"
-        }
-      ],
       "transition": {
-        "type": "whip-right",
+        "type": "whip-left",
         "duration": 0.4
       }
     },
     {
-      "name": "into-whip-right",
-      "type": "color_background",
+      "name": "named-whip-right",
+      "type": "image_background",
       "options": {
-        "backgroundColor": "#1B1830",
+        "pictureUrl": "backgrounds/rocky-coast.jpg",
         "duration": 1.9
       },
       "kinetic": [
@@ -878,16 +813,30 @@
           "color": "#FFF685"
         }
       ],
+      "graphics": [
+        {
+          "type": "panel",
+          "at": 0,
+          "duration": 0.3,
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 84,
+          "color": "#141416@0.62",
+          "from": "top",
+          "ease": "linear"
+        }
+      ],
       "transition": {
-        "type": "whip-up",
+        "type": "whip-right",
         "duration": 0.4
       }
     },
     {
-      "name": "into-whip-up",
-      "type": "image_background",
+      "name": "named-whip-up",
+      "type": "color_background",
       "options": {
-        "pictureUrl": "backgrounds/forest-sea.jpg",
+        "backgroundColor": "#1B1830",
         "duration": 1.9
       },
       "kinetic": [
@@ -929,30 +878,16 @@
           "color": "#FFF685"
         }
       ],
-      "graphics": [
-        {
-          "type": "panel",
-          "at": 0,
-          "duration": 0.3,
-          "x": 0,
-          "y": 0,
-          "width": 1280,
-          "height": 84,
-          "color": "#141416@0.62",
-          "from": "top",
-          "ease": "linear"
-        }
-      ],
       "transition": {
-        "type": "whip-down",
+        "type": "whip-up",
         "duration": 0.4
       }
     },
     {
-      "name": "into-whip-down",
-      "type": "color_background",
+      "name": "named-whip-down",
+      "type": "image_background",
       "options": {
-        "backgroundColor": "#2A2238",
+        "pictureUrl": "backgrounds/forest-sea.jpg",
         "duration": 1.9
       },
       "kinetic": [
@@ -994,13 +929,78 @@
           "color": "#FFF685"
         }
       ],
+      "graphics": [
+        {
+          "type": "panel",
+          "at": 0,
+          "duration": 0.3,
+          "x": 0,
+          "y": 0,
+          "width": 1280,
+          "height": 84,
+          "color": "#141416@0.62",
+          "from": "top",
+          "ease": "linear"
+        }
+      ],
+      "transition": {
+        "type": "whip-down",
+        "duration": 0.4
+      }
+    },
+    {
+      "name": "named-circleopen",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#2A2238",
+        "duration": 1.9
+      },
+      "kinetic": [
+        {
+          "text": {
+            "en": "transition · xfade"
+          },
+          "preset": "fade",
+          "font": "mono",
+          "size": 32,
+          "align": "left",
+          "x": 64,
+          "y": 40,
+          "color": "#B9B7C6",
+          "delay": 0.1,
+          "effect": {
+            "shadow": true
+          }
+        },
+        {
+          "text": {
+            "en": "CIRCLEOPEN"
+          },
+          "preset": "rise",
+          "size": 150,
+          "y": "center",
+          "delay": 0.5,
+          "effect": {
+            "shadow": {
+              "color": "#000000@0.75",
+              "dx": 3,
+              "dy": 4
+            },
+            "outline": {
+              "color": "#000000@0.5",
+              "width": 2
+            }
+          },
+          "color": "#FFF685"
+        }
+      ],
       "transition": {
         "type": "circleopen",
         "duration": 0.6
       }
     },
     {
-      "name": "into-circleopen",
+      "name": "named-pixelize",
       "type": "image_background",
       "options": {
         "pictureUrl": "backgrounds/golden-hour.jpg",
@@ -1025,7 +1025,7 @@
         },
         {
           "text": {
-            "en": "CIRCLEOPEN"
+            "en": "PIXELIZE"
           },
           "preset": "rise",
           "size": 150,
@@ -1065,7 +1065,7 @@
       }
     },
     {
-      "name": "into-pixelize",
+      "name": "transitions-summary",
       "type": "color_background",
       "options": {
         "backgroundColor": "#141416",
@@ -1074,7 +1074,7 @@
       "kinetic": [
         {
           "text": {
-            "en": "transition · xfade"
+            "en": "transition · basic, designed and xfade"
           },
           "preset": "fade",
           "font": "mono",
@@ -1090,7 +1090,7 @@
         },
         {
           "text": {
-            "en": "PIXELIZE"
+            "en": "18 WAYS OUT"
           },
           "preset": "rise",
           "size": 150,

@@ -22,10 +22,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "f2ef9bbe1b3f7d2b156216bf1ccf491e50b9a373c59e27eb65631a88f019b3a6",
+      "sha256": "ff1495d7d4f91a7f17f8ad9b99f52f449d04b9847915c54e0d89f686aea3d190",
       "templateSha256": "7c70548df287965461ed85c3477b4e406ab1b6708fc91b750e2802a38de22e1b",
       "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
-      "bytes": 23376003
+      "bytes": 23393238
     },
     {
       "id": "type-impact",

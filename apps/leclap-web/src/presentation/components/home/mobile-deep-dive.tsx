@@ -29,9 +29,9 @@ interface PhoneClip {
 }
 
 const CLIPS: readonly PhoneClip[] = [
-  { key: 'pick', clip: 'mobile-pick', statusBar: 'light' },
+  { key: 'pick', clip: 'mobile-pick', statusBar: 'dark' },
   { key: 'shoot', clip: 'mobile-shoot' },
-  { key: 'render', clip: 'mobile-render', statusBar: 'dark' },
+  { key: 'render', clip: 'mobile-render', statusBar: 'light' },
   { key: 'result', clip: 'mobile-result' },
 ];
 

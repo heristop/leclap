@@ -46,7 +46,15 @@ describe('fx bloom', () => {
     expect(text).toContain('split=2[fx0_r][fx0_tap]');
     expect(text).toContain(`[fx0_tap]trim=start=0.3,format=gray,lutyuv=${highlightMask(191.25, 216.75)}`);
     expect(text).toContain('scale=640:360,gblur=sigma=7.2,scale=1280:720[fx0_bm]');
-    expect(text).toMatch(/\[fx0_bc\]\[fx0_bm\]alphamerge,format=yuva444p,lutyuv=a=val\*0.102,noise=/);
+    expect(text).toContain(
+      "[fx0_bc][fx0_bm]alphamerge,format=yuva444p,lutyuv=a=val*0.102,lutyuv=a='if(gt(val,0),val+8,0)',noise="
+    );
+    // The soft dither: pedestal, ±8 noise, an alpha-only blur into a fine grain, pedestal off.
+    expect(text).toContain("c3s=17:c3f=u:all_seed=77,gblur=sigma=0.7:planes=8,lutyuv=a='max(val-8,0)'");
+    // Without gblur (the vignette does not need it otherwise) the dither degrades to the plain ±1 alpha step.
+    expect(fx('vignette-breathe', {}, { has: (f: string) => f !== 'gblur' }).text).toContain(
+      "noise=c0s=7:c0f=u:c3s=3:c3f=u:all_seed=77,lutyuv=a='if(lt(val,2),0,val)'"
+    );
     expect(fx('bloom', { intensity: 1 }).text).toContain('lutyuv=a=val*0.12,');
   });
 

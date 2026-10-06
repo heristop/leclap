@@ -102,16 +102,38 @@ export function holdFor(fx: AnyFxContext): Filter {
 }
 
 /**
- * Static dither for wide, soft light layers (already in an alpha format): ±1 on the alpha (the last visible
- * step of a tail is a single level, under one code value over dark pictures) and ±3 on the light's own luma
- * (the composited lift then wobbles by ±alpha·3 ≈ half a code value where the light is strongest, which
- * breaks the 1-code-value contours a subtle lift over a light picture would otherwise draw). The floor of 2
- * keeps empty pixels exactly empty.
+ * Alpha dither of the soft lights: ±PEDESTAL steps of uniform noise, softened by an alpha-only blur of
+ * SIGMA px into a fine grain of about ±1 composited code value. Weaker dither (±1 alpha step) is smoothed
+ * away by every H.264 preset at crf 23, which then draws the light's slow falloff as clean
+ * 1-code-value contours; this grain survives the encode and breaks them.
+ */
+const DITHER = { pedestal: 8, sigma: 0.7 };
+
+/**
+ * Static dither for wide, soft light layers (already in an alpha format). Lit pixels are lifted by a
+ * pedestal, noised by ±pedestal, the alpha plane alone is blurred into a fine grain, and the pedestal is
+ * taken back off: lit pixels keep their mean alpha (a tail of 1 stays a sparse spray, so the light's
+ * reach is unchanged) and empty pixels stay exactly empty (beyond the blur's 2-px reach of a lit pixel).
+ * ±3 on the light's own luma breaks the contours a subtle lift over a light picture would draw. Without
+ * gblur (it is on the device allowlist, but a build might lack it) the dither is the plain ±1 alpha step.
+ * Light layers stay well below opaque, so the pedestal never clips at 255.
  */
 export function softDither(fx: AnyFxContext): Filter[] {
+  const seed = fx.seed % 2147483647;
+  const { pedestal: k, sigma } = DITHER;
+
+  if (!fx.has('gblur')) {
+    return [
+      { type: 'noise', value: `c0s=7:c0f=u:c3s=3:c3f=u:all_seed=${seed}` },
+      { type: 'lutyuv', value: "a='if(lt(val,2),0,val)'" },
+    ];
+  }
+
   return [
-    { type: 'noise', value: `c0s=7:c0f=u:c3s=3:c3f=u:all_seed=${fx.seed % 2147483647}` },
-    { type: 'lutyuv', value: "a='if(lt(val,2),0,val)'" },
+    { type: 'lutyuv', value: `a='if(gt(val,0),val+${k},0)'` },
+    { type: 'noise', value: `c0s=7:c0f=u:c3s=${2 * k + 1}:c3f=u:all_seed=${seed}` },
+    { type: 'gblur', value: `sigma=${sigma}:planes=8` },
+    { type: 'lutyuv', value: `a='max(val-${k},0)'` },
   ];
 }
 

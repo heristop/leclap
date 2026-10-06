@@ -55,7 +55,7 @@ export function audioCatalog(): AudioCatalog {
       'Fewer is better: at most one sound per second on average; leave calm beats silent.',
       `global.audio.sfx: "auto" places whooshes, hits and risers from the motion (at most ${AUTO_SFX_CAP}); ` +
         'authored sfx always win over auto ones at the same moment.',
-      'Levels: sounds mix at their library default (0.45–0.7); lower them under speech, raise them only for ' +
+      'Levels: sounds mix at their library default (0.35–0.7); lower them under speech, raise them only for ' +
         'the one big moment. Normalisation (loudnorm) runs after the sounds, so peaks stay under the target.',
       'voice on a recorded section (video / project_video) cleans speech; combine with audioEffect only for ' +
         'a creative colour (telephone, echo).',

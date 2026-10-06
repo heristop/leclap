@@ -3,27 +3,19 @@
 // noise, swept sines and envelopes, so every file is original, license-free and reproducible from this
 // script. Each sound is peak-normalised to PEAK_DBFS, then encoded as AAC (48 kHz stereo) in an .m4a
 // container, which every backend decodes (the on-device build enables the mov demuxer and aac decoder).
-// Run with `pnpm --dir packages/leclap-creative-kit gen:sfx` (needs ffmpeg on PATH). The manifest the
+// Run with `pnpm --dir packages/leclap-creative-kit gen:sfx [id ...]` (needs ffmpeg on PATH; ids limit the run,
+// since another FFmpeg build may not reproduce the other files byte for byte). The manifest the
 // engine reads (ids, durations, anchors, guidance) lives in ffmpeg-video-composer core/audio/sfx-library.ts.
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { PROMO_RECIPES } from './gen-sfx-recipes-promo.ts';
+import { RATE, noise, strike, tone, type SfxRecipe } from './gen-sfx-sources.ts';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const outDir = path.resolve(here, '../src/library/sfx');
-const RATE = 48000;
 const PEAK_DBFS = -3;
-
-interface SfxRecipe {
-  id: string;
-  /** A lavfi filtergraph ending in the label [a]. */
-  graph: string;
-}
-
-const noise = (d: number, color: string, seed: number, amp = 0.8): string =>
-  `anoisesrc=d=${d}:c=${color}:r=${RATE}:a=${amp}:s=${seed}`;
-const tone = (d: number, expr: string): string => `aevalsrc='${expr}':s=${RATE}:d=${d}`;
 
 const RECIPES: SfxRecipe[] = [
   {
@@ -84,6 +76,117 @@ const RECIPES: SfxRecipe[] = [
       tone(1.5, '(sin(2*PI*1318.5*t)+0.3*sin(2*PI*2637*t)+0.1*sin(2*PI*3955.5*t))*exp(-3*t)*min(1,t*300)') +
       ',afade=t=out:st=1.2:d=0.3[a]',
   },
+  {
+    // 36 slices a second: a hash of the slice index picks its pitch and whether it sounds, so the stutter
+    // is fixed; each slice ramps over 0.7 ms so the gaps chop without clicking, then a bitcrusher grits it.
+    id: 'glitch',
+    graph:
+      tone(
+        0.4,
+        'st(0,floor(t*36));st(1,sin(ld(0)*12.9898)*43758.5453);st(1,ld(1)-floor(ld(1)));' +
+          'st(2,sin(ld(0)*78.233)*12345.678);st(2,ld(2)-floor(ld(2)));st(3,t*36-ld(0));' +
+          'gt(ld(2),0.28)*min(1,ld(3)*40)*min(1,(1-ld(3))*40)*' +
+          'tanh(3*sin(2*PI*(120+1400*ld(1))*t))*(0.55+0.45*ld(2))'
+      ) + ',acrusher=bits=6:mode=lin:samples=3:mix=0.8,highpass=f=120,afade=t=out:st=0.37:d=0.03[a]',
+  },
+  {
+    // Five staggered bell notes up a C major arpeggio (C7..E8) over a short airy hiss.
+    id: 'sparkle',
+    graph:
+      tone(
+        1.2,
+        '0.35*(' +
+          [
+            strike(0, 2093, 7, 'sin(F)+0.2*sin(2*F)'),
+            `0.8*${strike(0.05, 2637, 7, 'sin(F)+0.2*sin(2*F)')}`,
+            `0.7*${strike(0.1, 3136, 8, 'sin(F)+0.15*sin(2*F)')}`,
+            `0.6*${strike(0.16, 4186, 9, 'sin(F)')}`,
+            `0.5*${strike(0.23, 5274, 10, 'sin(F)')}`,
+          ].join('+') +
+          ')'
+      ) +
+      `[bells];${noise(1.2, 'white', 29, 0.15)},highpass=f=7000,afade=t=in:d=0.05,` +
+      'afade=t=out:st=0.05:d=0.6:curve=exp[air];[bells][air]amix=inputs=2:normalize=0,afade=t=out:st=0.9:d=0.3[a]',
+  },
+  {
+    // A saturated low drop (harmonics so small speakers still hear it) with a muffled knock, no snap.
+    id: 'thud',
+    graph:
+      tone(0.45, 'tanh(2.5*sin(2*PI*(48*t+70*(1-exp(-25*t))/25)))*exp(-10*t)*min(1,t*800)') +
+      `[body];${noise(0.45, 'brown', 31, 0.6)},lowpass=f=260,afade=t=out:d=0.12:curve=exp[knock];` +
+      '[body][knock]amix=inputs=2:normalize=0,lowpass=f=900,afade=t=out:st=0.33:d=0.12[a]',
+  },
+  {
+    // A clipped, frequency-modulated sweep diving from 2.5 kHz to 160 Hz.
+    id: 'zap',
+    graph:
+      tone(0.35, 'tanh(3*sin(2*PI*(160*t+2400*(1-exp(-11*t))/11)+2.5*sin(2*PI*93*t)))*exp(-6*t)*min(1,t*500)') +
+      ',highpass=f=150,lowpass=f=7000,afade=t=out:st=0.27:d=0.08[a]',
+  },
+  {
+    // Two marimba-like notes a fifth apart (G5 then D6).
+    id: 'notification',
+    graph:
+      tone(0.8, `0.5*(${strike(0, 784, 9, 'sin(F)+0.25*sin(4*F)')}+${strike(0.13, 1175, 7, 'sin(F)+0.2*sin(4*F)')})`) +
+      ',afade=t=out:st=0.6:d=0.2[a]',
+  },
+  {
+    // A bright key click over a short low thock, then the key's release tick.
+    id: 'keystroke',
+    graph:
+      `${noise(0.09, 'white', 37, 0.9)},bandpass=f=3800:t=h:w=3000,afade=t=out:d=0.03:curve=exp[click];` +
+      tone(
+        0.09,
+        '0.3*sin(2*PI*230*t)*exp(-110*t)*min(1,t*2000)+0.35*gte(t,0.03)*sin(2*PI*1700*(t-0.03))*exp(-180*(t-0.03))'
+      ) +
+      '[thock];[click][thock]amix=inputs=2:normalize=0,afade=t=out:st=0.07:d=0.02[a]',
+  },
+  {
+    // A soft square-ish beep gliding up from 900 Hz.
+    id: 'blip',
+    graph:
+      tone(0.12, 'tanh(2*sin(2*PI*(900*t+3000*t*t)))*exp(-22*t)*min(1,t*1000)') +
+      ',lowpass=f=6000,afade=t=out:st=0.1:d=0.02[a]',
+  },
+  {
+    // A half-second riser: a sweep from 350 Hz with rising air, peaking at its end.
+    id: 'rise-short',
+    graph:
+      `${tone(0.6, '0.5*sin(2*PI*(350*t+900*t*t))*(t/0.6)^1.5')}[sweep];` +
+      `${noise(0.6, 'white', 41, 0.35)},highpass=f=3000,afade=t=in:d=0.58:curve=exp[air];` +
+      '[sweep][air]amix=inputs=2:normalize=0,afade=t=out:st=0.58:d=0.02[a]',
+  },
+  {
+    // The arcade pickup: a short B5 then a ringing E6, both square-ish.
+    id: 'coin',
+    graph:
+      tone(
+        0.6,
+        'lt(t,0.07)*tanh(1.6*sin(2*PI*988*t))*min(1,t*800)*min(1,(0.07-t)*800)+' +
+          'gte(t,0.07)*tanh(1.6*sin(2*PI*1319*(t-0.07)))*exp(-6*(t-0.07))*min(1,(t-0.07)*800)'
+      ) + ',lowpass=f=9000,afade=t=out:st=0.45:d=0.15[a]',
+  },
+  {
+    // Snare strokes at 24 a second, alternating hands, swelling to the end; soft-clipped to keep it dense.
+    id: 'drum-roll',
+    graph:
+      `${noise(1.5, 'white', 43, 0.9)},highpass=f=250,lowpass=f=7000[snare];` +
+      tone(
+        1.5,
+        'st(0,t*24-floor(t*24));(0.35+0.65*(t/1.5)^1.6)*(0.85+0.15*mod(floor(t*24),2))*exp(-3.5*ld(0))*min(1,ld(0)*60)'
+      ) +
+      '[env];[snare][env]amultiply,volume=3,asoftclip=type=tanh,lowpass=f=6000,afade=t=out:st=1.47:d=0.03[a]',
+  },
+  {
+    // Lub-dub: two saturated low thumps 0.26 s apart, the second softer.
+    id: 'heartbeat',
+    graph:
+      tone(
+        1,
+        'tanh(2.5*(sin(2*PI*(52*t+40*(1-exp(-20*t))/20))*exp(-14*t)*min(1,t*400)+' +
+          '0.75*gte(t,0.26)*sin(2*PI*(46*(t-0.26)+35*(1-exp(-20*(t-0.26)))/20))*exp(-12*(t-0.26))*min(1,(t-0.26)*400)))'
+      ) + ',lowpass=f=380,afade=t=out:st=0.8:d=0.2[a]',
+  },
 ];
 
 // FFmpeg reports on stderr; returned whole so volumedetect's peak can be read from it.
@@ -131,4 +234,8 @@ function render(recipe: SfxRecipe): void {
 
 mkdirSync(outDir, { recursive: true });
 
-for (const recipe of RECIPES) render(recipe);
+const only = process.argv.slice(2);
+
+for (const recipe of [...RECIPES, ...PROMO_RECIPES]) {
+  if (only.length === 0 || only.includes(recipe.id)) render(recipe);
+}

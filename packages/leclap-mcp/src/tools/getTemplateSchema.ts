@@ -95,7 +95,11 @@ const GUIDE = [
     'video/project_video sections; `options.audioAutomation` and `global.audio.automation` ([{ at, volume, ease? }], ' +
     'time references allowed) shape the clip sound and the music bed (music automation runs before ducking); ' +
     'section `sfx` / `global.sfx` ([{ id, at, volume? }]) place bundled sound effects (whoosh, swoosh-short, hit, ' +
-    'boom, riser, click, tick, pop, shutter, ding; a riser ends at `at`) and `global.audio.sfx: "auto"` places ' +
+    'boom, riser, click, tick, pop, shutter, ding, glitch, sparkle, thud, zap, notification, keystroke, blip, ' +
+    'rise-short, coin, drum-roll, heartbeat, clap, snap, success, error, swoosh-long, sub-drop, reverse-cymbal, ' +
+    'water-drop, whistle-up, camera-focus, paper, tada; riser, rise-short, drum-roll and reverse-cymbal end at ' +
+    '`at`) and ' +
+    '`global.audio.sfx: "auto"` places ' +
     'them from the motion. get_motion_catalog lists audio.sfx with when to use each sound.',
   'Music timing: call analyze_music on the music file for bpm, offset, beatsPerBar, confidence, usable and ' +
     'cues (build, drop, end); set global.beats to { bpm, offset, beatsPerBar } and put the drop into the cues ' +

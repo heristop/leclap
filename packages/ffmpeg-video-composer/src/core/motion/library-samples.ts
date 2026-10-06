@@ -62,7 +62,7 @@ export const LIBRARY_ANIMATION_SAMPLES: LibrarySample[] = [
     looksLike: 'a glowing frame border',
     composeWith:
       'graphics { type: "fx", effect: "edge-glow" } hugging the card it lights (glow "$color.accent", spread, ' +
-      'breathe), or a v2 frame tracing on around it',
+      'breathe), or a frame tracing on around it',
   },
   {
     name: 'white_border',

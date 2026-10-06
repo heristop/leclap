@@ -1,4 +1,4 @@
-// The motion of the v2 frame and corners (design 2.4 / 2.5) as stroke plans (stroke-timeline.ts).
+// The motion of the frame and corners (design 2.4 / 2.5) as stroke plans (stroke-timeline.ts).
 //
 // frame: the outline draws on from the top-left (`trace`: path = one head clockwise at constant speed,
 // split = two heads meeting bottom-right, sides = each side a quarter of the time, fade), the newest steps

@@ -100,7 +100,7 @@ npx @leclap/cli snapshot motion-effects-reel.json --at-transitions --per-section
 
 For another branch, keep the partial and the label pattern, and swap in that branch's clips and chapter titles.
 
-[`motion-polish-reel.json`](./motion-polish-reel.json) reuses the same `chapter-card` partial (its underline switched to the v2 round caps) for a 43 s reel of the `fx` primitives: four chapters, then one labelled beat per primitive, each effect authored in the template itself on stand-in footage or theme cards rather than cut from previews. [`.github/pr-media/motion-polish/make-media.sh`](../../.github/pr-media/motion-polish/make-media.sh) generates the stand-in clips and renders it.
+[`motion-polish-reel.json`](./motion-polish-reel.json) reuses the same `chapter-card` partial (its underline switched to round caps) for a 43 s reel of the `fx` primitives: four chapters, then one labelled beat per primitive, each effect authored in the template itself on stand-in footage or theme cards rather than cut from previews. [`.github/pr-media/motion-polish/make-media.sh`](../../.github/pr-media/motion-polish/make-media.sh) generates the stand-in clips and renders it.
 
 ## Evidence-video agent skill
 

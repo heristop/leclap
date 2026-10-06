@@ -82,7 +82,7 @@ export function easeOutExpo(p: number): number {
   return 1 - Math.pow(2, -10 * p);
 }
 
-// The engine's own curve for a motion-v2 easing (springs, beziers, the named set), or null when the
+// The engine's own curve for a motion-system easing (springs, beziers, the named set), or null when the
 // spec isn't renderable here: a `$token` needs the template's global.motion, which the monitor doesn't
 // resolve, so it previews with the signature curve instead.
 function engineCurve(easing: EasingSpec): ((p: number) => number) | null {
@@ -109,7 +109,7 @@ function phaseDuration(authored: number | undefined, easing: EasingSpec | undefi
 }
 
 // Samples the AUTHORED easing at a 0..1 progress, mirroring the engine's expression curves
-// (linear ramp / cubic-out 1-(1-p)^3 / smoothstep p*p*(3-2p), and the v2 curves through the engine's
+// (linear ramp / cubic-out 1-(1-p)^3 / smoothstep p*p*(3-2p), and the motion-system curves through the engine's
 // own functions). An unset easing keeps the monitor's signature ease-out-expo feel, so pre-easing
 // templates preview exactly as before.
 function easeProgress(progress: number, easing: EasingSpec | undefined): number {

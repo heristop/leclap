@@ -5,16 +5,16 @@ See the [creative-direction guide](../../docs/creative-direction.md) for CLI and
 
 The [engine configuration reference](../../docs/engine-configuration.md) separates descriptor orientation/fps from host paths, media bindings and encoder settings. These recipes need no MCP Remotion opt-in, no effect catalog and no asset files.
 
-The six recipes each layer two engine primitives: `graphics[]` entries of [`type: "fx"`](../../docs/template-configuration.md#light-and-effects-graphicstype-fx) and the [v2 strokes](../../docs/template-configuration.md#strokes-v2-frame-corners-underline). They render through LeClap's Node, browser/WASM and native FFmpeg routes.
+The six recipes each layer two engine primitives: `graphics[]` entries of [`type: "fx"`](../../docs/template-configuration.md#light-and-effects-graphicstype-fx) and the [strokes](../../docs/template-configuration.md#strokes-frame-corners-underline). They render through LeClap's Node, browser/WASM and native FFmpeg routes.
 
 | Recipe              | Purpose                                      | Parts                                                                   |
 | ------------------- | -------------------------------------------- | ----------------------------------------------------------------------- |
-| `interface-focus`   | Draw attention to an actual interface action | v2 `corners` closing in on the card, then an fx `ripple` tap on it      |
+| `interface-focus`   | Draw attention to an actual interface action | `corners` closing in on the card, then an fx `ripple` tap on it         |
 | `product-spotlight` | Give a product detail a brief reveal         | An fx `sheen` across the card, then two `glint` lights orbiting it      |
 | `celebration-burst` | Mark a success, offer or final invitation    | An fx `confetti` burst from the card, then `glint` stars on its corners |
-| `focus-lock`        | Introduce a framed detail                    | v2 `corners` that extend together, then an fx `ripple` ring             |
+| `focus-lock`        | Introduce a framed detail                    | `corners` that extend together, then an fx `ripple` ring                |
 | `light-pass`        | Give a scene a brief lighting beat           | An fx `leak` from one edge, then a few `glint` stars on the card        |
-| `frame-reveal`      | Introduce a framed composition               | A v2 `frame` traced around the card, then an fx `sheen` across it       |
+| `frame-reveal`      | Introduce a framed composition               | A `frame` traced around the card, then an fx `sheen` across it          |
 
 The shared creative-kit `ANIMATION_EFFECT_PRESETS` catalog builds these recipes. Each part lands on the scene's main card (`target: "layer:<i>"`, its largest `color_background` layer) with parameters derived from it: its size and aspect, the section length, the theme tokens (`$color.accent`, `$color.fg`) and a per-placement seed. Saved templates keep the portable JSON contract: the recipe expands into ordinary `graphics[]` entries, which the author then tunes like any other pick. The app's animation library offers the same choices next to the individual primitives.
 

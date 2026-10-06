@@ -131,8 +131,8 @@ describe('reveal easing mirror', () => {
   });
 });
 
-// Motion v2 easings preview through the engine's own curve functions, so the monitor matches the render.
-describe('motion v2 easing mirror', () => {
+// Motion-system easings preview through the engine's own curve functions, so the monitor matches the render.
+describe('motion easing mirror', () => {
   it('overshoots with a spring and uses its physical settle time when no duration is authored', () => {
     const reveal = { type: 'rise', delay: 0, distance: 100, easing: 'spring(300, 14)' } as const;
     const samples = Array.from(

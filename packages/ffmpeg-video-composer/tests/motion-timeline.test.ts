@@ -76,7 +76,7 @@ describe('motionTimeline', () => {
       ])
     );
 
-    expect(find(list, 'graphics[0]')).toMatchObject({ start: 0.5, end: 0.95, entrance: true, visibleUntil: 3 });
+    expect(find(list, 'graphics[0]')).toMatchObject({ start: 0.5, end: 1, entrance: true, visibleUntil: 3 });
     expect(find(list, 'graphics[0]').bbox).toEqual({ x: 100, y: 400, width: 300, height: 6 });
     expect(find(list, 'graphics[1]')).toMatchObject({ start: 1, end: 1.3, entrance: false, visibleUntil: 1.3 });
   });

@@ -1,7 +1,7 @@
 // The builder's animation library: engine primitives first, stock APNG samples last.
 //
 // Every engine entry is a procedural primitive the engine lowers at output resolution (a `graphics[]`
-// entry: an `fx` light or a v2 stroke graphic). Choosing one inserts that graphic with the section's
+// entry: an `fx` light or a stroke graphic). Choosing one inserts that graphic with the section's
 // default target and context-derived parameters (fx-draft.ts), then the builder opens its parameter
 // panel, so the result is tuned to the template instead of a stock look. The legacy APNG overlays stay
 // listed as "Samples": existing descriptors that reference them keep rendering unchanged, and each one
@@ -14,7 +14,7 @@ import type { FxEffectName } from 'ffmpeg-video-composer/src/schemas/fx-primitiv
 export const ANIMATION_GROUPS = ['light', 'focus', 'celebrate', 'frames', 'ambient', 'samples'] as const;
 export type AnimationGroup = (typeof ANIMATION_GROUPS)[number];
 
-/** The stroke graphics the library offers (their v2 lowering). */
+/** The stroke graphics the library offers. */
 export type LibraryStrokeType = 'frame' | 'corners' | 'underline';
 
 /** The fields that name an entry: its type, its effect and the variant fields that set it apart. */

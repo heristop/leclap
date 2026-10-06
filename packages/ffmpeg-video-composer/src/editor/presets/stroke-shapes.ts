@@ -1,4 +1,4 @@
-// The outlines of the v2 stroke graphics as paths (stroke-path.ts): a frame is one closed path that starts
+// The outlines of the stroke graphics as paths (stroke-path.ts): a frame is one closed path that starts
 // at the top-left and runs clockwise; corners are four short paths (top-left, top-right, bottom-right,
 // bottom-left), each running from one arm tip through the elbow to the other tip.
 

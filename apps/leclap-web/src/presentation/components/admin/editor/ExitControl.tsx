@@ -138,7 +138,7 @@ export const ExitControl = ({ exit, onChange }: ExitControlProps) => {
             value={easingChoice(current.easing)}
             options={easingOptions(t, current.easing)}
             onChange={(easing) => {
-              // The authored v2 curve is already selected; re-picking it changes nothing.
+              // The authored curve is already selected; re-picking it changes nothing.
               if (easing === CUSTOM_EASING) return;
 
               set({ easing });

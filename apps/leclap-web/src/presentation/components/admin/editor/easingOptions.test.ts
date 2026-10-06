@@ -16,7 +16,7 @@ describe('easing options', () => {
     expect(easingChoice('ease-out-back')).toBe('ease-out-back');
   });
 
-  it('shows an authored motion-v2 curve as its own selected segment, labelled with its spec', () => {
+  it('shows an authored motion-system curve as its own selected segment, labelled with its spec', () => {
     const options = easingOptions(t, 'spring(300, 14)');
 
     expect(options.at(-1)).toEqual({ value: CUSTOM_EASING, label: 'spring(300, 14)' });

@@ -1,24 +1,18 @@
 // One graphic → its live preview painter. Engine effects go through the engine's own context and plans
-// (fx-context.ts, paint-*.ts); stroke graphics through the engine's stroke plans (v2) or their drawbox
-// rectangles (legacy). Everything a painter needs is computed here, once per change of the graphic, so the
+// (fx-context.ts, paint-*.ts); stroke graphics through the engine's stroke plans (paint-stroke.ts).
+// Everything a painter needs is computed here, once per change of the graphic, so the
 // per-frame work is drawing only.
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import type { FxEffectName } from 'ffmpeg-video-composer/src/schemas/fx-primitives.schemas.ts';
 import type { AnyFxContext } from 'ffmpeg-video-composer/src/editor/presets/fx-kit.ts';
-import {
-  cornersSpec,
-  frameSpec,
-  isStrokeV2,
-  underlineSpec,
-} from 'ffmpeg-video-composer/src/editor/presets/graphics-lines.ts';
-import { splitColor } from 'ffmpeg-video-composer/src/editor/presets/stroke-kit.ts';
-import { curveOf, frameOf, PREVIEW_FPS, previewFxContext, seconds, type PreviewEnv } from './fx-context';
-import { clamp01, loopSpan } from './fx-time';
+import { STROKE_DEFAULTS } from 'ffmpeg-video-composer/src/editor/presets/graphics-lines.ts';
+import { frameOf, previewFxContext, seconds, type PreviewEnv } from './fx-context';
+import { loopSpan } from './fx-time';
 import { paintEdgeGlow, paintLeak, paintSheen, paintVignette } from './paint-light';
 import { paintConfetti, paintGlint, paintRipple } from './paint-marks';
 import { bloomSurface, glassSurface, paintBokeh, paintDust, paintGrain, resolveSurface } from './paint-texture';
-import { strokeV2Painter, type StrokeGraphic } from './paint-stroke';
-import { rgba, type Box, type FxPainter } from './painter';
+import { strokePainter, type StrokeGraphic } from './paint-stroke';
+import type { Box, FxPainter } from './painter';
 
 type Parts = Pick<FxPainter, 'paint' | 'surface'>;
 
@@ -76,49 +70,16 @@ function prepareFx(graphic: Extract<Graphic, { type: 'fx' }>, index: number, env
   return parts ? { span, outline, ...parts } : null;
 }
 
-const EXPO = 'cubic-bezier(0.16, 1, 0.3, 1)';
-const LEGACY = { frame: frameSpec, corners: cornersSpec, underline: underlineSpec } as const;
-
-function legacyStroke(g: StrokeGraphic, env: PreviewEnv): FxPainter {
-  const frame = { ...frameOf(env.orientation), fps: PREVIEW_FPS };
-  const base = { ease: g.ease ?? EXPO, above: g.above ?? false, holds: true };
-  const spec = (LEGACY[g.type] as (g: StrokeGraphic, f: typeof frame, b: typeof base) => ReturnType<typeof frameSpec>)(
-    g,
-    frame,
-    base
-  );
-  const at = seconds(g.at, 0);
-  const until = typeof g.until === 'number' ? g.until : undefined;
-  const curve = curveOf(spec.ease, env.tokens);
-  const { hex, alpha } = splitColor(spec.color);
-
-  return {
-    span: loopSpan(at, at + spec.duration + 1, env.sectionSeconds),
-    outline: null,
-    paint: (ctx, t) => {
-      if (t < at || (until !== undefined && t >= until)) return;
-
-      ctx.fillStyle = rgba(hex, alpha);
-
-      for (const rect of spec.rects(curve(clamp01((t - at) / spec.duration)))) {
-        ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-      }
-    },
-  };
-}
-
 function prepareStroke(g: StrokeGraphic, index: number, env: PreviewEnv): FxPainter | null {
-  if (!isStrokeV2(g)) return legacyStroke(g, env);
+  const stroke = strokePainter(g, index, env);
 
-  const v2 = strokeV2Painter(g, index, env);
-
-  if (!v2) return null;
+  if (!stroke) return null;
 
   const at = seconds(g.at, 0);
-  const settled = at + (g.duration ?? 0.6);
+  const settled = at + (g.duration ?? STROKE_DEFAULTS[g.type].duration);
   const until = typeof g.until === 'number' && g.until < settled + 3 ? g.until : settled + 1.2;
 
-  return { span: loopSpan(at, until, env.sectionSeconds), outline: v2.box, paint: v2.paint };
+  return { span: loopSpan(at, until, env.sectionSeconds), outline: stroke.box, paint: stroke.paint };
 }
 
 /** The live preview of `graphic` (section.graphics[index]), or null when the canvas has no preview for it. */

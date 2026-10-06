@@ -1,7 +1,7 @@
 {
   "meta": {
-    "name": "Gallery: v2 strokes",
-    "description": "The v2 frame, corners and underline next to the legacy look, for the docs gallery."
+    "name": "Gallery: strokes",
+    "description": "The frame, corners and underline graphics with their defaults and their options, for the docs gallery."
   },
   "global": {
     "orientation": "landscape",
@@ -14,7 +14,7 @@
   },
   "sections": [
     {
-      "name": "frame-legacy",
+      "name": "frame",
       "type": "color_background",
       "options": {
         "backgroundColor": "#141416",
@@ -49,7 +49,7 @@
       ]
     },
     {
-      "name": "frame-v2",
+      "name": "frame-rounded",
       "type": "color_background",
       "options": {
         "backgroundColor": "#141416",
@@ -125,7 +125,7 @@
       ]
     },
     {
-      "name": "corners-legacy",
+      "name": "corners",
       "type": "color_background",
       "options": {
         "backgroundColor": "#1B1830",
@@ -160,7 +160,7 @@
       ]
     },
     {
-      "name": "corners-v2",
+      "name": "corners-target",
       "type": "color_background",
       "options": {
         "backgroundColor": "#1B1830",
@@ -237,7 +237,7 @@
       ]
     },
     {
-      "name": "underline-legacy",
+      "name": "underline",
       "type": "color_background",
       "options": {
         "backgroundColor": "#1B1830",
@@ -276,7 +276,7 @@
       ]
     },
     {
-      "name": "underline-v2",
+      "name": "underline-square",
       "type": "color_background",
       "options": {
         "backgroundColor": "#1B1830",
@@ -292,9 +292,9 @@
           "thickness": 8,
           "origin": "center",
           "color": "#FFF685",
-          "caps": "round",
-          "settle": 0.03,
-          "exit": "fade"
+          "caps": "square",
+          "settle": 0,
+          "exit": "retract"
         }
       ],
       "kinetic": [

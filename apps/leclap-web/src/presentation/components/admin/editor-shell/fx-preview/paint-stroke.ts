@@ -1,7 +1,7 @@
-// Live previews of the stroke graphics: frame, corners and underline. A v2 stroke (any v2 field set) is
-// planned by the engine itself (outline + framePlan / cornersPlan + strokeSamples for frame and corners; the
+// Live previews of the stroke graphics: frame, corners and underline. Each stroke is planned by the engine
+// itself (outline + framePlan / cornersPlan + strokeSamples for frame and corners; the
 // underline's setup + extents), so the canvas shows the exact pose of every frame — trace order, spring
-// close-in, rounded corners, exit and contrast shadow. A legacy stroke uses its drawbox rectangles.
+// close-in, rounded corners, exit and contrast shadow.
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import type { StrokeRequest } from 'ffmpeg-video-composer/src/editor/presets/sugar-context.ts';
 import { inkOf, outline, type Ink } from 'ffmpeg-video-composer/src/editor/presets/stroke-graphics.ts';
@@ -42,7 +42,7 @@ export function strokeRequest(graphic: StrokeGraphic, index: number, env: Previe
   } as unknown as StrokeRequest;
 }
 
-/** The rectangle a v2 frame or corners runs along (the engine's boxOf), or null when nothing is left. */
+/** The rectangle a frame or corners runs along (the engine's boxOf), or null when nothing is left. */
 export function outlineBox(request: OutlineRequest, env: PreviewEnv): Rect | null {
   const g = request.graphic;
   const { width, height } = frameOf(env.orientation);
@@ -166,8 +166,8 @@ function paintUnderline(request: UnderlineRequest): { paint: Paint; box: Rect } 
   };
 }
 
-/** A v2 stroke's painter and the box it draws in, or null when it draws nothing in this section. */
-export function strokeV2Painter(
+/** A stroke's painter and the box it draws in, or null when it draws nothing in this section. */
+export function strokePainter(
   graphic: StrokeGraphic,
   index: number,
   env: PreviewEnv

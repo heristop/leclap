@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Filter, Section } from '@/core/types';
 import { graphicTiming, graphicToFilters, graphicsToFilters } from '@/editor/presets/graphics';
-import { isStrokeV2 } from '@/editor/presets/graphics-lines';
 import { lowerStroke } from '@/editor/presets/stroke-graphics';
 import { DARK_INK, pickInk } from '@/editor/presets/stroke-contrast';
 import { drawn, subtract } from '@/editor/presets/stroke-path';
@@ -42,6 +41,7 @@ function context(inputs: string[], warnings: string[], input = true): SugarConte
       color: (color) => color,
       warn: (message) => warnings.push(message),
       has: () => true,
+      strokes: lowerStroke,
     },
   };
 }
@@ -93,8 +93,8 @@ function overlaps(rects: Array<{ x: number; y: number; w: number; h: number }>):
   return [...seen.values()].filter((count) => count > 1).length;
 }
 
-describe('stroke v2 schema', () => {
-  it('accepts every v2 field and keeps unknown keys strict', () => {
+describe('stroke schema', () => {
+  it('accepts every stroke field and keeps unknown keys strict', () => {
     const frame = { type: 'frame', radius: 24, trace: 'split', exit: 'retract', exitDuration: 0.3, contrast: 'auto' };
     const corners = { type: 'corners', target: 'layer:0', clearance: 24, spread: 1.08, trace: 'clockwise' };
     const underline = { type: 'underline', caps: 'round', settle: 0.03, exit: 'fade' };
@@ -105,11 +105,15 @@ describe('stroke v2 schema', () => {
     expect(GraphicSchema.safeParse({ type: 'underline', caps: 'pill' }).success).toBe(false);
   });
 
-  it('switches to v2 only when a v2 field is set', () => {
-    expect(isStrokeV2({ type: 'frame', inset: 40, thickness: 6 } as Graphic)).toBe(false);
-    expect(isStrokeV2({ type: 'frame', radius: 0 } as Graphic)).toBe(true);
-    expect(isStrokeV2({ type: 'underline', caps: 'square' } as Graphic)).toBe(true);
-    expect(isStrokeV2({ type: 'panel' } as Graphic)).toBe(false);
+  it('lowers a plain frame, corners or underline through the stroke path', () => {
+    for (const type of ['frame', 'corners', 'underline']) {
+      const { filters } = lower({ type } as Graphic);
+
+      expect(filters.length, type).toBeGreaterThan(0);
+    }
+
+    // The path's 0.6 s entrance, not the old 0.9 s four-sided trace.
+    expect(graphicTiming({ type: 'frame' } as Graphic, { width: 1280, height: 720, fps: 30 }).duration).toBe(0.6);
   });
 });
 
@@ -145,7 +149,7 @@ describe('stroke paths', () => {
   });
 });
 
-describe('frame v2', () => {
+describe('frame', () => {
   it('traces from the top-left with a head fade, holds, and fades out before until', () => {
     const { filters } = lower({ type: 'frame', trace: 'path', exit: 'fade' }, { until: 1.6 });
     const boxes = drawboxes(filters);
@@ -182,7 +186,7 @@ describe('frame v2', () => {
   });
 });
 
-describe('corners v2', () => {
+describe('corners', () => {
   it('sits clearance px outside its target and picks dark ink on a light card', () => {
     const light = { options: { backgroundColor: '#F0E8DC', layers: [{ color: '#CDBFA9', ...SUBJECT }] } };
     const { filters } = lower(
@@ -220,7 +224,7 @@ describe('corners v2', () => {
   });
 });
 
-describe('underline v2', () => {
+describe('underline', () => {
   it('rides round caps on the ends and settles past the width', () => {
     const { filters, inputs } = lower({ type: 'underline', x: 100, y: 400, width: 300, thickness: 10, caps: 'round' });
     const widths = drawboxes(filters).map((b) => Number(b.w));
@@ -238,22 +242,21 @@ describe('underline v2', () => {
     expect(curve(1)).toBeCloseTo(1, 6);
   });
 
-  it('draws above text by default once it is v2 (CTA plates never hide it)', () => {
-    const frame = { width: 1280, height: 720, fps: 30 };
-    const legacy = { type: 'underline', x: 100, y: 400 } as Graphic;
-    const v2 = { ...legacy, caps: 'round' } as Graphic;
-    const section = { name: 's', type: 'color_background', graphics: [v2] } as unknown as Section;
+  it('draws above text by default (CTA plates never hide it)', () => {
+    const underline = { type: 'underline', x: 100, y: 400 } as Graphic;
+    const section = { name: 's', type: 'color_background', graphics: [underline] } as unknown as Section;
     const ctx = context([], []);
 
-    expect(graphicTiming(legacy, frame).duration).toBe(0.45);
     expect(graphicsToFilters(section, ctx, true).length).toBeGreaterThan(0);
     expect(graphicsToFilters(section, ctx, false)).toEqual([]);
   });
 
-  it('keeps its legacy rectangles where the v2 lowering is absent', () => {
+  it('draws nothing where the stroke lowering is absent (no rectangle stand-in)', () => {
     const frame = { width: 1280, height: 720, fps: 30 };
 
-    expect(graphicToFilters({ type: 'underline', caps: 'round' } as Graphic, frame).length).toBeGreaterThan(0);
+    for (const type of ['frame', 'corners', 'underline']) {
+      expect(graphicToFilters({ type } as Graphic, frame), type).toEqual([]);
+    }
   });
 });
 

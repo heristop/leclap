@@ -55,7 +55,7 @@ describe('FxParamPanel', () => {
     expect(html).toContain('Background');
   });
 
-  it('builds the v2 stroke controls of a corners graphic, without a re-roll', () => {
+  it('builds the stroke controls of a corners graphic, without a re-roll', () => {
     const html = panel({ type: 'corners', inset: 48, trace: 'clockwise' });
 
     expect(html).toContain('Corner brackets');

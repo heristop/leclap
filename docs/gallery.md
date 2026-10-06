@@ -18,7 +18,7 @@ bash docs/gallery/make-gallery.sh camera     # one sheet group (see SHEETS in do
 - [Camera](#camera)
 - [Graphics](#graphics)
 - [Light and effects](#light-and-effects)
-- [Strokes v2](#strokes-v2)
+- [Strokes](#strokes)
 - [Transitions](#transitions)
 - [Lower thirds and title cards](#lower-thirds-and-title-cards)
 - [Captions](#captions)
@@ -59,11 +59,11 @@ Every `graphics[].type`: `flash` (at its peak), `bars`, `underline`, `frame`, `c
 
 Every `graphics[].type: "fx"` primitive, each anchored to what it decorates and tuned for it. Light: `sheen` (crossing the card), `edge-glow`, `leak` (from the left edge), `bloom`. Marks: `ripple` (a tap on the button), `glint`, `confetti`. Ambient textures, which stay faint by design (≤ 0.12): `bokeh`, `dust`, `vignette-breathe`, `grain`. Surfaces: `glass` (a frosted plate under the line), `resolve` (the title still out of focus). Template: [`fx.json`](./gallery/templates/fx.json). Sheet: `bash docs/gallery/make-gallery.sh fx`.
 
-## Strokes v2
+## Strokes
 
-![The legacy and v2 strokes side by side](./media/gallery/strokes-v2.webp)
+![The stroke graphics with their defaults and options](./media/gallery/strokes.webp)
 
-`frame`, `corners` and `underline` as before, then with their v2 fields: a rounded `frame` traced along its `path`, a `frame` hugging a kinetic block (`target: "text:0"`, `trace: "split"`), `corners` closing in on the title (`target` + `spread`) and with rounded elbows (`radius`), and an `underline` with round `caps` that overshoots and `settle`s. Template: [`strokes-v2.json`](./gallery/templates/strokes-v2.json). Sheet: `bash docs/gallery/make-gallery.sh strokes`.
+`frame`, `corners` and `underline` with their defaults, then with options: a rounded `frame` traced along its `path`, a `frame` hugging a kinetic block (`target: "text:0"`, `trace: "split"`), `corners` closing in on the title (`target` + `spread`) and with rounded elbows (`radius`), and an `underline` with square `caps` and no `settle` next to the default round, overshooting one. Template: [`strokes.json`](./gallery/templates/strokes.json). Sheet: `bash docs/gallery/make-gallery.sh strokes`.
 
 ## Transitions
 

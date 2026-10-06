@@ -1,4 +1,4 @@
-// Contrast-aware colour for the v2 frame / corners strokes (`contrast: "auto"`). The background under a
+// Contrast-aware colour for the frame / corners strokes (`contrast: "auto"`). The background under a
 // stroke is known only on a color_background section: its base colour and the solid layers drawn over it
 // (a layer with a gradient or partial opacity over an unknown colour makes it unknown again). From it:
 // an unset colour becomes light or dark ink by luminance, and a colour that reads poorly (WCAG contrast

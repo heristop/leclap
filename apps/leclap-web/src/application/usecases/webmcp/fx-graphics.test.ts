@@ -1,4 +1,4 @@
-// The animation picker writes engine effects as section `graphics` (fx lights, v2 strokes); an agent edit
+// The animation picker writes engine effects as section `graphics` (fx lights, strokes); an agent edit
 // through edit_template must carry them through the editor model and back unchanged, and the builder's
 // own inserts must survive the same trip.
 import { describe, expect, it } from 'vitest';
@@ -18,7 +18,7 @@ async function setup() {
 }
 
 describe('edit_template with engine effects', () => {
-  it('round-trips fx and v2 stroke graphics, and edits one in place', async () => {
+  it('round-trips fx and stroke graphics, and edits one in place', async () => {
     const { port, call, revision } = await setup();
     const graphics = [
       { type: 'fx', effect: 'sheen', target: 'frame', at: 0.3, direction: 'right', width: 0.12, seed: 42 },

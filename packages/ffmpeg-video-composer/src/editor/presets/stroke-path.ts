@@ -1,4 +1,4 @@
-// The path model of the v2 stroke graphics (frame, corners): an outline is an ordered list of pieces, each
+// The path model of the stroke graphics (frame, corners): an outline is an ordered list of pieces, each
 // with a length along the path. Straight pieces are even-pixel drawbox rectangles that can be cut to any
 // sub-span; rounded corners are quarter-arc sprites (compile-time, anti-aliased) that show whole once the
 // drawn span covers their midpoint (an arc is a few px long: it is crossed within a frame or two). Pieces

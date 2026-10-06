@@ -61,8 +61,14 @@ describe('preparePainter', () => {
     ).toBeUndefined();
   });
 
-  it('previews strokes (legacy and v2) and nothing for the other graphics', () => {
-    expect(preparePainter({ type: 'corners', at: 0.2 } as Graphic, 0, env())?.paint).toBeTypeOf('function');
+  it('previews strokes through the engine plans and nothing for the other graphics', () => {
+    // A plain corners graphic has the engine's box too: the frame minus its 56 px inset.
+    expect(preparePainter({ type: 'corners', at: 0.2 } as Graphic, 0, env())?.outline).toEqual({
+      x: 56,
+      y: 56,
+      w: 1168,
+      h: 608,
+    });
     expect(preparePainter({ type: 'frame', target: 'layer:1', trace: 'path' } as Graphic, 0, env())?.outline).toEqual({
       x: 296,
       y: 120,

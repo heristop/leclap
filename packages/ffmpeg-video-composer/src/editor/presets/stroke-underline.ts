@@ -1,4 +1,4 @@
-// The v2 underline (task N10): a rule that draws on along an expo curve, runs `settle` × its width past
+// The underline: a rule that draws on along an expo curve, runs `settle` × its width past
 // its end and settles back, with round caps (the two halves of one anti-aliased disc sprite riding the
 // ends) and a visible exit before `until` or the end of the section (fade, or retract: it undraws from
 // the side it grew from). Straight body: drawbox per frame, like every graphic. Square caps need no
@@ -8,7 +8,7 @@ import type { Filter } from '@/core/types';
 import { parseEasing } from '@/core/motion/easing';
 import type { CurveFn } from '@/core/motion/curves';
 import { boxes, BRAND, windowExpr, withAlpha, type Rect } from './graphics-spec';
-import { STROKE_V2_DEFAULTS } from './graphics-lines';
+import { STROKE_DEFAULTS } from './graphics-lines';
 import { addStep, closeGraph, spriteOverlays, stageChain, type SpriteTrack } from './stroke-lower';
 import { entrancePhase, exitPhase, type StrokePhase } from './stroke-timeline';
 import { SMOOTH, even, splitColor, spriteInput, warn } from './stroke-kit';
@@ -93,7 +93,7 @@ export function setup(request: UnderlineRequest): Setup {
   const g = request.graphic;
   const fps = request.ctx.fps;
   const line = lineOf(request);
-  const defaults = STROKE_V2_DEFAULTS.underline;
+  const defaults = STROKE_DEFAULTS.underline;
   const entrance = entrancePhase(request.at, g.duration ?? defaults.duration, fps);
   const exitKind = g.exit ?? defaults.exit;
   const exit = exitOf(request, exitKind, g.exitDuration ?? 0.3, entrance);
@@ -146,7 +146,7 @@ function exitExtents(s: Setup): Extent[] {
 
 export function extents(request: UnderlineRequest, s: Setup): Extent[] {
   const g = request.graphic;
-  const curve = settleCurve(parseEasing(g.ease ?? STROKE_V2_DEFAULTS.underline.ease).fn, g.settle ?? 0.03);
+  const curve = settleCurve(parseEasing(g.ease ?? STROKE_DEFAULTS.underline.ease).fn, g.settle ?? 0.03);
   const settled = s.entrance.start + s.entrance.frames / s.fps;
   const hold = {
     from: settled,
@@ -184,7 +184,7 @@ function draw(s: Setup, all: Extent[]): { body: Filter[]; caps: SpriteTrack[] } 
   return { body, caps };
 }
 
-/** One v2 underline as filters. */
+/** One underline as filters. */
 export function lowerUnderline(request: UnderlineRequest): Filter[] | null {
   const s = setup(request);
   const { body, caps } = draw(s, extents(request, s));

@@ -1,4 +1,4 @@
-// The parameter panel of an engine effect (a section `graphics[]` entry: an fx light or a v2 stroke).
+// The parameter panel of an engine effect (a section `graphics[]` entry: an fx light or a stroke).
 // Every control is generated from the engine schema (fx-params.ts in the creative kit): number ranges
 // become sliders, enums segmented controls or selects, theme-token colours a swatch row with a custom
 // colour, booleans checkboxes. An unset parameter reads "Auto" (the engine derives it from the target, the

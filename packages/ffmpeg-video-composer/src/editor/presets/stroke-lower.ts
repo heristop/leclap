@@ -1,5 +1,5 @@
-// Draws sampled v2 strokes (stroke-timeline.ts) as filters. Straight pieces are drawbox rectangles, one set
-// per sample window, exactly like the legacy graphics. Rounded pieces (quarter arcs, underline caps) are
+// Draws sampled strokes (stroke-timeline.ts) as filters. Straight pieces are drawbox rectangles, one set
+// per sample window, like the other graphics. Rounded pieces (quarter arcs, underline caps) are
 // crops of ONE compile-time sprite (fx-sprites.ts, anti-aliased, rendered at its exact size), each overlaid
 // once for the whole life of the graphic: its `enable` is the union of the windows where it shows and its
 // x/y are step functions of t built from the same samples, so sprites and rectangles agree to the pixel on

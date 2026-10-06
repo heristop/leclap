@@ -1,29 +1,31 @@
-// The stroke graphics as the graphics table (graphics.ts) sees them: underline, frame and corners. Without
-// any v2 field they are the legacy drawbox traces, unchanged. With one (schemas/graphics-stroke.schemas.ts)
-// their spec hands the element to the compile path's v2 lowering (stroke-graphics.ts, reached through
-// SugarContext.masks.strokes so it stays out of the browser's eager load); where that lowering is absent
-// (validation, timelines) the legacy rectangles stand in. The v2 defaults live here so the timeline and
-// the lowering agree on the duration.
+// The stroke graphics as the graphics table (graphics.ts) sees them: underline, frame and corners. Their
+// `render` hands the element to the compile path's stroke lowering (stroke-graphics.ts, reached through
+// SugarContext.masks.strokes so it stays out of the browser's eager load). The rectangles below are only
+// their footprint for the motion timeline and geometry checks; they are never drawn. The defaults live here
+// so the timeline and the lowering agree on the duration.
 
-import { STROKE_V2_FIELDS } from '../../schemas/graphics-stroke.schemas';
-import { BRAND, INK, withAlpha, type Base, type Frame, type Of, type Rect, type Spec } from './graphics-spec';
+import {
+  BRAND,
+  INK,
+  withAlpha,
+  type Base,
+  type Frame,
+  type GraphicEnv,
+  type GraphicWindow,
+  type Of,
+  type Rect,
+  type Spec,
+} from './graphics-spec';
 
-export type StrokeType = keyof typeof STROKE_V2_FIELDS;
+export type StrokeType = 'frame' | 'corners' | 'underline';
 export type StrokeGraphic = Of<StrokeType>;
 
-/** v2 defaults per type: entrance seconds, ease, exit. */
-export const STROKE_V2_DEFAULTS = {
+/** Defaults per type: entrance seconds, ease, exit. */
+export const STROKE_DEFAULTS = {
   frame: { duration: 0.6, ease: 'cubic-bezier(0.16, 1, 0.3, 1)', exit: 'fade' },
   corners: { duration: 0.5, ease: 'spring(420, 30)', exit: 'expand' },
   underline: { duration: 0.5, ease: 'cubic-bezier(0.16, 1, 0.3, 1)', exit: 'fade' },
 } as const;
-
-/** True when the graphic sets any v2 field (it then lowers through the v2 path). */
-export function isStrokeV2(g: { type: string }): boolean {
-  if (!Object.hasOwn(STROKE_V2_FIELDS, g.type)) return false;
-
-  return STROKE_V2_FIELDS[g.type as StrokeType].some((field) => (g as Record<string, unknown>)[field] !== undefined);
-}
 
 function growFrom(origin: 'left' | 'center' | 'right', x: number, width: number, p: number): { x: number; w: number } {
   const w = width * p;
@@ -67,20 +69,26 @@ function cornerRects(inset: number, length: number, t: number, frame: Frame, p: 
   ];
 }
 
-// A v2 graphic keeps its legacy rectangles (the timeline footprint, and the stand-in where the v2 lowering
-// is absent) and renders through masks.strokes when the compile path provides it.
-function v2(g: StrokeGraphic, legacy: Spec, above: boolean): Spec {
-  if (!isStrokeV2(g)) return legacy;
+// Without the compile path's lowering (validation, timelines) a stroke draws nothing.
+function render(g: StrokeGraphic) {
+  return (window: GraphicWindow, env: GraphicEnv) => {
+    const site = env.site;
+    const lower = site?.ctx.masks?.strokes;
 
-  const defaults = STROKE_V2_DEFAULTS[g.type];
+    return site && lower ? (lower({ graphic: g, ...window, seed: env.seed, ...site }) ?? []) : [];
+  };
+}
+
+function strokeSpec(g: StrokeGraphic, base: Base, color: string, rects: Spec['rects']): Spec {
+  const defaults = STROKE_DEFAULTS[g.type];
 
   return {
-    ...legacy,
-    above,
+    ...base,
     duration: g.duration ?? defaults.duration,
     ease: g.ease ?? defaults.ease,
-    render: (window, env) =>
-      env.site?.ctx.masks?.strokes?.({ graphic: g, ...window, seed: env.seed, ...env.site }) ?? null,
+    color,
+    rects,
+    render: render(g),
   };
 }
 
@@ -89,35 +97,21 @@ export function underlineSpec(g: Of<'underline'>, frame: Frame, base: Base): Spe
   const width = g.width ?? frame.width * 0.3;
   const y = g.y ?? frame.height * 0.62;
   const thickness = g.thickness ?? 6;
-  const legacy: Spec = {
-    ...base,
-    duration: g.duration ?? 0.45,
-    color: g.color ?? BRAND,
-    rects: (p) => [{ ...growFrom(g.origin ?? 'left', x, width, p), y, h: thickness }],
-  };
 
-  // A v2 underline draws above text by default: a CTA card or plate drawn with the text never hides it.
-  return v2(g, legacy, g.above ?? true);
+  // An underline draws above text by default: a CTA card or plate drawn with the text never hides it.
+  return strokeSpec(g, { ...base, above: g.above ?? true }, g.color ?? BRAND, (p) => [
+    { ...growFrom(g.origin ?? 'left', x, width, p), y, h: thickness },
+  ]);
 }
 
 export function frameSpec(g: Of<'frame'>, frame: Frame, base: Base): Spec {
-  const legacy: Spec = {
-    ...base,
-    duration: g.duration ?? 0.9,
-    color: g.color ?? withAlpha(INK, 0.9),
-    rects: (p) => frameRects(g.inset ?? 48, g.thickness ?? 4, frame, p),
-  };
-
-  return v2(g, legacy, base.above);
+  return strokeSpec(g, base, g.color ?? withAlpha(INK, 0.9), (p) =>
+    frameRects(g.inset ?? 48, g.thickness ?? 4, frame, p)
+  );
 }
 
 export function cornersSpec(g: Of<'corners'>, frame: Frame, base: Base): Spec {
-  const legacy: Spec = {
-    ...base,
-    duration: g.duration ?? 0.5,
-    color: g.color ?? INK,
-    rects: (p) => cornerRects(g.inset ?? 56, g.length ?? 72, g.thickness ?? 5, frame, p),
-  };
-
-  return v2(g, legacy, base.above);
+  return strokeSpec(g, base, g.color ?? INK, (p) =>
+    cornerRects(g.inset ?? 56, g.length ?? 72, g.thickness ?? 4, frame, p)
+  );
 }

@@ -16,7 +16,7 @@ export type FxRequest = {
   ctx: SugarContext;
 };
 
-/** One v2 stroke graphic (frame, corners, underline) to lower (editor/presets/stroke-graphics.ts). */
+/** One stroke graphic (frame, corners, underline) to lower (editor/presets/stroke-graphics.ts). */
 export type StrokeRequest = Omit<FxRequest, 'graphic'> & {
   graphic: Extract<Graphic, { type: 'frame' | 'corners' | 'underline' }>;
 };
@@ -65,8 +65,8 @@ export type MaskSugarContext = {
    */
   effects?: (request: FxRequest) => Filter[];
   /**
-   * Lowers v2 stroke graphics (editor/presets/stroke-graphics.ts), compile path only like `effects`; without
-   * it they draw their legacy rectangles. Null also falls back to them.
+   * Lowers stroke graphics (editor/presets/stroke-graphics.ts), compile path only like `effects`; without
+   * it they draw nothing.
    */
   strokes?: (request: StrokeRequest) => Filter[] | null;
 };

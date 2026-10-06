@@ -91,8 +91,8 @@ export const DocAnimations = () => (
         <p>
           The builder's six recipes (interface-focus, product-spotlight, celebration-burst, focus-lock, light-pass and
           frame-reveal) each layer two engine primitives: <Code>graphics[]</Code> entries such as an <Code>fx</Code>{' '}
-          sheen, glint, ripple, leak or confetti, and v2 <Code>frame</Code> or <Code>corners</Code> strokes. Each part
-          is anchored to the scene's card with a <Code>target</Code> and gets parameters derived from it, so a recipe
+          sheen, glint, ripple, leak or confetti, and <Code>frame</Code> or <Code>corners</Code> strokes. Each part is
+          anchored to the scene's card with a <Code>target</Code> and gets parameters derived from it, so a recipe
           adapts to landscape, portrait and square. Tune the parameters for your own scene rather than shipping the
           defaults.
         </p>

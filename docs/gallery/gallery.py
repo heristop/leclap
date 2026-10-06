@@ -248,15 +248,16 @@ def fx_primitives():
                   'Light and effects: every graphics[] fx primitive, near its peak')
 
 
-STROKES = [('frame-legacy', 1.2, 'frame'), ('frame-v2', 1.2, 'frame v2: radius + path'),
-           ('frame-target', 1.2, 'frame v2: target text:0, split'), ('corners-legacy', 1.2, 'corners'),
-           ('corners-v2', 1.2, 'corners v2: target + spread'), ('corners-round', 1.2, 'corners v2: radius'),
-           ('underline-legacy', 1.4, 'underline'), ('underline-v2', 1.4, 'underline v2: round caps + settle')]
+STROKES = [('frame', 1.2, 'frame (defaults)'), ('frame-rounded', 1.2, 'frame: radius + path'),
+           ('frame-target', 1.2, 'frame: target text:0, split'), ('corners', 1.2, 'corners (defaults)'),
+           ('corners-target', 1.2, 'corners: target + spread'), ('corners-round', 1.2, 'corners: radius'),
+           ('underline', 1.4, 'underline (defaults)'),
+           ('underline-square', 1.4, 'underline: square caps, no settle')]
 
 
 def strokes():
-    section_sheet('strokes-v2', 'strokes-v2.json', 4, [(f'{n}.start+{t}', label) for n, t, label in STROKES],
-                  'Strokes: the legacy look and the v2 fields of frame, corners and underline')
+    section_sheet('strokes', 'strokes.json', 4, [(f'{n}.start+{t}', label) for n, t, label in STROKES],
+                  'Strokes: frame, corners and underline, with their defaults and options')
 
 
 DESIGNED = ['push-left', 'push-right', 'push-up', 'push-down', 'swipe-left', 'swipe-right', 'zoom-through', 'iris',

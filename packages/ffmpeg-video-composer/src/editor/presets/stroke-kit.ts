@@ -1,4 +1,4 @@
-// What the v2 stroke lowerings share (stroke-graphics.ts, stroke-outline.ts, stroke-underline.ts): the
+// What the stroke lowerings share (stroke-graphics.ts, stroke-outline.ts, stroke-underline.ts): the
 // resolved outline of a frame / corners graphic, even-pixel snapping, warnings and sprite registration.
 
 import type { CurveFn } from '@/core/motion/curves';

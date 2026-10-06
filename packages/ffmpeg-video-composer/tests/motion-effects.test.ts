@@ -3,6 +3,8 @@ import { designedTransitionGraph, DESIGNED_TRANSITIONS, isDesignedTransition } f
 import { cameraFilters, cameraMove } from '@/core/motion/camera';
 import { ZOOM_TIME } from '@/core/motion/zoom-exact';
 import { graphicToFilters } from '@/editor/presets/graphics';
+import { lowerStroke } from '@/editor/presets/stroke-graphics';
+import type { Filter } from '@/core/types';
 import { buildNormalizeGraph, buildVideoGraph } from '@/editor/utils/transition-graph';
 import { CameraSchema, type Camera } from '@/schemas/camera.schemas';
 import { GraphicSchema } from '@/schemas/graphics.schemas';
@@ -125,6 +127,25 @@ describe('graphics', () => {
     return graphicToFilters(GraphicSchema.parse(spec), frame).map((f) => f.values as Record<string, string>);
   }
 
+  // Stroke graphics lower through the compile path's stroke lowering; their drawbox pieces, in order.
+  function strokeBoxes(spec: unknown) {
+    const ctx = {
+      duration: 3,
+      scale: '1280:720',
+      fps: 30,
+      isVideo: false,
+      motion: { energy: 1, seedFor: () => 1, resolveText: () => '' },
+      masks: { available: true, input: () => null, color: (c: string) => c, warn: () => {}, has: () => true },
+    };
+    const request = { graphic: GraphicSchema.parse(spec), at: 0, until: undefined, seed: 1, index: 0, ctx };
+    const filters = lowerStroke({ ...request, section: { name: 's', type: 'color_background' } } as never) ?? [];
+
+    return filters
+      .flatMap((f) => (f.type === 'graph' ? (f.graph as { filters: Filter[] }[]).flatMap((g) => g.filters) : [f]))
+      .filter((f) => f.type === 'drawbox')
+      .map((f) => f.values as Record<string, string>);
+  }
+
   it('flash decays per frame and leaves nothing behind', () => {
     const flash = boxes({ type: 'flash', at: 1, duration: 0.2, intensity: 0.8 });
     const alphas = flash.map((b) => Number(b.color.split('@')[1]));
@@ -144,10 +165,13 @@ describe('graphics', () => {
   });
 
   it('underline grows from its origin and never emits an empty box', () => {
-    const line = boxes({ type: 'underline', x: 100, y: 400, width: 400, origin: 'center', duration: 0.1 });
+    const line = strokeBoxes({ type: 'underline', x: 100, y: 400, width: 400, origin: 'center', settle: 0 });
+    const first = line[0];
 
     expect(line.every((b) => Number(b.w) >= 1)).toBe(true);
-    expect(line.at(-1)).toMatchObject({ x: '100', w: '400' });
+    // Centre origin: the first box is centred on the rule, and the rule lands on its full width.
+    expect(Number(first.x) + Number(first.w) / 2).toBeCloseTo(300, 0);
+    expect(line).toContainEqual(expect.objectContaining({ x: '100', w: '400' }));
   });
 
   it('honours until', () => {

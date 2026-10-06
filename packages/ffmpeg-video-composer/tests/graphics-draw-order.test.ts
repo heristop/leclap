@@ -17,7 +17,7 @@ const repoRoot = path.resolve(here, '../../..');
 const libDir = path.resolve(repoRoot, 'packages/leclap-creative-kit/src/library');
 const buildDir = testBuildDir('graphics-draw-order');
 const MASK = "drawbox=x=0:y=345:w=iw:h=ih-345:color='#10141e'";
-const UNDERLINE = "color='#FF8AAE'";
+const UNDERLINE = "color='#FF8AAE@1'";
 
 function outro(above: boolean | undefined): TemplateDescriptor {
   return {

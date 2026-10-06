@@ -1,5 +1,5 @@
 // Easing choices shared by the Entrance and Exit controls. The segmented control offers the four
-// historical curves; a motion-v2 curve authored in the template JSON (a spring, a cubic-bezier, a
+// historical curves; a motion-system curve authored in the template JSON (a spring, a cubic-bezier, a
 // $token…) shows up as one extra, selected segment labelled with its spec, so the editor displays it
 // faithfully and only replaces it when the author explicitly picks a preset.
 import type { TFunction } from 'i18next';

@@ -1,5 +1,5 @@
 {
-  "label": "Frame v2: rounded path trace, fade exit, auto contrast",
+  "label": "Frame: rounded path trace, fade exit, auto contrast",
   "kind": "graphic",
   "window": { "at": 0.3, "duration": 1.3 },
   "moments": [0.25, 0.34, 0.42, 0.9, 1.45, 1.65],

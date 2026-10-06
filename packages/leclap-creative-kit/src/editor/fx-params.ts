@@ -1,5 +1,5 @@
 // The parameter panel of a library graphic, read off the engine's own schemas: one field per tunable
-// parameter of an `fx` primitive (FX_PRIMITIVES) or of a v2 stroke graphic (GraphicSchema), with its
+// parameter of an `fx` primitive (FX_PRIMITIVES) or of a stroke graphic (GraphicSchema), with its
 // kind, range and options, so a new parameter in the engine shows up in both builders without a
 // hand-written control. Timing, strength, colour and seed are the shared fields every fx takes; the
 // target is chosen separately (see fxTargetOptions). Pure, UI-free.

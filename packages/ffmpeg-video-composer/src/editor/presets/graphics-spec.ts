@@ -47,8 +47,8 @@ export interface Spec {
   /** Filters drawn after the animated boxes (a ticker's scrolling copy). */
   extras?: (window: GraphicWindow, env: GraphicEnv) => Filter[];
   /**
-   * Types that are more than boxes (pixel effects, charts, v2 strokes) lower themselves instead; null falls
-   * back to the drawbox rectangles (a v2 stroke where its lowering is unavailable).
+   * Types that are more than boxes (pixel effects, charts, strokes) lower themselves instead; null falls
+   * back to the drawbox rectangles.
    */
   render?: (window: GraphicWindow, env: GraphicEnv) => Filter[] | null;
 }

@@ -1,4 +1,4 @@
-// v2 stroke graphics (frame, corners, underline) → filters. Reached only from the compile path
+// Stroke graphics (frame, corners, underline) → filters. Reached only from the compile path
 // (compositing.ts → SugarContext.masks.strokes), never eagerly. This module resolves what frame and
 // corners share (the box they run along, even-pixel thickness and radius, contrast-aware ink, the entrance
 // and exit windows) and hands the per-type plan (stroke-outline.ts) to the drawing (stroke-lower.ts).
@@ -7,7 +7,7 @@
 import type { Filter } from '@/core/types';
 import { parseEasing } from '@/core/motion/easing';
 import { resolveFxTarget } from './fx-target';
-import { STROKE_V2_DEFAULTS } from './graphics-lines';
+import { STROKE_DEFAULTS } from './graphics-lines';
 import { INK, type Rect } from './graphics-spec';
 import { backgroundAt, luminance, parseHex, pickInk } from './stroke-contrast';
 import { strokeFilters, type StrokeShadow } from './stroke-lower';
@@ -59,7 +59,7 @@ function boxOf(request: OutlineRequest): Rect | null {
 
 export function outline(request: OutlineRequest, box: Rect): Outline {
   const g = request.graphic;
-  const defaults = STROKE_V2_DEFAULTS[g.type];
+  const defaults = STROKE_DEFAULTS[g.type];
   const fps = request.ctx.fps;
   const thickness = Math.max(2, even(g.thickness ?? 4));
   const radius = g.radius
@@ -153,7 +153,7 @@ function lowerOutline(request: OutlineRequest): Filter[] {
   return drawOutline(o, ink, 0) ?? [];
 }
 
-/** One v2 stroke graphic as filters (the masks.strokes entry). */
+/** One stroke graphic as filters (the masks.strokes entry). */
 export function lowerStroke(request: StrokeRequest): Filter[] | null {
   if (request.graphic.type === 'underline') {
     return lowerUnderline(request as StrokeRequest & { graphic: { type: 'underline' } });

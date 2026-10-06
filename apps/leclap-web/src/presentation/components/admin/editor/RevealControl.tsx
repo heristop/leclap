@@ -134,7 +134,7 @@ export const RevealControl = ({ reveal, onChange }: RevealControlProps) => {
               value={easingChoice(current.easing)}
               options={easingOptions(t, current.easing)}
               onChange={(easing) => {
-                // The authored v2 curve is already selected; re-picking it changes nothing.
+                // The authored curve is already selected; re-picking it changes nothing.
                 if (easing === CUSTOM_EASING) return;
 
                 // Linear is the engine default — emit it as "unset" so descriptors stay minimal.

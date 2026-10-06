@@ -1,4 +1,4 @@
-// The life of a v2 stroke graphic sampled on the output frame grid: an entrance of `frames` frames, a hold,
+// The life of a stroke graphic sampled on the output frame grid: an entrance of `frames` frames, a hold,
 // and an optional exit that ends at `until` (or the end of the section). Each sample says WHAT is drawn
 // (spans of each path, at one or more alpha levels), how far the outline is inflated and its overall
 // alpha. Consecutive identical samples merge into one window, so a hold is one window whatever its length.

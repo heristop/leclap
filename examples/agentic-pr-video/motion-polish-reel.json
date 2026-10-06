@@ -1,7 +1,7 @@
 {
   "meta": {
     "name": "Motion polish — PR reel",
-    "description": "A review reel for the motion-polish work: every fx primitive and the v2 strokes, one beat each, on stand-in footage and theme cards, between numbered chapter cards.",
+    "description": "A review reel for the motion-polish work: every fx primitive and the strokes, one beat each, on stand-in footage and theme cards, between numbered chapter cards.",
     "creativeDirection": "Audience: reviewers who need to see what each primitive looks like in under a minute. Direction: a keynote-style reel on the leclap theme. Four numbered chapters (light, marks, ambient, surfaces and strokes), each followed by one beat per primitive with a mono label naming it and its key field. Every effect is anchored to what it decorates and tuned, never a stock look. The footage is a stand-in: the bundled photographs set in motion. Review: each effect reads at 1280x720 and stays inside its ceiling, labels are legible, chapter cards hold long enough to read."
   },
   "global": {
@@ -991,7 +991,7 @@
       "variables": {
         "num": "04",
         "title": "Surfaces & strokes",
-        "topics": "glass · resolve · v2 frame, corners and underline",
+        "topics": "glass · resolve · frame, corners and underline",
         "exit": "whip-left"
       }
     },
@@ -1161,7 +1161,7 @@
       "kinetic": [
         {
           "text": {
-            "en": "corners v2 · target + spread   underline v2 · round caps + settle"
+            "en": "corners · target + spread   underline · round caps + settle"
           },
           "preset": "fade",
           "font": "mono",
@@ -1226,7 +1226,7 @@
         },
         {
           "text": {
-            "en": "13 fx primitives · v2 strokes · made with LeClap"
+            "en": "13 fx primitives · strokes · made with LeClap"
           },
           "preset": "fade",
           "font": "mono",

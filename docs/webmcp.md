@@ -102,8 +102,8 @@ Every edit tool works the same way:
 - **Dropped fields.** Fields the builder model cannot hold come back in `dropped` with a
   `builder_dropped_field` warning. If the builder kept nothing of the edit, it fails with `no_effect`.
 - **Effect sections.** `effect` sections are refused with `builder_unsupported_section`.
-- **Light and effects.** `graphics[]` entries, including `type: "fx"` primitives and the v2 `frame`, `corners` and
-  `underline` fields, pass through the builder unchanged. `get_motion_catalog` with `kind: "fx"` returns the
+- **Light and effects.** `graphics[]` entries, including `type: "fx"` primitives and the `frame`, `corners` and
+  `underline` stroke fields, pass through the builder unchanged. `get_motion_catalog` with `kind: "fx"` returns the
   primitives and their parameters. Effects show in `render_preview` and `render_frames`, not on the editing canvas.
 
 ### Errors

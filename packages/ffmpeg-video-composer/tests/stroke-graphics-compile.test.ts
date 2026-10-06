@@ -7,7 +7,7 @@ import type { RenderManifest } from '@/core/determinism/manifest';
 import { TemplateValidator } from '@/services/TemplateValidator';
 import { testBuildDir } from './fixtures/build-dir';
 
-// The v2 stroke graphics through the whole compile path: rounded arcs and caps are compile-time sprites
+// The stroke graphics through the whole compile path: rounded arcs and caps are compile-time sprites
 // staged by the asset stage (the section is promoted to a complex graph for them), the light card picks
 // dark ink, and two renders are byte-identical.
 
@@ -60,7 +60,7 @@ async function render(): Promise<{ bytes: Buffer; commands: string }> {
   return { bytes: fs.readFileSync(output as string), commands: manifest?.graph.commands.join('\n') ?? '' };
 }
 
-describe.skipIf(!hasFfmpeg())('v2 stroke graphics compile', () => {
+describe.skipIf(!hasFfmpeg())('stroke graphics compile', () => {
   it('validates cleanly', () => {
     expect(new TemplateValidator().validateTemplate(descriptor()).errors ?? []).toEqual([]);
   });

@@ -5,7 +5,7 @@ import { TranslationSchema } from './global.schemas';
 import { FxGraphicSchema } from './fx.schemas';
 import { cornerStrokeFields, frameStrokeFields, underlineStrokeFields } from './graphics-stroke.schemas';
 
-// ── animated graphics (docs/plans/motion-system-v2.md §4.4) ──────────────────────
+// ── animated graphics (docs/plans/motion-system.md §4.4) ──────────────────────
 //
 // Editorial shapes and light hits that animate in on a curve: flash, bars, underline, frame, corners,
 // wipe, panel; pixel effects (glitch, focus) and data / broadcast graphics (progress, ticker,
@@ -27,7 +27,7 @@ const timing = {
   above: z
     .boolean()
     .optional()
-    .describe('Draw above text (default: true for flash, wipe, glitch, focus and a v2 underline; false otherwise).'),
+    .describe('Draw above text (default: true for flash, wipe, glitch, focus and underline; false otherwise).'),
 };
 
 const placement = {
@@ -65,8 +65,7 @@ export const GraphicSchema = z
       })
       .strict()
       .describe(
-        'A rule that draws itself across under a headline. v2 (set caps, settle, exit or exitDuration): round ' +
-          'caps, an expo draw-on that settles, a fade exit, and drawn above text by default so a CTA card or ' +
+        'A rule that draws itself across under a headline: round caps, an expo draw-on that settles, a fade exit, and drawn above text by default so a CTA card or ' +
           'plate under it never hides it.'
       ),
     z
@@ -77,14 +76,13 @@ export const GraphicSchema = z
           .number()
           .min(0)
           .optional()
-          .describe('Distance from the frame edge in px (default 48; ignored with a v2 target).'),
+          .describe('Distance from the frame edge in px (default 48; ignored with a target).'),
         thickness: z.number().positive().max(40).optional().describe('Stroke in px (default 4).'),
         ...frameStrokeFields,
       })
       .strict()
       .describe(
-        'A rectangle outline that traces itself clockwise. v2 (set any of radius, trace, exit, exitDuration, ' +
-          'target, clearance, contrast): rounded corners, a constant-speed trace from the top-left with a head ' +
+        'A rectangle outline that traces itself clockwise: optional rounded corners, a constant-speed trace from the top-left with a head ' +
           'fade, a visible exit and contrast-aware colour.'
       ),
     z
@@ -95,19 +93,18 @@ export const GraphicSchema = z
           .number()
           .min(0)
           .optional()
-          .describe('Distance from the frame edge in px (default 56; ignored with a v2 target).'),
+          .describe('Distance from the frame edge in px (default 56; ignored with a target).'),
         length: z
           .number()
           .positive()
           .optional()
-          .describe('Arm length in px (default 72; with a v2 target ~18% of its short side, 24..160).'),
-        thickness: z.number().positive().max(40).optional().describe('Stroke in px (default 5; 4 in v2).'),
+          .describe('Arm length in px (default 72; with a target ~18% of its short side, 24..160).'),
+        thickness: z.number().positive().max(40).optional().describe('Stroke in px (default 4).'),
         ...cornerStrokeFields,
       })
       .strict()
       .describe(
-        'Four corner brackets that extend from the corners (viewfinder / focus framing). v2 (set any of target, ' +
-          'clearance, spread, trace, radius, exit, exitDuration, contrast): brackets around a subject that close ' +
+        'Four corner brackets that extend from the corners (viewfinder / focus framing): brackets around a subject that close ' +
           'in on a spring, extend clockwise from the top-left, exit by expanding and fading, and stay readable on ' +
           'light backgrounds.'
       ),

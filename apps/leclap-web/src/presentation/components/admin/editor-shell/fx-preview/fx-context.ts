@@ -28,7 +28,7 @@ export interface PreviewEnv {
   section: EditorSection;
   /** The section's position in the template (it names the section, and so seeds its effects). */
   sectionIndex: number;
-  /** How long the section lasts (a v2 stroke exits before its end). */
+  /** How long the section lasts (a stroke exits before its end). */
   sectionSeconds: number;
   /** global.theme, global.seed and global.motion (tokens and energy), as the template carries them. */
   theme?: unknown;

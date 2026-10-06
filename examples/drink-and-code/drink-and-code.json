@@ -181,7 +181,7 @@
     "grade": {
       "contrast": 1.04,
       "saturation": 1.12,
-      "gamma": 1.0,
+      "gamma": 1,
       "colorBalance": {
         "midtones": {
           "b": 0.05
@@ -235,7 +235,7 @@
               "type": "scale",
               "values": {
                 "h": -1,
-                "w": 100
+                "w": 84
               }
             }
           ],
@@ -253,7 +253,7 @@
           "filters": [
             {
               "type": "overlay",
-              "value": "50:50"
+              "value": "80:72"
             }
           ],
           "outputs": ["final"]
@@ -324,24 +324,25 @@
           "radius": 28,
           "trace": "path",
           "exit": "fade",
-          "color": "#B8A4FF",
+          "color": "{{ color2 }}",
           "thickness": 6,
           "above": true
         },
         {
           "type": "fx",
-          "effect": "sheen",
-          "at": 1.5,
-          "duration": 0.9,
+          "effect": "edge-glow",
+          "at": 1.2,
+          "duration": 4.4,
           "target": {
-            "x": "iw*0.18",
-            "y": "ih*0.5",
-            "w": "iw*0.64",
-            "h": "ih*0.3"
+            "x": "iw*0.021",
+            "y": "ih*0.037",
+            "w": "iw*0.958",
+            "h": "ih*0.926",
+            "radius": 19
           },
-          "intensity": 1,
-          "width": 0.35,
-          "profile": "soft",
+          "glow": "#E0884C",
+          "intensity": 0.7,
+          "line": 0,
           "above": true
         }
       ]

@@ -250,26 +250,26 @@
     {
       "id": "kinetic-type",
       "source": "examples/motion-design/kinetic-type.json",
-      "duration": 15.041667,
+      "duration": 15.041016,
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "d9b04ede3ef781319ec061c208e6a5d1aa3d3da2eb283f1aeb2c481b9e152532",
-      "templateSha256": "ff7a034bc6a58f0e5e40cda9a39d8df1c2dcdc351501fec131fbdbb5f5e60356",
+      "sha256": "cfe13d1d4fecbaf94951dbbed2f5cb53365110bc1bd4be045b29b2d674fcc86d",
+      "templateSha256": "941152ddeb08d8f26f8526319e417b3169c003c0721b552d16b605a19131cc5d",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 138352
+      "bytes": 135607
     },
     {
       "id": "spring-kinetics",
       "source": "examples/motion-design/spring-kinetics.json",
-      "duration": 5.625,
+      "duration": 5.624349,
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "3929e765a239d2251a71b4fa93f5172cdd0dbd65309e6f8ba2a5c34ee332aa4c",
-      "templateSha256": "ddf4ca33cb1a74db6ba838a8b878fb01f555fb28c89d42376857d9b1c61806cf",
+      "sha256": "5087404a0aac23920ba079fe36c890125374338c5f6e9f0e9b697d34dd65fda7",
+      "templateSha256": "da094e3cc8bcb7d097f7c2ea2861a4e539c3d7de7ab68acff0a90b557cc96c65",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 64153
+      "bytes": 62347
     },
     {
       "id": "camera-and-graphics",
@@ -278,10 +278,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "284910a7eed23e4e7c3e6980a7c4f3a7ca10cd715537480f4d21ca84794be291",
-      "templateSha256": "25858fc533245a54cdaa083ace96e61c287099285ea2ff9caebf0a3f1366eec3",
+      "sha256": "3be262f5cb2b2fbb485bd108d18d74d99b56bc85de51c7069cd92bed4f8d1a70",
+      "templateSha256": "992097a1312b6e73eabf0c83400c1d2feb5a572934f61c25bed2b04fc89e1128",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 156926
+      "bytes": 152286
     },
     {
       "id": "title-reveal",
@@ -440,10 +440,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "3d3590ea8f679130aa778dc50ed58aad68e5ec3193d3a56c28564dc1e8d0d923",
+      "sha256": "3b7536bb66a338cf7a936f9bb25c35d808a2d3f02e12c554430ca0a04e27ee71",
       "templateSha256": "7909017bf3832a6efba0fe46b16740e95ca81367a3161dd855819ff6ba6910de",
       "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
-      "bytes": 17634887
+      "bytes": 17407893
     },
     {
       "id": "fx-pack",
@@ -452,10 +452,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "1b4415be8905f0b4c4f2e655538cff8dcba1ab71ec9a7f9e04d9f4b68a62d43d",
+      "sha256": "c5fdc646a13d67d90f1af018349656ab31136d942355ec14eaf9e0bf0e69cb9f",
       "templateSha256": "dd8753066e0c1ccfa92fe13f915baed63eac591b002cb004aceaab5e0d43d8a6",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 192778
+      "bytes": 199358
     },
     {
       "id": "word-captions",
@@ -476,10 +476,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "57cc73e40abcaa7e9bd6cf91c6b8b08520f1e8eeadd738fd07a05ebdae3893bd",
+      "sha256": "41f92d91f5c2701c15ecf1b6195d68003102f385f15898a21a23ed260fa1fac8",
       "templateSha256": "3494e784f9d2b7b88198a2a8441a0fc34507cbcf8d1467bd1cd57f0142cfef32",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 118946
+      "bytes": 114107
     },
     {
       "id": "kinetic-fills",
@@ -488,10 +488,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "c3932abb6d121b760c5b8ae4679b25692d26e917a3d0a5e93f0102700e1bb16b",
+      "sha256": "72e7cd0687c26cb13540a2f51d3de7684134973bc1d605904d91e431bb391a8a",
       "templateSha256": "2fe22bb6ddebd301656da1b5233c4801ba3797f92fc168de9f1090814731db2b",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 135890
+      "bytes": 129359
     },
     {
       "id": "split-layouts",
@@ -512,10 +512,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "180357fd2e7acb077b0c2108dd3aa90684411cc106dd5ea6d9a8771e167e4eb5",
+      "sha256": "c9d1eadbe8070d8ffb01ff73eea17ac6d11a53b4026374bacea3a72f1ce58b40",
       "templateSha256": "447ed5ad557d6a983dc1d4229098d00a99ad8277af96d19be0413e6a67f866cd",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 91034
+      "bytes": 95537
     },
     {
       "id": "emoji-type",
@@ -548,10 +548,10 @@
       "hasAudio": true,
       "orientation": "portrait",
       "backend": "native",
-      "sha256": "a67fc5f2c28a8d88de47883684a205ed6e345c8b64a81ae9a194e54107e11c50",
+      "sha256": "15b8ba40081ef93f401ba217d5f3f9c54f231c8a40737fa700d7c6bea60c9b04",
       "templateSha256": "4576e137fcd705777883466d9e7472a6de04f4aca0360e8b50ea59a0f50e4dd6",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 59614
+      "bytes": 69368
     },
     {
       "id": "footage-edit",

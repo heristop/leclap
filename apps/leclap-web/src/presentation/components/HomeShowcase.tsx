@@ -169,8 +169,8 @@ export const HomeShowcase = () => {
           </FilmScreen>
         </FilmStage>
 
-        {/* CTA cluster: the one filled primary, then the two ways to look around as lavender text links with a
-            chevron (the brand's link colour), so the render's call to action doesn't split three ways. On
+        {/* CTA cluster: the one filled primary, then the three ways to look around as lavender text links with a
+            chevron (the brand's link colour), so the render keeps a single call to action. On
             phones the links share a row under it. */}
         <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-5">
           <Button
@@ -184,6 +184,12 @@ export const HomeShowcase = () => {
             </Link>
           </Button>
           <div className="flex flex-wrap justify-center gap-x-2">
+            <Button asChild variant="link" className="group gap-1 px-3 [&_svg]:size-4">
+              <Link to="/showcase">
+                {t('showcase.viewShowcase')}
+                <ChevronRight className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </Button>
             <Button asChild variant="link" className="group gap-1 px-3 [&_svg]:size-4">
               <Link to="/templates">
                 {t('showcase.browseTemplates')}

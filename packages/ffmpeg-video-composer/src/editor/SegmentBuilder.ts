@@ -40,6 +40,7 @@ import {
 } from '@/core/encoding';
 import {
   cameraEndOfChain,
+  framedCamera,
   conformMotionChain,
   motionSugarContext,
   reframeFilters,
@@ -670,18 +671,25 @@ class SegmentBuilder {
     const background = [...sectionSugar.background, ...globalSugar.background];
     this.pendingOverlaySugar = [...sectionSugar.overlay, ...globalSugar.overlay];
     this.pendingTopSugar = sectionSugar.top;
-    const authored = this.section.filters;
+    // The authored chain, with an includeText:false camera spliced after its framing (presets/camera.ts).
+    const authored = framedCamera(this.section, ctx);
 
     // Footage edits retime the raw clip first, then the CFR conform + seeded noise (presets/motion-chain.ts).
     const head = this.footageHead();
     this.footageHeadCount = head.length;
     this.section.filters = [
       ...head,
-      ...conformMotionChain([...background, ...authored], this.template.descriptor, this.fps(), this.section.name),
+      ...conformMotionChain(
+        [...background, ...authored.chain],
+        this.template.descriptor,
+        this.fps(),
+        this.section.name
+      ),
     ];
     // Everything ahead of the authored chain (background sugar, plus the CFR conform) — the splice point
-    // for overlay text, which must draw after the conform so it animates on the frame grid.
-    this.backgroundSugarCount = this.section.filters.length - authored.length;
+    // for overlay text, which must draw after the conform so it animates on the frame grid (and after a
+    // framed camera, so it stays steady).
+    this.backgroundSugarCount = this.section.filters.length - authored.chain.length + authored.textAt;
     this.stageEmoji(ctx);
   };
 

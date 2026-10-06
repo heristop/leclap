@@ -17,8 +17,15 @@ export function validCategory(value: string | null): ShowcaseCategory {
   return CATEGORIES.find((category) => category === value) ?? 'all';
 }
 
+// The film the showcase opens on (and falls back to for an unknown id): the tour of every effect.
+const DEFAULT_SAMPLE_ID = 'effects-tour';
+
 export function selectedSample(id: string | null): ShowcaseSample {
-  return SHOWCASE_SAMPLES.find((sample) => sample.id === id) ?? SHOWCASE_SAMPLES[0];
+  return (
+    SHOWCASE_SAMPLES.find((sample) => sample.id === id) ??
+    SHOWCASE_SAMPLES.find((sample) => sample.id === DEFAULT_SAMPLE_ID) ??
+    SHOWCASE_SAMPLES[0]
+  );
 }
 
 export function filterSamples(category: ShowcaseCategory, query: string): ShowcaseSample[] {

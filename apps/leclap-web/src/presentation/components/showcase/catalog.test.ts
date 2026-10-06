@@ -26,9 +26,13 @@ describe('showcase catalog', () => {
 
   it('recovers unknown URL values without a broken player', () => {
     expect(validCategory('missing')).toBe('all');
-    expect(selectedSample(null).id).toBe('drink-and-code');
-    expect(selectedSample('missing').id).toBe('drink-and-code');
+    expect(selectedSample(null).id).toBe('effects-tour');
+    expect(selectedSample('missing').id).toBe('effects-tour');
     expect(selectedSample('square-promo').id).toBe('square-promo');
+  });
+
+  it('lists the effects tour second, after Drink & Code', () => {
+    expect(SHOWCASE_SAMPLES.slice(0, 2).map((sample) => sample.id)).toEqual(['drink-and-code', 'effects-tour']);
   });
 
   it('renders forms without options and keeps fixture values within authoring limits', () => {

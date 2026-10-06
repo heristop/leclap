@@ -309,14 +309,15 @@ def layouts():
                   'Layouts: split screens and before/after wipes (mid-wipe)')
 
 
-THEMES = ['leclap', 'midnight', 'editorial', 'bold', 'neon', 'paper']
+THEMES = ['leclap', 'midnight', 'editorial', 'bold', 'neon', 'paper', 'sunset', 'ocean', 'mono', 'candy', 'retro',
+          'corporate']
 
 
 def themes():
     data = leclap('compare', *[f'{TPL}/themes/{t}.json' for t in THEMES], '--at', '1', '--assets', str(ASSETS),
                   '--cache', str(WORK / 'cache'), '--out', str(SNAP / 'themes'))
     tiles = [(frame['path'], f'theme: {t}') for frame, t in zip(data['frames'], THEMES)]
-    compose('themes', 'Built-in themes: one card, six palettes and type stacks',
+    compose('themes', f'Built-in themes: one card, {len(THEMES)} palettes and type stacks',
             f'leclap compare {TPL}/themes/*.json --at 1', grid(tiles, 3))
 
 

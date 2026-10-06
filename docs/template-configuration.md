@@ -371,7 +371,7 @@ The bar height is `(ih - iw/aspect) / 2`, computed from the compiled output fram
 
 **Clip automation** — `options.audioAutomation: [{ at, volume, ease? }]` on `video` / `project_video`, in section time, after voice and effect and before `audioFade`.
 
-**Sound effects** — section `sfx` (up to 32, section time) and `global.sfx` (up to 64, whole-video time) take `[{ id, at, volume? }]`. Ids: `whoosh`, `swoosh-short`, `hit`, `boom`, `riser`, `click`, `tick`, `pop`, `shutter`, `ding`; `motionCatalog().audio.sfx` says when to use each. A riser ends at `at`; every other sound starts there. Sounds are placed on the joined timeline (transition overlaps included) and mixed over music and clip sound (`amix normalize=0`) before normalisation, so `loudnorm` measures the finished mix. A global `at` takes seconds, `"beat:n"` / `"bar:n"`, `"<section>.start"` / `"<section>.end"`, `"cue:<name>"` (the first section declaring it), `"50%"` or `"end"`, and needs every earlier section to declare `options.duration`. The sounds are synthesized originals bundled with the creative kit (`@leclap/creative-kit/sfx`).
+**Sound effects** — section `sfx` (up to 32, section time) and `global.sfx` (up to 64, whole-video time) take `[{ id, at, volume? }]`. Ids: `whoosh`, `swoosh-short`, `hit`, `boom`, `riser`, `click`, `tick`, `pop`, `shutter`, `ding`, `glitch`, `sparkle`, `thud`, `zap`, `notification`, `keystroke`, `blip`, `rise-short`, `coin`, `drum-roll`, `heartbeat`, `clap`, `snap`, `success`, `error`, `swoosh-long`, `sub-drop`, `reverse-cymbal`, `water-drop`, `whistle-up`, `camera-focus`, `paper`, `tada`; `motionCatalog().audio.sfx` says when to use each. `riser`, `rise-short`, `drum-roll` and `reverse-cymbal` end at `at`; every other sound starts there. Sounds are placed on the joined timeline (transition overlaps included) and mixed over music and clip sound (`amix normalize=0`) before normalisation, so `loudnorm` measures the finished mix. A global `at` takes seconds, `"beat:n"` / `"bar:n"`, `"<section>.start"` / `"<section>.end"`, `"cue:<name>"` (the first section declaring it), `"50%"` or `"end"`, and needs every earlier section to declare `options.duration`. The sounds are synthesized originals bundled with the creative kit (`@leclap/creative-kit/sfx`).
 
 ```jsonc
 "global": { "audio": { "sfx": "auto", "automation": [{ "at": 0, "volume": 1 }, { "at": "cue:drop", "volume": 0.4, "ease": "ease-out" }] } },
@@ -1639,14 +1639,20 @@ More in the [gallery](./gallery.md#themes).
 
 `global.theme` names a template's look once: a palette, a type stack and a motion feel. Use a built-in name, or an object that overrides single tokens of one:
 
-| Theme              | Look                                                                                              |
-| ------------------ | ------------------------------------------------------------------------------------------------- |
-| `leclap` (default) | Brand lavender `#7C83FD` and pink `#FF8AAE` on ink `#141416`; Bebas Neue / Oswald; juicy springs. |
-| `midnight`         | Calm navy for interviews: lavender accent, slow and controlled (energy 0.8, `$smooth`).           |
-| `editorial`        | Warm black and sand with Playfair Display: launches, quotes (energy 0.7, `$expo`).                |
-| `bold`             | Ink and signal red: hooks, challenges (energy 1.3, `$snappy`).                                    |
-| `neon`             | Deep green and electric lime: promos, reels (energy 1.2, `$bouncy`).                              |
-| `paper`            | Light sage canvas, deep green ink: tutorials (energy 0.9, `$gentle`).                             |
+| Theme              | Look                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `leclap` (default) | Brand lavender `#7C83FD` and pink `#FF8AAE` on ink `#141416`; Bebas Neue / Oswald; juicy springs.                         |
+| `midnight`         | Calm navy for interviews: lavender accent, slow and controlled (energy 0.8, `$smooth`).                                   |
+| `editorial`        | Warm black and sand with Playfair Display: launches, quotes (energy 0.7, `$expo`).                                        |
+| `bold`             | Ink and signal red: hooks, challenges (energy 1.3, `$snappy`).                                                            |
+| `neon`             | Deep green and electric lime: promos, reels (energy 1.2, `$bouncy`).                                                      |
+| `paper`            | Light sage canvas, deep green ink: tutorials (energy 0.9, `$gentle`).                                                     |
+| `sunset`           | Dusk plum with coral and amber, Pacifico / Rubik: travel, lifestyle (energy 1, `$juicy`).                                 |
+| `ocean`            | Deep teal with a sand-yellow accent, Rubik body: wellness, nature, calm tech (energy 0.85, `$smooth`).                    |
+| `mono`             | Black on white, one electric-blue accent, Archivo Black / Roboto Mono: minimal, data (energy 0.8, `$expo`).               |
+| `candy`            | Pale pink, plum ink, violet / pink / mint, Righteous / Rubik: kids, food, beauty (energy 1.2, `$wobbly`).                 |
+| `retro`            | Seventies cream, brown, burnt orange, teal and mustard, Lobster / Oswald: vintage, food, music (energy 1, `$anticipate`). |
+| `corporate`        | Light grey-blue, navy ink, blue accent, green for good news, Oswald / Rubik: pitches, reports (energy 0.75, `$smooth`).   |
 
 ```json
 "global": { "theme": { "extends": "midnight", "colors": { "accent": "#FF8AAE" }, "fonts": { "display": "anton" } } }
@@ -1666,6 +1672,50 @@ Tokens inside larger strings (`"x+$color.bg"`) are not resolved and fail validat
 Validation: `unknown_theme` and `unknown_theme_token` name the nearest match. `TemplateValidator.getThemeWarnings()` returns the advisory `accent_overuse` when one section uses the accent on more than 2 elements: one accent per idea; use `$color.fg`, `$color.muted` or `$color.brand` for the rest. Built-in themes and the grammar are listed in `motionCatalog().themes` (MCP `get_motion_catalog`) and in `themeCatalog()`.
 
 **Palette drift (advisory).** With `global.theme` set, `getMotionWarnings` / `getThemeWarnings` report `palette_drift` when a section or `global` uses literal hex colours outside the theme palette (alpha is ignored; within 8 per RGB channel of a palette colour counts as on-palette), or when the template uses more than 2 distinct font families (registry ids, `.ttf` files and `$font.*` tokens collapse to one). Fix with `$color.*` / `$font.*` tokens.
+
+### Create your own theme
+
+A theme object layers over a built-in (`extends`, default `leclap`): state only the tokens that differ, or all of them to own the look. A complete one:
+
+```json
+"global": {
+  "theme": {
+    "extends": "leclap",
+    "colors": {
+      "bg": "#10202b",
+      "fg": "#f4f1ea",
+      "muted": "#9fb0bd",
+      "surface": "#1b3140",
+      "brand": "#f4f1ea",
+      "accent": "#ff8a5b",
+      "accent2": "#ffd166"
+    },
+    "fonts": { "display": "anton", "body": "rubik", "mono": "mono" },
+    "radius": 10,
+    "motion": { "energy": 1.1, "ease": "$snappy", "beat": 0.5 }
+  }
+}
+```
+
+A theme restyles only what reads it. Most elements read it because you write tokens into them (`"backgroundColor": "$color.bg"`, `"color": "$color.fg"`, `"font": "$font.display"`); title cards, lower thirds and kinetic text keep their literal defaults until you do. A few engine defaults read the theme on their own:
+
+| Token     | Use it for                                                            | Read by default                                                                                                                         |
+| --------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `bg`      | The canvas: `color_background` `backgroundColor`, plates behind text. | The `boxed` caption box (`$color.bg@0.82`).                                                                                             |
+| `fg`      | Headlines and body copy.                                              | `confetti` colours.                                                                                                                     |
+| `muted`   | Kickers, labels, secondary lines.                                     | Nothing.                                                                                                                                |
+| `surface` | Panels, bands and plates over `bg`.                                   | Nothing.                                                                                                                                |
+| `brand`   | Rules, underlines, logo-adjacent details.                             | The `keynote` caption crown; the `neon` caption outline and glow; `confetti`.                                                           |
+| `accent`  | The one highlight per idea: a word, a bar, a call to action.          | The active word of `loud` and `neon` captions; `ripple`; the default light of `fx` effects (a warm white tinted toward it); `confetti`. |
+| `accent2` | A rare second highlight.                                              | The active word of `clean` and `boxed` captions; the crowned line of `clean`, `loud`, `boxed` and `neon`; `confetti`.                   |
+
+Fonts take a bundled id (`bebas`, `oswald`, `anton`, `archivo-black`, `bungee`, `righteous`, `abril-fatface`, `playfair`, `lobster`, `pacifico`, `rubik`, `mono`) or a `.ttf` file name. `radius` is read by builders that draw plates; the engine itself does not apply it.
+
+**Contrast.** Keep `fg` and `muted` at WCAG AA, 4.5:1 against `bg`, and `brand`, `accent` and `accent2` at 3:1 at least: every built-in does. Every caption DNA draws near-white words, so on a light theme (`paper`, `mono`, `candy`, `retro`, `corporate`) set the subtitles' `color` and `activeColor` to tokens such as `"$color.fg"` and `"$color.accent"`.
+
+**Alpha.** Any colour token takes `@alpha` (0..1): `"$color.bg@0.55"` for a scrim, `"$color.brand@0.3"` for a soft rule. The theme colours themselves are opaque `#RRGGBB`.
+
+**From a reference.** To start from a picture or a clip instead of a blank, run `leclap style ref.jpg` (or MCP `extract_style`, or **Match a reference** in the builder): it prints a theme object (all seven colours with contrast already fixed, plus `motion` for a clip) to paste as `global.theme`, then add your `fonts` (see below).
 
 ### Match a reference
 

@@ -9,6 +9,8 @@ import {
   themeCatalog,
   validateTheme,
 } from '@/core/theme';
+import { contrastRatio, parseColor } from '@/core/color-contrast';
+import { findFont } from '@/core/fonts';
 import { motionCatalog } from '@/core/motion/catalog';
 import { resolveMotionDescriptor } from '@/core/motion/tokens';
 import { TemplateValidator } from '@/services/TemplateValidator';
@@ -237,5 +239,39 @@ describe('theme catalog', () => {
     }
 
     expect(motionCatalog().themes).toEqual(catalog);
+  });
+});
+
+describe('built-in theme legibility', () => {
+  const ratio = (a: string, b: string) => contrastRatio(parseColor(a)!.rgb, parseColor(b)!.rgb);
+
+  it('ships the palette range agents pick from', () => {
+    expect(Object.keys(BUILTIN_THEMES)).toEqual([
+      'leclap',
+      'midnight',
+      'editorial',
+      'bold',
+      'neon',
+      'paper',
+      'sunset',
+      'ocean',
+      'mono',
+      'candy',
+      'retro',
+      'corporate',
+    ]);
+  });
+
+  it.each(Object.keys(BUILTIN_THEMES))('%s: text is WCAG AA on bg and every accent reads at 3:1', (name) => {
+    const { colors, fonts } = resolveTheme(name)!;
+
+    expect(ratio(colors.fg, colors.bg)).toBeGreaterThanOrEqual(4.5);
+    expect(ratio(colors.muted, colors.bg)).toBeGreaterThanOrEqual(4.5);
+
+    for (const accent of [colors.brand, colors.accent, colors.accent2]) {
+      expect(ratio(accent, colors.bg)).toBeGreaterThanOrEqual(3);
+    }
+
+    for (const font of Object.values(fonts)) expect(findFont(font)).toBeDefined();
   });
 });

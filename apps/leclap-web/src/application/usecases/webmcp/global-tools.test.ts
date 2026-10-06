@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { STARTER_PRESETS, buildDescriptor } from '@leclap/creative-kit/editor';
+import { BUILTIN_THEMES } from 'ffmpeg-video-composer/src/core/theme/themes.ts';
 import { createFakePort, toolCaller } from './fake-port';
+import { GLOBAL_TOOLS } from './global-tools';
 
 async function setup() {
   const port = createFakePort(STARTER_PRESETS[0].build());
@@ -27,6 +29,17 @@ describe('set_theme', () => {
     port.undo();
     port.undo();
     expect(port.getState()).toBe(before);
+  });
+
+  it('names every built-in theme, and sets the newer ones too', async () => {
+    const description = GLOBAL_TOOLS.find((tool) => tool.name === 'set_theme')?.description ?? '';
+
+    for (const name of Object.keys(BUILTIN_THEMES)) expect(description).toContain(name);
+
+    const { port, call, revision } = await setup();
+
+    expect((await call('set_theme', { expectedRevision: revision, theme: 'sunset' })).isError).toBeUndefined();
+    expect(buildDescriptor(port.getState()).global?.theme).toBe('sunset');
   });
 
   it('refuses a stale revision and an invalid theme without committing', async () => {

@@ -101,7 +101,7 @@ The same word-timed line in every `subtitles.style` (caption DNA), while "follow
 
 ![The same card on every built-in theme](./media/gallery/themes.webp)
 
-One card whose colours and fonts are all `$color.*` / `$font.*` tokens, rendered on every built-in `global.theme`: `leclap`, `midnight`, `editorial`, `bold`, `neon` and `paper`. Templates: [`themes/`](./gallery/templates/themes/) (one file per theme, rendered side by side with `leclap compare`). Sheet: `bash docs/gallery/make-gallery.sh themes`.
+One card whose colours and fonts are all `$color.*` / `$font.*` tokens, rendered on every built-in `global.theme`: `leclap`, `midnight`, `editorial`, `bold`, `neon`, `paper`, `sunset`, `ocean`, `mono`, `candy`, `retro` and `corporate`. Templates: [`themes/`](./gallery/templates/themes/) (one file per theme, rendered side by side with `leclap compare`). Sheet: `bash docs/gallery/make-gallery.sh themes`.
 
 ## Delivery platforms
 

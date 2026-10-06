@@ -60,7 +60,8 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
   `before`, `inFrame`, `keepsMoving`) fails validation with `assertion_failed`. `motionCatalog()` adds a
   doctrine per genre, 10 validated scene blueprints, and a verb / `useWhen` / `avoidWhen` / `pairsWith`
   on every preset, transition and graphic.
-- `global.theme`: six built-in themes (leclap, midnight, editorial, bold, neon, paper) or
+- `global.theme`: twelve built-in themes (leclap, midnight, editorial, bold, neon, paper, sunset, ocean, mono,
+  candy, retro, corporate; `fg` and `muted` at WCAG AA on `bg`, accents at 3:1) or
   `{ extends, colors, fonts, radius, motion }`; `$color.<name>[@alpha]` / `$font.<name>` resolve before
   lowering, so a themed template renders exactly like its literal version. `unknown_theme`,
   `unknown_theme_token`, advisory `accent_overuse`; `themeCatalog()`.

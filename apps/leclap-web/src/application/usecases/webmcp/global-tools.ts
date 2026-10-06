@@ -5,6 +5,7 @@
 import { z } from 'zod';
 import { OrientationSchema } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import { PLATFORM_NAMES } from 'ffmpeg-video-composer/src/core/platforms.ts';
+import { BUILTIN_THEMES } from 'ffmpeg-video-composer/src/core/theme/themes.ts';
 import { buildDescriptor, type TemplateDescriptor } from '@leclap/creative-kit/editor';
 import { MUSIC_LIBRARY } from '@leclap/creative-kit/media';
 import { applyDescriptor } from './apply-descriptor';
@@ -32,7 +33,7 @@ const setTheme = defineTool({
   name: 'set_theme',
   title: 'Set Theme',
   description:
-    'Set global.theme: a built-in name (leclap, midnight, editorial, bold, neon, paper) or a theme object ' +
+    `Set global.theme: a built-in name (${Object.keys(BUILTIN_THEMES).join(', ')}) or a theme object ` +
     '{ extends, colors, fonts, radius, motion } (get_template_schema with pointer "/$defs/Theme"); null removes ' +
     'it. `$color.*` / `$font.*` references elsewhere resolve against it. One undo step.',
   kind: 'edit',

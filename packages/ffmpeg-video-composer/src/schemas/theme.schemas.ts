@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { EasingSpecSchema } from './motion.schemas';
-import type { ThemeColorName, ThemeFontName } from '../core/theme/themes';
+import { BUILTIN_THEMES, type ThemeColorName, type ThemeFontName } from '../core/theme/themes';
 
 // ── theme tokens (core/theme) ───────────────────────────────────────────────────────────────────
 //
@@ -61,7 +61,7 @@ export const ThemeObjectSchema = z
 export const ThemeSchema = z
   .union([z.string().trim().min(1), ThemeObjectSchema])
   .describe(
-    'Theme: a built-in name (leclap, midnight, editorial, bold, neon, paper) or { extends, colors, fonts, ' +
+    `Theme: a built-in name (${Object.keys(BUILTIN_THEMES).join(', ')}) or { extends, colors, fonts, ` +
       'radius, motion }. Reference its tokens anywhere as "$color.accent", "$color.bg@0.55" or "$font.display".'
   )
   .meta({ id: 'Theme' });

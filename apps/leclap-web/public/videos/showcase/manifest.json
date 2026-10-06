@@ -10,22 +10,22 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "83f1149feff9e3094e37f89815fd5cfd937ede022736c364b7d3e01f8fcb8477",
-      "templateSha256": "436aef1785b057ef41a2d44a3f5c5e06adbbde30c7d2ba0412ed64c487db29d8",
+      "sha256": "023c2d7ca89f5102ab068e922c64056b376e7e5df412b2b25d8fadc8af01635b",
+      "templateSha256": "e2de6f43144db32896238003d56bee73e605ea29f0c41c1ac74abecba3747b6c",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 2944071
+      "bytes": 2943176
     },
     {
       "id": "effects-tour",
       "source": "examples/motion-design/effects-tour.json",
-      "duration": 377.125,
+      "duration": 414,
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "ff1495d7d4f91a7f17f8ad9b99f52f449d04b9847915c54e0d89f686aea3d190",
-      "templateSha256": "7c70548df287965461ed85c3477b4e406ab1b6708fc91b750e2802a38de22e1b",
+      "sha256": "a140327c5e9821adf7f1bfb79445ff3644e769991b46b30dbfb4a42349cf7cbf",
+      "templateSha256": "3e22c9cd2214f600cfa967e7631575e574e2885983ac393297ada7662a4fc847",
       "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
-      "bytes": 23393238
+      "bytes": 24007196
     },
     {
       "id": "type-impact",
@@ -46,11 +46,11 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "d01983342d389e71cb2e13ad592cc8f6ec38e549f035fa23c8a220017ff4ef26",
-      "templateSha256": "0c0fdf0093c085add5586e28f6979efe62bb4bf797d10d539996a55c6a5aeca3",
+      "sha256": "cfaf696370de35094f8c1875ee53d92615de864e0acf61e0bde155a42c484751",
+      "templateSha256": "f2b651492115de1d1c3623d0e71623be9e72935ead27dfb86ef5506fb7f0c24f",
       "mediaSource": "examples/showcase/media/leclap-canvas.mp4",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 357995
+      "bytes": 360036
     },
     {
       "id": "square-promo",
@@ -59,10 +59,10 @@
       "hasAudio": true,
       "orientation": "square",
       "backend": "native",
-      "sha256": "92bdda02043e8a21c8147ed2d3811d9f4790050f8cf736c3830c26df20115874",
-      "templateSha256": "419411b76f190e526f870e3b97af52b87da86b440c215059d79c02dd7b3464db",
+      "sha256": "6dda91308d2c8d6c89286db97bb1ad9cf32af5074581ad289b24d2fff914dfa4",
+      "templateSha256": "e421ebfaa25e0b49dafe85e9b44c48adb5ab06d50274d67130037578a0509388",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 420810
+      "bytes": 443744
     },
     {
       "id": "product-launch",
@@ -71,11 +71,11 @@
       "hasAudio": true,
       "orientation": "portrait",
       "backend": "native",
-      "sha256": "2a28c13d933fabdd74fa3ad04a54e32b8e75dc82713f5dd43e8eb70b019fc3f7",
-      "templateSha256": "38b962ddf0236ffe9ac906e7eae0eaca0f23ad2b21ac7e1ce4be243b0e9116d0",
+      "sha256": "c1252bcdecddd6cd3aae387b2dfcc56428f69449ef3d6a3b25459cb103588aca",
+      "templateSha256": "130508adc0f143996c7a5d98254451e3493b27bbe79cf67cbe0772847ef4898b",
       "mediaSource": "examples/showcase/media/moo-mug.mp4",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 215096
+      "bytes": 213542
     },
     {
       "id": "app-tutorial",
@@ -109,10 +109,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "e5af3876432f671f653ce6867385f14ccc50a450379dccec982e18bab039dc51",
-      "templateSha256": "250b68ee5b04ade42eb1ce8b92fa26e360904adc6cdc142ffd614fb10701f242",
+      "sha256": "92824478e747dee5e2de6bb0bbadf69b8b2259af1115ef601ce311fbf714b3c0",
+      "templateSha256": "df586d6de6c375c3b56b9585f9952cf509fe8faecca3f1a7b1a3ab1910155346",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 2698338
+      "bytes": 2701630
     },
     {
       "id": "interview",
@@ -133,10 +133,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "060f3ff9767d6e6716455fb47525177da43280bf082ef86078bdf8824cbbbe4e",
-      "templateSha256": "0f4b9e22cdceee24cce0cb3a6c009c3315fb9ff5c30473410c34b08dccd9b01c",
+      "sha256": "c414f56ba3b20377d243e9e18df7572c8eb9f684ec7489d79ae36ba33e9fba32",
+      "templateSha256": "0849591dfa3310c26f5982ac4a8039f0116194740347a763b7068194cf6bc215",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 1405360
+      "bytes": 1425905
     },
     {
       "id": "present-yourself-portrait",

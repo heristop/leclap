@@ -94,7 +94,7 @@ for number in "${chapters[@]}"; do
     esac
     echo "render $name"
     $LECLAP validate "$template" > "$W/chapters/$name.validate.log"
-    $LECLAP render "$template" --assets "$A" --build "$W/build/$name" --cache "$W/cache" -q "${extra[@]}" \
+    $LECLAP render "$template" --assets "$A" --build "$W/build/$name" --cache "$W/cache" -q ${extra[@]+"${extra[@]}"} \
       -o "$W/chapters/$name.mp4"
     cp "$W/chapters/$name.mp4" "$A/videos/effects-tour/$name.mp4"
   done

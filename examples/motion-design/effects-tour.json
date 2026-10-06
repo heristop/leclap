@@ -1,13 +1,13 @@
 {
   "meta": {
     "name": "Effects tour",
-    "description": "A guided tour of the LeClap motion vocabulary in nine chapters: kinetic type, camera and graphics, transitions, captions, compositing and light (the fx primitives), themes, looks and grade, footage editing and sound. Each chapter is its own template (effects-tour/*.json); this one strings their renders together with chapter cards and designed transitions.",
+    "description": "A guided tour of the LeClap motion vocabulary in ten chapters: kinetic type, camera and graphics, transitions, captions, compositing and light (the fx primitives), themes, looks and grade, footage editing, sound and music. Each chapter is its own template (effects-tour/*.json); this one strings their renders together with chapter cards and designed transitions, over a soft lo-fi bed that steps aside for the sound and music chapters.",
     "creativeDirection": "Audience: creators and agents deciding what LeClap can do. Direction: a product demo that names every effect while it plays: ink chapter cards with a kicker, a headline and the chapter contents, a designed transition into each chapter and a whip out of it, and a small mono label naming each effect inside the chapters. Review: every card holds long enough to read, chapters run in order, every effect label is legible at 960x540, and the tour ends on a single ding."
   },
   "global": {
     "orientation": "landscape",
     "fps": 30,
-    "musicEnabled": false,
+    "musicEnabled": true,
     "seed": 71,
     "motion": {
       "energy": 1
@@ -26,11 +26,18 @@
       "chapter_06_paper": "videos/effects-tour/06-theme-f-paper.mp4",
       "chapter_07": "videos/effects-tour/07-looks.mp4",
       "chapter_08": "videos/effects-tour/08-footage.mp4",
-      "chapter_09": "videos/effects-tour/09-sound.mp4"
+      "chapter_09": "videos/effects-tour/09-sound.mp4",
+      "chapter_10": "videos/effects-tour/10-music.mp4"
     },
     "audio": {
       "sfx": "auto",
-      "sourceVolume": 1
+      "sourceVolume": 1,
+      "musicVolume": 0.35,
+      "ducking": true,
+      "musicFade": 0.6
+    },
+    "music": {
+      "name": "lofi-chill.mp3"
     }
   },
   "sections": [
@@ -960,10 +967,100 @@
       "purpose": "Play the rendered sound chapter.",
       "options": {
         "videoUrl": "{{ chapter_09 }}",
-        "duration": 27.2
+        "duration": 27.2,
+        "musicVolume": 0,
+        "muteSection": false
       },
       "transition": {
         "type": "whip-down",
+        "duration": 0.4
+      }
+    },
+    {
+      "name": "chapter-10",
+      "type": "color_background",
+      "options": {
+        "backgroundColor": "#141416",
+        "duration": 3.0
+      },
+      "role": "bridge",
+      "purpose": "Announce chapter 09: Sound.",
+      "camera": {
+        "preset": "push-in",
+        "amount": 0.04
+      },
+      "graphics": [
+        {
+          "type": "underline",
+          "at": 0.55,
+          "x": 96,
+          "y": 452,
+          "width": 220,
+          "thickness": 8,
+          "color": "#7C83FD"
+        }
+      ],
+      "kinetic": [
+        {
+          "id": "kicker",
+          "text": {
+            "en": "CHAPTER 10"
+          },
+          "preset": "fade",
+          "font": "mono",
+          "size": 34,
+          "align": "left",
+          "x": 96,
+          "y": 200,
+          "color": "#7C83FD",
+          "delay": 0.1,
+          "ease": "linear"
+        },
+        {
+          "id": "headline",
+          "text": {
+            "en": "Music"
+          },
+          "preset": "cascade",
+          "size": 170,
+          "align": "left",
+          "x": 92,
+          "y": 250,
+          "delay": 0.2
+        },
+        {
+          "text": {
+            "en": "Beds, swells, ducking, beat cuts"
+          },
+          "preset": "rise",
+          "font": "oswald",
+          "size": 40,
+          "align": "left",
+          "x": 96,
+          "y": 490,
+          "color": "#C9C6D2",
+          "delay": 0.4,
+          "ease": "$expo"
+        }
+      ],
+      "transition": {
+        "type": "zoom-through",
+        "duration": 0.6
+      }
+    },
+    {
+      "name": "music",
+      "type": "video",
+      "role": "proof",
+      "purpose": "Play the rendered sound chapter.",
+      "options": {
+        "videoUrl": "{{ chapter_10 }}",
+        "duration": 27.2,
+        "musicVolume": 0,
+        "muteSection": false
+      },
+      "transition": {
+        "type": "whip-left",
         "duration": 0.4
       }
     },

@@ -20,7 +20,7 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
   synchronous and platform-neutral; matches a `node:crypto` digest of the same JSON byte for byte.
 - `findingLine`, `invalidTemplateText` and `summarizeErrors` (Node entry): the plain-text renderings of
   validation findings `@leclap/mcp` uses, now shared with other agent surfaces.
-- Effects tour (`examples/motion-design/effects-tour.json`): a six-minute tour of every motion effect in nine chapters (chapter 5 now shows every fx primitive), first in the Effects & editing showcase (47 samples).
+- Effects tour (`examples/motion-design/effects-tour.json`): a six-minute tour of every motion effect in ten chapters (chapter 5 now shows every fx primitive), first in the Effects & editing showcase (47 samples).
 - `samples`: new `effects` category with 11 native samples (FX pack, word captions, formats, kinetic fills, split layouts, right-to-left type, emoji type, beat grid, theme/roles/safe zones, footage editing, sound design).
 - Determinism contract. `global.seed` roots every procedural effect. A deterministic encoder profile
   (bit-exact muxing, pinned libx264 threads) is applied to every command through one adapter tap; it is on

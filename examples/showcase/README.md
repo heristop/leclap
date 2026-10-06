@@ -16,7 +16,7 @@ The **Effects & editing** category (`effects`) demonstrates the native motion, c
 
 | Sample          | What it shows                                                                                                     |
 | --------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `effects-tour`  | The whole vocabulary in nine chapters, every effect named on screen (assembled from chapter renders)              |
+| `effects-tour`  | The whole vocabulary in ten chapters, every effect named on screen (assembled from chapter renders)               |
 | `fx-pack`       | Whip transitions, glitch and rack-focus hits, bar chart, progress bar, ticker, kinetic trails, lower-third styles |
 | `word-captions` | Word-timed captions with karaoke and two caption DNA styles                                                       |
 | `formats`       | One story authored for landscape, portrait and square (the landscape cut is previewed)                            |
@@ -31,7 +31,7 @@ The **Effects & editing** category (`effects`) demonstrates the native motion, c
 
 `footage-edit` and `sound-design` record their scenes with clips that [`synthetic-media.ts`](./synthetic-media.ts) generates on the fly: the bundled background photographs set in motion by FFmpeg (a slow drift, a push-in, a running clock that makes speed ramps and freezes readable, a waveform over a voice-like test tone). The LUT and B-roll fixtures replace the descriptor's `{{ lut }}` and `{{ broll }}` variables for the preview only; the downloaded JSON keeps its defaults. Those previews illustrate the controls, not real footage.
 
-`effects-tour` plays back its nine chapter templates (`examples/motion-design/effects-tour/`), so its preview runs [`effects-tour.sh --chapters-only`](../motion-design/effects-tour.sh) first: the script generates the same kind of clips, renders every chapter into `build/effects-tour/assets/videos/effects-tour/`, and the preview renders the tour from that staging directory. The downloaded JSON is the assembly; the chapter templates sit next to it in the repository.
+`effects-tour` plays back its ten chapter templates (`examples/motion-design/effects-tour/`), so its preview runs [`effects-tour.sh --chapters-only`](../motion-design/effects-tour.sh) first: the script generates the same kind of clips, renders every chapter into `build/effects-tour/assets/videos/effects-tour/`, and the preview renders the tour from that staging directory. The downloaded JSON is the assembly; the chapter templates sit next to it in the repository.
 
 ## Rebuild previews
 

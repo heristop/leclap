@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Renders the LeClap effects tour: nine chapter templates under effects-tour/, then the assembly
+# Renders the LeClap effects tour: ten chapter templates under effects-tour/, then the assembly
 # template effects-tour.json that strings them together with chapter cards.
 # Run from the repository root after building the engine and the CLI:
 #   pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/cli build
@@ -21,7 +21,8 @@ H264=(-c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -r 30)
 
 # 1. Stage the assets. The engine only reads real files under --assets (no symlinks out of it).
 mkdir -p "$A/videos/effects-tour" "$A/luts" "$W/clips" "$W/chapters"
-cp -r "$LIB/sfx" "$LIB/emoji" "$LIB/fonts" "$LIB/backgrounds" "$A/"
+# The music chapter and the tour's bed use bundled tracks: they must be real files, not Git LFS pointers.
+cp -r "$LIB/sfx" "$LIB/emoji" "$LIB/fonts" "$LIB/backgrounds" "$LIB/musics" "$A/"
 
 # 2. Synthetic footage: the bundled photographs set in motion, with a running clock so speed ramps
 #    and freezes read on the clip itself, and lavfi audio (bundled clips and music are Git LFS objects).
@@ -69,6 +70,7 @@ footage=(--video fit-blur="$W/clips/portrait.mp4" --video fit-letterbox="$W/clip
 sound=(--video voice-clean="$W/clips/voice.mp4" --video voice-broadcast="$W/clips/voice.mp4"
   --video voice-warm="$W/clips/voice.mp4" --video voice-rumble-cut="$W/clips/voice.mp4"
   --video voice-room-gate="$W/clips/voice.mp4")
+music=(--video music-duck="$W/clips/voice.mp4")
 looks=(--video look-strength-full="$W/clips/panorama.mp4" --video look-strength-soft="$W/clips/panorama.mp4"
   --video grade-lut="$W/clips/zoom.mp4")
 
@@ -82,7 +84,7 @@ for arg in "$@"; do
     *) chapters+=("$arg") ;;
   esac
 done
-[ ${#chapters[@]} -eq 0 ] && chapters=(01 02 03 04 05 06 07 08 09)
+[ ${#chapters[@]} -eq 0 ] && chapters=(01 02 03 04 05 06 07 08 09 10)
 for number in "${chapters[@]}"; do
   for template in "$TOUR/$number"-*.json; do
     name=$(basename "$template" .json)
@@ -91,6 +93,7 @@ for number in "${chapters[@]}"; do
       07-*) extra=("${looks[@]}") ;;
       08-*) extra=("${footage[@]}") ;;
       09-*) extra=("${sound[@]}") ;;
+      10-*) extra=("${music[@]}") ;;
     esac
     echo "render $name"
     $LECLAP validate "$template" > "$W/chapters/$name.validate.log"

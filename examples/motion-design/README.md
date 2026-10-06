@@ -25,7 +25,7 @@ The underlying people, locations and physical props are source footage. LeClap c
 
 ## Effects tour
 
-[`effects-tour.json`](./effects-tour.json) is a six-minute product demo of the whole motion vocabulary, in nine chapters. Every beat names its effect in a small mono label (top left) and its chapter (top right):
+[`effects-tour.json`](./effects-tour.json) is a six-minute product demo of the whole motion vocabulary, in ten chapters. Every beat names its effect in a small mono label (top left) and its chapter (top right):
 
 | Chapter                                                        | What it shows                                                                                                                                                                                                                                                                                      |
 | -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -38,6 +38,7 @@ The underlying people, locations and physical props are source footage. LeClap c
 | [07 Looks & grade](./effects-tour/07-looks.json)               | The 17 look presets, a LUT look at strength 1 and 0.35, a hand grade, a user `.cube` LUT                                                                                                                                                                                                           |
 | [08 Footage](./effects-tour/08-footage.json)                   | Fit blur / letterbox / cover with a focus anchor, a keyframed focus pan, a clip range, the five speed-ramp presets, a freeze with a flash, a B-roll cutaway                                                                                                                                        |
 | [09 Sound](./effects-tour/09-sound.json)                       | A 120 BPM `global.beats` grid with a click track of placed sounds, automatic hits and whooshes, every bundled sound effect on its event, the five voice presets with a volume fade-up                                                                                                              |
+| [10 Music](./effects-tour/10-music.json)                       | A music bed fading in with `audio.automation`, per-section `musicVolume`, a volume swell, `audio.ducking` under a voice, and cuts on the beat of the analysed track (`global.beats: { analyze: "music" }`)                                                                                         |
 
 `global.theme` is template-wide, so each chapter is its own standalone template and `effects-tour.json` strings their renders together as `video` sections, between ink chapter cards, with designed transitions and automatic whooshes. [`effects-tour.sh`](./effects-tour.sh) stages the bundled assets, generates the footage clips (the bundled photographs set in motion under a running clock, with lavfi audio), renders every chapter with the CLI and then the tour:
 

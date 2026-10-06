@@ -11,7 +11,7 @@
     {
       "id": "effects-tour",
       "title": "Effects tour",
-      "description": "Every motion effect in one guided tour, chapter by chapter: kinetic type, camera and graphics, transitions, captions, compositing, themes, looks, footage editing and sound, each effect named on screen.",
+      "description": "Every motion effect in one guided tour, chapter by chapter: kinetic type, camera and graphics, transitions, captions, compositing, themes, looks, footage editing, sound and music, each effect named on screen.",
       "category": "effects",
       "source": "examples/motion-design/effects-tour.json"
     },

@@ -1,6 +1,6 @@
-// The live effect preview over the scene canvas: a <canvas> the size of the frame on which the prepared
-// painters draw at a section time, plus one DOM surface per effect built from the picture itself (glass,
-// resolve, bloom: CSS backdrop filters). On the edit canvas it loops the selected effect on its own clock
+// The live effect preview over the scene canvas: <canvas> layers the size of the frame on which the prepared
+// painters draw at a section time, interleaved in authored order (stack.ts) with one DOM surface per effect
+// built from the picture itself (glass, resolve, bloom: CSS backdrop filters over what is under them). On the edit canvas it loops the selected effect on its own clock
 // (the window plus a short lead-in and tail); in playback the program clock drives it. Raw DOM writes per
 // frame, no React state. Under reduced motion it draws one still frame of the primitive's reduced form.
 // Loaded lazily (LazyFxPreview): the engine plans it pulls in stay out of the eager bundle.
@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger';
 import { frameOf, type Frame, type PreviewEnv } from './fx-context';
 import { loopTime } from './fx-time';
 import { preparePainter } from './prepare';
+import { stackOf, type Slot } from './stack';
 import type { FxPainter, SurfaceLayer } from './painter';
 
 export interface FxPreviewLayerProps {
@@ -93,8 +94,11 @@ function surfaceBackground(layer: SurfaceLayer): string {
 }
 
 interface Scene {
+  /** The top canvas: it carries the outlines and its size drives the redraws. */
   canvas: HTMLCanvasElement;
-  surfaces: Array<HTMLDivElement | null>;
+  /** The DOM node of each slot (a canvas or a surface), by slot index. */
+  nodes: Array<HTMLElement | null>;
+  slots: Slot[];
   prepared: Prepared[];
   frame: Frame;
   /** The target outline colour (the brand token), or null when the layer does not annotate. */
@@ -117,30 +121,65 @@ function outlineTarget(ctx: CanvasRenderingContext2D, painter: FxPainter, color:
   ctx.restore();
 }
 
-function drawAt(scene: Scene, t: number): void {
-  const { canvas, frame } = scene;
+// A slot's canvas, cleared and scaled from output px to canvas px per axis: the frame's layers and boxes are
+// placed in fractions of the frame, so the light lands on them even where the on-screen frame is not exactly
+// the output aspect.
+function canvasContext(canvas: HTMLCanvasElement, frame: Frame): CanvasRenderingContext2D | null {
   sizeCanvas(canvas);
   const ctx = canvas.getContext('2d');
 
-  if (!ctx) return;
+  if (!ctx) return null;
 
-  // Output px → canvas px per axis: the frame's layers and boxes are placed in fractions of the frame, so the
-  // light lands on them even where the on-screen frame is not exactly the output aspect.
-  const k = canvas.width / frame.width;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.setTransform(k, 0, 0, canvas.height / frame.height, 0, 0);
+  ctx.setTransform(canvas.width / frame.width, 0, 0, canvas.height / frame.height, 0, 0);
 
-  for (const [i, { painter }] of scene.prepared.entries()) {
-    try {
-      painter.paint?.(ctx, t);
-      writeSurface(scene.surfaces[i] ?? null, painter.surface?.(t) ?? null, frame, canvas.clientWidth / frame.width);
-    } catch {
-      // A parameter the plan cannot draw yet (mid-edit): skip this frame.
-    }
+  return ctx;
+}
 
-    if (scene.outline) outlineTarget(ctx, painter, scene.outline, k);
+// Runs one painter's part at `t`; a parameter the plan cannot draw yet (mid-edit) skips it for this frame.
+function guarded(draw: () => void): void {
+  try {
+    draw();
+  } catch {
+    // Skipped: the next edit or frame draws it again.
   }
+}
+
+function drawSlot(scene: Scene, slot: Slot, node: HTMLElement | null, t: number): void {
+  const { frame, prepared } = scene;
+
+  if (slot.kind === 'surface') {
+    const div = node instanceof HTMLDivElement ? node : null;
+    const k = scene.canvas.clientWidth / frame.width;
+    guarded(() => {
+      writeSurface(div, prepared[slot.member].painter.surface?.(t) ?? null, frame, k);
+    });
+
+    return;
+  }
+
+  const ctx = node instanceof HTMLCanvasElement ? canvasContext(node, frame) : null;
+
+  if (!ctx) return;
+
+  for (const member of slot.members) {
+    guarded(() => {
+      prepared[member].painter.paint?.(ctx, t);
+    });
+  }
+}
+
+function drawAt(scene: Scene, t: number): void {
+  for (const [i, slot] of scene.slots.entries()) drawSlot(scene, slot, scene.nodes[i] ?? null, t);
+
+  const ctx = scene.outline ? scene.canvas.getContext('2d') : null;
+
+  if (!ctx || !scene.outline) return;
+
+  const k = scene.canvas.width / scene.frame.width;
+
+  for (const { painter } of scene.prepared) outlineTarget(ctx, painter, scene.outline, k);
 }
 
 /** The span the canvas loops over: every previewed effect's span, merged. */
@@ -151,8 +190,8 @@ function loopOf(prepared: Prepared[]): [number, number] {
 }
 
 interface PaintSetup {
-  canvas: RefObject<HTMLCanvasElement | null>;
-  surfaces: RefObject<Array<HTMLDivElement | null>>;
+  nodes: RefObject<Array<HTMLElement | null>>;
+  slots: Slot[];
   prepared: Prepared[];
   orientation: PreviewEnv['orientation'];
   annotate: boolean;
@@ -168,25 +207,17 @@ function brandColor(el: HTMLElement): string {
 
 // Drives the drawing: the external clock when given, else a rAF loop over the effect's span (or one still
 // frame under reduced motion, redrawn when the frame resizes).
-function useFxPaint({
-  canvas,
-  surfaces,
-  prepared,
-  orientation,
-  annotate,
-  subscribe,
-  reduced,
-  loopKey,
-}: PaintSetup): void {
+function useFxPaint({ nodes, slots, prepared, orientation, annotate, subscribe, reduced, loopKey }: PaintSetup): void {
   const started = useRef<{ key?: number; at: number } | null>(null);
 
   useEffect(() => {
-    const el = canvas.current;
+    const el = nodes.current[slots.length - 1];
 
-    if (!el || prepared.length === 0) return idle;
+    if (!(el instanceof HTMLCanvasElement) || prepared.length === 0) return idle;
 
     const outline = annotate ? brandColor(el) : null;
-    const scene: Scene = { canvas: el, surfaces: surfaces.current, prepared, frame: frameOf(orientation), outline };
+    const frame = frameOf(orientation);
+    const scene: Scene = { canvas: el, nodes: nodes.current, slots, prepared, frame, outline };
 
     if (subscribe) {
       return subscribe((t) => {
@@ -205,7 +236,7 @@ function useFxPaint({
     started.current = loop;
 
     return runLoop(scene, span, loop.at);
-  }, [canvas, surfaces, prepared, orientation, annotate, subscribe, reduced, loopKey]);
+  }, [nodes, slots, prepared, orientation, annotate, subscribe, reduced, loopKey]);
 }
 
 function idle(): void {
@@ -248,12 +279,12 @@ function labelKey(prepared: Prepared[], reduced: boolean): string {
 
 const FxPreviewLayer = ({ graphics, only, env, subscribe, annotate = false }: FxPreviewLayerProps) => {
   const { t } = useTranslation('admin');
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const surfaces = useRef<Array<HTMLDivElement | null>>([]);
+  const nodes = useRef<Array<HTMLElement | null>>([]);
   const prepared = prepare(graphics, only, env);
+  const slots = stackOf(prepared.map(({ painter }) => painter));
   useFxPaint({
-    canvas: canvasRef,
-    surfaces,
+    nodes,
+    slots,
     prepared,
     orientation: env.orientation,
     annotate,
@@ -264,19 +295,17 @@ const FxPreviewLayer = ({ graphics, only, env, subscribe, annotate = false }: Fx
 
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      {prepared.map(({ painter, key }, i) =>
-        painter.surface ? (
-          <div
-            key={key}
-            ref={(el) => {
-              surfaces.current[i] = el;
-            }}
-            className="absolute"
-            style={{ display: 'none' }}
-          />
-        ) : null
-      )}
-      <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
+      {slots.map((slot, i) => {
+        const ref = (el: HTMLElement | null) => {
+          nodes.current[i] = el;
+        };
+
+        return slot.kind === 'surface' ? (
+          <div key={`s${prepared[slot.member].key}`} ref={ref} className="absolute" style={{ display: 'none' }} />
+        ) : (
+          <canvas key={`c${i}`} ref={ref} className="absolute inset-0 h-full w-full" />
+        );
+      })}
       {annotate ? (
         <span className="absolute top-2 left-2 rounded-full bg-black/50 px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide text-white/75 backdrop-blur-sm sm:px-2 sm:text-[0.65rem]">
           {t(labelKey(prepared, env.reduced))}

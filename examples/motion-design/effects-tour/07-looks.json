@@ -38,7 +38,7 @@
       "name": "look-cinematic",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/golden-hour.jpg",
+        "pictureUrl": "backgrounds/sage-wall.jpg",
         "duration": 1.5
       },
       "look": "cinematic",
@@ -106,7 +106,7 @@
       "name": "look-warm",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/pastel-gradient.jpg",
         "duration": 1.5
       },
       "look": "warm",
@@ -242,7 +242,7 @@
       "name": "look-vintage",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "pictureUrl": "backgrounds/neon-alley.jpg",
         "duration": 1.5
       },
       "look": "vintage",
@@ -310,7 +310,7 @@
       "name": "look-noir",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "pictureUrl": "backgrounds/turquoise-sea.jpg",
         "duration": 1.5
       },
       "look": "noir",
@@ -446,7 +446,7 @@
       "name": "look-dreamy",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/golden-hour.jpg",
+        "pictureUrl": "backgrounds/autumn-leaves.jpg",
         "duration": 1.5
       },
       "look": "dreamy",
@@ -514,7 +514,7 @@
       "name": "look-teal-orange",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/desert-dunes.jpg",
         "duration": 1.5
       },
       "look": "teal-orange",
@@ -650,7 +650,7 @@
       "name": "look-mono-film",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "pictureUrl": "backgrounds/milky-way.jpg",
         "duration": 1.5
       },
       "look": "mono-film",
@@ -718,7 +718,7 @@
       "name": "look-noir-film",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "pictureUrl": "backgrounds/cafe-table.jpg",
         "duration": 1.5
       },
       "look": "noir-film",
@@ -854,7 +854,7 @@
       "name": "look-duotone",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/golden-hour.jpg",
+        "pictureUrl": "backgrounds/pink-sunset.jpg",
         "duration": 1.5
       },
       "look": "duotone",
@@ -922,7 +922,7 @@
       "name": "look-posterize",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/monstera-leaves.jpg",
         "duration": 1.5
       },
       "look": "posterize",
@@ -1058,7 +1058,7 @@
       "name": "look-glitch",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "pictureUrl": "backgrounds/snowy-peak.jpg",
         "duration": 1.5
       },
       "look": "glitch",
@@ -1126,7 +1126,7 @@
       "name": "look-soft-vignette",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "pictureUrl": "backgrounds/rainy-window.jpg",
         "duration": 1.5
       },
       "look": "soft-vignette",

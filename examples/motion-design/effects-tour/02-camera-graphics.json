@@ -35,7 +35,7 @@
       "name": "camera-push-in",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/neon-alley.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -100,7 +100,7 @@
       "name": "camera-pull-out",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/forest-sea.jpg",
+        "pictureUrl": "backgrounds/turquoise-sea.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -230,7 +230,7 @@
       "name": "camera-drift-right",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "pictureUrl": "backgrounds/autumn-leaves.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -300,7 +300,7 @@
       "name": "camera-drift-up",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "pictureUrl": "backgrounds/desert-dunes.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -430,7 +430,7 @@
       "name": "camera-orbit",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/milky-way.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -495,7 +495,7 @@
       "name": "camera-handheld",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/forest-sea.jpg",
+        "pictureUrl": "backgrounds/cafe-table.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -636,7 +636,7 @@
       "name": "camera-shake",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "pictureUrl": "backgrounds/pink-sunset.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -705,7 +705,7 @@
       "name": "camera-zoom",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "pictureUrl": "backgrounds/monstera-leaves.jpg",
         "duration": 1.9
       },
       "camera": {
@@ -862,7 +862,7 @@
       "name": "motion-pulse",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/forest-sea.jpg",
+        "pictureUrl": "backgrounds/snowy-peak.jpg",
         "duration": 2.1
       },
       "motion": [
@@ -929,7 +929,7 @@
       "name": "letterbox",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/rainy-window.jpg",
         "duration": 2.1
       },
       "letterbox": {
@@ -993,7 +993,7 @@
       "type": "color_background",
       "options": {
         "backgroundColor": "#141416",
-        "duration": 2.0
+        "duration": 2
       },
       "graphics": [
         {
@@ -1108,7 +1108,7 @@
       "type": "color_background",
       "options": {
         "backgroundColor": "#1B1830",
-        "duration": 2.0
+        "duration": 2
       },
       "graphics": [
         {
@@ -1169,7 +1169,7 @@
       "type": "color_background",
       "options": {
         "backgroundColor": "#141416",
-        "duration": 2.0
+        "duration": 2
       },
       "graphics": [
         {
@@ -1459,7 +1459,7 @@
         {
           "type": "focus",
           "at": 0.1,
-          "duration": 1.0,
+          "duration": 1,
           "amount": 24,
           "direction": "in"
         }

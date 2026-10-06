@@ -36,7 +36,7 @@
       "type": "color_background",
       "options": {
         "backgroundColor": "#141416",
-        "duration": 3.0
+        "duration": 3
       },
       "kinetic": [
         {
@@ -73,7 +73,7 @@
       "name": "named-fade",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/warm-bokeh.jpg",
         "duration": 1.5
       },
       "kinetic": [
@@ -189,7 +189,7 @@
       "name": "named-dissolve",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/forest-sea.jpg",
+        "pictureUrl": "backgrounds/concrete-lines.jpg",
         "duration": 2.2
       },
       "kinetic": [
@@ -423,7 +423,7 @@
       "name": "named-push-down",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "pictureUrl": "backgrounds/woodshop.jpg",
         "duration": 2.1
       },
       "kinetic": [
@@ -539,7 +539,7 @@
       "name": "named-swipe-right",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "pictureUrl": "backgrounds/sage-wall.jpg",
         "duration": 2.1
       },
       "kinetic": [
@@ -771,7 +771,7 @@
       "name": "named-whip-right",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/rocky-coast.jpg",
+        "pictureUrl": "backgrounds/pastel-gradient.jpg",
         "duration": 1.9
       },
       "kinetic": [
@@ -887,7 +887,7 @@
       "name": "named-whip-down",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/forest-sea.jpg",
+        "pictureUrl": "backgrounds/neon-alley.jpg",
         "duration": 1.9
       },
       "kinetic": [

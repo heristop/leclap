@@ -416,7 +416,7 @@
       "name": "fx-leak",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/laptop-desk.jpg",
+        "pictureUrl": "backgrounds/rainy-window.jpg",
         "duration": 2.4
       },
       "graphics": [
@@ -487,7 +487,7 @@
       "name": "fx-bloom",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/golden-hour.jpg",
+        "pictureUrl": "backgrounds/warm-bokeh.jpg",
         "duration": 2.4
       },
       "graphics": [
@@ -897,7 +897,7 @@
       "name": "fx-vignette-breathe",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/green-forest.jpg",
+        "pictureUrl": "backgrounds/concrete-lines.jpg",
         "duration": 2.4
       },
       "graphics": [
@@ -968,7 +968,7 @@
       "name": "fx-grain",
       "type": "image_background",
       "options": {
-        "pictureUrl": "backgrounds/desk-flatlay.jpg",
+        "pictureUrl": "backgrounds/woodshop.jpg",
         "duration": 2.4
       },
       "graphics": [

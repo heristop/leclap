@@ -13,6 +13,8 @@
       "energy": 1
     },
     "variables": {
+      "leclap_mark": "pictures/leclap-mark.png",
+      "opening_wall": "videos/effects-tour/opening-wall.mp4",
       "chapter_01": "videos/effects-tour/01-type.mp4",
       "chapter_02": "videos/effects-tour/02-camera-graphics.mp4",
       "chapter_03": "videos/effects-tour/03-transitions.mp4",
@@ -24,6 +26,12 @@
       "chapter_06_bold": "videos/effects-tour/06-theme-d-bold.mp4",
       "chapter_06_neon": "videos/effects-tour/06-theme-e-neon.mp4",
       "chapter_06_paper": "videos/effects-tour/06-theme-f-paper.mp4",
+      "chapter_06_sunset": "videos/effects-tour/06-theme-g-sunset.mp4",
+      "chapter_06_ocean": "videos/effects-tour/06-theme-h-ocean.mp4",
+      "chapter_06_mono": "videos/effects-tour/06-theme-i-mono.mp4",
+      "chapter_06_candy": "videos/effects-tour/06-theme-j-candy.mp4",
+      "chapter_06_retro": "videos/effects-tour/06-theme-k-retro.mp4",
+      "chapter_06_corporate": "videos/effects-tour/06-theme-l-corporate.mp4",
       "chapter_07": "videos/effects-tour/07-looks.mp4",
       "chapter_08": "videos/effects-tour/08-footage.mp4",
       "chapter_09": "videos/effects-tour/09-sound.mp4",
@@ -43,23 +51,32 @@
   "sections": [
     {
       "name": "opening",
-      "type": "color_background",
+      "type": "video",
       "options": {
-        "backgroundColor": "#141416",
-        "duration": 3.6
+        "videoUrl": "{{ opening_wall }}",
+        "duration": 3.6,
+        "muteSection": false
       },
       "role": "hook",
-      "purpose": "Open the tour with the brand and the promise.",
+      "purpose": "Open the tour with the brand and the promise, over a wall of moments from the chapters.",
       "camera": {
         "preset": "push-in",
         "amount": 0.05
       },
       "graphics": [
         {
+          "type": "fx",
+          "effect": "leak",
+          "at": 0,
+          "duration": 3.6,
+          "color": "#7C83FD",
+          "intensity": 0.6
+        },
+        {
           "type": "underline",
           "at": 1.4,
           "x": 440,
-          "y": 420,
+          "y": 440,
           "width": 400,
           "origin": "center",
           "color": "#FF8AAE"
@@ -69,11 +86,11 @@
         {
           "id": "brand",
           "text": {
-            "en": "LECLAP"
+            "en": "LeClap"
           },
           "preset": "tracking-in",
-          "size": 200,
-          "y": 200,
+          "size": 170,
+          "y": 222,
           "delay": 0.2,
           "color": "#F5F3F7",
           "fill": {
@@ -86,7 +103,8 @@
               "delay": 1.6,
               "color": "#FFFFFF@0.85"
             }
-          }
+          },
+          "font": "oswald"
         },
         {
           "text": {
@@ -95,7 +113,7 @@
           "preset": "cascade",
           "font": "oswald",
           "size": 60,
-          "y": 450,
+          "y": 462,
           "delay": "brand.end + 0.1",
           "accent": {
             "words": "last",
@@ -109,15 +127,31 @@
           "preset": "fade",
           "font": "mono",
           "size": 30,
-          "y": 560,
-          "color": "#9A98A6",
+          "y": 570,
+          "color": "#C9C6D2",
           "delay": "brand.end + 0.6"
         }
       ],
       "transition": {
         "type": "zoom-through",
         "duration": 0.6
-      }
+      },
+      "inputs": [
+        {
+          "name": "mark",
+          "url": "{{ leclap_mark }}",
+          "type": "image",
+          "options": {
+            "position": "585:52",
+            "scale": "110:-1",
+            "motion": {
+              "type": "rise",
+              "delay": 0.1,
+              "duration": 0.6
+            }
+          }
+        }
+      ]
     },
     {
       "name": "chapter-01",
@@ -606,7 +640,7 @@
         },
         {
           "text": {
-            "en": "Six themes, roles, energy"
+            "en": "Twelve themes, roles, energy"
           },
           "preset": "rise",
           "font": "oswald",
@@ -707,6 +741,96 @@
       "purpose": "Play the rendered theme-paper chapter.",
       "options": {
         "videoUrl": "{{ chapter_06_paper }}",
+        "duration": 3.4
+      },
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "theme-sunset",
+      "type": "video",
+      "role": "proof",
+      "purpose": "Play the rendered theme-sunset chapter.",
+      "options": {
+        "videoUrl": "{{ chapter_06_sunset }}",
+        "duration": 3.4
+      },
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "theme-ocean",
+      "type": "video",
+      "role": "proof",
+      "purpose": "Play the rendered theme-ocean chapter.",
+      "options": {
+        "videoUrl": "{{ chapter_06_ocean }}",
+        "duration": 3.4
+      },
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "theme-mono",
+      "type": "video",
+      "role": "proof",
+      "purpose": "Play the rendered theme-mono chapter.",
+      "options": {
+        "videoUrl": "{{ chapter_06_mono }}",
+        "duration": 3.4
+      },
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "theme-candy",
+      "type": "video",
+      "role": "proof",
+      "purpose": "Play the rendered theme-candy chapter.",
+      "options": {
+        "videoUrl": "{{ chapter_06_candy }}",
+        "duration": 3.4
+      },
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "theme-retro",
+      "type": "video",
+      "role": "proof",
+      "purpose": "Play the rendered theme-retro chapter.",
+      "options": {
+        "videoUrl": "{{ chapter_06_retro }}",
+        "duration": 3.4
+      },
+      "transition": {
+        "type": "push-left",
+        "duration": 0.5,
+        "ease": "$snappy"
+      }
+    },
+    {
+      "name": "theme-corporate",
+      "type": "video",
+      "role": "proof",
+      "purpose": "Play the rendered theme-corporate chapter.",
+      "options": {
+        "videoUrl": "{{ chapter_06_corporate }}",
         "duration": 3.4
       },
       "transition": {
@@ -879,7 +1003,7 @@
       "purpose": "Play the rendered footage chapter.",
       "options": {
         "videoUrl": "{{ chapter_08 }}",
-        "duration": 30.5
+        "duration": 30.11
       },
       "transition": {
         "type": "push-up",
@@ -967,7 +1091,7 @@
       "purpose": "Play the rendered sound chapter.",
       "options": {
         "videoUrl": "{{ chapter_09 }}",
-        "duration": 27.2,
+        "duration": 46.78,
         "musicVolume": 0,
         "muteSection": false
       },
@@ -1055,7 +1179,7 @@
       "purpose": "Play the rendered sound chapter.",
       "options": {
         "videoUrl": "{{ chapter_10 }}",
-        "duration": 27.2,
+        "duration": 21.95,
         "musicVolume": 0,
         "muteSection": false
       },

@@ -23,6 +23,8 @@ H264=(-c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -r 30)
 mkdir -p "$A/videos/effects-tour" "$A/luts" "$W/clips" "$W/chapters"
 # The music chapter and the tour's bed use bundled tracks: they must be real files, not Git LFS pointers.
 cp -r "$LIB/sfx" "$LIB/emoji" "$LIB/fonts" "$LIB/backgrounds" "$LIB/musics" "$A/"
+# The opening's brand mark (DESIGN.md: the clapperboard, never recoloured).
+mkdir -p "$A/pictures" && cp apps/leclap-web/public/pwa-512x512.png "$A/pictures/leclap-mark.png"
 
 # 2. Synthetic footage: the bundled photographs set in motion, with a running clock so speed ramps
 #    and freezes read on the clip itself, and lavfi audio (bundled clips and music are Git LFS objects).
@@ -35,12 +37,12 @@ clip() { # name photo filter [audio]
   ffmpeg -hide_banner -loglevel error -y -loop 1 -framerate 30 -i "$LIB/backgrounds/$2" -f lavfi -i "${4:-$pad}" \
     -vf "$3" "${H264[@]}" -c:a aac -b:a 96k -t 8 "$W/clips/$1.mp4"
 }
-clip portrait green-forest.jpg "scale=-2:1280,crop=360:640:x='(iw-360)/2':y='(ih-640)*t/8'"
-clip panorama rocky-coast.jpg "scale=1920:-2,crop=1920:540:0:'200+8*t'"
-clip timer golden-hour.jpg "scale=800:-2,crop=640:360:x='20*t':y=40,$clock"
-clip zoom forest-sea.jpg "scale=1280:-2,$push,$clock"
-clip main laptop-desk.jpg "scale=1280:-2,$push"
-clip broll desk-flatlay.jpg "scale=800:-2,crop=640:360:x='160-20*t':y=40"
+clip portrait neon-alley.jpg "scale=-2:1280,crop=360:640:x='(iw-360)/2':y='(ih-640)*t/8'"
+clip panorama desert-dunes.jpg "scale=1920:-2,crop=1920:540:0:'200+8*t'"
+clip timer turquoise-sea.jpg "scale=800:-2,crop=640:360:x='20*t':y=40,$clock"
+clip zoom autumn-leaves.jpg "scale=1280:-2,$push,$clock"
+clip main cafe-table.jpg "scale=1280:-2,$push"
+clip broll monstera-leaves.jpg "scale=800:-2,crop=640:360:x='160-20*t':y=40"
 # The talking-head stand-in: a blurred, dimmed desk with the voice-like line's own waveform drawn over it.
 [ -f "$W/clips/voice.mp4" ] || ffmpeg -hide_banner -loglevel error -y -loop 1 -framerate 30 \
   -i "$LIB/backgrounds/laptop-desk.jpg" -f lavfi -i "$voice" -filter_complex \
@@ -102,6 +104,21 @@ for number in "${chapters[@]}"; do
     cp "$W/chapters/$name.mp4" "$A/videos/effects-tour/$name.mp4"
   done
 done
+
+# The opening's backdrop: a dimmed 3x3 wall of chapter moments, so the very first frame already shows
+# what the tour is about instead of a bare card. Built from whichever chapter renders are staged.
+wall=(02-camera-graphics:14 02-camera-graphics:6 05-compositing:0.3 07-looks:0.3 06-theme-e-neon:1.5 02-camera-graphics:2
+  01-type:33.6 05-compositing:28.5 05-compositing:14.6)
+wall_inputs=() wall_tiles="" wall_stack=""
+for index in "${!wall[@]}"; do
+  name=${wall[$index]%%:*}
+  wall_inputs+=(-ss "${wall[$index]##*:}" -t 4 -i "$A/videos/effects-tour/$name.mp4")
+  wall_tiles+="[$index:v]fps=30,scale=420:236,setsar=1,pad=426:240:3:2:color=0x141416[t$index];"
+  wall_stack+="[t$index]"
+done
+ffmpeg -hide_banner -loglevel error -y "${wall_inputs[@]}" -filter_complex \
+  "${wall_tiles}${wall_stack}xstack=inputs=9:layout=0_0|w0_0|w0+w1_0|0_h0|w0_h0|w0+w1_h0|0_h0+h1|w0_h0+h1|w0+w1_h0+h1,pad=1280:720:1:0:color=0x141416,eq=brightness=-0.1:saturation=1.1,gblur=sigma=1,split[wall][band];[band]gblur=sigma=9,eq=brightness=-0.22:saturation=0.9[glass];[wall]format=yuva420p,geq=lum='lum(X,Y)':cb='cb(X,Y)':cr='cr(X,Y)':a='255*clip((abs(Y-360)-210)/110,0,1)'[sharp];[glass][sharp]overlay=0:0,format=yuv420p,vignette=PI/4[v]" \
+  -map "[v]" -an "${H264[@]}" -t 4 "$A/videos/effects-tour/opening-wall.mp4"
 
 # 4. Assemble the tour from the chapter renders, then the delivery encode (the CLI encodes at the
 #    ultrafast preset).

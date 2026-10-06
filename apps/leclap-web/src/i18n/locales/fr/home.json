@@ -66,7 +66,16 @@
     },
     "badge": "Sur l’appareil · aucun envoi",
     "phoneAria": "Un téléphone qui fait tourner l’app LeClap",
-    "cta": "Essaie les modèles dans ton navigateur"
+    "cta": "Essaie les modèles dans ton navigateur",
+    "screen": {
+      "title": "Ta vidéo prend vie",
+      "preparing": "Préparation des scènes…",
+      "private": "Le rendu reste sur ton appareil",
+      "cancel": "Annuler le rendu",
+      "readyTitle": "Ta vidéo est prête",
+      "readyBody": "Garde une copie ou partage ton histoire.",
+      "share": "Partager"
+    }
   },
   "agentic": {
     "eyebrow": "Pour le développement agentique",

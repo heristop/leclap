@@ -66,7 +66,16 @@
     },
     "badge": "En el dispositivo · sin subidas",
     "phoneAria": "Un móvil con la app de LeClap",
-    "cta": "Prueba las plantillas en tu navegador"
+    "cta": "Prueba las plantillas en tu navegador",
+    "screen": {
+      "title": "Tu vídeo cobra vida",
+      "preparing": "Preparando las escenas…",
+      "private": "El vídeo se crea de forma privada en tu dispositivo",
+      "cancel": "Cancelar creación",
+      "readyTitle": "Tu vídeo está listo",
+      "readyBody": "Guarda una copia o comparte tu historia.",
+      "share": "Compartir"
+    }
   },
   "agentic": {
     "eyebrow": "Para el desarrollo agéntico",

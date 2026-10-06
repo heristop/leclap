@@ -66,7 +66,16 @@
     },
     "badge": "Sul dispositivo · nessun upload",
     "phoneAria": "Un telefono con l’app LeClap",
-    "cta": "Prova i modelli nel browser"
+    "cta": "Prova i modelli nel browser",
+    "screen": {
+      "title": "Il tuo video prende vita",
+      "preparing": "Preparazione delle scene…",
+      "private": "Il video viene creato solo sul tuo dispositivo",
+      "cancel": "Annulla creazione",
+      "readyTitle": "Il tuo video è pronto",
+      "readyBody": "Salva una copia o condividi la tua storia.",
+      "share": "Condividi"
+    }
   },
   "agentic": {
     "eyebrow": "Per lo sviluppo agentico",

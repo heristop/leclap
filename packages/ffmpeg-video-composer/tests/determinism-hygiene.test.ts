@@ -52,15 +52,18 @@ describe('validator: nondeterministic_expression', () => {
   const validator = new TemplateValidator();
   const clocky = [{ type: 'drawtext', values: { text: { en: '%{localtime}' }, x: '0', y: '0' } }];
 
-  it('rejects a template whose raw filters read the wall clock', () => {
-    const result = validator.validateTemplate(card(clocky));
-
-    expect(result.success).toBe(false);
-    expect(result.errors?.map((error) => error.code)).toContain('nondeterministic_expression');
+  it('accepts a template whose raw filters read the wall clock', () => {
+    expect(validator.validateTemplate(card(clocky)).success).toBe(true);
   });
 
-  it('accepts it with meta.allowNondeterministic', () => {
-    expect(validator.validateTemplate(card(clocky, { allowNondeterministic: true })).success).toBe(true);
+  it('warns that its renders will not be reproducible', () => {
+    expect(validator.getMotionWarnings(card(clocky))).toContainEqual(
+      expect.objectContaining({
+        code: 'nondeterministic_expression',
+        path: 'sections[0].filters[0].values.text.en',
+        severity: 'warn',
+      })
+    );
   });
 });
 

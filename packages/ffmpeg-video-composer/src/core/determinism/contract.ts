@@ -1,11 +1,10 @@
-// The determinism contract's descriptor-level switches (docs/plans/motion-system-v2.md §1): the seed
+// The determinism contract's descriptor-level switches (docs/plans/motion-system.md §1): the seed
 // every procedural element derives from, and whether a render applies the deterministic encoder profile.
 
 /** Upper bound of `global.seed` (uint32). */
 export const MAX_SEED = 0xffffffff;
 
 interface ContractSource {
-  meta?: { allowNondeterministic?: boolean } | null;
   global?: { seed?: number; fps?: number } | null;
 }
 

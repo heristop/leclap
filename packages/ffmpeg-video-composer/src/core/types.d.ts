@@ -171,8 +171,6 @@ interface TemplateMeta {
   brief?: string;
   /** Ask every rendering section for a `purpose` (advisory). */
   requirePurpose?: boolean;
-  /** Skip the nondeterministic_expression validation (wall clock / unseeded random in raw filters). */
-  allowNondeterministic?: boolean;
 }
 
 export interface TemplateDescriptorGlobal {

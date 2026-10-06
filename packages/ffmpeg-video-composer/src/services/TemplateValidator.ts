@@ -12,6 +12,7 @@ import { emojiAdvisories } from './emoji-advisories';
 import { subtitleAdvisories } from './subtitles-advisories';
 import { footageAdvisories } from './footage-advisories';
 import { beatGridAdvisories } from './beats-advisory';
+import { nondeterminismAdvisories } from './determinism-advisories';
 import { adviseEachFormat, adviseEachFormatSync, expandedForFormats } from './validation/format-validation';
 import { formatAdvisories } from '@/core/formats/advisories';
 import { takeAdvisories } from './take-validation';
@@ -136,6 +137,7 @@ export class TemplateValidator extends BaseTemplateValidator {
       ...subtitleAdvisories(resolved),
       ...footageAdvisories(resolved),
       ...beatGridAdvisories(resolved),
+      ...nondeterminismAdvisories(resolved),
       ...takeWarnings(resolved),
       ...collectScriptWarnings(resolved, capabilities),
     ]);

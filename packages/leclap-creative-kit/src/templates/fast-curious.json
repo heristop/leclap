@@ -15,9 +15,9 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "future-bass-energy.mp3"
+      "name": "chill-hip-hop.mp3"
     },
-    "allowedMusic": ["future-bass-energy", "upbeat-electronic", "lofi-hip-hop", "party-dance", "indie-rock-dreamy"],
+    "allowedMusic": ["chill-hip-hop", "lofi-study", "lofi-hip-hop", "party-dance", "indie-rock-dreamy"],
     "allowUploadMusic": true,
     "transition": {
       "type": "push-left",

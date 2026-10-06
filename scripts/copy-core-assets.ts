@@ -72,6 +72,15 @@ const destinations: CopyDest[] = [
     dest: resolve(root, 'apps/leclap-web/public/assets/musics'),
   },
   {
+    // Music cover art (<track id>.webp), served at /assets/covers/<file> for the music picker.
+    src: resolve(libDir, 'covers'),
+    dest: resolve(root, 'apps/leclap-web/public/assets/covers'),
+  },
+  {
+    src: resolve(libDir, 'covers'),
+    dest: resolve(root, 'apps/leclap-expo/assets/covers'),
+  },
+  {
     // The builder picker's engine-rendered animation thumbnails (animated WebP + PNG poster per entry),
     // served at /assets/animation-thumbs/<file>; the manifest below lists them for the picker.
     src: resolve(libDir, 'animation-thumbs'),

@@ -9,7 +9,7 @@
     "music": {
       "name": "party-dance.mp3"
     },
-    "allowedMusic": ["party-dance", "future-bass-energy", "upbeat-electronic", "indie-rock-dreamy", "cafe-jazz"],
+    "allowedMusic": ["party-dance", "chill-hip-hop", "lofi-study", "indie-rock-dreamy", "cafe-jazz"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",

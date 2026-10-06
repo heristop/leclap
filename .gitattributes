@@ -39,3 +39,7 @@ examples/showcase/media/*.mp4 -filter -diff -merge -text
 # gen:animation-thumbs, ~600 KB in all): plain blobs like the sfx library, kept binary (-text).
 packages/leclap-creative-kit/src/library/animation-thumbs/*.webp -filter -diff -merge -text
 packages/leclap-creative-kit/src/library/animation-thumbs/*.png -filter -diff -merge -text
+
+# The music library ships as plain blobs too: the LFS budget is exhausted, so new tracks could not reach
+# GitHub as LFS objects. The engine, apps and CI read the real bytes straight from the checkout.
+packages/leclap-creative-kit/src/library/musics/** -filter -diff -merge -text

@@ -201,16 +201,16 @@ describe('MusicComposer.loadMusic', () => {
   });
 
   it('uses a bundled track by name (no URL, no download) when one ships with the package', async () => {
-    const project = makeProject({ music: { name: 'air-prelude.mp3' } });
+    const project = makeProject({ music: { name: 'lofi-jazz-music.mp3' } });
     const filesystem = makeFilesystem();
     filesystem.stat.mockResolvedValue(false);
-    filesystem.resolveBundledMusic.mockResolvedValue('/pkg/dist/musics/air-prelude.mp3');
+    filesystem.resolveBundledMusic.mockResolvedValue('/pkg/dist/musics/lofi-jazz-music.mp3');
     const { composer } = makeComposer({ project, filesystem });
 
     await composer.loadMusic();
 
-    expect(filesystem.resolveBundledMusic).toHaveBeenCalledWith('air-prelude.mp3');
-    expect(project.buildInfos.musicPath).toBe('/pkg/dist/musics/air-prelude.mp3');
+    expect(filesystem.resolveBundledMusic).toHaveBeenCalledWith('lofi-jazz-music.mp3');
+    expect(project.buildInfos.musicPath).toBe('/pkg/dist/musics/lofi-jazz-music.mp3');
     expect(filesystem.fetch).not.toHaveBeenCalled();
   });
 });

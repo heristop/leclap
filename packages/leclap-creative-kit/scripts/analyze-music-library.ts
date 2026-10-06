@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Generate src/music-beats.generated.json: the beat grid, confidence and cues of every MUSIC_LIBRARY track
-// (src/media.ts), measured with the engine's deterministic analyzer (FFmpeg decode → analyzeBeats).
+// (src/music-library.ts), measured with the engine's deterministic analyzer (FFmpeg decode → analyzeBeats).
 // Tracks that cannot be decoded — most often a Git LFS pointer that was never pulled — are skipped with a
 // note and keep no entry, so the builder analyzes them in the browser instead.
 //
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { analyzeMusicFile } from 'ffmpeg-video-composer';
 
 // Loaded by URL: Node runs the TypeScript source directly (type stripping).
-const { MUSIC_LIBRARY } = (await import(new URL('../src/media.ts', import.meta.url).href)) as {
+const { MUSIC_LIBRARY } = (await import(new URL('../src/music-library.ts', import.meta.url).href)) as {
   MUSIC_LIBRARY: Array<{ id: string; file: string }>;
 };
 const SAMPLE_RATE = 22050;

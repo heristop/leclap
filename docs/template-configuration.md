@@ -942,7 +942,7 @@ A minimal, complete, valid descriptor — two clips joined by hard cuts with a b
   "global": {
     "orientation": "landscape",
     "musicEnabled": true,
-    "music": { "name": "air-prelude.mp3" },
+    "music": { "name": "lofi-jazz-music.mp3" },
     "audio": { "sourceVolume": 1, "musicVolume": 0.5 }
   },
   "sections": [
@@ -989,7 +989,7 @@ A complete, valid descriptor exercising the structured-sugar layer: a layered ti
   "global": {
     "orientation": "landscape",
     "musicEnabled": true,
-    "music": { "name": "air-prelude.mp3" },
+    "music": { "name": "lofi-jazz-music.mp3" },
     "transition": { "type": "fade", "duration": 0.4 },
     "audio": {
       "sourceVolume": 1,

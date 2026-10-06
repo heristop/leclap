@@ -3133,7 +3133,7 @@
         },
         {
           "kind": "music",
-          "reference": "upbeat-electronic.mp3",
+          "reference": "lofi-study.mp3",
           "path": "global.music.name"
         }
       ],
@@ -3154,9 +3154,9 @@
         "orientation": "landscape",
         "musicEnabled": true,
         "music": {
-          "name": "upbeat-electronic.mp3"
+          "name": "lofi-study.mp3"
         },
-        "allowedMusic": ["the-builder", "upbeat-electronic", "lofi-chill"],
+        "allowedMusic": ["the-builder", "lofi-study", "lofi-chill"],
         "allowUploadMusic": true,
         "transition": {
           "type": "cut"
@@ -3640,7 +3640,7 @@
         },
         {
           "kind": "music",
-          "reference": "upbeat-electronic.mp3",
+          "reference": "lofi-study.mp3",
           "path": "global.music.name"
         },
         {
@@ -3677,9 +3677,9 @@
         },
         "musicEnabled": true,
         "music": {
-          "name": "upbeat-electronic.mp3"
+          "name": "lofi-study.mp3"
         },
-        "allowedMusic": ["upbeat-electronic", "future-bass-energy", "party-dance", "lofi-hip-hop", "indie-rock-dreamy"],
+        "allowedMusic": ["lofi-study", "chill-hip-hop", "party-dance", "lofi-hip-hop", "indie-rock-dreamy"],
         "allowUploadMusic": true,
         "transition": {
           "type": "cut"
@@ -4141,7 +4141,7 @@
         },
         {
           "kind": "music",
-          "reference": "upbeat-electronic.mp3",
+          "reference": "lofi-study.mp3",
           "path": "global.music.name"
         },
         {
@@ -4172,9 +4172,9 @@
         },
         "musicEnabled": true,
         "music": {
-          "name": "upbeat-electronic.mp3"
+          "name": "lofi-study.mp3"
         },
-        "allowedMusic": ["upbeat-electronic", "future-bass-energy", "the-builder", "indie-rock-dreamy", "arcadia"],
+        "allowedMusic": ["lofi-study", "chill-hip-hop", "the-builder", "indie-rock-dreamy", "once-in-paris"],
         "allowUploadMusic": true,
         "transition": {
           "type": "cut"
@@ -4608,7 +4608,7 @@
         "music": {
           "name": "the-builder.mp3"
         },
-        "allowedMusic": ["the-builder", "lofi-hip-hop", "point-being", "upbeat-electronic", "lofi-chill"],
+        "allowedMusic": ["the-builder", "lofi-hip-hop", "point-being", "lofi-study", "lofi-chill"],
         "allowUploadMusic": true,
         "transition": {
           "type": "cut"
@@ -5103,7 +5103,7 @@
         "music": {
           "name": "indie-rock-dreamy.mp3"
         },
-        "allowedMusic": ["indie-rock-dreamy", "lofi-chill", "lofi-hip-hop", "cafe-jazz", "romantic-piano"],
+        "allowedMusic": ["indie-rock-dreamy", "lofi-chill", "lofi-hip-hop", "cafe-jazz", "dreamy-fall-people"],
         "allowUploadMusic": true,
         "transition": {
           "type": "cut"
@@ -5654,7 +5654,7 @@
         },
         {
           "kind": "music",
-          "reference": "future-bass-energy.mp3",
+          "reference": "chill-hip-hop.mp3",
           "path": "global.music.name"
         },
         {
@@ -5713,9 +5713,9 @@
         "orientation": "landscape",
         "musicEnabled": true,
         "music": {
-          "name": "future-bass-energy.mp3"
+          "name": "chill-hip-hop.mp3"
         },
-        "allowedMusic": ["future-bass-energy", "upbeat-electronic", "lofi-hip-hop", "party-dance", "indie-rock-dreamy"],
+        "allowedMusic": ["chill-hip-hop", "lofi-study", "lofi-hip-hop", "party-dance", "indie-rock-dreamy"],
         "allowUploadMusic": true,
         "transition": {
           "type": "push-left",
@@ -6502,7 +6502,7 @@
         "music": {
           "name": "lofi-sentimental-jazz.mp3"
         },
-        "allowedMusic": ["lofi-sentimental-jazz", "cafe-jazz", "lofi-chill", "cafe-bossa-nova", "romantic-piano"],
+        "allowedMusic": ["lofi-sentimental-jazz", "cafe-jazz", "lofi-chill", "lofi-cafe", "dreamy-fall-people"],
         "allowUploadMusic": true,
         "transition": {
           "type": "fade",
@@ -7019,7 +7019,7 @@
         },
         {
           "kind": "music",
-          "reference": "romantic-piano.mp3",
+          "reference": "dreamy-fall-people.mp3",
           "path": "global.music.name"
         },
         {
@@ -7046,9 +7046,9 @@
         "orientation": "landscape",
         "musicEnabled": true,
         "music": {
-          "name": "romantic-piano.mp3"
+          "name": "dreamy-fall-people.mp3"
         },
-        "allowedMusic": ["romantic-piano", "cafe-bossa-nova", "lofi-sentimental-jazz", "cafe-jazz", "lofi-chill"],
+        "allowedMusic": ["dreamy-fall-people", "lofi-cafe", "lofi-sentimental-jazz", "cafe-jazz", "lofi-chill"],
         "allowUploadMusic": true,
         "transition": {
           "type": "dissolve",
@@ -7428,7 +7428,7 @@
         "music": {
           "name": "party-dance.mp3"
         },
-        "allowedMusic": ["party-dance", "future-bass-energy", "upbeat-electronic", "indie-rock-dreamy", "cafe-jazz"],
+        "allowedMusic": ["party-dance", "chill-hip-hop", "lofi-study", "indie-rock-dreamy", "cafe-jazz"],
         "allowUploadMusic": true,
         "transition": {
           "type": "fade",
@@ -7790,7 +7790,7 @@
         "music": {
           "name": "party-dance.mp3"
         },
-        "allowedMusic": ["party-dance", "future-bass-energy", "upbeat-electronic", "indie-rock-dreamy", "cafe-jazz"],
+        "allowedMusic": ["party-dance", "chill-hip-hop", "lofi-study", "indie-rock-dreamy", "cafe-jazz"],
         "allowUploadMusic": true,
         "transition": {
           "type": "fade",

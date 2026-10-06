@@ -7,9 +7,9 @@
     "orientation": "landscape",
     "musicEnabled": true,
     "music": {
-      "name": "romantic-piano.mp3"
+      "name": "dreamy-fall-people.mp3"
     },
-    "allowedMusic": ["romantic-piano", "cafe-bossa-nova", "lofi-sentimental-jazz", "cafe-jazz", "lofi-chill"],
+    "allowedMusic": ["dreamy-fall-people", "lofi-cafe", "lofi-sentimental-jazz", "cafe-jazz", "lofi-chill"],
     "allowUploadMusic": true,
     "transition": {
       "type": "dissolve",

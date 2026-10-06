@@ -10,7 +10,7 @@
     "music": {
       "name": "indie-rock-dreamy.mp3"
     },
-    "allowedMusic": ["indie-rock-dreamy", "lofi-chill", "lofi-hip-hop", "cafe-jazz", "romantic-piano"],
+    "allowedMusic": ["indie-rock-dreamy", "lofi-chill", "lofi-hip-hop", "cafe-jazz", "dreamy-fall-people"],
     "allowUploadMusic": true,
     "transition": {
       "type": "cut"

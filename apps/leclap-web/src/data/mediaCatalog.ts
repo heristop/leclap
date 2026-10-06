@@ -15,14 +15,16 @@ import { ANIMATION_FILES, ANIMATION_THUMBS } from './animations.generated';
 
 export type MediaCredit = CoreMediaCredit & {
   url: string; // same-origin path under /public, derived from `file`
-  cover?: string; // optional cover-art image URL; the music card falls back to a generated cover
+  cover?: string; // cover-art image URL (/assets/covers/<id>.webp); the music card falls back to a generated cover
 };
 
 export type AnimationAsset = { id: string; label: string; file: string; url: string };
 
-export const MUSIC_LIBRARY: MediaCredit[] = CORE_MUSIC.map((m) => ({ ...m, url: `/musics/${m.file}` })).sort((a, b) =>
-  a.title.localeCompare(b.title)
-);
+export const MUSIC_LIBRARY: MediaCredit[] = CORE_MUSIC.map((m) => ({
+  ...m,
+  url: `/musics/${m.file}`,
+  cover: `/assets/covers/${m.id}.webp`,
+})).sort((a, b) => a.title.localeCompare(b.title));
 export const BACKGROUND_LIBRARY: MediaCredit[] = CORE_BG.map((m) => ({ ...m, url: `/backgrounds/${m.file}` }));
 
 // The list comes from a manifest scripts/copy-core-assets generates from the creative-kit animations

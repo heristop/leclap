@@ -72,7 +72,7 @@ describe('set_music', () => {
     const { port, call, revision } = await setup();
     const result = await call('set_music', {
       expectedRevision: revision,
-      tracks: ['americana', 'point-being'],
+      tracks: ['lofi-cafe', 'point-being'],
       musicVolume: 0.3,
       ducking: true,
     });
@@ -80,7 +80,7 @@ describe('set_music', () => {
     expect(result.isError).toBeUndefined();
     const global = buildDescriptor(port.getState()).global;
 
-    expect(global).toMatchObject({ musicEnabled: true, allowedMusic: ['americana', 'point-being'] });
+    expect(global).toMatchObject({ musicEnabled: true, allowedMusic: ['lofi-cafe', 'point-being'] });
     expect(global?.audio).toMatchObject({ musicVolume: 0.3 });
     expect(global?.audio?.ducking).toBeTruthy();
     expect(port.getState().sections.some((section) => section.kind === 'music')).toBe(true);
@@ -93,7 +93,7 @@ describe('set_music', () => {
     const unknown = await call('set_music', { expectedRevision: revision, tracks: ['not-a-track'] });
 
     expect(unknown.data.code).toBe('not_found');
-    expect(String(unknown.data.hint)).toContain('americana');
+    expect(String(unknown.data.hint)).toContain('lofi-cafe');
     expect((await call('set_music', { expectedRevision: revision })).data.code).toBe('invalid_input');
     expect(port.commits).toHaveLength(0);
   });

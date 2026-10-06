@@ -37,9 +37,10 @@ pnpm --filter @leclap/creative-kit gen:templates   # rebuild templates.generated
 pnpm --filter @leclap/creative-kit gen:partials    # rebuild partials.generated.ts after adding a partial
 pnpm --filter @leclap/creative-kit gen:sfx         # regenerate the bundled sound effects
 pnpm --filter @leclap/creative-kit gen:music-beats # re-measure the library tracks' beat grids
+pnpm --filter @leclap/creative-kit gen:music-covers # redraw the music cover art (library/covers)
 ```
 
-`library/sfx/` holds ten original sound effects (whoosh, swoosh-short, hit, boom, riser, click, tick, pop, shutter, ding), synthesized by `pnpm --filter @leclap/creative-kit gen:sfx`; regenerating writes identical bytes. `gen:music-beats` measures every library track into `src/music-beats.generated.json` (needs `git lfs pull` and a built engine first). `library/fonts/` includes Noto Sans Arabic and Hebrew (`noto-arabic`, `noto-hebrew`, OFL) for right-to-left copy.
+`library/sfx/` holds ten original sound effects (whoosh, swoosh-short, hit, boom, riser, click, tick, pop, shutter, ding), synthesized by `pnpm --filter @leclap/creative-kit gen:sfx`; regenerating writes identical bytes. `gen:music-beats` measures every library track into `src/music-beats.generated.json` (needs `git lfs pull` and a built engine first). `library/covers/` holds one 512x512 WebP cover per library track (`<id>.webp`), drawn as SVG scenes in `scripts/music-covers-*.ts` and rendered in Playwright Chromium by `gen:music-covers` (`--only id,id` redraws a few). `library/fonts/` includes Noto Sans Arabic and Hebrew (`noto-arabic`, `noto-hebrew`, OFL) for right-to-left copy.
 
 `library/emoji/` holds the colour emoji the engine composites over drawn text (72x72 PNGs named by code-point sequence, e.g. `1f44d-1f3fd.png`). They are rendered from [Twemoji](https://github.com/jdecked/twemoji) — © Twitter, Inc, jdecked and other contributors, licensed [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Regenerate the set (and the engine's `src/core/emoji-manifest.generated.ts`) with `pnpm gen:emoji`; edit the list in `scripts/gen-emoji.ts`.
 

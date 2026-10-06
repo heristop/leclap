@@ -128,7 +128,7 @@ describe('packaged sample catalog', () => {
       expect.objectContaining({ name: 'form_1_app', placeholders: ['{{ form_1_app }}'] })
     );
     expect(app.requirements.assets).toContainEqual(
-      expect.objectContaining({ reference: 'upbeat-electronic.mp3', kind: 'music' })
+      expect.objectContaining({ reference: 'lofi-study.mp3', kind: 'music' })
     );
     expect(getSample('house-evidence').requirements.projectVideos.map(({ name }) => name)).toEqual([
       'intro',

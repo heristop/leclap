@@ -9,7 +9,7 @@
     "music": {
       "name": "lofi-sentimental-jazz.mp3"
     },
-    "allowedMusic": ["lofi-sentimental-jazz", "cafe-jazz", "lofi-chill", "cafe-bossa-nova", "romantic-piano"],
+    "allowedMusic": ["lofi-sentimental-jazz", "cafe-jazz", "lofi-chill", "lofi-cafe", "dreamy-fall-people"],
     "allowUploadMusic": true,
     "transition": {
       "type": "fade",

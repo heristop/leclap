@@ -10,7 +10,7 @@
     "music": {
       "name": "the-builder.mp3"
     },
-    "allowedMusic": ["the-builder", "lofi-hip-hop", "point-being", "upbeat-electronic", "lofi-chill"],
+    "allowedMusic": ["the-builder", "lofi-hip-hop", "point-being", "lofi-study", "lofi-chill"],
     "allowUploadMusic": true,
     "transition": {
       "type": "cut"

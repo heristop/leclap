@@ -1197,7 +1197,7 @@ Moving boxes (the highlight marker, the typewriter caret) are emitted as one box
 
 ## Camera
 
-A section takes a `camera`: a virtual camera that moves over the finished frame. By default it moves the text and graphics too; set `includeText: false` to keep overlays steady over a moving shot. It is lowered to `zoompan` (on a 2× upscale, as Ken Burns is) plus `rotate`, on the frame clock. The frame is over-scanned just enough that pans, shake and roll never show an edge.
+A section takes a `camera`: a virtual camera that moves over the finished frame. By default it moves the text and graphics too; set `includeText: false` to keep overlays steady over a moving shot. It is rendered with sub-pixel precision on every output frame (the frame is resized per frame and cropped back by `zoompan`, with the sizes chosen so the zoom and position land within a few hundredths of a pixel), plus `rotate`, on the frame clock. Slow push-ins, drifts, Ken Burns, pulse, the resolve fx and the zoom-through transition move smoothly instead of in whole-pixel steps. The frame is over-scanned just enough that pans, shake and roll never show an edge.
 
 ![Every camera preset](./media/gallery/camera-presets.webp)
 
@@ -1207,15 +1207,15 @@ More in the [gallery](./gallery.md#camera).
 "camera": { "preset": "push-in", "amount": 0.12, "hits": [0.6, { "at": 1.8, "strength": 0.06 }], "shake": { "amplitude": 4 } }
 ```
 
-| Field                         | Default                                     | Notes                                                                                                                                |
-| ----------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `preset`                      | `none`                                      | `push-in`, `pull-out`, `drift-left`, `drift-right`, `drift-up`, `drift-down`, `orbit`, `handheld` (seeded shake only).               |
-| `amount`                      | 0.12                                        | Zoom delta and drift range (0.01–0.6).                                                                                               |
-| `delay` / `duration` / `ease` | 0 / to the section end / `ease-in-out-sine` | Timing of the preset move; any [easing](#easing) or token.                                                                           |
-| `zoom` / `x` / `y` / `rotate` | —                                           | Keyframe tracks (as in `animate`) that override the preset per property. Zoom is a multiplier, x/y are output px, rotate is degrees. |
-| `hits`                        | —                                           | Punch-ins: seconds, or `{ at, strength = 0.08, decay = 10 }`. Pair with `impact` type or a `flash`.                                  |
-| `shake`                       | —                                           | `{ amplitude = 6 px, frequency = 0.8 Hz, rotation = 0° }`: a seeded sum of sines (`global.seed` reshuffles it).                      |
-| `includeText`                 | `true`                                      | `false` lowers the camera beneath text and graphics.                                                                                 |
+| Field                         | Default                                     | Notes                                                                                                                                                                                              |
+| ----------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `preset`                      | `none`                                      | `push-in`, `pull-out`, `drift-left`, `drift-right`, `drift-up`, `drift-down`, `orbit`, `handheld` (seeded shake only).                                                                             |
+| `amount`                      | 0.12                                        | Zoom delta and drift range (0.01–0.6).                                                                                                                                                             |
+| `delay` / `duration` / `ease` | 0 / to the section end / `ease-in-out-sine` | Timing of the preset move; any [easing](#easing) or token.                                                                                                                                         |
+| `zoom` / `x` / `y` / `rotate` | —                                           | Keyframe tracks (as in `animate`) that override the preset per property. Zoom is a multiplier, x/y are output px, rotate is degrees.                                                               |
+| `hits`                        | —                                           | Punch-ins: seconds, or `{ at, strength = 0.08, decay = 10 }`. Pair with `impact` type or a `flash`.                                                                                                |
+| `shake`                       | —                                           | `{ amplitude = 6 px, frequency = 0.8 Hz, rotation = 0° }`: a seeded sum of sines (`global.seed` reshuffles it).                                                                                    |
+| `includeText`                 | `true`                                      | `false` keeps text steady over a moving shot: the camera runs beneath the section's text and graphics, after any framing filters (scale / pad / perspective) authored ahead of its first drawtext. |
 
 ## Graphics
 

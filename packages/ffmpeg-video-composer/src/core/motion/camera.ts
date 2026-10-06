@@ -1,4 +1,4 @@
-// Virtual camera lowering (docs/plans/motion-system-v2.md §4.2). The frame is framed by an exact
+// Virtual camera lowering (docs/plans/motion-system.md §4.2). The frame is framed by an exact
 // sub-pixel zoom/pan on the output frame clock (zoom-exact.ts: no whole-pixel stepping), then rolled by
 // `rotate`. Every move is a P1 track or closed-form term, so it is deterministic; the frame is
 // over-scanned just enough that pans, shake and roll never reveal an edge.

@@ -1,4 +1,4 @@
-// `animate` keyframe tracks → drawtext expressions (docs/plans/motion-system-v2.md §3).
+// `animate` keyframe tracks → drawtext expressions (docs/plans/motion-system.md §3).
 //
 // A track is a list of keys; each key eases INTO itself from the previous one. The value is lowered as a
 // sum of eased steps, v(t) = v₀ + Σᵢ (vᵢ − vᵢ₋₁)·Eᵢ(t), where Eᵢ is key i's eased progress over its own

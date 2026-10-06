@@ -1,4 +1,4 @@
-// The motion system (docs/plans/motion-system-v2.md §2–3): curves, their lowering to FFmpeg
+// The motion system (docs/plans/motion-system.md §2–3): curves, their lowering to FFmpeg
 // expressions, motion tokens and keyframe tracks.
 export {
   NAMED_CURVES,

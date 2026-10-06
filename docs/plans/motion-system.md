@@ -1,4 +1,4 @@
-# Motion System v2: deterministic, expressive, native
+# Motion system: deterministic, expressive, native
 
 > Status: P0, P1 (branch `feat/motion-p0-p1`), P2 kinetic typography (`feat/motion-p2-kinetic`) and the camera/graphics/designed-transition effects (`feat/motion-effects`) delivered; `meta.motionVersion` removed (pre-release, no versioning needed); P3+ proposed · Owner: motion/engine · Scope: `ffmpeg-video-composer`, `leclap-creative-kit`, `leclap-mcp`,
 > `leclap-web`, `leclap-expo`, with `leclap-brand-motion` as the quality reference.
@@ -11,7 +11,7 @@ and 56 stock `xfade` presets. Everything with real choreography (per-word type, 
 hits) lives in the Remotion route. That route is landscape-only, 1280×720, 300 frames, Node/Chromium only, so it
 never ships on device.
 
-The goal of v2 is to close that gap without giving up determinism. Choreography should be native, expressed as
+The goal of the motion system is to close that gap without giving up determinism. Choreography should be native, expressed as
 data, compiled into pure FFmpeg expression math, and identical for a given template, seed and platform.
 
 The bar is our own films. The primitives in `leclap-brand-motion/src/film/cinema.tsx` (`KineticWords`,
@@ -38,15 +38,15 @@ compares it side by side with the Remotion original.
 
 All later phases depend on this one, so it ships first.
 
-| #   | Rule                                                                                                                                                                                                                           | Enforcement                                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| D1  | **Compile is pure.** `compile(template, assetsDigest, platformProfile) → filtergraph` with no clocks, no `Math.random`, no environment reads beyond the declared profile.                                                      | Lint rule banning `Date`, `Math.random`, `performance.now` under `src/editor/**`, `src/schemas/**`    |
-| D2  | **Frame-grid time.** Every section chain starts with a CFR `fps` conform, so `t` in each animated expression is an exact frame time and variable-frame-rate phone footage can't drift a keyframe.                              | `editor/presets/motion-chain.ts`; the render tests assert the conform                                 |
-| D3  | **Seeded procedurality.** New `global.seed` (uint32, default `0`). Every procedural element derives `seed = hash32(global.seed, elementPath)` (FNV-1a). Shake paths, particle positions, scramble glyphs and grain all use it. | Schema: procedural effects reject a missing derived seed; `noise` always emits `all_seed=`            |
-| D4  | **Raw-filter hygiene.** User `filters[]` may not contain `random(`, `%{localtime`, `%{gmtime`, `time(` or `pts` text expansions in `drawtext`.                                                                                 | `TemplateValidator` error `nondeterministic_expression`, with an opt-out flag `allowNondeterministic` |
-| D5  | **Bit-exact muxing.** Add `-fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1` and fixed `-threads` for libx264 in the deterministic encoder tier.                                                       | Encoder tier `deterministic` in `encoding.ts`; this tier is the default for the CLI and MCP           |
-| D6  | **No motion versioning (dropped).** The library is unreleased, so the motion system is simply the behaviour; there is no `meta.motionVersion`. Once published, a retune that changes output ships as a semver-major change.    | Golden filtergraph snapshots catch every output change                                                |
-| D7  | **Render manifest.** Each render emits `render.manifest.json` with template hash (canonical JSON), asset hashes, seed, engine version, FFmpeg build ID, filtergraph hash and output hash.                                      | Extends existing MCP provenance and adds a `leclap verify manifest.json` command                      |
+| #   | Rule                                                                                                                                                                                                                           | Enforcement                                                                                                              |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| D1  | **Compile is pure.** `compile(template, assetsDigest, platformProfile) → filtergraph` with no clocks, no `Math.random`, no environment reads beyond the declared profile.                                                      | Lint rule banning `Date`, `Math.random`, `performance.now` under `src/editor/**`, `src/schemas/**`                       |
+| D2  | **Frame-grid time.** Every section chain starts with a CFR `fps` conform, so `t` in each animated expression is an exact frame time and variable-frame-rate phone footage can't drift a keyframe.                              | `editor/presets/motion-chain.ts`; the render tests assert the conform                                                    |
+| D3  | **Seeded procedurality.** New `global.seed` (uint32, default `0`). Every procedural element derives `seed = hash32(global.seed, elementPath)` (FNV-1a). Shake paths, particle positions, scramble glyphs and grain all use it. | Schema: procedural effects reject a missing derived seed; `noise` always emits `all_seed=`                               |
+| D4  | **Raw-filter hygiene.** User `filters[]` that contain `random(`, `%{localtime`, `%{gmtime` or `time(` render, but not reproducibly.                                                                                            | `TemplateValidator.getMotionWarnings` advisory `nondeterministic_expression` (no opt-out flag; it never blocks a render) |
+| D5  | **Bit-exact muxing.** Add `-fflags +bitexact -flags:v +bitexact -flags:a +bitexact -map_metadata -1` and fixed `-threads` for libx264 in the deterministic encoder tier.                                                       | Encoder tier `deterministic` in `encoding.ts`; this tier is the default for the CLI and MCP                              |
+| D6  | **No motion versioning (dropped).** The library is unreleased, so the motion system is simply the behaviour; there is no `meta.motionVersion`. Once published, a retune that changes output ships as a semver-major change.    | Golden filtergraph snapshots catch every output change                                                                   |
+| D7  | **Render manifest.** Each render emits `render.manifest.json` with template hash (canonical JSON), asset hashes, seed, engine version, FFmpeg build ID, filtergraph hash and output hash.                                      | Extends existing MCP provenance and adds a `leclap verify manifest.json` command                                         |
 
 **Test pyramid for determinism**
 
@@ -109,7 +109,7 @@ bounding box never exits the title-safe area (computed with `font-metrics.ts`).
 
 ## 3. Universal keyframe tracks
 
-Today each feature has its own small timing schema (`reveal`, `exit`, `motion`, `options.motion`). v2 adds
+Today each feature has its own small timing schema (`reveal`, `exit`, `motion`, `options.motion`). The motion system adds
 one generic track model that every animatable target accepts. The existing sugar stays and lowers into tracks,
 so legacy output is unchanged under `motionVersion: 1`.
 

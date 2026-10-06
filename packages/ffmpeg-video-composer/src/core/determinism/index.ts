@@ -1,4 +1,4 @@
-// The determinism contract (docs/plans/motion-system-v2.md §1): pure, platform-neutral helpers that
+// The determinism contract (docs/plans/motion-system.md §1): pure, platform-neutral helpers that
 // every entry point can re-export.
 export { fnv1a32, deriveSeed, seededRandom, canonicalJson } from './hash';
 export { sha256Hex } from './sha256';

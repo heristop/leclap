@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-// D1 (docs/plans/motion-system-v2.md): compiling a template is a pure function of the template, its
+// D1 (docs/plans/motion-system.md): compiling a template is a pure function of the template, its
 // assets and the platform profile. The modules that turn a descriptor into FFmpeg commands may not read
 // the clock or an unseeded random source. Scratch-file naming goes through utils/temp-suffix.ts, the
 // one sanctioned clock read, which the render manifest normalizes away.

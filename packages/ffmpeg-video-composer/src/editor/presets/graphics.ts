@@ -1,4 +1,4 @@
-// Animated graphics → drawbox filters (docs/plans/motion-system-v2.md §4.4). Each type is a function from
+// Animated graphics → drawbox filters (docs/plans/motion-system.md §4.4). Each type is a function from
 // eased progress p ∈ [0, 1] to rectangles; the animator samples it once per output frame and gates each
 // frame's boxes with an `enable` window, then holds the final state until `until`. Pixel effects and
 // data / broadcast graphics (graphics-fx.ts, graphics-chart.ts) lower themselves through `render`/`extras`.

@@ -1,4 +1,4 @@
-// Parses an easing spec into a Curve. The grammar (docs/plans/motion-system-v2.md §2.1):
+// Parses an easing spec into a Curve. The grammar (docs/plans/motion-system.md §2.1):
 //
 //   linear | ease | ease-in | ease-out | ease-in-out | ease-out-back       CSS / historical names
 //   ease-out-expo | ease-in-out-sine | ease-out-elastic | …                 the NAMED_CURVES set

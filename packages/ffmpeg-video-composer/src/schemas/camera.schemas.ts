@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { EasingSpecSchema, KeyframeSchema, MotionRoleSchema } from './motion.schemas';
 import { TimeRefSchema, timeValue } from './time.schemas';
 
-// ── virtual camera (docs/plans/motion-system-v2.md §4.2) ─────────────────────────
+// ── virtual camera (docs/plans/motion-system.md §4.2) ─────────────────────────
 //
 // A section-level camera that moves over the finished frame (footage, graphics and, by default, text).
 // A preset gives a complete move; tracks, hits and shake refine or replace it. Lowered to `zoompan` +

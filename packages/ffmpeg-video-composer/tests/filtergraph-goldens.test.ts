@@ -9,7 +9,7 @@ import type AbstractFFmpeg from '@/platform/ffmpeg/AbstractFFmpeg';
 import { DryRunFFmpeg } from './fixtures/dry-run-ffmpeg';
 import { testBuildDir } from './fixtures/build-dir';
 
-// Filtergraph goldens (docs/plans/motion-system-v2.md §1): the exact, normalized FFmpeg command set each
+// Filtergraph goldens (docs/plans/motion-system.md §1): the exact, normalized FFmpeg command set each
 // bundled template compiles to, per platform profile. Platform-independent (no FFmpeg runs, see
 // DryRunFFmpeg), so any change to what a template renders shows up here as a reviewable diff. After an
 // intended change, refresh with `pnpm --filter ffmpeg-video-composer exec vp test run

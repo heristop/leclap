@@ -1,4 +1,4 @@
-// Designed transitions (docs/plans/motion-system-v2.md §4.3): eased, spring-capable boundaries.
+// Designed transitions (docs/plans/motion-system.md §4.3): eased, spring-capable boundaries.
 //
 // Instead of a per-pixel `xfade` expression (interpreted for every pixel of every frame: ~1 s per 720p
 // frame), a designed boundary is cut into the outgoing tail and the incoming head, composed with filters

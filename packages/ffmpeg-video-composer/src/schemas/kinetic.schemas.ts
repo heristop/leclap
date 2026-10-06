@@ -5,7 +5,7 @@ import { EasingSpecSchema, MotionRoleSchema } from './motion.schemas';
 import { ElementIdSchema, timeValue } from './time.schemas';
 import { CounterSchema } from './text.schemas';
 
-// ── kinetic typography (docs/plans/motion-system-v2.md §4.1) ──────────────────────
+// ── kinetic typography (docs/plans/motion-system.md §4.1) ──────────────────────
 //
 // One block = one piece of animated copy. Pick a preset; every other field is optional and has a
 // preset-specific default, so `{ "text": { "en": "Make it move" }, "preset": "cascade" }` is a complete,

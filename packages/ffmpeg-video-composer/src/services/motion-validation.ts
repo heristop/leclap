@@ -1,4 +1,4 @@
-// Descriptor rules for the motion system (docs/plans/motion-system-v2.md §2–3):
+// Descriptor rules for the motion system (docs/plans/motion-system.md §2–3):
 //
 // - invalid_motion_token / unknown_motion_token / invalid_easing: token definitions and references.
 // - invalid_keyframes: key times out of order, a relative value on a non-positional track, a scale track

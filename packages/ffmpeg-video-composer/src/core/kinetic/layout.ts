@@ -1,4 +1,4 @@
-// Kinetic typography layout (docs/plans/motion-system-v2.md §4.1): measure, wrap and place a block of
+// Kinetic typography layout (docs/plans/motion-system.md §4.1): measure, wrap and place a block of
 // text so each word or glyph can be drawn — and animated — on its own. Widths come from the generated
 // advance table of the bundled fonts, so layout is synchronous and identical on every platform.
 

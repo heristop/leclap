@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { easingError } from '../core/motion/easing';
 
-// ── motion system schemas (docs/plans/motion-system-v2.md §2–3) ─────────────────────────────────
+// ── motion system schemas (docs/plans/motion-system.md §2–3) ─────────────────────────────────
 //
 // Shapes only. The grammar of an easing string, token references and keyframe ordering are checked by
 // the motion rules in services/motion-validation.ts, which report precise paths and messages (a zod

@@ -1,4 +1,4 @@
-// Motion tokens and the energy dial (docs/plans/motion-system-v2.md §2). The descriptor is resolved once,
+// Motion tokens and the energy dial (docs/plans/motion-system.md §2). The descriptor is resolved once,
 // before any lowering: every `$token` becomes its concrete value and every travel distance
 // is scaled by `global.motion.energy`, so the presets downstream only ever see plain specs and numbers.
 

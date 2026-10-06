@@ -1,4 +1,4 @@
-// Lowers any Curve to an FFmpeg expression in time (docs/plans/motion-system-v2.md §2.1).
+// Lowers any Curve to an FFmpeg expression in time (docs/plans/motion-system.md §2.1).
 //
 // The curve is sampled at compile time and approximated by a piecewise cubic Hermite polynomial whose
 // pieces are expressed directly in `t` (seconds), not in progress. Every piece is then a Horner-form

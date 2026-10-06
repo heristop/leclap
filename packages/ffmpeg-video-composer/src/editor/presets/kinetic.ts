@@ -1,4 +1,4 @@
-// Kinetic block → drawtext / drawbox filters (docs/plans/motion-system-v2.md §4.1).
+// Kinetic block → drawtext / drawbox filters (docs/plans/motion-system.md §4.1).
 
 import type { Filter } from '@/core/types';
 import type { KineticBlock } from '../../schemas/kinetic.schemas';

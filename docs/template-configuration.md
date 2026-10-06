@@ -1352,6 +1352,8 @@ Keep one hero effect per beat and at most two layered (ambient textures count). 
 
 At `global.motion.energy: 0`, every primitive switches to its reduced form (each table below names it): light holds still or becomes a faint static highlight, marks rest in place and fade in and out, and the ambient textures and `bloom` are dropped. Every primitive lowers to filters on the [on-device allowlist](./on-device-compilation.md). Where a build lacks an optional filter, it falls back: `sheen` and `leak` use compile-time sprites without `gradients`, `vignette-breathe` uses a gradient mask without `vignette`, and `confetti` and `glint` drop their spin without `rotate`. When an fx cannot render, it is skipped with a warning: `fx_target` (the target names nothing in the section), `mask_unavailable` (a shaped target without `alphamerge`) or `fx_skipped` (a missing filter or input). Effects are drawn in "Preview render" in the builder, not on its editing canvas.
 
+Wide, soft lights (`leak`, `bloom`, `vignette-breathe`) carry a fine static grain, about ±1 code value and seeded like every fx, so their slow falloff still reads as a gradient after H.264 encoding instead of flat contour bands. The grain covers only the light itself; the picture outside it is untouched.
+
 Agents get every primitive, its parameters, defaults and design intent from MCP `get_motion_catalog` (`motionCatalog().fx` in the library). The prose comes from `FX_DOCS` ([`fx-docs.ts`](../packages/ffmpeg-video-composer/src/schemas/fx-docs.ts)), the tables below included.
 
 ### Primitives

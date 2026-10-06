@@ -184,6 +184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `leak`, `bloom` and `vignette-breathe` no longer band after H.264 encoding: their soft-light dither is a fine static grain that survives libx264 at crf 23. Only renders using these effects change; their files grow somewhat.
 - A cut between sections that also use designed transitions is joined with `concat`: the 0.001 s xfade shorter than a frame ended the output early on FFmpeg 6.x.
 - A command FFmpeg cannot start (E2BIG, ENOENT) reports the system error instead of an empty failure.
 - No false text-collision warning for a global overlay on back-to-back sections (sub-millisecond overlaps are ignored).

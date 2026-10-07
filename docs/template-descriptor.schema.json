@@ -23273,7 +23273,26 @@
                 "$ref": "#/$defs/SoundEnvelope"
               },
               "filter": {
-                "$ref": "#/$defs/SoundFilter"
+                "description": "One filter or a chain (e.g. highpass then lowpass).",
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/SoundFilter"
+                  },
+                  {
+                    "minItems": 1,
+                    "maxItems": 3,
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/SoundFilter"
+                    }
+                  }
+                ]
+              },
+              "drive": {
+                "description": "Per-layer soft clip (square-ish, 808).",
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
               },
               "length": {
                 "description": "Seconds per note.",
@@ -23376,13 +23395,18 @@
             "curve": {
               "type": "string",
               "enum": ["linear", "exp"]
+            },
+            "time": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 4
             }
           },
           "required": ["from", "to"],
           "additionalProperties": false
         }
       ],
-      "description": "Hz, or a sweep {from,to} over each note (exp by default)."
+      "description": "Hz, or a sweep {from,to} over each note (exp by default), or over `time` s then held."
     },
     "SoundEnvelope": {
       "type": "object",
@@ -23418,7 +23442,7 @@
         }
       },
       "additionalProperties": false,
-      "description": "Seconds; linear attack (default 0.005) to 1, hold, decay to sustain (default 0; no decay = the whole note), release at the note end. curve shapes decay/release (default exp)."
+      "description": "Seconds; attack (default 0.005) to 1, hold, decay to sustain (default 0; no decay = the whole note), release at the note end. curve: exp (default; the attack swells, decays fall fast) or linear."
     },
     "SoundFilter": {
       "type": "object",
@@ -23445,6 +23469,11 @@
         "curve": {
           "type": "string",
           "enum": ["linear", "exp"]
+        },
+        "time": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4
         },
         "resonance": {
           "type": "number",

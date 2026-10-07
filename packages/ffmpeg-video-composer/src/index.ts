@@ -111,7 +111,7 @@ function assertValidDescriptor(projectConfig: ProjectConfig, templateDescriptor:
   }
 
   const validator = new TemplateValidator();
-  const validation = validator.validateTemplate(templateDescriptor, { format: projectConfig.format });
+  const validation = validator.validateForRender(templateDescriptor, projectConfig);
 
   if (!validation.success) {
     throw new Error(validator.getValidationSummary(validation));

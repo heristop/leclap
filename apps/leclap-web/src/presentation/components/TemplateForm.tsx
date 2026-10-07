@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import { useState, useEffect, useId } from 'react';
+import { useState, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Type, Hash, Check } from '@/presentation/components/icons';
@@ -8,21 +8,23 @@ import { UserIcon } from '@/presentation/components/icons/user';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { resolveTranslation } from '@/lib/i18nText';
-import { Input } from '@/presentation/components/ui';
+import { FieldInput } from './template-form-input';
+import {
+  bindFieldContracts,
+  fieldProblem,
+  unboundDeclaredFields,
+  type FormFieldModel,
+} from './template-form-fields.logic';
 
-interface FormField {
-  name: string;
-  label: Record<string, string>;
-  maxLength?: number;
-  type?: string;
-}
+type FormField = FormFieldModel;
 
 interface TemplateFormProps {
   template: Template;
   onFormDataChange: (formData: Record<string, string>) => void;
   formData: Record<string, string>;
   // When set, render only THIS form section's fields (the per-section wizard step). Omit for the
-  // legacy all-fields-at-once form. When scoped, the generic header is hidden (the step supplies one).
+  // legacy all-fields-at-once form, which also lists the declared fields no form section asks for.
+  // When scoped, the generic header is hidden (the step supplies one).
   sectionName?: string;
 }
 
@@ -32,14 +34,6 @@ const getFieldIcon = (fieldName: string) => {
   if (fieldName.includes('keyword')) return Hash;
 
   return Type;
-};
-
-const getFieldType = (field: FormField): 'text' | 'textarea' => {
-  if (field.maxLength && field.maxLength > 50) return 'textarea';
-
-  if (field.name.includes('description')) return 'textarea';
-
-  return 'text';
 };
 
 const getFieldPlaceholder = (field: FormField, label: string, t: TFunction<'templates'>): string => {
@@ -58,72 +52,23 @@ const getFieldPlaceholder = (field: FormField, label: string, t: TFunction<'temp
   return t('form.placeholder.generic', { label: label.toLowerCase() });
 };
 
-const computeFieldError = (field: FormField | undefined, value: string, t: TFunction<'templates'>): string | null => {
-  if (field?.maxLength && value.length > field.maxLength) {
-    return t('form.status.maxChars', { count: field.maxLength });
-  }
+// What the line under a field says: a value that does not fit always shows; "required" only once the
+// viewer has touched the field, so an untouched form does not open in red.
+const fieldErrorMessage = (
+  field: FormField,
+  value: string,
+  touched: boolean,
+  t: TFunction<'templates'>
+): string | null => {
+  const problem = fieldProblem(field, value);
 
-  if (value.trim() === '') {
-    return t('form.status.fieldRequired');
-  }
+  if (problem === null) return null;
 
-  return null;
-};
+  if (problem.kind === 'maxChars') return t('form.status.maxChars', { count: problem.max });
 
-interface FieldInputProps {
-  field: FormField;
-  value: string;
-  hasError: boolean;
-  placeholder: string;
-  fieldId: string;
-  errorId: string;
-  onChange: (value: string) => void;
-}
+  if (problem.kind === 'invalid') return t('form.status.invalidValue', { reason: problem.reason });
 
-const FieldInput = ({ field, value, hasError, placeholder, fieldId, errorId, onChange }: FieldInputProps) => {
-  const fieldType = getFieldType(field);
-  const errorClass = hasError
-    ? 'border-[var(--color-error)]/50 bg-[var(--color-error)]/10 focus-visible:border-[var(--color-error)] focus-visible:outline-none'
-    : '';
-
-  if (fieldType === 'textarea') {
-    return (
-      <textarea
-        id={fieldId}
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value);
-        }}
-        placeholder={placeholder}
-        maxLength={field.maxLength}
-        rows={3}
-        aria-required
-        aria-invalid={hasError}
-        aria-describedby={hasError ? errorId : undefined}
-        className={clsx(
-          'w-full resize-none rounded-lg border px-3 py-2 text-foreground placeholder:text-gray-500 transition-colors focus-visible:outline-none',
-          hasError ? errorClass : 'field-focus-gradient border-divider bg-surface-2'
-        )}
-      />
-    );
-  }
-
-  return (
-    <Input
-      id={fieldId}
-      type="text"
-      value={value}
-      onChange={(e) => {
-        onChange(e.target.value);
-      }}
-      placeholder={placeholder}
-      maxLength={field.maxLength}
-      aria-required
-      aria-invalid={hasError}
-      aria-describedby={hasError ? errorId : undefined}
-      className={errorClass}
-    />
-  );
+  return touched ? t('form.status.fieldRequired') : null;
 };
 
 interface FieldStatusProps {
@@ -171,11 +116,11 @@ interface FormFieldItemProps {
   field: FormField;
   index: number;
   formData: Record<string, string>;
-  errors: Record<string, string>;
+  touched: boolean;
   onFieldChange: (fieldName: string, value: string) => void;
 }
 
-const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFieldItemProps) => {
+const FormFieldItem = ({ field, index, formData, touched, onFieldChange }: FormFieldItemProps) => {
   const { t, i18n } = useTranslation('templates');
   const fieldId = useId();
   const errorId = useId();
@@ -184,8 +129,11 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
   const label = resolveTranslation(field.label, i18n.language) ?? field.name;
   const placeholder = getFieldPlaceholder(field, label, t);
   const value = formData[field.name] || '';
-  const hasError = Boolean(errors[field.name]);
+  const errorMessage = fieldErrorMessage(field, value, touched, t);
+  const hasError = errorMessage !== null;
   const maxChars = field.maxLength ?? null;
+  // A field the template can fill on its own (a default, an optional text) is not marked as required.
+  const required = fieldProblem(field, '') !== null;
 
   return (
     <div className="space-y-2 fade-in" style={{ animationDelay: `${index * 100}ms` }}>
@@ -196,9 +144,11 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
       >
         <IconComponent className="w-4 h-4 text-brand-600 dark:text-brand-300" />
         <span>{label}</span>
-        <span className="text-brand-600 dark:text-brand-300" aria-label={t('form.status.requiredMark')}>
-          *
-        </span>
+        {required && (
+          <span className="text-brand-600 dark:text-brand-300" aria-label={t('form.status.requiredMark')}>
+            *
+          </span>
+        )}
       </label>
 
       <FieldInput
@@ -215,7 +165,7 @@ const FormFieldItem = ({ field, index, formData, errors, onFieldChange }: FormFi
 
       <FieldStatus
         hasError={hasError}
-        errorMessage={errors[field.name]}
+        errorMessage={errorMessage ?? undefined}
         errorId={errorId}
         value={value}
         charCount={value.length}
@@ -239,33 +189,28 @@ const FormHeader = () => {
   );
 };
 
+// The fields to ask for: the form section's own (or every form section's), each bound to the declared
+// `global.fields` entry of its name; the all-fields form also lists declared fields no form asks for.
+const formFieldsFor = (template: Template, sectionName: string | undefined): FormField[] => {
+  if (sectionName) {
+    return bindFieldContracts(
+      templateService.extractFormFieldsForSection(template.descriptor, sectionName),
+      template.descriptor
+    );
+  }
+
+  const asked = bindFieldContracts(templateService.extractFormFields(template.descriptor), template.descriptor);
+
+  return [...asked, ...unboundDeclaredFields(template.descriptor, asked)];
+};
+
 export const TemplateForm = ({ template, onFormDataChange, formData, sectionName }: TemplateFormProps) => {
   const { t } = useTranslation('templates');
-  const [fields, setFields] = useState<FormField[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    const extractedFields = sectionName
-      ? templateService.extractFormFieldsForSection(template.descriptor, sectionName)
-      : templateService.extractFormFields(template.descriptor);
-    setFields(extractedFields);
-  }, [template, sectionName]);
+  const fields = formFieldsFor(template, sectionName);
+  const [touched, setTouched] = useState<ReadonlySet<string>>(() => new Set());
 
   const handleFieldChange = (fieldName: string, value: string) => {
-    const field = fields.find((f) => f.name === fieldName);
-    const newErrors = { ...errors };
-    const errorMsg = computeFieldError(field, value, t);
-
-    if (errorMsg !== null) {
-      newErrors[fieldName] = errorMsg;
-      setErrors(newErrors);
-      onFormDataChange({ ...formData, [fieldName]: value });
-
-      return;
-    }
-
-    delete newErrors[fieldName];
-    setErrors(newErrors);
+    setTouched((previous) => new Set(previous).add(fieldName));
     onFormDataChange({ ...formData, [fieldName]: value });
   };
 
@@ -296,7 +241,7 @@ export const TemplateForm = ({ template, onFormDataChange, formData, sectionName
             field={field}
             index={index}
             formData={formData}
-            errors={errors}
+            touched={touched.has(field.name)}
             onFieldChange={handleFieldChange}
           />
         ))}

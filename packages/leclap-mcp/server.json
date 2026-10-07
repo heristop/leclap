@@ -120,6 +120,10 @@
             "description": "Return the template timeline on video seconds: sections, motion events, beats and cues, without rendering."
           },
           {
+            "name": "get_resolved_template",
+            "description": "Return the template as compose_video would render it for the given fields: declared global.fields filled with typed values, without rendering."
+          },
+          {
             "name": "validate_template",
             "description": "Validate a template without rendering and report the clips and fields compose_video will require."
           },

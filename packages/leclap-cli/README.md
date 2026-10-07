@@ -267,7 +267,8 @@ It needs the whisper.cpp CLI (`brew install whisper-cpp`, or `whisper-cli` on `P
 `tiny` 78 MB) is downloaded only with `--download-model`, into `~/.cache/leclap/whisper`, and checked
 against its published SHA-256. A template's requests are replaced by `subtitles.words` and recorded in
 `meta.resolved.transcripts` (engine, model, language, clip digest, date), so every render reads the same
-words; review them before publishing. A pin whose clip changed is reported as `transcript_stale`.
+words; review them before publishing. A pin whose clip changed is reported as `transcript_stale`, one
+whose section was re-cut since (clip, speed, ramp, freeze, trim, duration) as `transcript_edit_changed`.
 `leclap render` resolves an unpinned request on the fly (and `--download-model` allows the model
 download there too). See [auto-captions](../../docs/template-configuration.md#auto-captions-transcribe-then-pin).
 

@@ -54,11 +54,20 @@ function bridged(runs: Array<[number, number]>): Array<[number, number]> {
   return merged;
 }
 
+// A loop, not Math.max(...levels): an hour of audio is 180k frames, past what a spread can pass.
+function loudest(levels: readonly number[]): number {
+  let peak = FLOOR_DB;
+
+  for (const level of levels) peak = Math.max(peak, level);
+
+  return peak;
+}
+
 /** [start, end] seconds of each voiced stretch. */
 export function speechSpans(samples: Float32Array, sampleRate: number): Array<[number, number]> {
   const frame = Math.max(1, Math.round(sampleRate * FRAME_SECONDS));
   const levels = frameLevels(samples, frame);
-  const peak = Math.max(FLOOR_DB, ...levels);
+  const peak = loudest(levels);
 
   if (peak <= FLOOR_DB) return [];
 

@@ -5,7 +5,9 @@ import * as LeclapSpeech from '@/modules/leclap-speech';
 import type { useSaveProject } from '@/src/hooks/useProjects';
 import type { Project, Section } from '@/src/types';
 import { isCaptionsStale, readSectionCaptions, withSectionCaptions, type SectionCaptions } from './caption-store';
-import { speechLocale, transcribeSection, TranscriptionError } from './transcribe-section';
+import { transcribeRequests } from './pin-transcript';
+import { captionLanguage, transcribeSection, TranscriptionError } from './transcribe-section';
+import { transcribeUnlessCancelled, transcriptionRuns } from './transcription-runs';
 import type { SectionTimeEdits, TranscriptWord } from './transcript-mapping';
 
 // The preview screen's captions state for one recorded section: the pinned words stored in the project,
@@ -22,7 +24,20 @@ interface Args {
 }
 
 function sectionEdits(project: Project, sectionName: string): SectionTimeEdits | undefined {
-  return project.templateContent.sections?.find((candidate: Section) => candidate.name === sectionName)?.options;
+  const section = project.templateContent.sections?.find((candidate: Section) => candidate.name === sectionName);
+
+  return section?.options;
+}
+
+// The language a template request listening to this step asks for (subtitles.transcribe.language).
+function requestedLanguage(project: Project, sectionName: string): string | undefined {
+  const requests = transcribeRequests(project.templateContent as Parameters<typeof transcribeRequests>[0]);
+
+  return requests.find((request) => request.source === sectionName && request.language)?.language;
+}
+
+function templateFps(project: Project): number | undefined {
+  return (project.templateContent.global as { fps?: number } | undefined)?.fps;
 }
 
 function describeFailure(error: unknown): string {
@@ -37,6 +52,7 @@ export function useSectionCaptions({ project, sectionName, clipPath, saveProject
   // undefined until the user changes something: the stored captions are read from the project.
   const [edited, setEdited] = useState<SectionCaptions | null | undefined>();
   const checkedStale = useRef(false);
+  const [runs] = useState(transcriptionRuns);
   const stored = project && sectionName ? readSectionCaptions(project.formData, sectionName) : null;
   const captions = edited === undefined ? stored : edited;
 
@@ -58,15 +74,22 @@ export function useSectionCaptions({ project, sectionName, clipPath, saveProject
     setFailure(null);
 
     try {
-      const next = await transcribeSection({
-        speech: LeclapSpeech,
-        clipPath,
-        language: speechLocale(getLocales().at(0)?.languageTag),
-        platform: Platform.OS === 'ios' ? 'ios' : 'android',
-        options: sectionEdits(project, sectionName),
-      });
-      await save(next);
-      setStatus('idle');
+      const saved = await transcribeUnlessCancelled(
+        runs,
+        () =>
+          transcribeSection({
+            speech: LeclapSpeech,
+            source: sectionName,
+            clipPath,
+            language: captionLanguage(requestedLanguage(project, sectionName), getLocales().at(0)?.languageTag),
+            platform: Platform.OS === 'ios' ? 'ios' : 'android',
+            options: sectionEdits(project, sectionName),
+            mapping: { fps: templateFps(project), sourceLength: project.recordedVideos[sectionName]?.duration },
+          }),
+        save
+      );
+
+      if (saved) setStatus('idle');
     } catch (error) {
       setFailure(describeFailure(error));
       setStatus('error');
@@ -89,6 +112,8 @@ export function useSectionCaptions({ project, sectionName, clipPath, saveProject
       return;
     }
 
+    // A transcription still running must not bring the captions back when it finishes.
+    runs.cancel();
     setStatus('idle');
     setFailure(null);
     save(null).catch(console.error);

@@ -1,9 +1,12 @@
 // Recogniser output (seconds into the recorded clip) → `subtitles.words` (seconds into the section).
-// Applies the section's time edits the app exposes: `options.clip` (in/out points in source seconds)
-// and `options.speed` (a PTS multiplier: 2 = slow motion, so section time = source time × speed).
-// A word belongs to the section when its midpoint is inside the clip range; a word straddling an edge
-// is clamped to it. The engine's own mapper (speed ramps, freezes, keep windows) covers the rest on
-// Node; the app never authors those edits on a recorded clip.
+// The mapping is the engine's own (core/captions/transcript-time.ts), so a phone pin lands where a Node
+// pin would: clip range, speed ramp, freezes, `options.speed` (a PTS multiplier: 2 = slow motion), the
+// declared length cap, and recogniser jitter untangled. Phrase splitting and the mean confidence stay here.
+
+import {
+  mapTranscriptWords as mapEngineWords,
+  transcriptEditFor,
+} from 'ffmpeg-video-composer/src/core/captions/transcript-time.ts';
 
 export interface TranscriptWord {
   text: string;
@@ -18,34 +21,27 @@ export interface TranscriptSegment {
   end: number;
 }
 
-export interface SectionTimeEdits {
-  clip?: { from?: number; to?: number };
-  speed?: number;
-}
+/** The section options the time mapping reads (clip, speed, speedRamp, freeze, duration, keep). */
+export type SectionTimeEdits = NonNullable<Parameters<typeof transcriptEditFor>[0]>;
 
 const round3 = (value: number): number => Math.round(value * 1000) / 1000;
 
-function inRange(word: TranscriptWord, from: number, to: number): boolean {
-  const mid = (word.start + word.end) / 2;
-
-  return mid >= from && mid < to;
+export interface MappingContext {
+  /** Frame rate the freezes are timed on (default 30). */
+  fps?: number;
+  /** The recorded clip's length, which a preset speed ramp scales to (as the engine's probe does). */
+  sourceLength?: number;
 }
 
+/** Source-timed recogniser words → section-timed caption words, through the engine's mapper. */
 export function mapTranscriptWords(
   words: readonly TranscriptWord[],
-  options: SectionTimeEdits | undefined
+  options: SectionTimeEdits | undefined,
+  context: MappingContext = {}
 ): TranscriptWord[] {
-  const from = options?.clip?.from ?? 0;
-  const to = options?.clip?.to ?? Number.POSITIVE_INFINITY;
-  const speed = options?.speed && options.speed > 0 ? options.speed : 1;
+  const edit = transcriptEditFor(options, { fps: context.fps ?? 30, sourceLength: context.sourceLength });
 
-  return words
-    .filter((word) => inRange(word, from, to))
-    .map((word) => ({
-      ...word,
-      start: round3((Math.max(word.start, from) - from) * speed),
-      end: round3((Math.min(word.end, to) - from) * speed),
-    }));
+  return mapEngineWords(words, edit);
 }
 
 /** Phrase-level recogniser output split into words sharing each phrase window by character count. */

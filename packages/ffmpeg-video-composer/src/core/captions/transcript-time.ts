@@ -6,6 +6,7 @@
 
 import type { KeepRange } from '../types';
 import { footagePlan, type FootageOptions, type FreezePlan, type RampPiece } from '../footage/plan';
+import { sourceLengthFor, type SourceLengthSection } from '../footage/source-length';
 
 export interface TranscriptWord {
   text: string;
@@ -63,15 +64,22 @@ function rampOutput(pieces: readonly RampPiece[] | null | undefined, source: num
   return piece.o0 + (source - piece.s0) / piece.speed;
 }
 
-// Section time of a ramp time: every hold at or before it pushes it later.
+// Sound time of a ramp time: every hold at or before it pushes the picture later, but only a hold that
+// pauses the sound pushes the speech (audio 'continue' plays on under the frozen frame, as in
+// editor/utils/footage-lowering.ts audioParts).
 function withHolds(rampTime: number, freezes: readonly FreezePlan[] | undefined, fps: number): number {
-  let time = rampTime;
+  let picture = rampTime;
+  let paused = 0;
 
   for (const freeze of freezes ?? []) {
-    if (time > freeze.frame / fps) time += freeze.frames / fps;
+    if (picture <= freeze.frame / fps) continue;
+
+    picture += freeze.frames / fps;
+
+    if (freeze.audio !== 'continue') paused += freeze.frames / fps;
   }
 
-  return time;
+  return rampTime + paused;
 }
 
 function toSection(edit: TranscriptEdit, window: Window, source: number): number {
@@ -146,4 +154,24 @@ export function transcriptEditFor(options: SectionOptions | undefined, context: 
     speed: opts.speed,
     duration: opts.duration,
   };
+}
+
+export interface SectionEditContext {
+  fps: number;
+  /** Probed clip lengths by section name (the director's buildInfos.sourceDurations). */
+  lengths?: Partial<Record<string, number>>;
+  /** Kept windows the take plan resolved (trimSilence). */
+  keep?: readonly KeepRange[];
+}
+
+/**
+ * The edit of a section, its source length picked by the lowering's rule (core/footage/source-length.ts):
+ * what the render pass and `leclap transcribe` both pin through.
+ */
+export function sectionTranscriptEdit(section: SourceLengthSection, context: SectionEditContext): TranscriptEdit {
+  return transcriptEditFor(section.options as SectionOptions | undefined, {
+    fps: context.fps,
+    sourceLength: sourceLengthFor(section, context.lengths),
+    ...(context.keep === undefined ? {} : { keep: context.keep }),
+  });
 }

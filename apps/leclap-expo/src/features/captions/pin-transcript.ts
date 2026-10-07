@@ -7,11 +7,14 @@
 import { meanConfidence, type TranscriptWord } from './transcript-mapping';
 
 export interface TranscriptRecord {
-  from: 'self';
+  /** The section whose clip was transcribed. */
+  from: string;
   engine: string;
   language?: string;
   model?: string;
   digest?: string;
+  /** Fingerprint of the source section's edits (the engine's editFingerprint). */
+  edit?: string;
   at?: string;
   confidence?: number;
 }
@@ -73,9 +76,29 @@ export function pinTranscript<T extends LooseDescriptor>(
   };
 }
 
-/** Names of the sections whose subtitles still ask for a transcription. */
+export interface TranscribeRequestOf {
+  /** The section that shows the captions. */
+  section: string;
+  /** The section whose clip it listens to (`transcribe.from`, "self" = its own). */
+  source: string;
+  language?: string;
+}
+
+/** Every `subtitles.transcribe` request of the descriptor, with the step it listens to. */
+export function transcribeRequests(descriptor: LooseDescriptor): TranscribeRequestOf[] {
+  return (descriptor.sections ?? []).flatMap((section) => {
+    const request = section.subtitles?.transcribe as { from?: unknown; language?: unknown } | undefined;
+
+    if (request === undefined || !section.name) return [];
+
+    const from = typeof request.from === 'string' && request.from !== 'self' ? request.from : section.name;
+    const language = typeof request.language === 'string' ? request.language : undefined;
+
+    return [{ section: section.name, source: from, ...(language && { language }) }];
+  });
+}
+
+/** The steps to open (each request's source clip, once) while the descriptor still asks for a transcription. */
 export function unpinnedTranscriptions(descriptor: LooseDescriptor): string[] {
-  return (descriptor.sections ?? []).flatMap((section) =>
-    section.subtitles?.transcribe !== undefined && section.name ? [section.name] : []
-  );
+  return [...new Set(transcribeRequests(descriptor).map((request) => request.source))];
 }

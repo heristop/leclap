@@ -62,6 +62,10 @@
                     "description": "sha256:<hex> of the source clip; a different clip makes the pin stale (transcript_stale).",
                     "type": "string"
                   },
+                  "edit": {
+                    "description": "Fingerprint of the source section's edits (clip, keep, trimSilence, speedRamp, freeze, speed, duration) the words were mapped through; different edits now report transcript_edit_changed.",
+                    "type": "string"
+                  },
                   "at": {
                     "description": "When the words were pinned (ISO 8601).",
                     "type": "string"

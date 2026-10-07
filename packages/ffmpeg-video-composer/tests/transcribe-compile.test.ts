@@ -80,7 +80,7 @@ describe('subtitles.transcribe in a Node compile', () => {
 
     const commands = (manifest as RenderManifest).graph.commands.join('\n');
 
-    expect(service.transcribe).toHaveBeenCalledWith(clip, { language: 'en' });
+    expect(service.transcribe).toHaveBeenCalledWith(clip, { language: 'en', signal: expect.any(AbortSignal) });
     expect(commands).toContain('Hello world');
     expect(commands).not.toContain('Skipped');
     // "Hello" is spoken at 1.2 s of the clip, 0.2 s into the section (clip.from = 1), shown 0.08 s early.

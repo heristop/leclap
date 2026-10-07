@@ -7,6 +7,7 @@ import type { SectionCaptions } from './caption-store';
 import {
   mapTranscriptWords,
   spreadSegments,
+  type MappingContext,
   type SectionTimeEdits,
   type TranscriptSegment,
   type TranscriptWord,
@@ -49,10 +50,13 @@ export class TranscriptionError extends Error {
 
 interface TranscribeArgs {
   speech: SpeechEngine;
+  /** The section whose clip is transcribed (recorded as the pin's `from`). */
+  source: string;
   clipPath: string;
   language: string;
   platform: 'ios' | 'android';
   options?: SectionTimeEdits;
+  mapping?: MappingContext;
   now?: () => Date;
 }
 
@@ -63,6 +67,11 @@ export function speechLocale(language: string | undefined): string {
   if (!language) return 'en-US';
 
   return REGION[language] ?? language;
+}
+
+/** The recogniser locale: the template's `subtitles.transcribe.language` first, then the device's. */
+export function captionLanguage(requested: string | undefined, device: string | undefined): string {
+  return speechLocale(requested ?? device);
 }
 
 async function assertReady(speech: SpeechEngine, language: string): Promise<void> {
@@ -83,8 +92,8 @@ export async function transcribeSection(args: TranscribeArgs): Promise<SectionCa
   await assertReady(speech, language);
 
   const transcript = await speech.transcribeFile(clipPath, { language });
-  const source = transcript.segmentsOnly ? spreadSegments(transcript.segments ?? []) : transcript.words;
-  const words = mapTranscriptWords(source, args.options);
+  const timed = transcript.segmentsOnly ? spreadSegments(transcript.segments ?? []) : transcript.words;
+  const words = mapTranscriptWords(timed, args.options, args.mapping);
 
   if (words.length === 0) throw new TranscriptionError('empty', 'No speech was recognised in this clip');
 
@@ -93,7 +102,7 @@ export async function transcribeSection(args: TranscribeArgs): Promise<SectionCa
     coarse: transcript.segmentsOnly,
     clipPath,
     record: {
-      from: 'self',
+      from: args.source,
       engine: `${platform}-speech`,
       language: transcript.language || language,
       ...(transcript.digest && { digest: transcript.digest }),

@@ -48,6 +48,13 @@ export const TranscriptRecordSchema = z
       .string()
       .optional()
       .describe('sha256:<hex> of the source clip; a different clip makes the pin stale (transcript_stale).'),
+    edit: z
+      .string()
+      .optional()
+      .describe(
+        "Fingerprint of the source section's edits (clip, keep, trimSilence, speedRamp, freeze, speed, duration) " +
+          'the words were mapped through; different edits now report transcript_edit_changed.'
+      ),
     at: z.string().optional().describe('When the words were pinned (ISO 8601).'),
     confidence: z.number().min(0).max(1).optional().describe('Mean word confidence, 0..1.'),
   })

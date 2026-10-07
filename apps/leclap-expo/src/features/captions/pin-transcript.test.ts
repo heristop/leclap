@@ -1,6 +1,6 @@
-import { pinTranscript, unpinnedTranscriptions } from './pin-transcript';
+import { pinTranscript, transcribeRequests, unpinnedTranscriptions } from './pin-transcript';
 
-const record = { from: 'self' as const, engine: 'ios-speech', language: 'en-US', at: '2026-10-07T10:00:00.000Z' };
+const record = { from: 'intro', engine: 'ios-speech', language: 'en-US', at: '2026-10-07T10:00:00.000Z' };
 const words = [
   { text: 'Hello', start: 0, end: 0.4, confidence: 0.9 },
   { text: 'there.', start: 0.5, end: 0.9, confidence: 0.7 },
@@ -55,5 +55,35 @@ describe('unpinnedTranscriptions', () => {
     expect(unpinnedTranscriptions(descriptor())).toEqual(['outro']);
     expect(unpinnedTranscriptions(pinTranscript(descriptor(), 'outro', words, record))).toEqual([]);
     expect(unpinnedTranscriptions({})).toEqual([]);
+  });
+
+  it('names the step whose clip a request listens to, once', () => {
+    const listening = {
+      sections: [
+        { name: 'talk', type: 'project_video', subtitles: { transcribe: {} } },
+        { name: 'card', type: 'color_background', subtitles: { transcribe: { from: 'talk' } } },
+      ],
+    };
+
+    expect(unpinnedTranscriptions(listening)).toEqual(['talk']);
+  });
+});
+
+describe('transcribeRequests', () => {
+  it('lists each request with the step it listens to and its language', () => {
+    const listening = {
+      sections: [
+        { name: 'talk', type: 'project_video', subtitles: { transcribe: { language: 'de' } } },
+        { name: 'card', type: 'color_background', subtitles: { transcribe: { from: 'talk' } } },
+        { name: 'self', type: 'project_video', subtitles: { transcribe: { from: 'self' } } },
+        { name: 'plain', type: 'project_video' },
+      ],
+    };
+
+    expect(transcribeRequests(listening)).toEqual([
+      { section: 'talk', source: 'talk', language: 'de' },
+      { section: 'card', source: 'talk' },
+      { section: 'self', source: 'self' },
+    ]);
   });
 });

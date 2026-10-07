@@ -1,11 +1,16 @@
 // whisper.cpp ggml models: never bundled, downloaded once on an explicit opt-in (`--download-model`,
 // `download: true` or LECLAP_WHISPER_DOWNLOAD=1) from the official ggerganov/whisper.cpp repository into a
-// user cache, and SHA-256-verified before use. LECLAP_WHISPER_MODEL points at a model file of your own.
+// user cache, and SHA-256-verified before use: a download is hashed as it streams in, a cached file once,
+// after which a `<model>.sha256` marker beside it stands for the check (until the model file changes).
+// LECLAP_WHISPER_MODEL points at a model file of your own.
 
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { Readable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import type { ReadableStream as WebReadableStream } from 'node:stream/web';
 import type { TRANSCRIBE_MODELS } from '../../schemas/transcribe.schemas';
 
 export type WhisperModelName = (typeof TRANSCRIBE_MODELS)[number];
@@ -72,6 +77,48 @@ function isComplete(file: string, spec: WhisperModelSpec): boolean {
   }
 }
 
+function markerOf(file: string): string {
+  return `${file}.sha256`;
+}
+
+// The marker vouches for the model only if it holds the expected digest and was written after the model.
+function hasMarker(file: string, spec: WhisperModelSpec): boolean {
+  try {
+    const marker = markerOf(file);
+
+    return (
+      fs.readFileSync(marker, 'utf8').trim() === spec.sha256 && fs.statSync(marker).mtimeMs >= fs.statSync(file).mtimeMs
+    );
+  } catch {
+    return false;
+  }
+}
+
+function writeMarker(file: string, spec: WhisperModelSpec): void {
+  fs.writeFileSync(markerOf(file), `${spec.sha256}\n`);
+}
+
+async function sha256Of(file: string): Promise<string> {
+  const hash = crypto.createHash('sha256');
+
+  await pipeline(fs.createReadStream(file), hash);
+
+  return hash.digest('hex');
+}
+
+// A cached model of the right size: trusted on its marker, else hashed once and marked.
+async function isVerified(file: string, spec: WhisperModelSpec): Promise<boolean> {
+  if (!isComplete(file, spec)) return false;
+
+  if (hasMarker(file, spec)) return true;
+
+  if ((await sha256Of(file)) !== spec.sha256) return false;
+
+  writeMarker(file, spec);
+
+  return true;
+}
+
 function missing(name: string, spec: WhisperModelSpec, dir: string): Error {
   const megabytes = Math.round(spec.bytes / 1_000_000);
 
@@ -82,35 +129,33 @@ function missing(name: string, spec: WhisperModelSpec, dir: string): Error {
   );
 }
 
+// Streams the body to a temporary file of this download's own (never a shared `.part`), hashing it on the
+// way with backpressure; a write error (ENOENT, EACCES, ENOSPC) rejects instead of crashing the process,
+// and every failure removes the temporary file.
 async function download(spec: WhisperModelSpec, target: string, options: EnsureModelOptions): Promise<void> {
   const response = await (options.fetch ?? fetch)(spec.url, { signal: options.signal });
 
   if (!response.ok || !response.body) throw new Error(`model download failed: HTTP ${response.status} for ${spec.url}`);
 
-  const partial = `${target}.part`;
+  const partial = `${target}.${process.pid}.${crypto.randomUUID()}.part`;
   const hash = crypto.createHash('sha256');
-  const out = fs.createWriteStream(partial);
   let received = 0;
-
-  try {
-    for await (const chunk of response.body as unknown as AsyncIterable<Uint8Array>) {
+  const hashing = new Transform({
+    transform(chunk: Buffer, _encoding, callback) {
       hash.update(chunk);
-      out.write(chunk);
       received += chunk.byteLength;
       options.onProgress?.(received, spec.bytes);
-    }
+      callback(null, chunk);
+    },
+  });
 
-    await new Promise<void>((resolve, reject) => {
-      out.end((error?: Error | null) => {
-        if (error) {
-          reject(error);
-
-          return;
-        }
-
-        resolve();
-      });
-    });
+  try {
+    await pipeline(
+      Readable.fromWeb(response.body as unknown as WebReadableStream<Uint8Array>),
+      hashing,
+      fs.createWriteStream(partial),
+      { signal: options.signal }
+    );
 
     const digest = hash.digest('hex');
 
@@ -119,8 +164,8 @@ async function download(spec: WhisperModelSpec, target: string, options: EnsureM
     }
 
     fs.renameSync(partial, target);
+    writeMarker(target, spec);
   } finally {
-    out.destroy();
     fs.rmSync(partial, { force: true });
   }
 }
@@ -138,7 +183,7 @@ export async function ensureWhisperModel(name: WhisperModelName, options: Ensure
   const dir = options.dir ?? whisperCacheDir(env);
   const target = path.join(dir, spec.file);
 
-  if (isComplete(target, spec)) return target;
+  if (await isVerified(target, spec)) return target;
 
   if (!(options.download || env.LECLAP_WHISPER_DOWNLOAD === '1')) throw missing(name, spec, dir);
 

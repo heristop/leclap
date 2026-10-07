@@ -2,7 +2,7 @@
 // on-device app pins its OS recogniser's words with the same mapping, pin record and advisories as Node.
 export { mapTranscriptWords, transcriptEditFor, type TranscriptEdit, type TranscriptWord } from './transcript-time';
 export { transcriptSrt } from './transcript-srt';
-export { pinTranscript, staleTranscripts, transcriptRecords } from './transcript-pin';
+export { editFingerprint, pinTranscript, staleTranscripts, transcriptRecords } from './transcript-pin';
 export {
   awaitsTranscription,
   transcribeTargets,

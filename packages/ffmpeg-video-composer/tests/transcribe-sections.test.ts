@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { transcribeSections, type TranscribeSectionsDeps } from '@/director/transcribe-sections';
 import type { Section, TemplateDescriptor } from '@/core/types';
+import { mapTranscriptWords } from '@/core/captions/transcript-time';
+import { editFingerprint } from '@/core/captions/transcript-pin';
+import { sectionFootagePlan } from '@/editor/utils/footage-section';
 
 function template(subtitles: Record<string, unknown>, meta?: unknown): TemplateDescriptor {
   return {
@@ -50,6 +53,19 @@ describe('transcribeSections', () => {
     );
   });
 
+  it("hands the render's abort signal to the transcriber, so a cancelled render stops whisper", async () => {
+    const descriptor = template({ transcribe: {} });
+    const controller = new AbortController();
+    const host = deps({ signal: controller.signal });
+
+    await transcribeSections(descriptor, descriptor.sections as Section[], host);
+
+    expect(host.service?.transcribe).toHaveBeenCalledWith(
+      '/clips/talk.mp4',
+      expect.objectContaining({ signal: controller.signal })
+    );
+  });
+
   it('stops the build with transcribe_unavailable without a transcriber', async () => {
     const descriptor = template({ transcribe: {} });
 
@@ -68,6 +84,50 @@ describe('transcribeSections', () => {
     expect(await transcribeSections(descriptor, descriptor.sections as Section[], host)).toBe(descriptor);
     expect(host.logger.warn).toHaveBeenCalledWith(expect.stringMatching(/transcript_stale/));
     expect(host.service?.transcribe).not.toHaveBeenCalled();
+  });
+
+  it('maps a reused clip through the plan the lowering builds (useVideoSection length)', async () => {
+    const spoken = [{ text: 'Hello', start: 2, end: 2.2, confidence: 0.9 }];
+    const reused = {
+      name: 'b',
+      type: 'video',
+      options: { useVideoSection: 'talk', speedRamp: 'hero', duration: 4 },
+      subtitles: { transcribe: {} },
+    } as unknown as Section;
+    const descriptor = {
+      sections: [{ name: 'talk', type: 'project_video', options: {} }, reused],
+    } as unknown as TemplateDescriptor;
+    const buildInfos = { sourceDurations: { talk: 10 } };
+    const host = deps({
+      buildInfos,
+      service: {
+        transcribe: vi.fn(async () => ({ engine: 'whisper.cpp', words: spoken })),
+        digest: vi.fn(async () => 'sha256:new'),
+      },
+    });
+    const plan = sectionFootagePlan(reused, buildInfos as never, 30);
+
+    await transcribeSections(descriptor, descriptor.sections as Section[], host);
+
+    expect(reused.subtitles?.words).toEqual(
+      mapTranscriptWords(spoken, { pieces: plan?.pieces ?? null, freezes: plan?.freezes ?? [], fps: 30, duration: 4 })
+    );
+  });
+
+  it('warns when the section was re-cut since its words were pinned, even without a transcriber', async () => {
+    const descriptor = template(
+      { words: [{ text: 'Hi', start: 0, end: 0.2 }] },
+      {
+        resolved: {
+          transcripts: { talk: { from: 'talk', engine: 'ios-speech', edit: editFingerprint({ clip: { from: 0 } }) } },
+        },
+      }
+    );
+    const host = deps({ service: null });
+
+    await transcribeSections(descriptor, descriptor.sections as Section[], host);
+
+    expect(host.logger.warn).toHaveBeenCalledWith(expect.stringMatching(/transcript_edit_changed/));
   });
 
   it('does nothing for a descriptor without transcripts', async () => {

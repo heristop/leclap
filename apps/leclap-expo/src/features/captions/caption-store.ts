@@ -3,7 +3,8 @@
 // storage field. At compile they are pinned into the descriptor (pin-transcript.ts); a retake of the
 // clip makes them stale (the transcribed path no longer matches the section's clip).
 
-import { pinTranscript, type TranscriptRecord } from './pin-transcript';
+import { editFingerprint } from 'ffmpeg-video-composer/src/core/captions/edit-fingerprint.ts';
+import { pinTranscript, transcribeRequests, unpinnedTranscriptions, type TranscriptRecord } from './pin-transcript';
 import { spreadSegments, type TranscriptWord } from './transcript-mapping';
 
 export interface SectionCaptions {
@@ -42,23 +43,78 @@ export function withSectionCaptions(
   return captions ? { ...rest, [keyOf(sectionName)]: captions } : rest;
 }
 
-/** The descriptor with every stored section transcript pinned (the input itself when there is none). */
-export function applyCaptionPins<T extends { sections?: Array<{ name?: string }> }>(
-  descriptor: T,
-  formData: Record<string, unknown>
-): T {
-  let pinned = descriptor;
+interface PinnableProject {
+  formData: Record<string, unknown>;
+  recordedVideos: Record<string, { path: string } | undefined>;
+}
 
-  for (const key of Object.keys(formData)) {
+export interface AppliedCaptionPins<T> {
+  descriptor: T;
+  /** Steps to open before compiling: retaken since their captions, or still asked to transcribe. */
+  pending: string[];
+}
+
+type PinnableDescriptor = {
+  sections?: Array<{ name?: string; options?: unknown; subtitles?: Record<string, unknown> }>;
+};
+
+function storedCaptions(formData: Record<string, unknown>): Array<[string, SectionCaptions]> {
+  return Object.keys(formData).flatMap((key) => {
     const name = key.startsWith(PREFIX) ? key.slice(PREFIX.length) : null;
     const captions = name ? readSectionCaptions(formData, name) : null;
 
-    if (name && captions) {
-      pinned = pinTranscript(pinned, name, captions.words, captions.record, { coarse: captions.coarse });
+    return name && captions ? [[name, captions] as [string, SectionCaptions]] : [];
+  });
+}
+
+function pinFrom<T extends PinnableDescriptor>(
+  descriptor: T,
+  section: string,
+  source: string,
+  captions: SectionCaptions
+) {
+  // The edits the words were mapped through, so the engine's transcript_edit_changed can tell a re-cut.
+  const options = descriptor.sections?.find((candidate) => candidate.name === source)?.options;
+  const record = { ...captions.record, from: source, edit: editFingerprint(options) };
+
+  return pinTranscript(descriptor, section, captions.words, record, { coarse: captions.coarse });
+}
+
+/**
+ * The descriptor with every stored section transcript pinned. Captions of a clip retaken since they were
+ * transcribed are not pinned (their words belong to the old take) and their step is reported pending, like
+ * a request nobody transcribed yet; a section listening to another step (`transcribe.from`) is pinned from
+ * that step's captions.
+ */
+export function applyCaptionPins<T extends PinnableDescriptor>(
+  descriptor: T,
+  project: PinnableProject
+): AppliedCaptionPins<T> {
+  const fresh = new Map<string, SectionCaptions>();
+  const stale: string[] = [];
+
+  for (const [name, captions] of storedCaptions(project.formData)) {
+    const clip = project.recordedVideos[name]?.path;
+
+    if (clip !== undefined && !isCaptionsStale(captions, clip)) {
+      fresh.set(name, captions);
+      continue;
     }
+
+    stale.push(name);
   }
 
-  return pinned;
+  let pinned = descriptor;
+
+  for (const [name, captions] of fresh) pinned = pinFrom(pinned, name, name, captions);
+
+  for (const request of transcribeRequests(pinned)) {
+    const captions = fresh.get(request.source);
+
+    if (captions) pinned = pinFrom(pinned, request.section, request.source, captions);
+  }
+
+  return { descriptor: pinned, pending: [...new Set([...stale, ...unpinnedTranscriptions(pinned)])] };
 }
 
 interface CaptionableProject {

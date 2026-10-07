@@ -1,14 +1,15 @@
 // The director's transcription step, once the clips are probed and the take plans resolved (so trimmed
 // silences are known): every `subtitles.transcribe` request is transcribed by the host's transcription
 // service and pinned (director/transcription.ts), onto the descriptor and onto the sections the build
-// renders; pinned transcripts whose clip changed are reported as transcript_stale. Only the Node entry
-// registers a service; elsewhere validation already stopped the build with transcribe_unavailable.
+// renders; pinned transcripts whose clip changed are reported as transcript_stale, those whose section was
+// re-cut since as transcript_edit_changed. Only the Node entry registers a service; elsewhere validation
+// already stopped the build with transcribe_unavailable.
 
 import type { KeepRange, Section } from '@/core/types';
 import type { Transcriber } from '@/core/captions/transcript';
 import { awaitsTranscription } from '@/core/captions/transcribe-requests';
 import { staleTranscripts, transcriptRecords } from '@/core/captions/transcript-pin';
-import { transcriptEditFor } from '@/core/captions/transcript-time';
+import { sectionTranscriptEdit } from '@/core/captions/transcript-time';
 import { resolveTranscripts, type TranscriptPin } from './transcription';
 
 /** DI token of the host's transcription service. */
@@ -29,6 +30,8 @@ export interface TranscribeSectionsDeps {
     footage?: Record<string, { keep?: KeepRange[] } | undefined>;
   };
   logger: { info: (message: string) => void; warn: (message: string) => void };
+  /** The render's cancellation: aborting it stops the transcriber (whisper is killed). */
+  signal?: AbortSignal;
 }
 
 function logPin(pin: TranscriptPin, logger: TranscribeSectionsDeps['logger']): void {
@@ -43,11 +46,11 @@ function logPin(pin: TranscriptPin, logger: TranscribeSectionsDeps['logger']): v
   );
 }
 
-async function warnStale(descriptor: unknown, deps: TranscribeSectionsDeps): Promise<void> {
+// Clip digests are measured only with a transcription service (Node); edit changes need none.
+async function currentDigests(sources: string[], deps: TranscribeSectionsDeps): Promise<Record<string, string>> {
   const service = deps.service;
-  const sources = [...new Set(Object.values(transcriptRecords(descriptor)).map((record) => record.from))];
 
-  if (!service || sources.length === 0) return;
+  if (!service) return {};
 
   const digests = await Promise.all(
     sources.map(async (source) => {
@@ -56,7 +59,16 @@ async function warnStale(descriptor: unknown, deps: TranscribeSectionsDeps): Pro
       return file ? [[source, await service.digest(file)] as const] : [];
     })
   );
-  const current: Record<string, string> = Object.fromEntries(digests.flat());
+
+  return Object.fromEntries(digests.flat());
+}
+
+async function warnStale(descriptor: unknown, deps: TranscribeSectionsDeps): Promise<void> {
+  const sources = [...new Set(Object.values(transcriptRecords(descriptor)).map((record) => record.from))];
+
+  if (sources.length === 0) return;
+
+  const current = await currentDigests(sources, deps);
 
   for (const warning of staleTranscripts(descriptor, current)) deps.logger.warn(`[${warning.code}] ${warning.message}`);
 }
@@ -86,11 +98,12 @@ export async function transcribeSections<T extends { meta?: unknown; sections?: 
     digestOf: service.digest,
     sourceOf: deps.sourceOf,
     editOf: (section) =>
-      transcriptEditFor(section.options as Parameters<typeof transcriptEditFor>[0], {
+      sectionTranscriptEdit(section, {
         fps: deps.fps,
-        sourceLength: deps.buildInfos.sourceDurations?.[section.name],
+        lengths: deps.buildInfos.sourceDurations,
         keep: deps.buildInfos.footage?.[section.name]?.keep,
       }),
+    ...(deps.signal && { signal: deps.signal }),
   });
 
   for (const pin of pins) {

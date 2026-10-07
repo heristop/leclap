@@ -10,6 +10,7 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.ByteOrder
+import kotlin.math.roundToLong
 
 /**
  * Decodes a clip's first audio track to raw 16 kHz mono 16-bit little-endian PCM (the audio-source
@@ -40,6 +41,11 @@ object PcmDecoder {
       index += 1
     }
 
+    /** Silence before the first sample, so PCM time 0 stays clip time 0. */
+    fun pad(seconds: Double) {
+      repeat((seconds * RATE).roundToLong().toInt()) { write(0f) }
+    }
+
     private fun write(value: Float) {
       val clamped = (value.coerceIn(-1f, 1f) * Short.MAX_VALUE).toInt()
       out.write(clamped and 0xff)
@@ -48,7 +54,14 @@ object PcmDecoder {
     }
   }
 
-  private class Frame(var channels: Int, var float: Boolean)
+  /**
+   * Output layout, plus where the first decoded sample sits: a track starting late (positive
+   * presentationTimeUs) is padded with silence, encoder priming (negative) is skipped.
+   */
+  private class Frame(var channels: Int, var float: Boolean) {
+    var started = false
+    var skip = 0L
+  }
 
   fun decode(context: Context, uri: Uri, target: File): Decoded {
     val extractor = MediaExtractor()
@@ -62,17 +75,22 @@ object PcmDecoder {
       extractor.selectTrack(track)
       val format = extractor.getTrackFormat(track)
       val codec = MediaCodec.createDecoderByType(format.getString(MediaFormat.KEY_MIME)!!)
-      codec.configure(format, null, null, 0)
-      codec.start()
 
-      BufferedOutputStream(FileOutputStream(target)).use { out ->
-        val resampler = Resampler(out)
-        resampler.sourceRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-        val frame = Frame(format.getInteger(MediaFormat.KEY_CHANNEL_COUNT), false)
-        pump(extractor, codec, resampler, frame)
-        codec.stop()
+      try {
+        codec.configure(format, null, null, 0)
+        codec.start()
+
+        BufferedOutputStream(FileOutputStream(target)).use { out ->
+          val resampler = Resampler(out)
+          resampler.sourceRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+          val frame = Frame(format.getInteger(MediaFormat.KEY_CHANNEL_COUNT), false)
+          pump(extractor, codec, resampler, frame)
+          return Decoded(resampler.written.toDouble() / RATE)
+        }
+      } finally {
+        // stop() throws when the codec never started (configure failed); release() must run regardless.
+        runCatching { codec.stop() }
         codec.release()
-        return Decoded(resampler.written.toDouble() / RATE)
       }
     } finally {
       extractor.release()
@@ -135,13 +153,27 @@ object PcmDecoder {
       buffer.order(ByteOrder.LITTLE_ENDIAN)
       val channels = frame.channels.coerceAtLeast(1)
 
+      if (!frame.started) start(frame, info.presentationTimeUs, resampler)
+
       while (buffer.remaining() >= channels * (if (frame.float) 4 else 2)) {
         var sum = 0f
         repeat(channels) { sum += if (frame.float) buffer.float else buffer.short / 32768f }
+        if (frame.skip > 0) {
+          frame.skip -= 1
+          continue
+        }
         resampler.push(sum / channels)
       }
     }
 
     codec.releaseOutputBuffer(output, false)
+  }
+
+  private fun start(frame: Frame, presentationTimeUs: Long, resampler: Resampler) {
+    frame.started = true
+    val offset = presentationTimeUs / 1_000_000.0
+
+    if (offset > 0) resampler.pad(offset)
+    if (offset < 0) frame.skip = (-offset * resampler.sourceRate).roundToLong()
   }
 }

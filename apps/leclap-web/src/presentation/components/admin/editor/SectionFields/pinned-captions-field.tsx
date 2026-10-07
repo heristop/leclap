@@ -32,8 +32,10 @@ export const PinnedCaptionsField = ({ subtitles, onChange }: PinnedCaptionsField
       <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">{t('pinnedCaptions.hint')}</p>
       <div className="flex flex-wrap gap-1">
         {words.map((word, index) => (
+          // Keyed by the text too: an uncontrolled input only reads defaultValue on mount, so an outside
+          // change (undo, a re-pin) must remount it to show the new word.
           <input
-            key={`${index}-${word.start}`}
+            key={`${index}-${word.start}-${word.text}`}
             defaultValue={word.text}
             data-unsure={isUnsure(word)}
             aria-label={t('pinnedCaptions.word', { start: word.start.toFixed(2) })}

@@ -7,7 +7,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { TranscribeRequest, TranscriptRecord } from '../../schemas/transcribe.schemas';
-import { transcriptEditFor, type TranscriptEdit } from '@/core/captions/transcript-time';
+import { sectionTranscriptEdit, type TranscriptEdit } from '@/core/captions/transcript-time';
+import { sourceLengthKey } from '@/core/footage/source-length';
 import { staleTranscripts, transcriptRecords } from '@/core/captions/transcript-pin';
 import { computeKeepRanges, resolveTrimSilence } from '@/core/footage/keep-ranges';
 import type { MotionWarning } from '../motion-lint';
@@ -139,24 +140,40 @@ async function probedLength(file: string, ffprobe: string): Promise<number | und
   return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined;
 }
 
+// The kept windows of a trimSilence take, analysed on the section's own clip.
+async function keptWindows(
+  file: string | null,
+  trimSilence: unknown,
+  options: TranscribeTemplateOptions
+): Promise<Array<[number, number]> | undefined> {
+  if (!file || !trimSilence) return undefined;
+
+  const sourceLength = await probedLength(file, options.ffprobe ?? 'ffprobe');
+
+  if (!sourceLength) return undefined;
+
+  const params = resolveTrimSilence(trimSilence);
+  const silences = await createFootageAnalyzer(options.ffmpeg ?? 'ffmpeg').silences(file, params);
+
+  return computeKeepRanges(silences, sourceLength, params);
+}
+
+// The section's edit as the render pass builds it: the probed length only where the lowering scales by
+// one (sourceLengthKey) and the edit reads it (a preset ramp), the kept windows of a trimSilence take.
 async function editOf(
   section: LooseSection,
-  file: string | null,
+  clipOf: (name: string) => string | null,
   options: TranscribeTemplateOptions,
   fps: number
 ): Promise<TranscriptEdit> {
   const opts = section.options ?? {};
-  const needsLength = typeof opts.speedRamp === 'string' || opts.trimSilence !== undefined;
-  const sourceLength = file && needsLength ? await probedLength(file, options.ffprobe ?? 'ffprobe') : undefined;
-  let keep: Array<[number, number]> | undefined;
+  const key = sourceLengthKey(section);
+  const keyFile = key === null || typeof opts.speedRamp !== 'string' ? null : clipOf(key);
+  const length = keyFile === null ? undefined : await probedLength(keyFile, options.ffprobe ?? 'ffprobe');
+  const lengths = key !== null && length !== undefined ? { [key]: length } : {};
+  const keep = await keptWindows(clipOf(section.name), opts.trimSilence, options);
 
-  if (file && sourceLength && opts.trimSilence) {
-    const params = resolveTrimSilence(opts.trimSilence);
-    const silences = await createFootageAnalyzer(options.ffmpeg ?? 'ffmpeg').silences(file, params);
-    keep = computeKeepRanges(silences, sourceLength, params);
-  }
-
-  return transcriptEditFor(opts, { fps, sourceLength, keep });
+  return sectionTranscriptEdit(section, { fps, lengths, keep });
 }
 
 export interface TranscribeTemplateResult<T> {
@@ -196,7 +213,7 @@ export async function transcribeTemplate<T extends Descriptor>(
     transcribe: service.transcribe,
     digestOf: service.digest,
     sourceOf: async (name) => clipOf(name),
-    editOf: (section) => editOf(section as LooseSection, clipOf(section.name), options, fps),
+    editOf: (section) => editOf(section as LooseSection, clipOf, options, fps),
     sections: options.sections,
     signal: options.signal,
     now: options.now,

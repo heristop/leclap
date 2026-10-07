@@ -8,6 +8,9 @@ import {
   type LooseSection,
 } from '@/services/transcribe-node/transcribe-template-node';
 import type { TranscriptionService } from '@/director/transcribe-sections';
+import type { Section } from '@/core/types';
+import { mapTranscriptWords } from '@/core/captions/transcript-time';
+import { sectionFootagePlan } from '@/editor/utils/footage-section';
 
 let assets: string;
 
@@ -107,5 +110,67 @@ describe('transcribeTemplate', () => {
 
     expect(result.pins.map((pin) => pin.section)).toEqual(['b']);
     expect(result.descriptor.sections[0].subtitles).toEqual({ transcribe: {} });
+  });
+});
+
+// A stand-in ffprobe that reports every clip as 10 s long.
+function fakeProbe(): string {
+  const file = path.join(assets, 'ffprobe');
+  fs.writeFileSync(file, '#!/bin/sh\necho 10\n', { mode: 0o755 });
+
+  return file;
+}
+
+const SPOKEN = [{ text: 'Hello', start: 2, end: 2.2, confidence: 0.9 }];
+
+function spokenService(): TranscriptionService {
+  return {
+    transcribe: async () => ({ engine: 'whisper.cpp', model: 'base', language: 'en', words: SPOKEN }),
+    digest: async () => 'sha256:clip',
+  };
+}
+
+// What the segment lowering plays: the words mapped through its own footage plan.
+function asLowered(section: LooseSection, sourceDurations: Record<string, number>) {
+  const plan = sectionFootagePlan(section as unknown as Section, { sourceDurations } as never, 30);
+
+  const duration = section.options?.duration as number | undefined;
+
+  return mapTranscriptWords(SPOKEN, { pieces: plan?.pieces ?? null, freezes: plan?.freezes ?? [], fps: 30, duration });
+}
+
+describe('transcribeTemplate source length', () => {
+  it('scales a preset ramp on a video section like the lowering does (declared duration, not the probe)', async () => {
+    const section = {
+      name: 'b',
+      type: 'video',
+      options: { videoUrl: 'interview.mp4', speedRamp: 'hero', duration: 4 },
+      subtitles: { transcribe: {} },
+    };
+    const result = await transcribeTemplate(descriptor([section]), {
+      assetsDir: assets,
+      ffprobe: fakeProbe(),
+      service: spokenService(),
+    });
+
+    expect(result.descriptor.sections[0].subtitles?.words).toEqual(asLowered(section, {}));
+  });
+
+  it('scales a reused clip on the length of the section it reuses', async () => {
+    const talk = { name: 'talk', type: 'project_video' };
+    const section = {
+      name: 'b',
+      type: 'video',
+      options: { useVideoSection: 'talk', speedRamp: 'hero', duration: 4 },
+      subtitles: { transcribe: {} },
+    };
+    const result = await transcribeTemplate(descriptor([talk, section]), {
+      assetsDir: assets,
+      ffprobe: fakeProbe(),
+      service: spokenService(),
+    });
+
+    expect(result.descriptor.sections[1].subtitles?.words).toEqual(asLowered(section, { talk: 10 }));
+    expect(asLowered(section, { talk: 10 })).not.toEqual(asLowered(section, {}));
   });
 });

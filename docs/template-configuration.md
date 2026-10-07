@@ -554,12 +554,12 @@ Everything lowers to `drawtext` / `drawbox` gated by `enable` windows. Errors: `
 | `language` | BCP-47 (`en`, `fr-FR`). Omitted: detected, then recorded in the pin.                              |
 | `model`    | Whisper model on Node: `tiny`, `base` (default), `small`.                                         |
 
-Pinning replaces `transcribe` with `words` and records how they were made in `meta.resolved.transcripts[<section>]`: `{ from, engine, model, language, digest, at, confidence }` (`digest` is the SHA-256 of the source clip). A resolved template never holds both: `transcribe` next to `words`, `cues` or `srt` is a validation error.
+Pinning replaces `transcribe` with `words` and records how they were made in `meta.resolved.transcripts[<section>]`: `{ from, engine, model, language, digest, edit, at, confidence }` (`digest` is the SHA-256 of the source clip; `edit` fingerprints the source section's `clip`, `keep`, `trimSilence`, `speedRamp`, `freeze`, `speed` and `duration`, the edits the words were mapped through; older pins without it are not checked). A resolved template never holds both: `transcribe` next to `words`, `cues` or `srt` is a validation error.
 
 ```jsonc
 "meta": { "resolved": { "transcripts": { "talk": {
   "from": "talk", "engine": "whisper.cpp", "model": "base", "language": "en",
-  "digest": "sha256:0e7a…", "at": "2026-10-07T14:31:08.458Z", "confidence": 0.956
+  "digest": "sha256:0e7a…", "edit": "fnv1a:3c9a51e2", "at": "2026-10-07T14:31:08.458Z", "confidence": 0.956
 } } } }
 ```
 
@@ -584,7 +584,7 @@ leclap transcribe talk.mov --srt                     # a media file: prints its 
 
 `leclap render` (and the MCP `compose_video`) also resolves an unpinned request on the fly and logs the pin, but only `leclap transcribe` (or the `transcribe_media` MCP tool) keeps the words in the template, so the next render is identical. Show the words to a human before publishing: recognisers mishear names and jargon.
 
-Errors: `invalid_transcribe_source` (`from` is not a clip section), `transcribe_unavailable` (browser and on-device engines). Advisories: `transcript_low_confidence` (mean word confidence under 0.6: review the words), `transcript_stale` (the clip's digest no longer matches the pin: re-transcribe with `leclap transcribe --force`; reported by the Node render and `leclap transcribe`).
+Errors: `invalid_transcribe_source` (`from` is not a clip section), `transcribe_unavailable` (browser and on-device engines). Advisories: `transcript_low_confidence` (mean word confidence under 0.6: review the words), `transcript_stale` (the clip's digest no longer matches the pin: re-transcribe with `leclap transcribe --force`; reported by the Node render and `leclap transcribe`), `transcript_edit_changed` (the source section's edits no longer match the pin's `edit` fingerprint, so the words may sit at the wrong times: re-transcribe with `--force`; reported by every Node render and `leclap transcribe`).
 
 ## Fonts
 

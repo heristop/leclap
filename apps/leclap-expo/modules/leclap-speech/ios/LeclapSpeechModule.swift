@@ -5,13 +5,15 @@ import Speech
 
 // On-device transcription of a recorded clip for auto-captions. Recognition is pinned to the device
 // (requiresOnDeviceRecognition = true): when the locale has no on-device model this refuses with a
-// reason instead of sending audio to Apple's servers. Word timings come from the final transcription's
-// segments (substring, timestamp, duration, confidence). Video files are exported to an m4a first so
-// the request reads plain audio.
+// reason instead of sending audio to Apple's servers. Word timings come from the segments (substring,
+// timestamp, duration, confidence) of every final utterance: a long file can end several utterances,
+// and the task delegate reports each one before it finishes. Video files are exported to an m4a first
+// so the request reads plain audio.
 public class LeclapSpeechModule: Module {
   // The in-flight recognition, kept alive until its final result.
   private var task: SFSpeechRecognitionTask?
   private var recognizer: SFSpeechRecognizer?
+  private var collector: RecognitionCollector?
 
   public func definition() -> ModuleDefinition {
     Name("LeclapSpeech")
@@ -122,34 +124,33 @@ public class LeclapSpeechModule: Module {
     request.shouldReportPartialResults = false
     if #available(iOS 16, *) { request.addsPunctuation = true }
 
-    self.recognizer = recognizer
-    var settled = false
-    self.task = recognizer.recognitionTask(with: request) { result, error in
-      if settled { return }
+    let collector = RecognitionCollector { segments, error in
+      self.finish(audio: audio, source: source)
 
       if let error {
-        settled = true
-        self.finish(audio: audio, source: source)
         promise.reject("ERR_SPEECH", error.localizedDescription)
         return
       }
 
-      guard let result, result.isFinal else { return }
-
-      settled = true
-      self.finish(audio: audio, source: source)
-      promise.resolve(Self.transcript(result, language: language, source: source))
+      // Hashing a long clip takes a while: keep it off the queue the recognizer reports on (main).
+      DispatchQueue.global(qos: .userInitiated).async {
+        promise.resolve(Self.transcript(segments, language: language, source: source))
+      }
     }
+    self.recognizer = recognizer
+    self.collector = collector
+    self.task = recognizer.recognitionTask(with: request, delegate: collector)
   }
 
   private func finish(audio: URL, source: URL) {
     task = nil
     recognizer = nil
+    collector = nil
     if audio != source { try? FileManager.default.removeItem(at: audio) }
   }
 
-  private static func transcript(_ result: SFSpeechRecognitionResult, language: String, source: URL) -> [String: Any] {
-    let words: [[String: Any]] = result.bestTranscription.segments.map { segment in
+  private static func transcript(_ segments: [SFTranscriptionSegment], language: String, source: URL) -> [String: Any] {
+    let words: [[String: Any]] = segments.map { segment in
       var word: [String: Any] = [
         "text": segment.substring,
         "start": segment.timestamp,
@@ -163,5 +164,39 @@ public class LeclapSpeechModule: Module {
     var payload: [String: Any] = ["language": language, "words": words, "segmentsOnly": false]
     if let digest = digest(source) { payload["digest"] = digest }
     return payload
+  }
+}
+
+// Collects the segments of every final utterance and settles once, when the task finishes. A final
+// result that restarts before the collected end (a cumulative transcription) replaces the overlap
+// instead of duplicating it.
+private final class RecognitionCollector: NSObject, SFSpeechRecognitionTaskDelegate {
+  private var segments: [SFTranscriptionSegment] = []
+  private var settled = false
+  private let settle: ([SFTranscriptionSegment], Error?) -> Void
+
+  init(settle: @escaping ([SFTranscriptionSegment], Error?) -> Void) {
+    self.settle = settle
+  }
+
+  func speechRecognitionTask(_ task: SFSpeechRecognitionTask, didFinishRecognition result: SFSpeechRecognitionResult) {
+    let utterance = result.bestTranscription.segments
+    guard let first = utterance.first else { return }
+
+    segments = segments.filter { $0.timestamp < first.timestamp } + utterance
+  }
+
+  func speechRecognitionTask(_ task: SFSpeechRecognitionTask, didFinishSuccessfully successfully: Bool) {
+    if settled { return }
+    settled = true
+
+    if successfully {
+      settle(segments, nil)
+      return
+    }
+
+    settle([], task.error ?? NSError(domain: "LeclapSpeech", code: 1, userInfo: [
+      NSLocalizedDescriptionKey: "Speech recognition failed",
+    ]))
   }
 }

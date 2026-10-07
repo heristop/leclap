@@ -7,6 +7,7 @@ import {
   hasSectionCaptions,
   editWord,
 } from './caption-store';
+import { editFingerprint } from 'ffmpeg-video-composer/src/core/captions/edit-fingerprint.ts';
 
 const captions = {
   words: [
@@ -15,7 +16,7 @@ const captions = {
   ],
   coarse: false,
   clipPath: 'file:///clip.mov',
-  record: { from: 'self' as const, engine: 'android-speech', language: 'fr-FR', at: '2026-10-07T10:00:00.000Z' },
+  record: { from: 'intro', engine: 'android-speech', language: 'fr-FR', at: '2026-10-07T10:00:00.000Z' },
 };
 
 describe('section captions in the project form data', () => {
@@ -28,12 +29,98 @@ describe('section captions in the project form data', () => {
     expect(readSectionCaptions({ 'captions:intro': 'garbage' }, 'intro')).toBeNull();
   });
 
+  const recorded = { intro: { path: 'file:///clip.mov' } };
+
   it('pins every stored section into the compiled descriptor', () => {
     const descriptor = { sections: [{ name: 'intro', type: 'project_video' }] };
-    const compiled = applyCaptionPins(descriptor, withSectionCaptions({}, 'intro', captions));
+    const { descriptor: compiled, pending } = applyCaptionPins(descriptor, {
+      formData: withSectionCaptions({}, 'intro', captions),
+      recordedVideos: recorded,
+    });
 
     expect(compiled.sections[0]).toMatchObject({ subtitles: { words: captions.words, karaoke: 'word' } });
-    expect(applyCaptionPins(descriptor, {})).toBe(descriptor);
+    expect(pending).toEqual([]);
+    expect(applyCaptionPins(descriptor, { formData: {}, recordedVideos: recorded })).toEqual({
+      descriptor,
+      pending: [],
+    });
+  });
+
+  it('records the source section, also for captions stored as "self"', () => {
+    const descriptor = { sections: [{ name: 'intro', type: 'project_video' }] };
+    const legacy = { ...captions, record: { ...captions.record, from: 'self' } };
+    const { descriptor: compiled } = applyCaptionPins(descriptor, {
+      formData: withSectionCaptions({}, 'intro', legacy),
+      recordedVideos: recorded,
+    });
+
+    expect(compiled).toMatchObject({ meta: { resolved: { transcripts: { intro: { from: 'intro' } } } } });
+  });
+
+  it("fingerprints the source section's edits in the pin, as the engine does", () => {
+    const options = { clip: { from: 1 }, speed: 2 };
+    const descriptor = { sections: [{ name: 'intro', type: 'project_video', options }] };
+    const { descriptor: compiled } = applyCaptionPins(descriptor, {
+      formData: withSectionCaptions({}, 'intro', captions),
+      recordedVideos: recorded,
+    });
+
+    expect(compiled).toMatchObject({
+      meta: { resolved: { transcripts: { intro: { edit: editFingerprint(options) } } } },
+    });
+  });
+
+  it('skips captions of a retaken clip and reports the step as pending', () => {
+    const descriptor = { sections: [{ name: 'intro', type: 'project_video', subtitles: { transcribe: {} } }] };
+    const result = applyCaptionPins(descriptor, {
+      formData: withSectionCaptions({}, 'intro', captions),
+      recordedVideos: { intro: { path: 'file:///retake.mov' } },
+    });
+
+    expect(result.descriptor.sections[0]).toEqual(descriptor.sections[0]);
+    expect(result.pending).toEqual(['intro']);
+  });
+
+  it('reports retaken captions even when the template never asked for a transcription', () => {
+    const descriptor = { sections: [{ name: 'intro', type: 'project_video' }] };
+    const result = applyCaptionPins(descriptor, {
+      formData: withSectionCaptions({}, 'intro', captions),
+      recordedVideos: {},
+    });
+
+    expect(result).toEqual({ descriptor, pending: ['intro'] });
+  });
+
+  it("pins a section listening to another step from that step's captions", () => {
+    const descriptor = {
+      sections: [
+        { name: 'intro', type: 'project_video' },
+        { name: 'card', type: 'color_background', subtitles: { transcribe: { from: 'intro' }, style: 'loud' } },
+      ],
+    };
+    const { descriptor: compiled, pending } = applyCaptionPins(descriptor, {
+      formData: withSectionCaptions({}, 'intro', captions),
+      recordedVideos: recorded,
+    });
+
+    expect(compiled.sections[1]).toEqual({
+      name: 'card',
+      type: 'color_background',
+      subtitles: { words: captions.words, style: 'loud' },
+    });
+    expect(compiled).toMatchObject({ meta: { resolved: { transcripts: { card: { from: 'intro' } } } } });
+    expect(pending).toEqual([]);
+  });
+
+  it('asks for the source step when a listening section has nothing to pin yet', () => {
+    const descriptor = {
+      sections: [
+        { name: 'intro', type: 'project_video' },
+        { name: 'card', type: 'color_background', subtitles: { transcribe: { from: 'intro' } } },
+      ],
+    };
+
+    expect(applyCaptionPins(descriptor, { formData: {}, recordedVideos: recorded }).pending).toEqual(['intro']);
   });
 
   it('is stale once the section clip was retaken', () => {

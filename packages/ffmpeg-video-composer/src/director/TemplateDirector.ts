@@ -195,7 +195,6 @@ class TemplateDirector {
     const needs = renderNeeds(this.template.descriptor.global, this.project.buildInfos);
     assertCanProbe(this.ffmpegAdapter, needs, videoSegments);
     await timer.span('director:calculateTotalLength', () => this.calculateTotalLength(videoSegments));
-    // `subtitles.transcribe` → pinned words, once the clips and their edits are known (transcribe-build.ts).
     this.template.descriptor = await transcribeBuild(this.template, videoSegments, this.footageDeps(), this.project);
 
     const { global } = this.template.descriptor;
@@ -372,6 +371,7 @@ class TemplateDirector {
     logger: this.logger,
     mediaCache: this.template.assets.inputs as unknown as Record<string, string>,
     analyzer: this.project.footageAnalyzer,
+    events: this.emitter,
   });
 
   addToQueue = async (section: Section): Promise<void> => {

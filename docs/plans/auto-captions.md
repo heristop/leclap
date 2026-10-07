@@ -4,8 +4,8 @@
 > phase 2 implemented and compiled for iOS/Android, not yet verified on a device; phase 3: the builder edits pinned words,
 > browser transcription is future work; phase 4 docs done (sample template and effects-tour chapter pending).
 > Scope: `ffmpeg-video-composer` (schema, resolve pass, advisories), `leclap-cli`,
-> `leclap-mcp`, `leclap-expo` (on-device transcription), `leclap-web` (builder) · Inspiration: Shotstack's
-> `rich-caption` with `src: "alias://clip"`, which transcribes a clip in their cloud.
+> `leclap-mcp`, `leclap-expo` (on-device transcription), `leclap-web` (builder) · Prior art: cloud renderers
+> that transcribe a referenced clip server-side (`src: "alias://clip"`).
 
 ## Why
 

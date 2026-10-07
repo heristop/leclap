@@ -55,6 +55,23 @@ describe('mapTranscriptWords', () => {
     ]);
   });
 
+  it('leaves words in place across a freeze whose sound keeps playing', () => {
+    const continued = { at: 1, frame: 30, frames: 30, flash: false, audio: 'continue' as const };
+    const silenced = { at: 3, frame: 90, frames: 15, flash: false, audio: 'silence' as const };
+
+    // The continue hold (1 s) does not pause the sound; the silence hold at section 3 s (ramp 2 s) does.
+    expect(
+      mapTranscriptWords(words(['pre', 0.2, 0.6], ['post', 1.5, 1.8], ['late', 2.5, 2.8]), {
+        fps: 30,
+        freezes: [continued, silenced],
+      })
+    ).toEqual([
+      { text: 'pre', start: 0.2, end: 0.6, confidence: 0.9 },
+      { text: 'post', start: 1.5, end: 1.8, confidence: 0.9 },
+      { text: 'late', start: 3, end: 3.3, confidence: 0.9 },
+    ]);
+  });
+
   it('follows kept take windows and drops the cut silences', () => {
     const edit = {
       keep: [

@@ -44,3 +44,34 @@ export function metaFrom(state: EditorState): Pick<TemplateDescriptor, 'meta'> {
 
   return Object.keys(meta).length > 0 ? { meta } : {};
 }
+
+type Resolved = NonNullable<EditorState['resolved']>;
+
+/**
+ * The pinned transcripts under the section names the builder emits: an import renames sections (talk →
+ * video_1), so each record's key and source (`from`) follow the section at the same position in `origins`
+ * (the imported names) and `emitted` (the builder's names). Records of unknown sections are kept.
+ */
+export function renameTranscripts(
+  resolved: Resolved,
+  origins: ReadonlyArray<string | undefined>,
+  emitted: ReadonlyArray<string | undefined>
+): Resolved {
+  const transcripts = resolved.transcripts;
+
+  if (!transcripts) return resolved;
+
+  const renames = new Map(
+    origins.flatMap((origin, index): Array<[string, string]> => {
+      const name = emitted[index];
+
+      return origin && name ? [[origin, name]] : [];
+    })
+  );
+  const renamed = Object.entries(transcripts).map(([section, record]) => [
+    renames.get(section) ?? section,
+    { ...record, from: renames.get(record.from) ?? record.from },
+  ]);
+
+  return { ...resolved, transcripts: Object.fromEntries(renamed) };
+}

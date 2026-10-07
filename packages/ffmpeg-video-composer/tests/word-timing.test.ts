@@ -127,6 +127,15 @@ describe('speechSpans', () => {
     expect(spans[1][0]).toBeCloseTo(1.4, 1);
   });
 
+  it('handles long audio without overflowing the stack (2M frames)', () => {
+    // 50 Hz: one sample per 20 ms frame, so 2M samples are 2M frames (11 hours; a spread overflows far sooner).
+    const samples = new Float32Array(2_000_000);
+
+    samples.fill(0.3, 100_000, 100_050);
+
+    expect(speechSpans(samples, 50)).toEqual([[2000, 2001]]);
+  });
+
   it('is empty on silence', () => {
     expect(speechSpans(new Float32Array(16000), 16000)).toEqual([]);
   });

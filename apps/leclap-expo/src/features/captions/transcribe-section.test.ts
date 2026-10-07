@@ -1,6 +1,7 @@
 import {
   transcribeSection,
   speechLocale,
+  captionLanguage,
   TranscriptionError,
   type NativeTranscript,
   type SpeechEngine,
@@ -31,6 +32,7 @@ function engine(overrides: Partial<SpeechEngine> = {}, transcript?: NativeTransc
 }
 
 const base = {
+  source: 'talk',
   clipPath: 'file:///clip.mov',
   language: 'fr-FR',
   platform: 'ios' as const,
@@ -52,7 +54,7 @@ describe('transcribeSection', () => {
       coarse: false,
       clipPath: 'file:///clip.mov',
       record: {
-        from: 'self',
+        from: 'talk',
         engine: 'ios-speech',
         language: 'fr-FR',
         digest: 'sha256:abc',
@@ -94,6 +96,15 @@ describe('transcribeSection', () => {
     const speech = engine({}, { language: 'fr-FR', words: [], segmentsOnly: false });
 
     await expect(transcribeSection({ ...base, speech })).rejects.toMatchObject({ code: 'empty' });
+  });
+});
+
+describe('captionLanguage', () => {
+  it('prefers the language the template asks for over the device locale', () => {
+    expect(captionLanguage('de', 'fr-FR')).toBe('de-DE');
+    expect(captionLanguage('pt-BR', 'fr-FR')).toBe('pt-BR');
+    expect(captionLanguage(undefined, 'fr')).toBe('fr-FR');
+    expect(captionLanguage(undefined, undefined)).toBe('en-US');
   });
 });
 

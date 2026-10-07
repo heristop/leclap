@@ -20,7 +20,8 @@ import java.io.File
  * One on-device recognition session over a decoded PCM file (Android 13+). The file is the recogniser's
  * audio source in a segmented session, so the whole clip is transcribed, not just its first utterance.
  * Android 14+ reports per-word timings (RecognitionPart); older on-device recognisers give phrases only,
- * which are spread over the clip by character count and flagged `segmentsOnly` (coarse).
+ * which are spread over the clip by character count and flagged `segmentsOnly` (coarse). On Android 14+,
+ * a phrase that still comes without word parts is spread over the gap between its timed neighbours.
  */
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 class OnDeviceTranscription(
@@ -34,26 +35,36 @@ class OnDeviceTranscription(
   private val main = Handler(Looper.getMainLooper())
   private var recognizer: SpeechRecognizer? = null
   private var source: ParcelFileDescriptor? = null
-  private val words = mutableListOf<Map<String, Any>>()
-  private val phrases = mutableListOf<String>()
+  /** A recognised phrase and its timed words, or null words when the recogniser gave no parts. */
+  private class Utterance(val text: String, val words: List<Map<String, Any>>?)
+
+  private val utterances = mutableListOf<Utterance>()
   private var settled = false
 
   fun start() {
     main.post {
-      if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
-        fail("ERR_SPEECH_UNAVAILABLE", "This device has no on-device speech recognizer.")
-        return@post
+      try {
+        listen()
+      } catch (error: Exception) {
+        fail("ERR_SPEECH", "Speech recognition could not start: ${error.message ?: error.javaClass.simpleName}")
       }
-
-      val descriptor = ParcelFileDescriptor.open(pcm, ParcelFileDescriptor.MODE_READ_ONLY)
-      source = descriptor
-      recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context).also {
-        it.setRecognitionListener(this)
-        it.startListening(intent(descriptor))
-      }
-      // Safety net: a recogniser that never ends its session settles with what it heard.
-      main.postDelayed({ resolve() }, ((seconds * 2 + 30) * 1000).toLong())
     }
+  }
+
+  private fun listen() {
+    if (!SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
+      fail("ERR_SPEECH_UNAVAILABLE", "This device has no on-device speech recognizer.")
+      return
+    }
+
+    val descriptor = ParcelFileDescriptor.open(pcm, ParcelFileDescriptor.MODE_READ_ONLY)
+    source = descriptor
+    recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context).also {
+      it.setRecognitionListener(this)
+      it.startListening(intent(descriptor))
+    }
+    // Safety net: a recogniser that never ends its session settles with what it heard.
+    main.postDelayed({ resolve() }, ((seconds * 2 + 30) * 1000).toLong())
   }
 
   private fun intent(descriptor: ParcelFileDescriptor) = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -76,15 +87,18 @@ class OnDeviceTranscription(
 
     if (text.isNullOrEmpty()) return
 
-    phrases.add(text)
+    val timed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) collectParts(results) else null
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) collectParts(results)
+    utterances.add(Utterance(text, timed))
   }
 
   @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-  private fun collectParts(results: Bundle) {
+  private fun collectParts(results: Bundle): List<Map<String, Any>>? {
     val parts = results.getParcelableArrayList(SpeechRecognizer.RECOGNITION_PARTS, RecognitionPart::class.java)
-      ?: return
+
+    if (parts.isNullOrEmpty()) return null
+
+    val words = mutableListOf<Map<String, Any>>()
 
     parts.forEachIndexed { index, part ->
       val start = part.timestampMillis / 1000.0
@@ -95,18 +109,40 @@ class OnDeviceTranscription(
       if (part.confidenceLevel > 0) word["confidence"] = part.confidenceLevel / 5.0
       words.add(word)
     }
+
+    return words
   }
 
-  // Phrases without timings, laid end to end over the clip by character count (coarse).
-  private fun spreadPhrases(): List<Map<String, Any>> {
-    val total = phrases.sumOf { it.length }.coerceAtLeast(1)
-    var cursor = 0.0
+  // Pieces of text laid end to end over [from, to] by character count (coarse).
+  private fun spread(pieces: List<String>, from: Double, to: Double): List<Map<String, Any>> {
+    val total = pieces.sumOf { it.length }.coerceAtLeast(1)
+    val span = (to - from).coerceAtLeast(0.0)
+    var cursor = from
 
-    return phrases.map { phrase ->
+    return pieces.map { piece ->
       val start = cursor
-      cursor += seconds * phrase.length / total
-      mapOf("text" to phrase, "start" to start, "end" to cursor)
+      cursor += span * piece.length / total
+      mapOf("text" to piece, "start" to start, "end" to cursor)
     }
+  }
+
+  // Timed words in order; a phrase without parts fills the gap between its timed neighbours, word by word.
+  private fun timedWords(): List<Map<String, Any>> {
+    val result = mutableListOf<Map<String, Any>>()
+
+    utterances.forEachIndexed { index, utterance ->
+      if (utterance.words != null) {
+        result.addAll(utterance.words)
+        return@forEachIndexed
+      }
+
+      val from = (result.lastOrNull()?.get("end") as? Double) ?: 0.0
+      val next = utterances.drop(index + 1).firstNotNullOfOrNull { it.words?.firstOrNull()?.get("start") as? Double }
+      val to = maxOf(from, next ?: seconds)
+      result.addAll(spread(utterance.text.split(Regex("\\s+")).filter { it.isNotEmpty() }, from, to))
+    }
+
+    return result
   }
 
   private fun resolve() {
@@ -115,10 +151,10 @@ class OnDeviceTranscription(
     cleanup()
 
     val payload = mutableMapOf<String, Any>("language" to language)
-    val timed = words.isNotEmpty()
-    payload["words"] = if (timed) words else emptyList<Map<String, Any>>()
+    val timed = utterances.any { it.words != null }
+    payload["words"] = if (timed) timedWords() else emptyList<Map<String, Any>>()
     payload["segmentsOnly"] = !timed
-    if (!timed) payload["segments"] = spreadPhrases()
+    if (!timed) payload["segments"] = spread(utterances.map { it.text }, 0.0, seconds)
     digest?.let { payload["digest"] = it }
     promise.resolve(payload)
   }
@@ -161,7 +197,7 @@ class OnDeviceTranscription(
       SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED, SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE -> languageMissing()
       SpeechRecognizer.ERROR_NO_MATCH, SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> resolve()
       SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> fail("ERR_SPEECH_PERMISSION", "Microphone permission is required")
-      else -> if (phrases.isNotEmpty()) resolve() else fail("ERR_SPEECH", "Speech recognition failed (code $error)")
+      else -> if (utterances.isNotEmpty()) resolve() else fail("ERR_SPEECH", "Speech recognition failed (code $error)")
     }
   }
 

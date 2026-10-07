@@ -84,6 +84,70 @@ describe('ensureWhisperModel', () => {
     );
   });
 
+  it('rejects, without crashing the process, when the cache cannot be written', async () => {
+    fs.chmodSync(dir, 0o500);
+
+    try {
+      await expect(
+        ensureWhisperModel('tiny', { dir, fetch: fetchOf(BYTES), models: TABLE, download: true, env: {} })
+      ).rejects.toThrow(/EACCES|permission/i);
+    } finally {
+      fs.chmodSync(dir, 0o700);
+    }
+
+    expect(fs.readdirSync(dir)).toEqual([]);
+  });
+
+  it('downloads into a temporary file of its own, so concurrent downloads never share one', async () => {
+    const seen: string[] = [];
+    const watcher = fs.watch(dir, (_event, name) => {
+      if (name) seen.push(name);
+    });
+
+    await Promise.all([
+      ensureWhisperModel('tiny', { dir, fetch: fetchOf(BYTES), models: TABLE, download: true, env: {} }),
+      ensureWhisperModel('tiny', { dir, fetch: fetchOf(BYTES), models: TABLE, download: true, env: {} }),
+    ]);
+    watcher.close();
+
+    expect(seen).not.toContain('ggml-tiny.bin.part');
+    expect(fs.readFileSync(path.join(dir, 'ggml-tiny.bin'))).toEqual(BYTES);
+    expect(fs.readdirSync(dir).filter((name) => name.endsWith('.part'))).toEqual([]);
+  });
+
+  it('verifies a cached model of the right size once, then trusts its .sha256 marker', async () => {
+    const file = path.join(dir, 'ggml-tiny.bin');
+    fs.writeFileSync(file, BYTES);
+
+    expect(await ensureWhisperModel('tiny', { dir, models: TABLE, env: {} })).toBe(file);
+    expect(fs.readFileSync(`${file}.sha256`, 'utf8').trim()).toBe(SHA);
+  });
+
+  it('treats a cached model of the right size but the wrong bytes as missing', async () => {
+    const file = path.join(dir, 'ggml-tiny.bin');
+    fs.writeFileSync(file, Buffer.alloc(BYTES.length, 0x41));
+
+    await expect(ensureWhisperModel('tiny', { dir, models: TABLE, env: {} })).rejects.toThrow(/whisper_model_missing/);
+
+    const fetch = fetchOf(BYTES);
+
+    expect(await ensureWhisperModel('tiny', { dir, fetch, models: TABLE, download: true, env: {} })).toBe(file);
+    expect(fs.readFileSync(file)).toEqual(BYTES);
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-verifies a model replaced after its marker was written', async () => {
+    const file = path.join(dir, 'ggml-tiny.bin');
+    fs.writeFileSync(file, BYTES);
+    await ensureWhisperModel('tiny', { dir, models: TABLE, env: {} });
+
+    const later = new Date(Date.now() + 5000);
+    fs.writeFileSync(file, Buffer.alloc(BYTES.length, 0x41));
+    fs.utimesSync(file, later, later);
+
+    await expect(ensureWhisperModel('tiny', { dir, models: TABLE, env: {} })).rejects.toThrow(/whisper_model_missing/);
+  });
+
   it('uses LECLAP_WHISPER_MODEL as is', async () => {
     const own = path.join(dir, 'my-model.bin');
     fs.writeFileSync(own, 'x');

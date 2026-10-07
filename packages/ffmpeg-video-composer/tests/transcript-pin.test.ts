@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { pinTranscript, staleTranscripts } from '@/core/captions/transcript-pin';
+import { editFingerprint, pinTranscript, staleTranscripts } from '@/core/captions/transcript-pin';
 import { resolveTranscripts, type TranscriptionDeps } from '@/director/transcription';
 import type { Transcript } from '@/core/captions/transcript';
 
@@ -41,7 +41,57 @@ describe('pinTranscript', () => {
   });
 });
 
+describe('editFingerprint', () => {
+  it('fingerprints the edits between the clip and the timeline, in any key order', () => {
+    const a = editFingerprint({ clip: { from: 1, to: 3 }, speed: 2, videoUrl: 'a.mp4' });
+
+    expect(a).toMatch(/^fnv1a:[0-9a-f]{8}$/);
+    expect(editFingerprint({ speed: 2, clip: { to: 3, from: 1 }, videoUrl: 'b.mp4' })).toBe(a);
+    expect(editFingerprint({ clip: { from: 1, to: 3 }, speed: 1 })).not.toBe(a);
+  });
+
+  it('covers every option the transcript edit reads', () => {
+    const base = editFingerprint({});
+    const edits = [
+      { speed: 2 },
+      { clip: { from: 1 } },
+      { trimSilence: true },
+      { keep: [[0, 1]] },
+      { speedRamp: 'hero' },
+      { freeze: [{ at: 1, hold: 1 }] },
+      { duration: 3 },
+    ];
+
+    for (const edit of edits) expect(editFingerprint(edit)).not.toBe(base);
+  });
+});
+
 describe('staleTranscripts', () => {
+  it('reports a pin whose section edits changed since', () => {
+    const record = { ...RECORD, edit: editFingerprint(descriptor().sections[1].options) };
+    const pinned = pinTranscript(descriptor(), 1, [{ text: 'Hi', start: 0, end: 0.3 }], record);
+    const retrimmed = {
+      ...pinned,
+      sections: [pinned.sections[0], { ...pinned.sections[1], options: { videoUrl: 'talk.mp4', clip: { from: 2 } } }],
+    };
+
+    expect(staleTranscripts(pinned, {})).toEqual([]);
+    expect(staleTranscripts(retrimmed, {})).toEqual([
+      expect.objectContaining({
+        code: 'transcript_edit_changed',
+        path: 'meta.resolved.transcripts.talk',
+        severity: 'warn',
+      }),
+    ]);
+  });
+
+  it('cannot tell for older pins without an edit fingerprint', () => {
+    const pinned = pinTranscript(descriptor(), 1, [], RECORD);
+    const retrimmed = { ...pinned, sections: [pinned.sections[0], { ...pinned.sections[1], options: { speed: 2 } }] };
+
+    expect(staleTranscripts(retrimmed, {})).toEqual([]);
+  });
+
   it('reports a pin whose clip changed', () => {
     const pinned = pinTranscript(descriptor(), 1, [{ text: 'Hi', start: 0, end: 0.3 }], RECORD);
 
@@ -93,6 +143,7 @@ describe('resolveTranscripts', () => {
           digest: 'sha256:ccc',
           at: '2026-10-07T12:00:00.000Z',
           confidence: 0.8,
+          edit: editFingerprint({ videoUrl: 'talk.mp4', clip: { from: 1 } }),
         },
         words: 1,
       },

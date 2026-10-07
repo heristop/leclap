@@ -1,7 +1,7 @@
 // transcript_low_confidence: pinned speech-to-text words (subtitles.words with `confidence`) whose mean
 // confidence is low — the recogniser was unsure, so the captions likely misread words. Advisory, on the
 // motion-warnings channel: it never enters `errors`. (transcript_stale needs the clip's bytes, so the Node
-// pass reports it: services/transcribe-node/stale.ts.)
+// pass reports it: core/captions/transcript-pin.ts staleTranscripts.)
 
 import type { MotionWarning } from './motion-lint';
 

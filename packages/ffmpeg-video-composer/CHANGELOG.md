@@ -44,7 +44,7 @@ required?, maxLength?, min?, max?, options?, label?, description? }`, types text
   since the pin), new error `invalid_transcribe_source`, and optional `confidence` on words. Node exports
   `transcribeMediaFile`, `transcribeTemplate`, `ensureWhisperModel` (models downloaded once on explicit opt-in to
   `~/.cache/leclap/whisper`, SHA-256-verified, never bundled) and the platform-neutral `mapTranscriptWords`,
-  `pinTranscript`, `transcriptSrt` (also on the browser and React Native entries).
+  `pinTranscript`, `transcriptSrt` (also on the React Native entry).
 - `applyJsonPatch(doc, operations, { maxOps })` and `parsePointer(pointer)` (Node entry): RFC 6902 JSON
   Patch (`add`, `remove`, `replace`, `move`, `copy`, `test`) over RFC 6901 pointers (`-` append, `~0`/`~1`
   escapes). Atomic (runs on a copy, the input is never mutated); rejects `__proto__`/`prototype`/`constructor`

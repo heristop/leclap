@@ -99,6 +99,15 @@ describe('resolveTranscripts', () => {
     ]);
   });
 
+  it('never reads the clock itself: without an injected `now` the pin has no time and repeats exactly', async () => {
+    const { now: _now, ...host } = deps();
+    const first = await resolveTranscripts(descriptor(), host);
+    const second = await resolveTranscripts(descriptor(), host);
+
+    expect(first.pins[0]?.record).not.toHaveProperty('at');
+    expect(JSON.stringify(first.descriptor)).toBe(JSON.stringify(second.descriptor));
+  });
+
   it('passes the requested language and model through', async () => {
     const host = deps();
 

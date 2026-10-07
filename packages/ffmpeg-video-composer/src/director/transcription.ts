@@ -35,7 +35,13 @@ export interface TranscriptPin {
 type LooseDescriptor = { meta?: unknown; sections?: unknown };
 type LooseSection = { name: string; options?: unknown; subtitles?: Record<string, unknown> };
 
-function recordOf(transcript: Transcript, source: string, digest: string, at: string, words: Transcript['words']) {
+function recordOf(
+  transcript: Transcript,
+  source: string,
+  digest: string,
+  at: string | undefined,
+  words: Transcript['words']
+) {
   const confidence = meanConfidence(words, 1);
   const record: TranscriptRecord = {
     from: source,
@@ -43,7 +49,7 @@ function recordOf(transcript: Transcript, source: string, digest: string, at: st
     ...(transcript.model === undefined ? {} : { model: transcript.model }),
     ...(transcript.language === undefined ? {} : { language: transcript.language }),
     digest,
-    at,
+    ...(at === undefined ? {} : { at }),
     ...(confidence === null ? {} : { confidence }),
   };
 
@@ -59,7 +65,9 @@ async function resolveOne<T extends LooseDescriptor>(descriptor: T, target: Tran
 
   const transcript = await deps.transcribe(file, { ...target.request, ...(deps.signal && { signal: deps.signal }) });
   const words = mapTranscriptWords(transcript.words, await deps.editOf(sections[target.sourceIndex]));
-  const at = deps.now?.() ?? new Date().toISOString();
+  // The compile path never reads the clock (a render must repeat byte for byte): a pin carries a time only
+  // when the caller injects one, as `leclap transcribe` does.
+  const at = deps.now?.();
   const record = recordOf(transcript, sourceName, await deps.digestOf(file), at, words);
   // Phrase-timed words would flash karaoke on guessed boundaries: highlight phrases instead.
   const extra = transcript.coarse ? { karaoke: false } : {};

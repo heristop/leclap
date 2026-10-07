@@ -141,6 +141,8 @@ describe('leclap transcribe <template>', () => {
       userVideoPaths: { talk: '/clips/talk.mov' },
       sections: ['talk'],
       force: false,
+      // The CLI stamps the pin's time; the engine's render path never reads the clock.
+      now: expect.any(Function),
     });
     expect(process.env.LECLAP_WHISPER_DOWNLOAD).toBe('1');
     expect(JSON.parse(files.get('/work/promo.json') as string)).toEqual(pinned);

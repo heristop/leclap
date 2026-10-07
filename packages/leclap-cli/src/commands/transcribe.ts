@@ -107,6 +107,7 @@ async function transcribeTemplateFile(flags: Flags, model: WhisperModelName | un
     ...(flags.language && { language: flags.language }),
     ...(model && { model }),
     force: Boolean(flags.force),
+    now: () => new Date().toISOString(),
   });
 
   if (flags.json) {

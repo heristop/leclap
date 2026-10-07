@@ -81,6 +81,8 @@ export interface TranscribeTemplateOptions extends ClipLookup {
   fps?: number;
   service?: TranscriptionService;
   signal?: AbortSignal;
+  /** Stamps the pin record's `at` (ISO 8601). Omitted on the render path, which never reads the clock. */
+  now?: () => string;
 }
 
 type Descriptor = { meta?: unknown; sections: LooseSection[]; global?: { fps?: number } };
@@ -197,6 +199,7 @@ export async function transcribeTemplate<T extends Descriptor>(
     editOf: (section) => editOf(section as LooseSection, clipOf(section.name), options, fps),
     sections: options.sections,
     signal: options.signal,
+    now: options.now,
   });
 
   return { descriptor: pinned as T, pins, stale: await staleOf(pinned, service, clipOf) };

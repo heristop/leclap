@@ -1,6 +1,9 @@
 # Auto-captions: captions from the recorded audio
 
-> Status: planned (not started) · Scope: `ffmpeg-video-composer` (schema, resolve pass, advisories), `leclap-cli`,
+> Status: phase 1 done (schema, resolve pass, Node whisper.cpp transcriber, `leclap transcribe`, MCP `transcribe_media`);
+> phase 2 implemented and compiled for iOS/Android, not yet verified on a device; phase 3: the builder edits pinned words,
+> browser transcription is future work; phase 4 docs done (sample template and effects-tour chapter pending).
+> Scope: `ffmpeg-video-composer` (schema, resolve pass, advisories), `leclap-cli`,
 > `leclap-mcp`, `leclap-expo` (on-device transcription), `leclap-web` (builder) · Inspiration: Shotstack's
 > `rich-caption` with `src: "alias://clip"`, which transcribes a clip in their cloud.
 

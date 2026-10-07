@@ -34,6 +34,17 @@ required?, maxLength?, min?, max?, options?, label?, description? }`, types text
   filtergraph separators is refused in a raw filter value. Validation without values returns the authored
   descriptor; the resolved descriptor drops `global.fields`, so resolution is idempotent. A form field bound
   to a non-text declared field may omit `maxLength`.
+- Auto-captions: `subtitles.transcribe: { from?, language?, model? }` asks for a section's speech as word
+  timings. Transcribe once, then pin: a Node resolve pass (whisper.cpp — the `whisper-cli` binary with DTW word
+  alignment, else an FFmpeg built with `--enable-whisper`) replaces the request with `subtitles.words` and records
+  engine, model, language, clip digest and date in `meta.resolved.transcripts`; renders only read pinned words.
+  Word times are mapped from clip to section seconds through `clip`, `speed`, speed ramps, freeze holds and kept
+  take windows. The Node compile resolves an unpinned request itself; the browser and on-device engines report
+  `transcribe_unavailable`. New advisories `transcript_low_confidence` and `transcript_stale` (the clip changed
+  since the pin), new error `invalid_transcribe_source`, and optional `confidence` on words. Node exports
+  `transcribeMediaFile`, `transcribeTemplate`, `ensureWhisperModel` (models downloaded once on explicit opt-in to
+  `~/.cache/leclap/whisper`, SHA-256-verified, never bundled) and the platform-neutral `mapTranscriptWords`,
+  `pinTranscript`, `transcriptSrt` (also on the browser and React Native entries).
 - `applyJsonPatch(doc, operations, { maxOps })` and `parsePointer(pointer)` (Node entry): RFC 6902 JSON
   Patch (`add`, `remove`, `replace`, `move`, `copy`, `test`) over RFC 6901 pointers (`-` append, `~0`/`~1`
   escapes). Atomic (runs on a copy, the input is never mutated); rejects `__proto__`/`prototype`/`constructor`

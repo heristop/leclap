@@ -172,6 +172,24 @@ interface TemplateMeta {
   brief?: string;
   /** Ask every rendering section for a `purpose` (advisory). */
   requirePurpose?: boolean;
+  /**
+   * What resolve passes pinned: transcripts by section name. Written out structurally (the file's import budget
+   * is spent); it mirrors TranscriptRecordSchema in schemas/transcribe.schemas.ts.
+   */
+  resolved?: {
+    transcripts?: Record<
+      string,
+      {
+        from: string;
+        engine: string;
+        model?: string;
+        language?: string;
+        digest?: string;
+        at?: string;
+        confidence?: number;
+      }
+    >;
+  };
 }
 
 export interface TemplateDescriptorGlobal {

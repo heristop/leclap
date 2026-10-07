@@ -31,6 +31,7 @@ import {
 } from './prepare-build';
 import { assertCanProbe, renderNeeds } from './render-needs';
 import { recordSectionLengths } from './footage-durations';
+import { transcribeBuild } from './transcribe-build';
 import { VIDEO_SEGMENT_TYPES } from '../editor/utils/section-types';
 import type Project from '../core/models/Project';
 import type Template from '../core/models/Template';
@@ -194,6 +195,8 @@ class TemplateDirector {
     const needs = renderNeeds(this.template.descriptor.global, this.project.buildInfos);
     assertCanProbe(this.ffmpegAdapter, needs, videoSegments);
     await timer.span('director:calculateTotalLength', () => this.calculateTotalLength(videoSegments));
+    // `subtitles.transcribe` → pinned words, once the clips and their edits are known (transcribe-build.ts).
+    this.template.descriptor = await transcribeBuild(this.template, videoSegments, this.footageDeps(), this.project);
 
     const { global } = this.template.descriptor;
     const fps = this.project.config.videoConfig?.fps ?? 30;

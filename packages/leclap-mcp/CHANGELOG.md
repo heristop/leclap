@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the web builder for a person to edit, with `mediaToRebind` (local paths and uploads the browser cannot
   read) and `warnings`. The template travels compressed in the URL fragment, which browsers never send to a
   server; `baseUrl` targets a locale prefix or a local dev server. Nineteen tools are now always registered.
+- `transcribe_media`: transcribe a local audio/video file's speech with whisper.cpp on the host → words, SRT,
+  language, mean confidence and the "pin, then review" advice. `compose_video` resolves `subtitles.transcribe`
+  before rendering. The model is never downloaded by the tool: the operator opts in once
+  (`leclap transcribe --download-model` or `LECLAP_WHISPER_DOWNLOAD=1`). Twenty tools are now always registered.
 - `edit_template`: an RFC 6902 JSON Patch over inline template JSON under `expectedRevision` (stale →
   `revision_conflict`), all-or-nothing and validated after applying; returns the template, its new
   `revision` and `changedPaths`. The web builder's WebMCP tools share the name, operations and revision,

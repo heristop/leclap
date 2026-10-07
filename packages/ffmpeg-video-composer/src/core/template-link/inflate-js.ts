@@ -37,6 +37,11 @@ class BitReader {
     return value & ((1 << need) - 1);
   }
 
+  /** Whether every byte was read: only the padding bits of the last byte may be left. */
+  done(): boolean {
+    return this.pos === this.data.length;
+  }
+
   /** The next `length` whole bytes, after dropping the bits left in the current byte. */
   bytes(length: number): Uint8Array {
     this.buffer = 0;
@@ -96,12 +101,41 @@ interface Huffman {
   symbols: Uint16Array;
 }
 
-function buildHuffman(lengths: Uint8Array): Huffman {
+// Codes left unassigned by `counts` (puff.c's `construct`): negative when over-subscribed, 0 when complete.
+function unassigned(counts: Uint16Array): number {
+  let left = 1;
+
+  for (let length = 1; length <= MAX_BITS; length++) {
+    left = (left << 1) - counts[length];
+
+    if (left < 0) return left;
+  }
+
+  return left;
+}
+
+// Like zlib, refuses an over-subscribed table and an incomplete one, except a lone 1-bit code where
+// `allowSingle` (literal/length and distance tables); an all-zero table only fails once a code is read.
+function checkTable(counts: Uint16Array, symbols: number, allowSingle: boolean): void {
+  if (counts[0] === symbols) return;
+
+  const left = unassigned(counts);
+
+  if (left < 0) throw new Error('invalid deflate Huffman table (over-subscribed)');
+
+  const single = allowSingle && counts[1] === 1 && counts[0] === symbols - 1;
+
+  if (left > 0 && !single) throw new Error('invalid deflate Huffman table (incomplete)');
+}
+
+function buildHuffman(lengths: Uint8Array, allowSingle = true): Huffman {
   const counts = new Uint16Array(MAX_BITS + 1);
   const symbols = new Uint16Array(lengths.length);
   const offsets = new Uint16Array(MAX_BITS + 2);
 
   for (const length of lengths) counts[length]++;
+
+  checkTable(counts, lengths.length, allowSingle);
 
   for (let length = 1; length <= MAX_BITS; length++) offsets[length + 1] = offsets[length] + counts[length];
 
@@ -138,7 +172,8 @@ function fixedTables(): [Huffman, Huffman] {
   lengths.fill(7, 256, 280);
   lengths.fill(8, 280, 288);
 
-  return [buildHuffman(lengths), buildHuffman(new Uint8Array(30).fill(5))];
+  // 32 five-bit distance codes keep the table complete; 30 and 31 are refused when read.
+  return [buildHuffman(lengths), buildHuffman(new Uint8Array(32).fill(5))];
 }
 
 // Expands one code-length symbol (0–15 literal, 16 repeat, 17/18 zero runs) into `lengths` at `at`.
@@ -171,7 +206,7 @@ function dynamicTables(reader: BitReader): [Huffman, Huffman] {
 
   for (let i = 0; i < codeLengthCount; i++) codeLengths[CODE_LENGTH_ORDER[i]] = reader.bits(3);
 
-  const codeLengthTable = buildHuffman(codeLengths);
+  const codeLengthTable = buildHuffman(codeLengths, false);
   const lengths = new Uint8Array(literals + distances);
   let at = 0;
 
@@ -232,6 +267,8 @@ export function inflateRawJs(data: Uint8Array, budget: number): Uint8Array {
 
     if (type === 3) throw new Error('invalid deflate block type');
   }
+
+  if (!reader.done()) throw new Error('unexpected bytes after the final block of deflate data');
 
   return out.result();
 }

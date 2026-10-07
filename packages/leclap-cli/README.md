@@ -233,6 +233,7 @@ leclap studio launch.json --open                       # also opens it in the de
 leclap studio launch.json --base https://leclap.dev/fr # the builder in French
 leclap studio launch.json --base http://localhost:5173 # a local `pnpm app:web`
 leclap studio launch.json --json                       # { url, length, mediaToRebind, warnings }
+leclap studio --open --base http://localhost:5173 launch.json # flags may come before the template too
 ```
 
 The link carries the whole template, compressed, in its `#fragment`. Browsers never send the fragment to a
@@ -242,8 +243,12 @@ URLs, `media://` uploads from another browser) cannot travel in a link: the comm
 builder opens those scenes empty for the person to film, upload or pick again. Library names, `/assets/…`
 paths and `https://` URLs resolve as usual. Effect sections cannot be edited in the builder yet. Links
 over 8,000 characters still open, but chat apps may truncate them; templates whose link would pass 512 KiB
-are refused (export the JSON and use Import in the builder instead). `leclap studio open <template>` is the
-explicit form.
+are refused (export the JSON and use Import in the builder instead). Media under any other URL scheme
+(`javascript:`, `ftp:`, …) is listed and dropped too. A `--base` other than `https://leclap.dev` adds a
+warning: whatever page that origin serves can read the template in the fragment, so only share such a link
+when you trust it (a local dev server is fine). `leclap studio open <template>` is the explicit form;
+`leclap studio status` and `leclap studio pass` remain the gate commands, so a template file cannot be named
+`status`, `pass` or `open` without the explicit form.
 
 ## `studio` — a production folder
 

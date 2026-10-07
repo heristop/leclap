@@ -33,6 +33,14 @@ describe('open_in_builder', () => {
     expect(french.url.startsWith('https://leclap.dev/fr/studio/builder#t=')).toBe(true);
   });
 
+  it('warns when the link opens anywhere but leclap.dev, since that page can read the fragment', async () => {
+    const official = await openInBuilder({ template, baseUrl: 'https://leclap.dev/fr' });
+    const local = await openInBuilder({ template, baseUrl: 'http://localhost:5173' });
+
+    expect(official.warnings.join(' ')).not.toMatch(/fragment/);
+    expect(local.warnings.join(' ')).toMatch(/http:\/\/localhost:5173, not https:\/\/leclap\.dev.*fragment/);
+  });
+
   it('is listed and answers an invalid template as isError', async () => {
     const server = new McpServer({ name: 'open-test', version: '1.0.0' });
     registerOpenInBuilder(server);

@@ -45,7 +45,8 @@ export function registerOpenInBuilder(server: McpServer): void {
         'Return a link that opens the template in the LeClap web builder for a person to review and edit. The ' +
         'template travels compressed in the URL fragment, which browsers never send to a server: nothing is ' +
         'uploaded. Returns url, length, mediaToRebind (local paths and uploads the browser cannot read; they open ' +
-        'as empty slots the person fills again) and warnings (e.g. a link long enough for chat apps to truncate). ' +
+        'as empty slots the person fills again) and warnings (e.g. a link long enough for chat apps to truncate, or ' +
+        'a baseUrl off leclap.dev, whose page can read the template in the fragment). ' +
         'Validate first; an invalid or oversized template is refused.',
       inputSchema,
     },

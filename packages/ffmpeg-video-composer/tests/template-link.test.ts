@@ -14,6 +14,9 @@ import { fromBase64Url, toBase64Url } from '@/core/template-link/base64url';
 import { deflateRaw, deflateStored, inflateRaw } from '@/core/template-link/deflate';
 import { inflateRawJs } from '@/core/template-link/inflate-js';
 
+// Built from parts: the lint rule against script URLs is right everywhere but in a test of refusing them.
+const SCRIPT_URL = ['javascript', 'alert(1)'].join(':');
+
 const TEMPLATES_DIR = join(import.meta.dirname, '../../leclap-creative-kit/src/templates');
 
 const minimal = {
@@ -67,6 +70,28 @@ describe('base64url', () => {
   });
 });
 
+// Packs `fields` ([value, bit count] pairs, LSB first as DEFLATE reads them) into bytes, zero-padded.
+function packBits(fields: Array<[number, number]>): Uint8Array {
+  const bits = fields.flatMap(([value, count]) => Array.from({ length: count }, (_, i) => (value >> i) & 1));
+  const bytes = new Uint8Array(Math.ceil(bits.length / 8) + 64);
+
+  for (const [i, bit] of bits.entries()) bytes[i >> 3] |= bit << (i & 7);
+
+  return bytes;
+}
+
+// A final dynamic block header (BFINAL=1, BTYPE=2, HLIT=257, HDIST=1) and the code-length code lengths.
+function dynamicHeader(codeLengthLengths: number[]): Array<[number, number]> {
+  return [
+    [1, 1],
+    [2, 2],
+    [0, 5],
+    [0, 5],
+    [codeLengthLengths.length - 4, 4],
+    ...codeLengthLengths.map((l) => [l, 3] as [number, number]),
+  ];
+}
+
 describe('deflate-raw', () => {
   const text = new TextEncoder().encode(JSON.stringify(minimal).repeat(40));
 
@@ -96,6 +121,33 @@ describe('deflate-raw', () => {
 
     await expect(inflateRaw(packed, 1000)).rejects.toThrow(/budget/);
     expect(() => inflateRawJs(packed, 1000)).toThrow(/budget/);
+  });
+
+  it('rejects bytes after the final block on both paths, and only padding bits pass', async () => {
+    const packed = await deflateRaw(text);
+    const junk = new Uint8Array([...packed, ...new TextEncoder().encode('JUNK')]);
+    const storedJunk = new Uint8Array([...deflateStored(text), 0]);
+
+    await expect(inflateRaw(junk, 1 << 20)).rejects.toThrow();
+    expect(() => inflateRawJs(junk, 1 << 20)).toThrow(/after the final block/);
+    await expect(inflateRaw(storedJunk, 1 << 20)).rejects.toThrow();
+    expect(() => inflateRawJs(storedJunk, 1 << 20)).toThrow(/after the final block/);
+  });
+
+  it('rejects an over-subscribed Huffman table on both paths', async () => {
+    // 19 code-length codes of length 1: more codes than one bit can tell apart.
+    const oversubscribed = packBits(dynamicHeader(Array.from({ length: 19 }, () => 1)));
+
+    await expect(inflateRaw(oversubscribed, 1 << 20)).rejects.toThrow();
+    expect(() => inflateRawJs(oversubscribed, 1 << 20)).toThrow(/over-subscribed/);
+  });
+
+  it('rejects an incomplete Huffman table on both paths', async () => {
+    // One code-length code of length 2 leaves three of the four 2-bit codes unassigned.
+    const incomplete = packBits(dynamicHeader([0, 0, 0, 2]));
+
+    await expect(inflateRaw(incomplete, 1 << 20)).rejects.toThrow();
+    expect(() => inflateRawJs(incomplete, 1 << 20)).toThrow(/incomplete/);
   });
 
   it('rejects garbage', async () => {
@@ -246,6 +298,31 @@ describe('builder link', () => {
 
     expect(link.length).toBeGreaterThan(TEMPLATE_LINK_LIMITS.warnLength);
     expect(link.warnings.join(' ')).toMatch(/truncate/);
+  });
+
+  it('warns when the link opens anywhere but leclap.dev, whose page reads the fragment', async () => {
+    const official = await createBuilderLink(minimal);
+    const french = await createBuilderLink(minimal, { baseUrl: 'https://leclap.dev/fr' });
+    const local = await createBuilderLink(minimal, { baseUrl: 'http://localhost:5173' });
+    const elsewhere = await createBuilderLink(minimal, { baseUrl: 'https://builder.example.com' });
+
+    expect(official.warnings).toEqual([]);
+    expect(french.warnings).toEqual([]);
+    expect(local.warnings.join(' ')).toMatch(/http:\/\/localhost:5173.*fragment/);
+    expect(elsewhere.warnings.join(' ')).toMatch(/https:\/\/builder\.example\.com.*fragment/);
+  });
+
+  it('warns that media under an unsupported scheme is dropped', async () => {
+    const template = {
+      ...minimal,
+      sections: [...minimal.sections, { name: 'clip', type: 'video', options: { videoUrl: SCRIPT_URL } }],
+    };
+    const link = await createBuilderLink(template);
+
+    expect(link.mediaToRebind).toEqual([
+      { pointer: '/sections/1/options/videoUrl', value: SCRIPT_URL, reason: 'unsupported_scheme' },
+    ]);
+    expect(link.warnings.join(' ')).toMatch(/scheme.*javascript:alert\(1\)/);
   });
 
   it('warns that effect sections do not open in the builder', async () => {

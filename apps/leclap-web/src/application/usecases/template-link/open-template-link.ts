@@ -54,31 +54,55 @@ function containerAt(root: unknown, segments: string[]): Json | null {
   return node && typeof node === 'object' ? (node as Json) : null;
 }
 
-function removeAt(root: unknown, segments: string[]): void {
+interface Removal {
+  parent: Json;
+  key: string;
+  node: unknown;
+}
+
+// Where `segments` points, resolved to the node itself so that earlier removals cannot shift it.
+function resolveAt(root: unknown, segments: string[]): Removal | null {
   const parent = containerAt(root, segments.slice(0, -1));
   const key = segments.at(-1) ?? '';
 
-  if (Array.isArray(parent)) {
-    parent.splice(Number(key), 1);
+  if (!parent) return null;
+
+  return { parent, key, node: (parent as Record<string, unknown>)[key] };
+}
+
+function remove({ parent, key, node }: Removal): void {
+  if (!Array.isArray(parent)) {
+    Reflect.deleteProperty(parent, key);
 
     return;
   }
 
-  if (parent) Reflect.deleteProperty(parent, key);
+  const index = parent.indexOf(node);
+
+  if (index !== -1) parent.splice(index, 1);
+}
+
+function within(ancestor: string[], segments: string[]): boolean {
+  return ancestor.length < segments.length && ancestor.every((segment, index) => segments[index] === segment);
 }
 
 /**
  * A copy of `descriptor` without the `refs` fields. A `url` names the whole object it sits in (an image
  * input, the music track, the watermark, a LUT), so that object goes; any other field (videoUrl,
- * pictureUrl, fontfile, …) is removed alone, which leaves its scene as an empty slot.
+ * pictureUrl, fontfile, …) is removed alone, which leaves its scene as an empty slot. Every target is
+ * resolved before anything is removed, and a field inside an object that goes is left with it.
  */
 export function stripUnreadableMedia(descriptor: unknown, refs: MediaToRebind[]): unknown {
   const copy = structuredClone(descriptor);
-
-  for (const ref of refs.toReversed()) {
+  const targets = refs.map((ref) => {
     const segments = segmentsOf(ref.pointer);
-    removeAt(copy, segments.at(-1) === 'url' ? segments.slice(0, -1) : segments);
-  }
+
+    return segments.at(-1) === 'url' ? segments.slice(0, -1) : segments;
+  });
+  const outermost = targets.filter((segments) => !targets.some((other) => within(other, segments)));
+  const removals = outermost.map((segments) => resolveAt(copy, segments)).filter((entry) => entry !== null);
+
+  for (const removal of removals) remove(removal);
 
   return copy;
 }

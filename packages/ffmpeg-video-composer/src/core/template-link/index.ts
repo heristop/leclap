@@ -13,6 +13,7 @@ export const TEMPLATE_LINK_VERSION = 'v1';
 export const TEMPLATE_LINK_PARAM = 't';
 export const DEFAULT_BUILDER_BASE_URL = 'https://leclap.dev';
 export const BUILDER_PATH = '/studio/builder';
+const DEFAULT_ORIGIN = new URL(DEFAULT_BUILDER_BASE_URL).origin;
 
 export const TEMPLATE_LINK_LIMITS = {
   /** Above this many URL characters chat apps, terminals and mail clients may truncate the link. */
@@ -175,9 +176,26 @@ function linkWarnings(template: unknown, url: string, media: MediaToRebind[]): s
     );
   }
 
-  if (media.length > 0) {
-    const names = media.map((entry) => entry.value.split(/[\\/]/).pop() ?? entry.value);
+  const origin = new URL(url).origin;
+
+  if (origin !== DEFAULT_ORIGIN) {
+    warnings.push(
+      `the link opens on ${origin}, not ${DEFAULT_ORIGIN}: the page served there can read the template in the ` +
+        'fragment, so share it only if you trust that origin'
+    );
+  }
+
+  const unreadable = media.filter((entry) => entry.reason !== 'unsupported_scheme');
+  const unsupported = media.filter((entry) => entry.reason === 'unsupported_scheme');
+
+  if (unreadable.length > 0) {
+    const names = unreadable.map((entry) => entry.value.split(/[\\/]/).pop() ?? entry.value);
     warnings.push(`media only this machine can read will open as empty slots to fill again: ${names.join(', ')}`);
+  }
+
+  if (unsupported.length > 0) {
+    const values = unsupported.map((entry) => entry.value);
+    warnings.push(`media under a URL scheme the builder does not load will be dropped: ${values.join(', ')}`);
   }
 
   if (sections.some((section) => section.type === 'effect')) {

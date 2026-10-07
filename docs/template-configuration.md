@@ -1939,17 +1939,21 @@ template in the browser. Nothing is uploaded, and LeClap has no server to upload
 
 The builder opens it as a new, unsaved draft (saving adds it to the browser's template library) and clears
 the fragment from the address bar. A link pasted while a draft is open asks before replacing it. Media
-only the author's machine can read cannot travel in a link: absolute, `~/`, `./` and `../` paths, `file:` and
-`blob:` URLs, and `media://` uploads this browser does not hold. Those fields are removed, so their scenes open
+only the author's machine can read cannot travel in a link: absolute, `~/`, `./` and `../` paths (Windows
+forms included), `file:` and `blob:` URLs, `media://` uploads this browser does not hold, and font files named
+by path in `font` fields. URLs under any other scheme than `http(s)`, `data:`, `library://` and `media://` are
+dropped the same way. Those fields are removed, so their scenes open
 empty, and a notice lists the files to film, upload or pick again. Bare library names (`lofi-study.mp3`),
-served paths (`/assets/…`), `http(s)` and `data:` URLs and `{{ variables }}` resolve as usual.
+served paths (`/assets/…`), `http(s)` and `data:` URLs, bundled font ids (`"font": "bebas"`) and
+`{{ variables }}` resolve as usual (a variable inside an otherwise absolute local path does not).
 
 Limits: links over 8,000 characters open in every browser but chat apps and terminals may truncate them
 (the tools warn); a payload over 512 KiB is refused, and a link may inflate to at most 4 MiB of JSON. The
 bundled creative-kit templates make 1.5–3 KB links. A damaged, truncated, oversized or invalid link shows an
 error in the builder rather than opening anything. Effect sections cannot be edited in the builder yet.
 `--base` / `baseUrl` point the link at a locale (`https://leclap.dev/fr`) or a local dev server
-(`http://localhost:5173`). The codec is exported from the engine (`createBuilderLink`,
+(`http://localhost:5173`); any origin other than `https://leclap.dev` adds a warning, since the page it serves
+can read the fragment. The codec is exported from the engine (`createBuilderLink`,
 `encodeTemplatePayload`, `decodeTemplatePayload`, `mediaToRebind`) and uses `CompressionStream` with a
 pure-JS fallback, so it runs on Node, in the browser and on React Native.
 

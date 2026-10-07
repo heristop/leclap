@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { encodeTemplatePayload, TEMPLATE_LINK_LIMITS } from 'ffmpeg-video-composer/src/core/template-link/index.ts';
+import {
+  encodeTemplatePayload,
+  mediaToRebind,
+  TEMPLATE_LINK_LIMITS,
+} from 'ffmpeg-video-composer/src/core/template-link/index.ts';
 import webAppPromo from '@leclap/creative-kit/templates/web-app-promo.json';
 import { importTemplateLink, stripUnreadableMedia } from './open-template-link';
+
+// Built from parts: the lint rule against script URLs is right everywhere but in a test of refusing them.
+const SCRIPT_URL = ['javascript', 'alert(1)'].join(':');
 
 const noUploads = { hasUpload: async () => false };
 
@@ -107,6 +114,21 @@ describe('importTemplateLink', () => {
     expect(future).toMatchObject({ kind: 'failed', code: 'unsupported_version' });
   });
 
+  it('drops media under a scheme the builder does not load, listing it like unreadable media', async () => {
+    const template = {
+      meta: { name: 'Scheme' },
+      sections: [{ name: 'take', type: 'video', options: { videoUrl: SCRIPT_URL, duration: 4 } }],
+    };
+    const result = await importTemplateLink(await hashFor(template), noUploads);
+
+    expect(result.kind).toBe('opened');
+
+    if (result.kind !== 'opened') return;
+
+    expect(JSON.stringify(result.template.descriptor)).not.toContain(SCRIPT_URL);
+    expect(result.rebind).toEqual([{ file: SCRIPT_URL, section: 'take', reason: 'unsupported_scheme' }]);
+  });
+
   it('refuses a template the builder cannot edit, saying why', async () => {
     const effect = {
       sections: [
@@ -135,5 +157,47 @@ describe('stripUnreadableMedia', () => {
     expect(withMedia).toEqual(before);
     expect(stripped.sections[1].options).toEqual({ duration: 4 });
     expect(stripped.global.music).toEqual(withMedia.global.music);
+  });
+
+  it('drops a whole input without touching the field of the input after it', () => {
+    const section = {
+      name: 's',
+      type: 'video',
+      inputs: [
+        {
+          name: 'a',
+          filters: [{ type: 'drawtext', values: { fontfile: '/Users/me/A.ttf' } }],
+          url: '/Users/me/a.png',
+        },
+        {
+          name: 'b',
+          filters: [{ type: 'drawtext', values: { fontfile: '/fonts/Bundled.ttf' } }],
+          url: '/assets/b.png',
+        },
+      ],
+    };
+    const template = { sections: [section] };
+    const stripped = stripUnreadableMedia(template, mediaToRebind(template)) as typeof template;
+
+    expect(stripped.sections[0].inputs).toEqual([section.inputs[1]]);
+  });
+
+  it('drops a field of an input and that input when both are listed, whatever their order', () => {
+    const template = {
+      sections: [
+        {
+          name: 's',
+          inputs: [
+            { name: 'a', url: '/Users/me/a.png', values: { fontfile: '/Users/me/A.ttf' } },
+            { name: 'b', url: '/assets/b.png', values: { fontfile: '/Users/me/B.ttf' } },
+          ],
+        },
+      ],
+    };
+    const refs = mediaToRebind(template);
+    const stripped = stripUnreadableMedia(template, refs);
+
+    expect(stripUnreadableMedia(template, refs.toReversed())).toEqual(stripped);
+    expect(stripped).toEqual({ sections: [{ name: 's', inputs: [{ name: 'b', url: '/assets/b.png', values: {} }] }] });
   });
 });

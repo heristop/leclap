@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { classifyMediaRef, mediaToRebind } from '@/core/template-link/media-refs';
 
+// Built from parts: the lint rule against script URLs is right everywhere but in a test of refusing them.
+const SCRIPT_URL = ['javascript', 'alert(1)'].join(':');
+
 describe('classifyMediaRef', () => {
   it.each([
     ['/Users/me/clip.mp4', 'local_path'],
@@ -12,6 +15,12 @@ describe('classifyMediaRef', () => {
     ['file:///Users/me/clip.mp4', 'local_path'],
     ['blob:https://leclap.dev/1234', 'browser_blob'],
     ['media://abc123', 'device_upload'],
+    [String.raw`..\shared\clip.mp4`, 'local_path'],
+    [String.raw`.\clip.mp4`, 'local_path'],
+    ['/Users/{{ user }}/clip.mp4', 'local_path'],
+    [SCRIPT_URL, 'unsupported_scheme'],
+    [['vbscript', 'msgbox'].join(':'), 'unsupported_scheme'],
+    ['ftp://example.com/clip.mp4', 'unsupported_scheme'],
   ])('%s needs re-binding (%s)', (value, reason) => {
     expect(classifyMediaRef(value)).toBe(reason);
   });
@@ -27,7 +36,9 @@ describe('classifyMediaRef', () => {
     'https://example.com/clip.mp4',
     'data:image/png;base64,AAAA',
     'library://sunset',
+    'HTTPS://example.com/clip.mp4',
     '{{ videoOutro }}',
+    'https://cdn.example.com/{{ clip }}.mp4',
     '',
   ])('%s resolves without re-binding', (value) => {
     expect(classifyMediaRef(value)).toBeNull();
@@ -67,6 +78,36 @@ describe('mediaToRebind', () => {
       { pointer: '/sections/1/inputs/0/url', value: 'file:///tmp/logo.png', reason: 'local_path' },
       { pointer: '/sections/1/filters/0/values/fontfile', value: '/Library/X.ttf', reason: 'local_path' },
       { pointer: '/sections/2/effect/assets/clip', value: '/Users/me/b-roll.mp4', reason: 'local_path' },
+    ]);
+  });
+
+  it('treats a font as media only when it names a file, not a bundled font id', () => {
+    const template = {
+      global: { overlays: [{ type: 'ticker', font: '/Users/me/fonts/Brand.otf' }] },
+      sections: [
+        {
+          name: 'a',
+          type: 'color_background',
+          graphics: [
+            { type: 'kinetic', font: 'bebas' },
+            { type: 'chart', font: 'Oswald.ttf' },
+            { type: 'ticker', font: String.raw`C:\Fonts\Brand.woff2` },
+            { type: 'kinetic', font: '~/fonts/Brand.ttf' },
+          ],
+        },
+      ],
+    };
+
+    expect(mediaToRebind(template)).toEqual([
+      { pointer: '/global/overlays/0/font', value: '/Users/me/fonts/Brand.otf', reason: 'local_path' },
+      { pointer: '/sections/0/graphics/2/font', value: String.raw`C:\Fonts\Brand.woff2`, reason: 'local_path' },
+      { pointer: '/sections/0/graphics/3/font', value: '~/fonts/Brand.ttf', reason: 'local_path' },
+    ]);
+  });
+
+  it('lists media under a scheme the builder does not load', () => {
+    expect(mediaToRebind({ sections: [{ name: 'a', options: { videoUrl: SCRIPT_URL } }] })).toEqual([
+      { pointer: '/sections/0/options/videoUrl', value: SCRIPT_URL, reason: 'unsupported_scheme' },
     ]);
   });
 

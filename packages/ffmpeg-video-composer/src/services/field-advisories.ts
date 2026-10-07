@@ -126,3 +126,11 @@ export function fieldAdvisories(template: unknown, values?: Readonly<Record<stri
     ...valueFindings(template, values),
   ];
 }
+
+export { declaresFields };
+
+// The template as the advisories should read it: declared fields filled with their defaults (or a stand-in
+// of their type), so a `{{ HOLD }}` duration is timed as the number it renders as. Same paths as authored.
+export function withFieldDefaults<T>(template: T): T {
+  return resolveFields(template, undefined, { probe: true }).descriptor;
+}

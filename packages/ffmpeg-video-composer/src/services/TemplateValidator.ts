@@ -18,8 +18,7 @@ import { formatAdvisories } from '@/core/formats/advisories';
 import { takeAdvisories } from './take-validation';
 import { soundAdvisories } from './sound-advisories';
 import { expandPartialsSafe } from '@/core/partials';
-import { declaresFields, resolveFields } from '@/core/fields';
-import { fieldAdvisories } from './field-advisories';
+import { declaresFields, fieldAdvisories, withFieldDefaults } from './field-advisories';
 
 export type { ValidationError, ValidationResult } from './BaseTemplateValidator';
 export type { MotionWarning } from './motion-lint';
@@ -39,12 +38,6 @@ function partialWarnings(template: unknown): MotionWarning[] {
   const expanded = expandPartialsSafe(template);
 
   return expanded.ok ? (expanded.warnings ?? []).map((w) => ({ ...w, severity: 'warn' as const })) : [];
-}
-
-// The template as the advisories should read it: declared fields filled with their defaults (or a stand-in
-// of their type), so a `{{ HOLD }}` duration is timed as the number it renders as. Same paths as authored.
-function withFieldDefaults<T>(template: T): T {
-  return resolveFields(template, undefined, { probe: true }).descriptor;
 }
 
 // The field contract's advisories, once on the authored template (they name authored paths).

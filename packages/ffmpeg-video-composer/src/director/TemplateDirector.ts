@@ -236,9 +236,7 @@ class TemplateDirector {
     // Order: probed source → clip range / ramp / freeze (director/footage-durations.ts) → keep windows /
     // trimSilence / HDR tone-map (director/footage-plan.ts). The two edit families never share a section.
     const fps = this.project.config.videoConfig?.fps ?? 30;
-    recordSectionLengths(segments, buildInfos, fps, (note) => {
-      this.logger.warn(note);
-    });
+    recordSectionLengths(segments, buildInfos, fps, this.logger.warn.bind(this.logger));
     await applyTakePlans(this.footageDeps(), segments, buildInfos);
 
     // Each non-cut boundary cross-dissolves, overlapping its two clips and shortening the rendered

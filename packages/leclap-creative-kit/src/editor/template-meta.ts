@@ -2,7 +2,7 @@ import type { TemplateDescriptor, EditorState, EditableTemplate } from './model'
 
 export function editorIdentityFrom(
   template: EditableTemplate
-): Pick<EditorState, 'name' | 'description' | 'creativeDirection' | 'brief' | 'requirePurpose'> {
+): Pick<EditorState, 'name' | 'description' | 'creativeDirection' | 'brief' | 'requirePurpose' | 'resolved'> {
   const meta = template.descriptor.meta;
 
   // Embedded metadata wins per field; legacy descriptors retain the catalog identity. The brief switches
@@ -13,16 +13,21 @@ export function editorIdentityFrom(
     creativeDirection: meta?.creativeDirection,
     ...(meta?.brief === undefined ? {} : { brief: meta.brief }),
     ...(meta?.requirePurpose === undefined ? {} : { requirePurpose: meta.requirePurpose }),
+    // Pinned transcripts (meta.resolved) are written by resolve passes, never edited here.
+    ...(meta?.resolved === undefined ? {} : { resolved: meta.resolved }),
   };
 }
 
 // The brief switches have no control yet: carried through untouched (blank brief dropped).
-function briefFrom(state: EditorState): Pick<NonNullable<TemplateDescriptor['meta']>, 'brief' | 'requirePurpose'> {
+function briefFrom(
+  state: EditorState
+): Pick<NonNullable<TemplateDescriptor['meta']>, 'brief' | 'requirePurpose' | 'resolved'> {
   const brief = state.brief?.trim();
 
   return {
     ...(brief ? { brief } : {}),
     ...(state.requirePurpose === undefined ? {} : { requirePurpose: state.requirePurpose }),
+    ...(state.resolved === undefined ? {} : { resolved: state.resolved }),
   };
 }
 

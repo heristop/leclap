@@ -173,10 +173,11 @@ export const DocMcp = () => (
         </p>
       </Prose>
       <Callout label="Containment">
-        Local input paths — <Code>userVideoPaths</Code>, <Code>probe_media</Code>, <Code>extract_style</Code> and{' '}
-        <Code>analyze_music</Code> — must resolve inside the media dir. The check is symlink-safe, so a link pointing
-        outside is rejected rather than followed. Remote template URLs are SSRF-guarded (http(s) only, private and
-        metadata IPs and redirects blocked), and FFmpeg is invoked through <Code>execFile</Code>, never a shell.
+        Local input paths — <Code>userVideoPaths</Code>, <Code>probe_media</Code>, <Code>extract_style</Code>,{' '}
+        <Code>analyze_music</Code> and <Code>transcribe_media</Code> — must resolve inside the media dir. The check is
+        symlink-safe, so a link pointing outside is rejected rather than followed. Remote template URLs are SSRF-guarded
+        (http(s) only, private and metadata IPs and redirects blocked), and FFmpeg is invoked through{' '}
+        <Code>execFile</Code>, never a shell.
       </Callout>
     </DocSection>
 

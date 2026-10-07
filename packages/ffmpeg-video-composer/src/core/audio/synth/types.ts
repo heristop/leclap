@@ -12,6 +12,8 @@ export interface Sweep {
   from: number;
   to: number;
   curve?: Curve;
+  /** Seconds to reach `to`, then held; default the whole note. */
+  time?: number;
 }
 
 /** Hz, fixed or swept. */
@@ -44,6 +46,8 @@ export interface Filter {
   from?: number;
   to?: number;
   curve?: Curve;
+  /** Seconds the sweep takes, then held; default the whole note. */
+  time?: number;
   /** Q, 0.5..12. */
   resonance?: number;
 }
@@ -64,7 +68,10 @@ export interface LayerShape extends Sequence {
   /** -1 (left) .. 1 (right). */
   pan?: number;
   envelope?: Envelope;
-  filter?: Filter;
+  /** One filter, or a chain applied in order (e.g. a highpass then a lowpass). */
+  filter?: Filter | Filter[];
+  /** 0..1: per-layer tanh saturation (square-ish tones, 808s, gritty noise). */
+  drive?: number;
   /** Seconds of each note; default from the envelope, else the rest of the sound. */
   length?: number;
 }

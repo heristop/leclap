@@ -1,13 +1,14 @@
-// What one `sfx` cue plays: a library id (its bundled file), a preset `sound` (for now the preset's bundled
-// file: its pitch/length/brightness/room variations apply once the presets are re-expressed as synth
-// recipes; the validator warns until then), or a composed `sound`, named by the hash of its content and,
-// when it draws random numbers, its seed, so identical sounds share one rendered file. Pure.
+// What one `sfx` cue plays: a library id or an unvaried `sound.preset` (the shipped file, byte for byte), a
+// varied preset (its recipe, sound-presets/vary.ts, rendered by the synth) or a composed `sound`. A rendered
+// sound is named by the hash of its content and, when it draws random numbers, its seed, so identical
+// sounds share one file. A preset keeps its library anchor and default level. Pure.
 
 import type { SfxCue } from '../../schemas/audio.schemas';
 import type { SoundInput } from '../../schemas/sound.schemas';
 import { canonicalJson } from '../determinism/hash';
 import { sha256Hex } from '../determinism/sha256';
-import { sfxEntry, type SfxEntry } from './sfx-library';
+import { sfxEntry, type SfxEntry, type SfxId } from './sfx-library';
+import { isVaried, varyPreset } from './sound-presets';
 import { DEFAULT_SOUND_VOLUME, SYNTH_VERSION } from './synth/bounds';
 import { soundUsesSeed } from './synth/render';
 import { soundLength } from './synth/timing';
@@ -49,8 +50,7 @@ function library(entry: SfxEntry | undefined): ResolvedCue | undefined {
   return { id, file, duration, anchor, defaultVolume };
 }
 
-function composed(sound: SoundInput, cueSeed: number): ResolvedCue {
-  const spec = composedSpec(sound);
+function rendered(spec: ComposedSound, cueSeed: number, defaults: Pick<ResolvedCue, 'anchor' | 'defaultVolume'>) {
   const seed = soundUsesSeed(spec) ? cueSeed >>> 0 : 0;
   const file = soundFileName(spec, seed);
 
@@ -58,10 +58,26 @@ function composed(sound: SoundInput, cueSeed: number): ResolvedCue {
     id: `sound-${file.slice(0, 8)}`,
     file,
     duration: soundLength(spec),
-    anchor: sound.anchor ?? 'start',
-    defaultVolume: DEFAULT_SOUND_VOLUME,
+    ...defaults,
     sound: { spec, seed },
   };
+}
+
+/** What `sound` renders: a preset's recipe with its variations, or the composed layers. */
+export function soundSpec(sound: SoundInput): ComposedSound {
+  return sound.preset === undefined ? composedSpec(sound) : varyPreset(sound.preset, sound);
+}
+
+function preset(sound: SoundInput & { preset: SfxId }, cueSeed: number): ResolvedCue | undefined {
+  const entry = library(sfxEntry(sound.preset));
+
+  if (!entry) return undefined;
+
+  const defaults = { anchor: sound.anchor ?? entry.anchor, defaultVolume: entry.defaultVolume };
+
+  if (!isVaried(sound)) return { ...entry, ...defaults };
+
+  return rendered(varyPreset(sound.preset, sound), cueSeed, defaults);
 }
 
 /** The sound a cue plays, with `cueSeed` = deriveSeed(global.seed, the cue's path); undefined if unknown. */
@@ -70,11 +86,12 @@ export function resolveCue(cue: SfxCue, cueSeed: number): ResolvedCue | undefine
 
   if (!cue.sound) return undefined;
 
-  if (cue.sound.preset !== undefined) {
-    const preset = library(sfxEntry(cue.sound.preset));
+  const { sound } = cue;
 
-    return preset && { ...preset, anchor: cue.sound.anchor ?? preset.anchor };
-  }
+  if (sound.preset !== undefined) return preset({ ...sound, preset: sound.preset }, cueSeed);
 
-  return composed(cue.sound, cueSeed);
+  return rendered(composedSpec(sound), cueSeed, {
+    anchor: sound.anchor ?? 'start',
+    defaultVolume: DEFAULT_SOUND_VOLUME,
+  });
 }

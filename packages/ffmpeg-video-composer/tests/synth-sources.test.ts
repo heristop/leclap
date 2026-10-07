@@ -133,3 +133,13 @@ describe('synth strike', () => {
     expect(clicked.slice(2400)).toEqual(plain.slice(2400));
   });
 });
+
+describe('synth glides', () => {
+  it('reaches the sweep target after `time` seconds and holds it', () => {
+    const glide = tone({ samples: SYNTH_RATE, wave: 'sine', pitch: { from: 1000, to: 200, time: 0.1 } });
+    const tail = crossings(glide, SYNTH_RATE / 2) * 2;
+
+    expect(Math.abs(tail / 2 - 200)).toBeLessThan(4);
+    expect(crossings(glide, 0, SYNTH_RATE / 50) * 50).toBeGreaterThan(1500);
+  });
+});

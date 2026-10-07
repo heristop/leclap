@@ -70,6 +70,29 @@ describe('SoundSchema bounds', () => {
     ).toEqual([]);
   });
 
+  it('accepts glides, filter chains and drive', () => {
+    expect(
+      issues({
+        layers: [
+          {
+            source: 'tone',
+            pitch: { from: 160, to: 40, time: 0.2 },
+            drive: 0.6,
+            filter: [
+              { type: 'highpass', cutoff: 30 },
+              { type: 'lowpass', from: 2000, to: 300, time: 0.1 },
+            ],
+          },
+        ],
+      })
+    ).toEqual([]);
+    expect(
+      issues({
+        layers: [{ source: 'noise', filter: Array.from({ length: 4 }, () => ({ type: 'lowpass', cutoff: 900 })) }],
+      })
+    ).not.toEqual([]);
+  });
+
   it('rejects out-of-bound values', () => {
     const tone = { source: 'tone', pitch: 440 };
 
@@ -103,23 +126,5 @@ describe('SoundSchema bounds', () => {
     expect(issues({ preset: 'whoosh', pitch: 8 })).not.toEqual([]);
     expect(issues({ layers: composed.layers, brightness: 0.5 })).not.toEqual([]);
     expect(issues({})).not.toEqual([]);
-  });
-});
-
-describe('sound advisories', () => {
-  it('warns that a preset sound plays its library file unvaried until the presets are ported', () => {
-    const validator = new TemplateValidator();
-    const warnings = validator.getMotionWarnings({
-      global: { musicEnabled: false, sfx: [{ at: 0.5, sound: { preset: 'sparkle', pitch: 1.2 } }] },
-      sections: [
-        card([
-          { at: 1, sound: { preset: 'hit' } },
-          { at: 1.5, sound: composed },
-        ]),
-      ],
-    });
-    const pending = warnings.filter((warning) => warning.code === 'sound_preset_unvaried');
-
-    expect(pending).toEqual([expect.objectContaining({ path: 'global.sfx[0].sound', severity: 'info' })]);
   });
 });

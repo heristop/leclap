@@ -33,4 +33,4 @@ export const DEFAULT_RESONANCE = Math.SQRT1_2;
 export const DEFAULT_SOUND_VOLUME = 0.6;
 
 /** Bumped when a change to the synth changes rendered bytes, so cached files are not reused. */
-export const SYNTH_VERSION = 1;
+export const SYNTH_VERSION = 2;

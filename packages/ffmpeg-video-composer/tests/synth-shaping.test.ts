@@ -218,3 +218,29 @@ describe('synth normalise and WAV', () => {
     ]);
   });
 });
+
+describe('synth vocabulary extensions', () => {
+  it('chains several filters on one layer (a highpass then a lowpass make a wide band)', () => {
+    const at = (pitch: number) =>
+      rms(
+        filter(tone({ samples: SYNTH_RATE / 2, wave: 'sine', pitch }), [
+          { type: 'highpass', cutoff: 300 },
+          { type: 'lowpass', cutoff: 5000 },
+        ]),
+        SYNTH_RATE / 10
+      );
+
+    expect(at(1500)).toBeGreaterThan(0.65);
+    expect(at(60)).toBeLessThan(0.05);
+    expect(at(16000)).toBeLessThan(0.1);
+  });
+
+  it('the exponential curve also bends the attack into a swell', () => {
+    const exp = envelope(SYNTH_RATE, { attack: 1, sustain: 1, curve: 'exp' });
+    const linear = envelope(SYNTH_RATE, { attack: 1, sustain: 1, curve: 'linear' });
+
+    expect(exp[SYNTH_RATE / 2]).toBeLessThan(0.1);
+    expect(linear[SYNTH_RATE / 2]).toBeCloseTo(0.5, 3);
+    expect(exp[SYNTH_RATE - 1]).toBeCloseTo(1, 3);
+  });
+});

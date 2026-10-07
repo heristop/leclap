@@ -17,7 +17,7 @@ import { SFX_IDS } from '../core/audio/sfx-library';
 // ── composed sounds: the vocabulary of `sfx[].sound` ──────────────────────────────────────────────────
 //
 // Shapes and bounds only; the synth (core/audio/synth) renders them and the mix (editor/utils/sfx-sound.ts)
-// places the WAV. Descriptions stay terse: the whole schema rides in the web generation prompt.
+// places the WAV. Descriptions stay terse: agents read them through get_template_schema.
 
 const unit = z.number().min(0).max(1);
 const seconds = z.number().min(0).max(MAX_SOUND_LENGTH);
@@ -25,8 +25,8 @@ const curve = z.enum(['linear', 'exp']);
 const hz = z.number().min(MIN_PITCH).max(MAX_PITCH);
 
 const PitchSchema = z
-  .union([hz, z.object({ from: hz, to: hz, curve: curve.optional() }).strict()])
-  .describe('Hz, or a sweep {from,to} over each note (exp by default).')
+  .union([hz, z.object({ from: hz, to: hz, curve: curve.optional(), time: seconds.optional() }).strict()])
+  .describe('Hz, or a sweep {from,to} over each note (exp by default), or over `time` s then held.')
   .meta({ id: 'SoundPitch' });
 
 const EnvelopeSchema = z
@@ -40,8 +40,8 @@ const EnvelopeSchema = z
   })
   .strict()
   .describe(
-    'Seconds; linear attack (default 0.005) to 1, hold, decay to sustain (default 0; no decay = the whole ' +
-      'note), release at the note end. curve shapes decay/release (default exp).'
+    'Seconds; attack (default 0.005) to 1, hold, decay to sustain (default 0; no decay = the whole note), ' +
+      'release at the note end. curve: exp (default; the attack swells, decays fall fast) or linear.'
   )
   .meta({ id: 'SoundEnvelope' });
 
@@ -54,6 +54,7 @@ const FilterSchema = z
     from: cutoff.optional(),
     to: cutoff.optional(),
     curve: curve.optional(),
+    time: seconds.optional(),
     resonance: z.number().min(MIN_RESONANCE).max(MAX_RESONANCE).optional(),
   })
   .strict()
@@ -125,7 +126,11 @@ export const SoundLayerSchema = z
     delay: seconds.optional().describe('Seconds before the layer.'),
     pan: z.number().min(-1).max(1).optional(),
     envelope: EnvelopeSchema.optional(),
-    filter: FilterSchema.optional(),
+    filter: z
+      .union([FilterSchema, z.array(FilterSchema).min(1).max(3)])
+      .optional()
+      .describe('One filter or a chain (e.g. highpass then lowpass).'),
+    drive: unit.optional().describe('Per-layer soft clip (square-ish, 808).'),
     length: z.number().min(0.005).max(MAX_SOUND_LENGTH).optional().describe('Seconds per note.'),
     repeat: z.number().int().min(1).max(MAX_REPEAT).optional().describe('Hits (rolls, ticks).'),
     every: z.number().min(0.01).max(2).optional().describe('Seconds between hits (0.1).'),

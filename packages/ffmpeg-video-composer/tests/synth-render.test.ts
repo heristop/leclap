@@ -64,10 +64,10 @@ describe('renderSound', () => {
 
   it('matches the golden digests', () => {
     expect(sha256Hex(renderSoundWav(impact, 42))).toMatchInlineSnapshot(
-      `"e972611141eb1d2c72c39d55ede5976bd0b112f622b8ed05809fa574ffd91ed0"`
+      `"2962fa70024733d3e61be607f34408e0d9d60c30078dc7b624c0fa76072af656"`
     );
     expect(sha256Hex(renderSoundWav(roll, 7))).toMatchInlineSnapshot(
-      `"e6a852e1fa7f84b61e9cca3804f02645d5dd15679914dfb1e103f947bae85807"`
+      `"d293384935d050b361839ef2b4d153d40dbc219026ebecc986cc387e3db7e1a2"`
     );
   });
 
@@ -102,6 +102,21 @@ describe('renderSound', () => {
 
     expect(peak([sound.left.subarray(0, half - 1), sound.right])).toBe(0);
     expect(peak([sound.left.subarray(half)])).toBeCloseTo(peakTarget, 6);
+  });
+
+  it('drives a layer into a square-ish soft clip', () => {
+    const crest = (drive: number) => {
+      const { left } = renderSound(
+        { length: 0.2, layers: [{ source: 'tone', pitch: 110, drive, envelope: { sustain: 1 } }] },
+        1
+      );
+      const rmsValue = Math.sqrt(left.reduce((sum, value) => sum + value * value, 0) / left.length);
+
+      return peak([left]) / rmsValue;
+    };
+
+    expect(crest(0)).toBeGreaterThan(1.35);
+    expect(crest(1)).toBeLessThan(1.15);
   });
 
   it('keeps a silent sound silent instead of dividing by zero', () => {

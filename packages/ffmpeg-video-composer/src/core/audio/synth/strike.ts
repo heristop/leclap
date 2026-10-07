@@ -36,7 +36,7 @@ function ringOut(spec: StrikeSpec, partials: readonly StrikePartial[], out: Floa
 
   for (let i = 0; i < out.length; i++) {
     const t = i / SYNTH_RATE;
-    const pitch = clamp(sweepAt(spec.pitch, out.length > 1 ? i / (out.length - 1) : 0), MIN_PITCH, MAX_PITCH);
+    const pitch = clamp(sweepAt(spec.pitch, i, out.length), MIN_PITCH, MAX_PITCH);
     let sum = 0;
 
     for (let k = 0; k < partials.length; k++) {

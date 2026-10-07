@@ -33,7 +33,7 @@ function coefficients(pass: Pass, frequency: number, q: number): Float64Array {
 
 function run(buffer: Float64Array, stage: Stage): void {
   const swept = typeof stage.cutoff !== 'number';
-  let c = coefficients(stage.pass, sweepAt(stage.cutoff, 0) * stage.scale, stage.q);
+  let c = coefficients(stage.pass, sweepAt(stage.cutoff, 0, buffer.length) * stage.scale, stage.q);
   let x1 = 0;
   let x2 = 0;
   let y1 = 0;
@@ -41,7 +41,7 @@ function run(buffer: Float64Array, stage: Stage): void {
 
   for (let i = 0; i < buffer.length; i++) {
     if (swept && i % STEP === 0) {
-      c = coefficients(stage.pass, sweepAt(stage.cutoff, i / Math.max(1, buffer.length - 1)) * stage.scale, stage.q);
+      c = coefficients(stage.pass, sweepAt(stage.cutoff, i, buffer.length) * stage.scale, stage.q);
     }
 
     const x = buffer[i];
@@ -67,9 +67,11 @@ function stagesOf(spec: Filter): Stage[] {
   return [low, low, high, high];
 }
 
-/** Filters `buffer` in place and returns it. */
-export function filter(buffer: Float64Array, spec: Filter): Float64Array {
-  for (const stage of stagesOf(spec)) run(buffer, stage);
+/** Filters `buffer` in place through `spec` (or each filter of a chain in turn) and returns it. */
+export function filter(buffer: Float64Array, spec: Filter | readonly Filter[]): Float64Array {
+  const chain: readonly Filter[] = Array.isArray(spec) ? spec : [spec as Filter];
+
+  for (const stage of chain.flatMap(stagesOf)) run(buffer, stage);
 
   return buffer;
 }

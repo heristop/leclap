@@ -9,6 +9,7 @@ import type {
 import { planSfx } from '@/editor/utils/sfx-plan';
 import { prepareSfxStage } from '@/editor/utils/sfx-stage';
 import { resolveCue, soundFileName } from '@/core/audio/sfx-cue';
+import { varyPreset } from '@/core/audio/sound-presets';
 import { deriveSeed } from '@/core/determinism/hash';
 import { renderSoundWav, soundLength } from '@/core/audio/synth/render';
 import type { ComposedSound } from '@/core/audio/synth/types';
@@ -57,12 +58,19 @@ describe('resolveCue', () => {
     expect(soundFileName(blip, 0)).toBe(cue?.file);
   });
 
-  it('plays a preset sound from its library file until the presets are ported to the synth', () => {
-    expect(resolveCue({ sound: { preset: 'sparkle', pitch: 1.2 }, at: 0 }, 1)).toMatchObject({
+  it('plays an unvaried preset from its library file and renders a varied one from its recipe', () => {
+    expect(resolveCue({ sound: { preset: 'sparkle' }, at: 0 }, 1)).toMatchObject({
       id: 'sparkle',
       file: 'sparkle.m4a',
       anchor: 'start',
     });
+
+    const varied = resolveCue({ sound: { preset: 'riser', pitch: 1.2, length: 1.5 }, at: 0 }, 1);
+    const spec = varyPreset('riser', { pitch: 1.2, length: 1.5 });
+
+    expect(varied).toMatchObject({ anchor: 'end', duration: 1.5, defaultVolume: 0.5 });
+    expect(varied?.file).toBe(soundFileName(spec, varied?.sound?.seed ?? 0));
+    expect(varied?.sound?.spec).toEqual(spec);
   });
 });
 

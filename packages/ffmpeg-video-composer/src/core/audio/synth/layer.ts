@@ -11,6 +11,7 @@ import { filter } from './filter';
 import { noise } from './noise';
 import { tone } from './oscillator';
 import { onsets, type Hit } from './sequence';
+import { saturate } from './sound-fx';
 import { strike } from './strike';
 import { noteLength } from './timing';
 import type { Envelope, Layer } from './types';
@@ -72,6 +73,8 @@ function renderHit(layer: Audible, samples: number, gain: number, random: () => 
   const shape = shapeOf(layer);
 
   if (layer.filter) filter(note, layer.filter);
+
+  saturate(note, layer.drive ?? 0);
 
   const gains = shape ? envelope(samples, shape) : null;
 

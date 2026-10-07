@@ -41,7 +41,7 @@ function saw(phase: number, dt: number): number {
 }
 
 function frequencyAt(spec: ToneSpec, i: number): number {
-  const base = sweepAt(spec.pitch, spec.samples > 1 ? i / (spec.samples - 1) : 0);
+  const base = sweepAt(spec.pitch, i, spec.samples);
   const vibrato = spec.vibrato;
   const wobble = vibrato ? 2 ** ((vibrato.depth / 12) * Math.sin((2 * Math.PI * vibrato.rate * i) / SYNTH_RATE)) : 1;
 

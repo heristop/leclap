@@ -1,6 +1,7 @@
-// The gain envelope of one note: a linear attack to 1, a hold, a decay to `sustain`, the sustain held until
-// the note's end minus `release`, then the release to 0. The decay and release are exponential by default
-// (a curve normalised to reach its target exactly), linear on request. A decay left out fills the note.
+// The gain envelope of one note: an attack to 1, a hold, a decay to `sustain`, the sustain held until the
+// note's end minus `release`, then the release to 0. Every stage is exponential by default (a curve
+// normalised to reach its target exactly: the attack swells, the decay and release fall fast then
+// linger), linear on request. A decay left out fills the note.
 // Pure.
 
 import { DEFAULT_ATTACK, SYNTH_RATE } from './bounds';
@@ -14,6 +15,13 @@ function fall(x: number, curve: Curve): number {
   if (curve === 'linear') return 1 - x;
 
   return (Math.exp(-EXP_DEPTH * x) - EXP_FLOOR) / (1 - EXP_FLOOR);
+}
+
+/** Rises from 0 at x = 0 to 1 at x = 1: a straight line, or a swell that saves its growth for the end. */
+function rise(x: number, curve: Curve): number {
+  if (curve === 'linear') return x;
+
+  return (Math.exp(EXP_DEPTH * x) - 1) / (Math.exp(EXP_DEPTH) - 1);
 }
 
 interface Stages {
@@ -37,7 +45,7 @@ function stages(samples: number, spec: Envelope): Stages {
 
 // The level before the release starts.
 function bodyAt(i: number, s: Stages): number {
-  if (i < s.attack) return i / s.attack;
+  if (i < s.attack) return rise(i / s.attack, s.curve);
 
   const intoDecay = i - s.attack - s.hold;
 

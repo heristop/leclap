@@ -20,6 +20,7 @@ import { validateEffects } from './effects/title-registry.js';
 import { registerSamples } from './tools/samples.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
 import { registerInspectTools } from './tools/inspectTools.js';
+import { registerOpenInBuilder } from './tools/open-in-builder.js';
 
 // Each tool group is registered by a small `registerXxx(server, config)` function, called from
 // `createServer`. The surface is authoring-only: schema, validate, compose, probe, the Remotion
@@ -80,6 +81,12 @@ function registerMediaAnalysis(server: McpServer, config: McpConfig): void {
   registerAnalyzeSound(server, config);
 }
 
+// Config-free tools: the local FFmpeg capability report and the builder hand-off link.
+function registerStandaloneTools(server: McpServer): void {
+  registerGetCapabilities(server);
+  registerOpenInBuilder(server);
+}
+
 export function createServer(input: McpConfig): McpServer {
   const config = snapshotEffectConfig(input);
   const server = new McpServer(
@@ -107,7 +114,7 @@ export function createServer(input: McpConfig): McpServer {
   }
   registerTemplateEdits(server, config);
   registerMediaAnalysis(server, config);
-  registerGetCapabilities(server);
+  registerStandaloneTools(server);
 
   // render_remotion_clip bundles + executes a caller-supplied entry (arbitrary local JS) — an RCE
   // surface. Register it only when the operator explicitly opted in for trusted local design-time use.

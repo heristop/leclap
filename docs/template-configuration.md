@@ -1929,6 +1929,30 @@ Merge rules: objects merge key by key; arrays and scalars replace; `null` delete
 
 Art direction: vertical means fewer simultaneous elements, larger type, a stronger top-to-bottom hierarchy and its own camera path; square means tighter typography and shorter holds. Set `global.platform` per format for its safe zones. The catalog guide is `motionCatalog().formats`; the example is [`examples/motion-design/formats.json`](../examples/motion-design/formats.json).
 
+## Opening a template in the web builder
+
+A template can travel to a person as a link: `leclap studio <template>` and the MCP `open_in_builder` tool
+return `https://leclap.dev/studio/builder#t=v1.<payload>`, where the payload is the descriptor JSON,
+deflate-compressed and base64url-encoded, behind a format version (`v1.`). The template sits in the URL
+**fragment**, which browsers never send to a server: the static page loads, then decodes and validates the
+template in the browser. Nothing is uploaded, and LeClap has no server to upload to.
+
+The builder opens it as a new, unsaved draft (saving adds it to the browser's template library) and clears
+the fragment from the address bar. A link pasted while a draft is open asks before replacing it. Media
+only the author's machine can read cannot travel in a link: absolute, `~/`, `./` and `../` paths, `file:` and
+`blob:` URLs, and `media://` uploads this browser does not hold. Those fields are removed, so their scenes open
+empty, and a notice lists the files to film, upload or pick again. Bare library names (`lofi-study.mp3`),
+served paths (`/assets/…`), `http(s)` and `data:` URLs and `{{ variables }}` resolve as usual.
+
+Limits: links over 8,000 characters open in every browser but chat apps and terminals may truncate them
+(the tools warn); a payload over 512 KiB is refused, and a link may inflate to at most 4 MiB of JSON. The
+bundled creative-kit templates make 1.5–3 KB links. A damaged, truncated, oversized or invalid link shows an
+error in the builder rather than opening anything. Effect sections cannot be edited in the builder yet.
+`--base` / `baseUrl` point the link at a locale (`https://leclap.dev/fr`) or a local dev server
+(`http://localhost:5173`). The codec is exported from the engine (`createBuilderLink`,
+`encodeTemplatePayload`, `decodeTemplatePayload`, `mediaToRebind`) and uses `CompressionStream` with a
+pure-JS fallback, so it runs on Node, in the browser and on React Native.
+
 ## Determinism
 
 The same template, assets, seed and platform profile always render the same bytes:

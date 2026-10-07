@@ -156,6 +156,10 @@
             "description": "Report what the local FFmpeg really renders (drawtext, LUTs, transitions, loudness, encoders), each with a fix."
           },
           {
+            "name": "open_in_builder",
+            "description": "Return a link that opens the template in the LeClap web builder; the template travels in the URL fragment, never uploaded."
+          },
+          {
             "name": "render_remotion_clip",
             "description": "Render a composition from your own Remotion project to an MP4. Gated \u2014 see notes."
           },

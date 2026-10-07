@@ -69,3 +69,5 @@ export type {
   ResolvedEffectProvenance,
   ResolvedTemplateEffects,
 } from './core/resolve-template-effects';
+// Template links: a descriptor carried in the web builder's URL fragment.
+export * from './core/template-link';

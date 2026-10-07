@@ -106,7 +106,7 @@ export const mcpDoc: McpDoc = {
       name: 'get_resolved_template',
       args: 'template, fields?, format?',
       purpose:
-        'Returns the descriptor compose_video would render for these fields, render-free: partials expanded, the declared global.fields filled with their typed values, then variables and form values; values holds each typed value.',
+        'Returns the descriptor compose_video starts its build from for these fields, render-free: partials expanded, the declared global.fields filled with their typed values, then the format resolved; variables and form values stay as placeholders. values holds each typed value.',
       when: 'Use to check where a field lands before rendering. A missing required value, or one that fails its type or slot, is an error naming the field.',
     },
     {

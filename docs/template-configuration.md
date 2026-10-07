@@ -197,7 +197,7 @@ Common options (`BaseSectionOptionsSchema`, `strict`) shared by native sections,
 | `captureMode`                              | `'front' \| 'back' \| 'screen' \| 'upload'` | **`project_video` only** — default capture mode when the recorder opens (default `'front'`). `screen` = display capture (web only); `upload` = file picker instead of camera. |
 | `allowedCaptureModes`                      | `CaptureMode[]`                             | **`project_video` only** — modes the user may switch between. Omit to allow all; single-element array locks to one mode. `screen` is silently ignored on native/Expo.         |
 
-`form` sections use `options.fields`: `{ name, maxLength, label: Translation }[]`. Each field's `name` becomes a `{{ name }}` variable usable in any filter.
+`form` sections use `options.fields`: `{ name, maxLength, label: Translation }[]`. Each field's `name` becomes a `{{ name }}` variable usable in any filter. `maxLength` is required unless the field binds a non-text `global.fields` entry.
 
 ### Footage editing
 
@@ -987,15 +987,15 @@ For a hand-framed scene, a final `{ "type": "scale", "value": "output" }` is a L
 | `label`       | `Translation`      | What a builder shows next to the input.                 |
 | `description` | `string`           | Help text for authors and agents.                       |
 
-| Type     | Accepts                                                                        | Substituted as |
-| -------- | ------------------------------------------------------------------------------ | -------------- |
-| `text`   | any text (≤ `maxLength`); an optional text field without value is `""`         | string         |
-| `color`  | `#rgb`, `#rrggbb(aa)`, `0xrrggbb`, a colour name (`white`, `red@0.5`), `rgb()` | string         |
-| `url`    | an absolute URL (`https://…`, `data:…`)                                        | string         |
-| `media`  | a file path or URL                                                             | string         |
-| `number` | a number, or a numeric string (`"2.5"`), within `min`/`max`                    | number         |
-| `enum`   | one of `options`                                                               | string         |
-| `time`   | seconds (`4.5`) or a clock (`"1:02.5"`, `"0:01:02"`)                           | number (s)     |
+| Type     | Accepts                                                                                                                                                                                      | Substituted as                                             |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `text`   | any text (≤ `maxLength`); an optional text field without value is `""` (blank counts as no value)                                                                                            | string                                                     |
+| `color`  | `#rrggbb(aa)`, `0xrrggbb`, an FFmpeg colour name (`white`, `lightgrey`), `#rgb(a)` and `rgb()`/`rgba()` (rewritten to `#rrggbb(aa)`), each with an optional `@alpha` from 0 to 1 (`red@0.5`) | string                                                     |
+| `url`    | an `http(s)://`, `data:` or `media://` URL, or a relative path; other schemes are refused                                                                                                    | string                                                     |
+| `media`  | a file path or URL                                                                                                                                                                           | string                                                     |
+| `number` | a decimal number, or a decimal string (`"2.5"`, not `"0x10"`), within `min`/`max`                                                                                                            | number                                                     |
+| `enum`   | one of `options`                                                                                                                                                                             | string (a numeric option fills a numeric slot as a number) |
+| `time`   | seconds (`4.5`) or a clock (`"1:02.5"`, `"0:01:02"`; seconds and minutes below 60)                                                                                                           | number (s)                                                 |
 
 ```json
 {
@@ -1021,18 +1021,29 @@ For a hand-framed scene, a final `{ "type": "scale", "value": "output" }` is a L
 the MCP `fields` argument), else from `default`. It is coerced by its type, then every `{{ NAME }}` of a declared
 field is filled across the descriptor, after partials expand and before formats resolve. A placeholder that is
 the **whole** string takes the typed value, so `"duration": "{{ HOLD }}"` becomes the number `3`; one inside a
-longer string is written as text (`"{{ TITLE }} — live"`). The filled descriptor then goes through the normal
+longer string is written as text (`"{{ TITLE }} — live"`). The slot has the last word: a number alone in a
+text slot (`"text": { "en": "{{ PRICE }}" }`) goes in as its text, and a numeric enum option alone in a numeric
+slot goes in as a number. Substituted text is never scanned again, and the filled descriptor no longer carries
+`global.fields`, so filling it twice changes nothing. The filled descriptor then goes through the normal
 schema, so a value its slot rejects fails **at that slot** (`field_type_mismatch` at `sections.0.options.duration`).
 A render refuses a missing required value or one that fails its type before encoding anything.
-`leclap resolve template.json --set TITLE=Hi` and the MCP `get_resolved_template` tool print the descriptor a
-render would see.
+`leclap resolve template.json --set TITLE=Hi` and the MCP `get_resolved_template` tool print the descriptor the
+build starts from: partials expanded, the fields filled, the format resolved. `global.variables` and form values
+stay as placeholders there; the engine fills them as it draws.
+
+**Text belongs in text slots.** A raw filter value (`filters[].values.fontsize`, `values.enable`, any key but
+`text`) goes to FFmpeg as written, so a field value carrying a filtergraph separator (`, ; : ' [ ] = \`) is
+refused there (`field_type_mismatch`): `"fontsize": "{{ SIZE }}"` with `10,movie=/etc/passwd` never reaches
+FFmpeg. Put text fields in `values.text` or the text sugar (`titleCard`, `reveal`, `lowerThird`), which escape it.
 
 Placeholders of names that are not declared fields (`global.variables`, form fields, partial variables) are
-left to the later passes, as before. Templates without `global.fields` are unaffected.
+left to the later passes. Templates without `global.fields` are unaffected.
 
 **Forms.** A form field named like a declared field is bound to it: the declaration owns the type, default,
-range and options; the form field keeps its `label` and `maxLength`. The web builder then shows a matching
-control (colour picker, number input, select, URL input).
+range and options; the form field keeps its `label` and `maxLength`. A form field bound to a non-text declared
+field may leave `maxLength` out (its typed control checks the value instead). The web builder then shows a
+matching control (colour picker, number input, select, URL input), and gathers the declared fields no form asks
+for into a "Template inputs" step, counted in its progress.
 
 **Advisories** (only for templates that declare `global.fields`; returned by `getFieldWarnings`, and with the
 motion feedback of `leclap validate` and `validate_template`):
@@ -1045,7 +1056,9 @@ motion feedback of `leclap validate` and `validate_template`):
 | `field_missing_required` | A required field, or a non-text one, has neither a value nor a default.                                |
 
 Validating without values (`leclap validate`) fills a missing field with a stand-in of its type so the rest of
-the template is still checked; validating with values (`validateTemplate(t, { fields })`, a render) is strict.
+the template is still checked, and hands back the descriptor as authored (placeholders kept) for the render to
+fill; validating with values (`validateTemplate(t, { fields })`, a render) is strict and hands back the filled
+descriptor.
 
 ---
 

@@ -379,7 +379,8 @@ export interface FramingGuideConfig {
 
 interface Field {
   name: string;
-  maxLength: number;
+  /** Required unless the field binds a non-text `global.fields` entry (the validator checks it). */
+  maxLength?: number;
   label: Translation;
 }
 

@@ -28,13 +28,13 @@ function codes(template: unknown, values?: Record<string, unknown>): string[] {
 }
 
 describe('validateTemplate with declared fields', () => {
-  it('accepts a whole-string placeholder in a numeric slot and returns the resolved descriptor', () => {
+  it('accepts a whole-string placeholder in a numeric slot and returns the authored descriptor', () => {
     const result = validator.validateTemplate(fielded(BASE, [card('a', '{{ HOLD }}', '{{ TITLE }}')]));
     const section = (result.data as TemplateDescriptor).sections?.[0] as { options: { duration: unknown } };
 
     expect(result.errors).toBeUndefined();
     expect(result.success).toBe(true);
-    expect(section.options.duration).toBe(3);
+    expect(section.options.duration).toBe('{{ HOLD }}');
   });
 
   it('reports a substituted value the slot rejects as field_type_mismatch at that slot', () => {

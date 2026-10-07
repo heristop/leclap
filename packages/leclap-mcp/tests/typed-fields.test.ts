@@ -11,10 +11,21 @@ import { createServer } from '../src/server.js';
 import { resolvedTemplateResult } from '../src/tools/getResolvedTemplate.js';
 import { fieldValues } from '../src/compose/field-values.js';
 import { handleValidate } from '../src/tools/validateTemplate.js';
+import { prepareCompose } from '../src/tools/composeVideo.js';
+import { validateEffects } from '../src/effects/title-registry.js';
+import { runTitleEffect } from '../src/effects/effect-runner.js';
 
 vi.mock('../src/compose/renderRunner.js', async (original) => ({
   ...(await original<Record<string, unknown>>()),
   runRender: vi.fn(),
+}));
+vi.mock('../src/effects/title-registry.js', async (original) => ({
+  ...(await original<Record<string, unknown>>()),
+  validateEffects: vi.fn(),
+}));
+vi.mock('../src/effects/effect-runner.js', async (original) => ({
+  ...(await original<Record<string, unknown>>()),
+  runTitleEffect: vi.fn(),
 }));
 
 const template = {
@@ -114,6 +125,56 @@ describe('compose_video', () => {
     } finally {
       await Promise.all([client.close(), server.close()]);
       await fs.rm(outputDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('compose_video with an effect section', () => {
+  const withEffect = {
+    global: {
+      fields: { HOLD: { type: 'number', default: 3 }, TITLE: { type: 'text' }, C: { type: 'color' } },
+    },
+    sections: [
+      {
+        name: 'title',
+        type: 'effect',
+        options: { duration: 2 },
+        effect: { id: 'leclap.title-reveal', version: '1.0.0', props: { headline: '{{ TITLE }}' }, assets: {} },
+      },
+      {
+        name: 'card',
+        type: 'color_background',
+        options: { backgroundColor: '{{ C }}', duration: '{{ HOLD }}' },
+        filters: [{ type: 'drawtext', values: { text: { en: '{{ TITLE }}' } } }],
+      },
+    ],
+  };
+
+  type Card = { options: { duration: unknown; backgroundColor: unknown }; filters: Array<{ values: unknown }> };
+
+  it('renders the values that were provided, in the effect and around it', async () => {
+    const mediaDir = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), 'leclap-fields-effect-')));
+    const config = { mediaDir, outputDir: mediaDir, renderTimeoutMs: 1000, allowRemotion: true };
+    vi.mocked(validateEffects).mockResolvedValue(new Map([['title', {}]]) as never);
+    vi.mocked(runTitleEffect).mockResolvedValue({
+      directory: path.join(mediaDir, 'job'),
+      results: [{ path: path.join(mediaDir, 'title.mp4'), metadata: { duration: 2 } }],
+    } as never);
+
+    try {
+      const fields = { HOLD: '6', TITLE: 'Hi', C: '#ff0000' };
+      const prepared = await prepareCompose({ template: withEffect, fields } as never, config as never);
+
+      expect((prepared as { content?: unknown }).content).toBeUndefined();
+
+      const card = (prepared as { descriptor: { sections: Card[] } }).descriptor.sections[1];
+      const effectInput = vi.mocked(validateEffects).mock.calls[0][0] as { sections: unknown[] };
+
+      expect(card.options).toEqual({ backgroundColor: '#ff0000', duration: 6 });
+      expect(card.filters[0].values).toEqual({ text: { en: 'Hi' } });
+      expect(JSON.stringify(effectInput.sections[0])).toContain('"headline":"Hi"');
+    } finally {
+      await fs.rm(mediaDir, { recursive: true, force: true });
     }
   });
 });

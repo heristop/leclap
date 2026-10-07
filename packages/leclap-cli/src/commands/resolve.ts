@@ -6,9 +6,10 @@ import { parseFormatFlag } from '../render-formats.js';
 import { emitFailure } from './snapshot.js';
 import { fail, step } from '../ui.js';
 
-// `leclap resolve <template> [--set name=value …] [--format …]`: the descriptor a render would see, printed
-// as JSON — partials expanded, declared fields (global.fields) filled with their typed values, variables and
-// form values merged. Exits 1, with one line per problem on stderr, when the render would refuse the values.
+// `leclap resolve <template> [--set name=value …] [--format …]`: the descriptor the build starts from, printed
+// as JSON — partials expanded, declared fields (global.fields) filled with their typed values, the format
+// resolved; variables and form values stay as placeholders. Exits 1, with one line per problem on stderr,
+// when the render would refuse the values.
 
 export interface ResolveReport {
   ok: boolean;

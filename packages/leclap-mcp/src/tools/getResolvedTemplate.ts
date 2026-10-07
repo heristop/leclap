@@ -6,10 +6,11 @@ import { formatArg } from '../compose/format.js';
 import { fieldsArg, fieldValues } from '../compose/field-values.js';
 import { effectKeyError } from '../compose/validation.js';
 
-// get_resolved_template: the descriptor compose_video would render for these `fields`, render-free —
+// get_resolved_template: the descriptor compose_video's build starts from for these `fields`, render-free —
 // partials expanded, the declared global.fields filled with their typed values (a number lands in a numeric
-// slot as a number), then global.variables and form values. What an agent reads to check a field went
-// where it meant before paying for a render. A value the render would refuse is an error naming every field.
+// slot as a number), then the requested format resolved. global.variables and form values stay as
+// placeholders (the engine fills them as it draws). What an agent reads to check a field went where it meant
+// before paying for a render. A value the render would refuse is an error naming every field.
 
 const inputSchema = z.object({ template: z.record(z.string(), z.unknown()), fields: fieldsArg, format: formatArg });
 
@@ -45,9 +46,10 @@ export function registerGetResolvedTemplate(server: McpServer): void {
     {
       title: 'Get Resolved Template',
       description:
-        'Return the template exactly as compose_video would render it for these `fields`, without rendering: ' +
+        'Return the descriptor compose_video starts its build from for these `fields`, without rendering: ' +
         'partials expanded, the declared global.fields filled with their typed values (whole-string ' +
-        '"{{ NAME }}" placeholders become numbers in numeric slots), then global.variables and form values. ' +
+        '"{{ NAME }}" placeholders become numbers in numeric slots), then the format resolved. ' +
+        'global.variables and form values stay as placeholders; the engine fills them as it draws. ' +
         "`values` holds each declared field's typed value. A missing required value, or one that fails its " +
         'type or its slot, is an error naming the field.',
       inputSchema,

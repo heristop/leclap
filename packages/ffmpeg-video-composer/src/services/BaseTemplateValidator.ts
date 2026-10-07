@@ -22,6 +22,7 @@ import { validateBeatsAnalysis } from './time-ref-validation';
 import { usesFormats } from '@/core/formats/resolve';
 import { validateEachFormat } from './validation/format-validation';
 import { validateWithFields } from './validation/field-validation';
+import { formFieldBudgetErrors } from './validation/form-field-budget';
 
 export type { ValidationError } from './template-validation-rules';
 
@@ -135,11 +136,15 @@ export class BaseTemplateValidator {
 
     // Declared fields are filled in after the partials expand (a ref's own variables win) and before the
     // formats resolve; `data` is then the descriptor as it renders (services/validation/field-validation.ts).
-    return validateWithFields(expansion.data, options.fields, (resolved) =>
+    const result = validateWithFields(expansion.data, options.fields, (resolved) =>
       usesFormats(resolved) || options.format !== undefined
         ? this.validateFormats(resolved, options.format)
         : this.validateParsed(resolved)
     );
+    // Read on the expanded descriptor, where the field contract still says which form fields are typed.
+    const budget = formFieldBudgetErrors(expansion.data);
+
+    return budget.length > 0 ? { ...result, success: false, errors: [...(result.errors ?? []), ...budget] } : result;
   }
 
   // The validation a render runs: its format, and strict on declared fields — the render's own values (or

@@ -131,11 +131,12 @@ describe('resolveFields', () => {
     expect(resolveFields(once, { HOLD: 7 }).descriptor).toEqual(once);
   });
 
-  it('never rewrites the declarations themselves', () => {
+  it('consumes the declarations instead of rewriting them', () => {
     const fields = { TITLE: { type: 'text', default: 'x', description: 'Shown as {{ TITLE }}' } };
     const { descriptor } = resolveFields(template(fields), {});
 
-    expect(JSON.stringify((descriptor as { global: unknown }).global)).toContain('Shown as {{ TITLE }}');
+    expect((descriptor as { global: Record<string, unknown> }).global).toEqual({});
+    expect(JSON.stringify(descriptor)).not.toContain('Shown as');
   });
 
   it('takes a custom encoder for interpolated values', () => {

@@ -2,7 +2,17 @@
 import { useState, useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Type, Hash, Check } from '@/presentation/components/icons';
+import {
+  Type,
+  Hash,
+  Check,
+  Clock,
+  Image as ImageIcon,
+  Link,
+  List,
+  Palette,
+  type LucideIcon,
+} from '@/presentation/components/icons';
 import { FileTextIcon } from '@/presentation/components/icons/file-text';
 import { UserIcon } from '@/presentation/components/icons/user';
 import clsx from 'clsx';
@@ -11,10 +21,12 @@ import { resolveTranslation } from '@/lib/i18nText';
 import { FieldInput } from './template-form-input';
 import {
   bindFieldContracts,
+  fieldControl,
   fieldProblem,
   unboundDeclaredFields,
   type FormFieldModel,
 } from './template-form-fields.logic';
+import type { TemplateField } from 'ffmpeg-video-composer/src/schemas/fields.schemas.ts';
 
 type FormField = FormFieldModel;
 
@@ -28,10 +40,24 @@ interface TemplateFormProps {
   sectionName?: string;
 }
 
-const getFieldIcon = (fieldName: string) => {
-  if (fieldName.includes('name')) return UserIcon;
+// A typed field shows its type's icon; a plain text field keeps the name-based one.
+const ICON_BY_TYPE: Partial<Record<TemplateField['type'], LucideIcon>> = {
+  color: Palette,
+  number: Hash,
+  time: Clock,
+  enum: List,
+  url: Link,
+  media: ImageIcon,
+};
 
-  if (fieldName.includes('keyword')) return Hash;
+const getFieldIcon = (field: FormField) => {
+  const typed = field.contract ? ICON_BY_TYPE[field.contract.type] : undefined;
+
+  if (typed) return typed;
+
+  if (field.name.includes('name')) return UserIcon;
+
+  if (field.name.includes('keyword')) return Hash;
 
   return Type;
 };
@@ -86,7 +112,8 @@ interface FieldStatusProps {
 // and the titlebar meter already counting) were the same fact said three times.
 const FieldStatus = ({ hasError, errorMessage, errorId, value, charCount, maxChars }: FieldStatusProps) => {
   const { t } = useTranslation('templates');
-  const nearLimit = maxChars !== null && maxChars - charCount < 10;
+  // Red over the last tenth of the budget (at least the last character), whatever its size.
+  const nearLimit = maxChars !== null && charCount > 0 && maxChars - charCount < Math.max(1, Math.ceil(maxChars / 10));
   const filled = value.trim() !== '';
 
   return (
@@ -124,14 +151,16 @@ const FormFieldItem = ({ field, index, formData, touched, onFieldChange }: FormF
   const { t, i18n } = useTranslation('templates');
   const fieldId = useId();
   const errorId = useId();
-  const IconComponent = getFieldIcon(field.name);
+  const IconComponent = getFieldIcon(field);
   // The author's label in the viewer's language, when the template carries one.
   const label = resolveTranslation(field.label, i18n.language) ?? field.name;
   const placeholder = getFieldPlaceholder(field, label, t);
   const value = formData[field.name] || '';
   const errorMessage = fieldErrorMessage(field, value, touched, t);
   const hasError = errorMessage !== null;
-  const maxChars = field.maxLength ?? null;
+  // The character budget only means something under a text input; typed controls check the value instead.
+  const control = fieldControl(field);
+  const maxChars = control === 'text' || control === 'textarea' ? (field.maxLength ?? null) : null;
   // A field the template can fill on its own (a default, an optional text) is not marked as required.
   const required = fieldProblem(field, '') !== null;
 

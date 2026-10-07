@@ -29,6 +29,11 @@ required?, maxLength?, min?, max?, options?, label?, description? }`, types text
   `field_undefined`, `field_unused`, `field_type_mismatch`, `field_missing_required`. Node entry exports
   `resolveFields`, `assertFieldsResolved`, `coerceFieldValue` (pluggable coercers and `encode`),
   `declaredFields`, `fieldAdvisories` and `resolveTemplate`. Templates without `global.fields` are unchanged.
+  Colours follow FFmpeg's grammar (`#rgb(a)` and `rgb()`/`rgba()` normalised to `#rrggbb(aa)`, names from
+  FFmpeg's list, `@alpha` in 0–1); urls take http(s), data, `media://` or relative paths; a field value with
+  filtergraph separators is refused in a raw filter value. Validation without values returns the authored
+  descriptor; the resolved descriptor drops `global.fields`, so resolution is idempotent. A form field bound
+  to a non-text declared field may omit `maxLength`.
 - `applyJsonPatch(doc, operations, { maxOps })` and `parsePointer(pointer)` (Node entry): RFC 6902 JSON
   Patch (`add`, `remove`, `replace`, `move`, `copy`, `test`) over RFC 6901 pointers (`-` append, `~0`/`~1`
   escapes). Atomic (runs on a copy, the input is never mutated); rejects `__proto__`/`prototype`/`constructor`
@@ -197,6 +202,7 @@ required?, maxLength?, min?, max?, options?, label?, description? }`, types text
 
 ### Changed
 
+- `compile()` leaves error reporting to a reporter that takes `onError` (no console message or stack trace).
 - **Breaking:** validation is stricter, so some templates that passed in 2.5.0 now fail:
   - keys that strip objects used to drop silently (section options, transitions, discriminated unions) are
     reported as `unknown_key` errors; remove or rename them (the finding suggests the nearest key);

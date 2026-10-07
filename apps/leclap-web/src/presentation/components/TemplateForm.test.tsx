@@ -85,3 +85,64 @@ describe('TemplateForm with declared fields', () => {
     expect(html).not.toContain('type="number"');
   });
 });
+
+function formTemplate(fields: Record<string, unknown>, formFields: unknown[]): Template {
+  return {
+    id: 't',
+    descriptor: { global: { fields }, sections: [{ name: 'f', type: 'form', options: { fields: formFields } }] },
+  } as unknown as Template;
+}
+
+describe('TemplateForm typed controls', () => {
+  it('leaves an empty number without a default empty, not 0', () => {
+    const html = render(formTemplate({ N: { type: 'number' } }, [{ name: 'N', label: { en: 'N' } }]));
+
+    expect(html).toContain('type="number"');
+    expect(html).toContain('value=""');
+    expect(html).not.toContain('value="0"');
+  });
+
+  it('does not clamp a number field without min to 0', () => {
+    const html = render(formTemplate({ N: { type: 'number' } }, [{ name: 'N', label: { en: 'N' } }]), { N: '-5' });
+
+    expect(html).toContain('value="-5"');
+    expect(html).not.toContain('min="0"');
+  });
+
+  it('marks an enum select invalid and points it at its error', () => {
+    const html = render(
+      formTemplate({ MOOD: { type: 'enum', options: ['calm', 'loud'] } }, [{ name: 'MOOD', label: { en: 'Mood' } }]),
+      { MOOD: 'angry' }
+    );
+    const trigger = /<button[^>]*role="combobox"[^>]*>/.exec(html)?.[0] ?? '';
+
+    expect(trigger).toContain('aria-invalid="true"');
+    expect(trigger).toContain('aria-describedby=');
+  });
+
+  it('shows the character counter under text controls only', () => {
+    const html = render(
+      formTemplate({ C: { type: 'color', default: '#ff0000' }, T: { type: 'text' } }, [
+        { name: 'C', maxLength: 16, label: { en: 'Colour' } },
+        { name: 'T', maxLength: 20, label: { en: 'Text' } },
+      ])
+    );
+
+    expect(html).toContain('0/20');
+    expect(html).not.toContain('/16');
+  });
+
+  it('turns the counter red relative to maxLength, not at a fixed 10 left', () => {
+    const t = formTemplate({}, [{ name: 'code', maxLength: 6, label: { en: 'Code' } }]);
+
+    expect(render(t, { code: 'ab' })).not.toContain('tabular-nums text-[var(--color-error)]');
+    expect(render(t, { code: 'abcdef' })).toContain('tabular-nums text-[var(--color-error)]');
+  });
+
+  it('gives each control type its own icon', () => {
+    const html = render(typed);
+    const icons = new Set([...html.matchAll(/lucide-([a-z-]+)/g)].map((match) => match[1]).filter((n) => n !== 'icon'));
+
+    expect(icons.size).toBeGreaterThanOrEqual(5);
+  });
+});

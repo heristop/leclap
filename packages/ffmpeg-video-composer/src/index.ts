@@ -9,7 +9,7 @@ import Segment from './core/models/Segment';
 import type AbstractFilesystem from './platform/filesystem/AbstractFilesystem';
 import type AbstractLogger from './platform/logging/AbstractLogger';
 import TeeLogAdapter from './platform/logging/TeeLogAdapter';
-import { attachCompilationListeners } from './platform/compilation-listeners';
+import { attachCompilationListeners, reportCompileFailure } from './platform/compilation-listeners';
 import type { CompileReporter, ProjectConfig, TemplateDescriptor } from './core/types';
 import { resetPerfTimer } from './utils/perf-timer';
 import { FFmpegDetector } from './platform/ffmpeg/FFmpegDetector';
@@ -235,11 +235,7 @@ export async function compile(
 
     return await runConstruction(projectConfig, templateDescriptor, logger, timer, reporter);
   } catch (error) {
-    const failure = error instanceof Error ? error : new Error(`Unknown compilation error: ${JSON.stringify(error)}`);
-    console.error(error instanceof Error ? `Compilation error: ${failure.message}` : 'Unknown compilation error');
-    reporter?.onError?.(failure);
-
-    if (error instanceof Error && error.stack) console.error('Stack:', error.stack);
+    reportCompileFailure(error, reporter);
 
     return null;
   } finally {

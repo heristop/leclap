@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/presentation/components/ui';
-import { NumberField } from '@/presentation/components/ui/NumberField';
+import { NO_MIN, NumberField } from '@/presentation/components/ui/NumberField';
 import { fieldControl, type FormFieldModel } from './template-form-fields.logic';
 
 export interface FieldInputProps {
@@ -51,9 +51,15 @@ const TextArea = ({ field, value, hasError, placeholder, fieldId, errorId, onCha
   />
 );
 
-const EnumSelect = ({ field, value, fieldId, placeholder, onChange }: FieldInputProps) => (
+const EnumSelect = ({ field, value, hasError, fieldId, errorId, placeholder, onChange }: FieldInputProps) => (
   <Select value={shownValue(field, value) || undefined} onValueChange={onChange}>
-    <SelectTrigger id={fieldId}>
+    <SelectTrigger
+      id={fieldId}
+      aria-required
+      aria-invalid={hasError}
+      aria-describedby={hasError ? errorId : undefined}
+      className={hasError ? ERROR_CLASS : undefined}
+    >
       <SelectValue placeholder={placeholder} />
     </SelectTrigger>
     <SelectContent>
@@ -66,17 +72,25 @@ const EnumSelect = ({ field, value, fieldId, placeholder, onChange }: FieldInput
   </Select>
 );
 
-const NumberInput = ({ field, value, fieldId, onChange }: FieldInputProps) => {
-  const parsed = Number(shownValue(field, value));
+// Empty (no value, no default) stays empty rather than showing 0; without a declared min, negatives are fine.
+const NumberInput = ({ field, value, hasError, fieldId, errorId, onChange }: FieldInputProps) => {
+  const text = shownValue(field, value).trim();
+  const parsed = text === '' ? null : Number(text);
 
   return (
     <NumberField
       id={fieldId}
-      value={Number.isFinite(parsed) ? parsed : 0}
-      min={field.contract?.min}
+      value={parsed !== null && Number.isFinite(parsed) ? parsed : null}
+      min={field.contract?.min ?? NO_MIN}
       max={field.contract?.max}
+      aria-required
+      aria-invalid={hasError}
+      aria-describedby={hasError ? errorId : undefined}
       onChange={(next) => {
         onChange(String(next));
+      }}
+      onEmpty={() => {
+        onChange('');
       }}
     />
   );

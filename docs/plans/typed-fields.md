@@ -35,13 +35,18 @@ already owns a schema for every slot: substitute first, then let the slot's own 
 }
 ```
 
-Types: `text` (string, `maxLength`), `color` (hex / `0x` / colour name / `rgb()`), `url` (absolute URL),
-`media` (path or URL), `number` (`min`/`max`), `enum` (`options`), `time` (seconds, or `m:ss(.f)` /
-`h:mm:ss(.f)`, coerced to seconds). Optional keys: `default`, `required`, `label` (translations),
+Types: `text` (string, `maxLength`; blank counts as no value), `color` (FFmpeg's grammar: `#rrggbb(aa)` / `0x` /
+an FFmpeg colour name, optional `@alpha` in 0–1; `#rgb(a)` and `rgb()`/`rgba()` are normalised to `#rrggbb(aa)`),
+`url` (`http(s)`, `data`, `media://` or a relative path), `media` (path or URL), `number` (decimal, `min`/`max`),
+`enum` (`options`), `time` (decimal seconds, or `m:ss(.f)` / `h:mm:ss(.f)` with seconds and minutes below 60,
+coerced to seconds). Optional keys: `default`, `required`, `label` (translations),
 `description`.
 
 A placeholder that fills a whole string (`"duration": "{{ HOLD }}"`) is replaced by the **typed** value (the
-number 3, not `"3"`), so numeric slots work. A placeholder inside a longer string is interpolated as text.
+number 3, not `"3"`), so numeric slots work. If the slot only takes the other form, it gets that form: a
+number alone in a text slot goes in as text, a numeric enum option alone in a numeric slot as a number. A
+placeholder inside a longer string is interpolated as text. A field value with filtergraph separators is refused
+in a raw filter value (any `filters[].values` key but `text`); text fields belong in text slots.
 
 ## Resolution
 
@@ -52,9 +57,11 @@ normal schema. A substituted slot that the schema rejects is reported as `field_
 
 - Validation without values (`leclap validate`, MCP `validate_template`) runs in **probe** mode: a missing
   value gets a placeholder of its type so the rest of the template still validates; the gap is an advisory.
+  The probed descriptor is only checked: validation hands back the authored one, placeholders kept.
 - A render (and validation given values) runs **strict**: a missing required value, or one that fails its
   type, fails before anything is encoded. The director resolves again, so `skipValidation`, browser and
-  on-device compiles are covered too. Resolution is idempotent.
+  on-device compiles are covered too. Resolution is idempotent: substituted text is never re-scanned and the
+  resolved descriptor drops `global.fields`, so a second pass finds nothing to fill.
 
 ## Advisories
 

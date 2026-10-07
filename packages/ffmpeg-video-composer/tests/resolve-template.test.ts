@@ -21,14 +21,34 @@ const template = {
 type Resolved = { sections: Array<{ options: { duration?: unknown }; filters?: unknown[] }> };
 
 describe('resolveTemplate', () => {
-  it('fills fields, variables and form values into the descriptor a render would see', () => {
+  it('returns the descriptor the build starts from: fields filled, variables and form values left to the render', () => {
     const result = resolveTemplate(template, { TITLE: 'Hi', HOLD: '4', city: 'Lyon' });
     const descriptor = result.descriptor as Resolved;
 
     expect(result.errors).toEqual([]);
     expect(result.values).toEqual({ HOLD: 4, TITLE: 'Hi' });
     expect(descriptor.sections[0].options.duration).toBe(4);
-    expect(JSON.stringify(descriptor.sections[0].filters)).toContain('Hi · LeClap · Lyon');
+    expect(JSON.stringify(descriptor.sections[0].filters)).toContain('Hi · {{ brand }} · {{ city }}');
+  });
+
+  it('resolves the requested format, as the build does', () => {
+    const formatted = {
+      ...template,
+      global: { ...template.global, orientation: 'landscape' },
+      formats: { portrait: { global: { orientation: 'portrait' } } },
+      sections: [
+        {
+          ...template.sections[0],
+          options: { ...template.sections[0].options, duration: { $format: { portrait: 7, default: '{{ HOLD }}' } } },
+        },
+      ],
+    };
+    const descriptor = resolveTemplate(formatted, { TITLE: 'Hi' }, { format: 'portrait' }).descriptor as Resolved & {
+      formats?: unknown;
+    };
+
+    expect(descriptor.sections[0].options.duration).toBe(7);
+    expect(descriptor.formats).toBeUndefined();
   });
 
   it('reports what a render would refuse', () => {

@@ -302,7 +302,11 @@ export async function prepareCompose(
 
   if (descriptor.descriptor.sections?.some((section) => section.type === 'effect')) {
     try {
-      return await resolveComposeEffects(args.template, config, resolved.paths, signal);
+      // The validated descriptor, its declared fields already filled with this render's values: the effects
+      // render from it and the build receives it as is.
+      const filled = descriptor.descriptor as Record<string, unknown>;
+
+      return await resolveComposeEffects(filled, config, resolved.paths, signal);
     } catch (error) {
       return errorResult(`Effect preparation failed: ${error instanceof Error ? error.message : String(error)}`);
     }

@@ -3761,9 +3761,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -3776,7 +3776,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }
@@ -6553,9 +6553,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -6568,7 +6568,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }
@@ -9414,9 +9414,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -9429,7 +9429,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }
@@ -11947,9 +11947,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -11962,7 +11962,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }
@@ -14803,9 +14803,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -14818,7 +14818,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }
@@ -17496,9 +17496,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -17511,7 +17511,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }
@@ -20035,9 +20035,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -20050,7 +20050,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }
@@ -22574,9 +22574,9 @@
                           "description": "Unique identifier for this form field, used as a variable name in filter templates."
                         },
                         "maxLength": {
+                          "description": "Maximum number of characters; required unless the field binds a non-text global.fields entry.",
                           "type": "number",
-                          "exclusiveMinimum": 0,
-                          "description": "Maximum number of characters allowed in this field."
+                          "exclusiveMinimum": 0
                         },
                         "label": {
                           "type": "object",
@@ -22589,7 +22589,7 @@
                           "description": "Localised display label shown to the user for this field."
                         }
                       },
-                      "required": ["name", "maxLength", "label"],
+                      "required": ["name", "label"],
                       "additionalProperties": false,
                       "description": "A single user-editable text field rendered in a form section."
                     }

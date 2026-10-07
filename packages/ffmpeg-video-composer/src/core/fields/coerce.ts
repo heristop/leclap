@@ -1,8 +1,9 @@
 import type { FieldType, TemplateField } from '../../schemas/fields.schemas';
+import { FFMPEG_COLOR_NAMES } from './ffmpeg-color-names';
 
 // One coercer per field type: raw input (a CLI string, an MCP number, a default) → the typed value that is
-// substituted, or the reason it does not fit. Pluggable: a host passes its own coercers per type to
-// resolveFields (e.g. an HTML-escaping text coercer once some output needs it).
+// substituted, or the reason it does not fit. A host can pass its own coercers per type to
+// resolveFields (e.g. an HTML-escaping text coercer).
 
 export type FieldValue = string | number;
 
@@ -12,11 +13,17 @@ export type FieldCoercer = (raw: unknown, field: TemplateField) => Coerced;
 
 export type FieldCoercers = Partial<Record<FieldType, FieldCoercer>>;
 
-const HEX_COLOR = /^(?:#|0x)(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/i;
-const NAMED_COLOR = /^[a-z]+(?:@(?:0?\.\d+|1(?:\.0+)?|0))?$/i;
-const FUNCTION_COLOR = /^rgba?\([\d\s.,%/]+\)$/i;
-const ABSOLUTE_URL = /^(?:[a-z][\da-z+.-]*:\/\/\S+|data:\S+)$/i;
+// A decimal number only: Number() would also take 0x10, 0b11, 0o7 and Infinity.
+const DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?$/i;
 const CLOCK = /^(?:(\d+):)?(\d{1,2}):(\d{1,2}(?:\.\d+)?)$/;
+// FFmpeg's colour grammar (libavutil/parseutils.c av_parse_color): `[#|0x]rrggbb[aa]` or a name, then an
+// optional `@alpha`. Short hex and rgb()/rgba() are not FFmpeg's, so they are normalised to `#rrggbb[aa]`.
+const FULL_HEX = /^(?:#|0x)?(?:[\da-f]{6}|[\da-f]{8})$/i;
+const SHORT_HEX = /^#([\da-f]{3,4})$/i;
+const RGB_FUNCTION = /^rgba?\(([^)]*)\)$/i;
+const ALPHA = /^(?:0|1|0?\.\d+|1\.0*|0\.\d*)$/;
+const URL_SCHEMES = new Set(['http', 'https', 'data', 'media']);
+const SCHEME = /^([a-z][\da-z+.-]*):/i;
 
 function fail(reason: string): Coerced {
   return { ok: false, reason };
@@ -31,7 +38,7 @@ function asText(raw: unknown): string | null {
 function asNumber(raw: unknown): number | null {
   if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
 
-  if (typeof raw !== 'string' || raw.trim() === '') return null;
+  if (typeof raw !== 'string' || !DECIMAL.test(raw.trim())) return null;
 
   const parsed = Number(raw.trim());
 
@@ -46,12 +53,18 @@ function inRange(value: number, field: TemplateField): Coerced {
   return { ok: true, value };
 }
 
+// `m:ss` or `h:mm:ss` (seconds, and minutes under hours, below 60), else plain decimal seconds.
 function clockSeconds(text: string): number | null {
   const trimmed = text.trim();
 
   if (!CLOCK.test(trimmed)) return asNumber(trimmed);
 
-  return trimmed.split(':').reduce((total, part) => total * 60 + Number(part), 0);
+  // [minutes, seconds] or [hours, minutes, seconds]: every part under an hour or a minute stays below 60.
+  const parts = trimmed.split(':').map(Number);
+
+  if (parts.slice(1).some((part) => part >= 60)) return null;
+
+  return parts.reduce((total, part) => total * 60 + part, 0);
 }
 
 function coerceText(raw: unknown, field: TemplateField): Coerced {
@@ -81,17 +94,75 @@ function coerceTime(raw: unknown, field: TemplateField): Coerced {
   return seconds < 0 ? fail('a time cannot be negative') : inRange(seconds, field);
 }
 
-function coerceColor(raw: unknown): Coerced {
-  const text = asText(raw)?.trim() ?? '';
-  const valid = HEX_COLOR.test(text) || NAMED_COLOR.test(text) || FUNCTION_COLOR.test(text);
-
-  return valid ? { ok: true, value: text } : fail(`expected a colour (#rrggbb, 0xrrggbb or a name), got "${text}"`);
+function hexByte(value: number): string {
+  return Math.round(value).toString(16).padStart(2, '0');
 }
 
+function isAlpha(text: string): boolean {
+  return ALPHA.test(text) && Number(text) <= 1;
+}
+
+// `#rgb` / `#rgba` → `#rrggbb` / `#rrggbbaa`.
+function expandShortHex(digits: string): string {
+  return `#${digits.replace(/./g, (digit) => digit + digit)}`;
+}
+
+// `rgb(r, g, b)` / `rgba(r, g, b, a)`, channels 0–255 and alpha 0–1 → `#rrggbb[aa]`, or null.
+function rgbFunctionHex(inner: string): string | null {
+  const parts = inner.split(',').map((part) => part.trim());
+  const channels = parts.slice(0, 3);
+  const alpha = parts.length === 4 ? parts[3] : null;
+
+  if (parts.length < 3 || parts.length > 4) return null;
+
+  if (!channels.every((channel) => /^\d{1,3}$/.test(channel) && Number(channel) <= 255)) return null;
+
+  if (alpha !== null && !isAlpha(alpha)) return null;
+
+  const hex = `#${channels.map((channel) => hexByte(Number(channel))).join('')}`;
+
+  return alpha === null ? hex : `${hex}${hexByte(Number(alpha) * 255)}`;
+}
+
+// The colour FFmpeg will parse, or null: functional and short forms normalised, an `@alpha` kept.
+function ffmpegColor(text: string): string | null {
+  const short = SHORT_HEX.exec(text);
+
+  if (short) return expandShortHex(short[1]);
+
+  const rgb = RGB_FUNCTION.exec(text);
+
+  if (rgb) return rgbFunctionHex(rgb[1]);
+
+  const [base, ...alphas] = text.split('@');
+
+  if (alphas.length > 1 || (alphas.length === 1 && !isAlpha(alphas[0]))) return null;
+
+  return FULL_HEX.test(base) || FFMPEG_COLOR_NAMES.has(base.toLowerCase()) ? text : null;
+}
+
+function coerceColor(raw: unknown): Coerced {
+  const text = asText(raw)?.trim() ?? '';
+  const color = ffmpegColor(text);
+
+  return color === null
+    ? fail(
+        `expected a colour (#rrggbb[aa], #rgb, rgb(), 0xrrggbb or an FFmpeg colour name, then @alpha), got "${text}"`
+      )
+    : { ok: true, value: color };
+}
+
+// http(s), data and media:// URLs, or a relative path (no scheme, no whitespace).
 function coerceUrl(raw: unknown): Coerced {
   const text = asText(raw)?.trim() ?? '';
+  const scheme = SCHEME.exec(text)?.[1]?.toLowerCase();
+  const allowed = scheme === undefined ? text !== '' : URL_SCHEMES.has(scheme);
 
-  return ABSOLUTE_URL.test(text) ? { ok: true, value: text } : fail(`expected an absolute URL, got "${text}"`);
+  if (!allowed || /\s/.test(text)) {
+    return fail(`expected an http(s), data or media:// URL or a relative path, got "${text}"`);
+  }
+
+  return { ok: true, value: text };
 }
 
 function coerceMedia(raw: unknown): Coerced {

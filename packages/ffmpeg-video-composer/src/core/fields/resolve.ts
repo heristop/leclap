@@ -1,13 +1,17 @@
 import type { TemplateField } from '../../schemas/fields.schemas';
 import { coerceFieldValue, probeValue, type FieldCoercers, type FieldValue } from './coerce';
 import { declaredFields, declaresFields, hasEmptyValue } from './declared';
+import { settleSlotTypes, type SlotCandidate } from './slot-types';
 
 // Typed field resolution: each declared field's value (provided, else its default) is coerced by its type,
 // then every `{{ name }}` of a declared field is filled across the descriptor. A placeholder that is the
 // whole string takes the typed value (a number lands in a numeric slot as a number); one inside a longer
 // string is interpolated as text through `encode`. Placeholders of undeclared names (variables, form fields
-// without a declaration, partial variables) are left for the later passes, as before. The declarations
-// themselves (`global.fields`) are never rewritten, so resolving a resolved descriptor is a no-op.
+// without a declaration, partial variables) are left for the later passes. A whole-string placeholder whose
+// slot only takes the other form (a number in a text slot) gets that form (slot-types.ts). Substituted text is
+// never re-scanned, and the resolved descriptor no longer carries `global.fields` (the contract is consumed),
+// so resolving a resolved descriptor is a no-op. A field value with filtergraph separators is refused in a raw
+// filter value (`filters[].values.fontsize`); text belongs in text slots.
 //
 // Strict (default): a value that fails its type, or a required one that is missing, is an issue and its
 // placeholders stay. Probe (`probe: true`, validation without values): such a field gets a stand-in of its
@@ -33,7 +37,7 @@ export interface FieldSubstitution {
 export interface ResolveFieldsOptions {
   probe?: boolean;
   coercers?: FieldCoercers;
-  /** How a value is written into a longer string (default String). The hook for a future escaping need. */
+  /** How a value is written into a longer string (default String). */
   encode?: (value: FieldValue, field: TemplateField) => string;
 }
 
@@ -54,10 +58,15 @@ function owns(record: object, key: string): boolean {
 const PLACEHOLDER = /\{\{\s*(\w+)\s*\}\}/g;
 const WHOLE_PLACEHOLDER = /^\{\{\s*(\w+)\s*\}\}$/;
 
-function providedValue(field: TemplateField, provided: Provided): unknown {
+// A value counts as given unless it is missing or blank (whitespace-only text is empty, as in the web form).
+function isBlank(raw: unknown): boolean {
+  return raw === undefined || (typeof raw === 'string' && raw.trim() === '');
+}
+
+function providedValue(field: TemplateField, provided: Provided): { raw: unknown; fromDefault: boolean } {
   const raw = provided && owns(provided, field.name) ? provided[field.name] : undefined;
 
-  return raw === undefined || raw === '' ? field.default : raw;
+  return isBlank(raw) ? { raw: field.default, fromDefault: true } : { raw, fromDefault: false };
 }
 
 function missingIssue(field: TemplateField): FieldIssue {
@@ -96,7 +105,7 @@ function fallback(field: TemplateField, issue: FieldIssue, probe: boolean): Fiel
 }
 
 function fieldOutcome(field: TemplateField, provided: Provided, options: ResolveFieldsOptions): FieldOutcome {
-  const raw = providedValue(field, provided);
+  const { raw, fromDefault } = providedValue(field, provided);
   const probe = options.probe ?? false;
 
   if (raw === undefined) {
@@ -109,8 +118,6 @@ function fieldOutcome(field: TemplateField, provided: Provided, options: Resolve
 
   if (coerced.ok) return { value: coerced.value };
 
-  const fromDefault = raw === field.default && !(provided && owns(provided, field.name));
-
   return fallback(field, mismatchIssue(field, coerced.reason, fromDefault), probe);
 }
 
@@ -119,16 +126,77 @@ interface Walk {
   values: Readonly<Record<string, FieldValue>>;
   encode: (value: FieldValue, field: TemplateField) => string;
   substitutions: FieldSubstitution[];
+  candidates: SlotCandidate[];
+  unsafe: Map<string, FieldIssue>;
+}
+
+// Filtergraph syntax: a value carrying any of these could close the option or the filter and start another.
+// Control characters (newlines, NUL…) end an argument just as well.
+const FILTERGRAPH_UNSAFE = /[,;:'"[\]\\=\p{Cc}]/u;
+
+function hasFiltergraphSyntax(text: string): boolean {
+  return FILTERGRAPH_UNSAFE.test(text);
+}
+const NUMERIC_TEXT = /^[+-]?(?:\d+\.?\d*|\.\d+)$/;
+
+// `…filters.<n>.values.<key>` with a key other than drawtext's text: forwarded to FFmpeg as it is written.
+function isRawFilterValue(path: Path): boolean {
+  const at = path.findIndex(
+    (key, index) => key === 'values' && typeof path[index - 1] === 'number' && path[index - 2] === 'filters'
+  );
+  const key = at < 0 ? undefined : path[at + 1];
+
+  return key !== undefined && key !== 'text' && key !== 'textExpr';
+}
+
+function unsafeIssue(field: TemplateField, path: Path): FieldIssue {
+  return {
+    field: field.name,
+    code: 'field_type_mismatch',
+    message: `Field "${field.name}" (${field.type}): its value cannot go into the raw filter value ${path.join('.')} — it carries filtergraph separators (, ; : ' [ ] = \\)`,
+    hint: `Pass a plain value for "${field.name}", or place the field in a text slot (filters[].values.text, titleCard, reveal).`,
+  };
+}
+
+// The value a placeholder writes at `path`, or null to leave the placeholder (no value, or unsafe there).
+function slotValue(name: string, path: Path, walk: Walk): FieldValue | null {
+  const field = walk.declared.get(name);
+
+  if (!field || !owns(walk.values, name)) return null;
+
+  const value = walk.values[name];
+
+  if (!isRawFilterValue(path) || !hasFiltergraphSyntax(String(value))) return value;
+
+  if (!walk.unsafe.has(name)) walk.unsafe.set(name, unsafeIssue(field, path));
+
+  return null;
+}
+
+function otherForm(value: FieldValue, field: TemplateField): FieldValue | null {
+  if (typeof value === 'number') return String(value);
+
+  return field.type === 'enum' && NUMERIC_TEXT.test(value) ? Number(value) : null;
+}
+
+function fillWhole(text: string, name: string, path: Path, walk: Walk): unknown {
+  walk.substitutions.push({ path: path.join('.'), field: name, whole: true });
+
+  const value = slotValue(name, path, walk);
+
+  if (value === null) return text;
+
+  const alternative = otherForm(value, walk.declared.get(name) as TemplateField);
+
+  if (alternative !== null) walk.candidates.push({ path, alternative });
+
+  return value;
 }
 
 function fillString(text: string, path: Path, walk: Walk): unknown {
   const whole = WHOLE_PLACEHOLDER.exec(text);
 
-  if (whole && walk.declared.has(whole[1])) {
-    walk.substitutions.push({ path: path.join('.'), field: whole[1], whole: true });
-
-    return owns(walk.values, whole[1]) ? walk.values[whole[1]] : text;
-  }
+  if (whole && walk.declared.has(whole[1])) return fillWhole(text, whole[1], path, walk);
 
   return text.replace(PLACEHOLDER, (match, name: string) => {
     const field = walk.declared.get(name);
@@ -137,7 +205,9 @@ function fillString(text: string, path: Path, walk: Walk): unknown {
 
     walk.substitutions.push({ path: path.join('.'), field: name, whole: false });
 
-    return owns(walk.values, name) ? walk.encode(walk.values[name], field) : match;
+    const value = slotValue(name, path, walk);
+
+    return value === null ? match : walk.encode(value, field);
   });
 }
 
@@ -152,11 +222,11 @@ function fill(node: unknown, path: Path, walk: Walk): unknown {
 
   if (node === null || typeof node !== 'object') return node;
 
+  // The declarations are consumed: dropped from the resolved descriptor, never rewritten.
   return Object.fromEntries(
-    Object.entries(node).map(([key, value]) => [
-      key,
-      isDeclarations(path, key) ? value : fill(value, [...path, key], walk),
-    ])
+    Object.entries(node)
+      .filter(([key]) => !isDeclarations(path, key))
+      .map(([key, value]) => [key, fill(value, [...path, key], walk)])
   );
 }
 
@@ -184,9 +254,19 @@ export function resolveFields<T>(
     values,
     encode: options.encode ?? ((value) => String(value)),
     substitutions: [],
+    candidates: [],
+    unsafe: new Map(),
   };
+  const filled = fill(descriptor, [], walk);
 
-  return { descriptor: fill(descriptor, [], walk) as T, values, substitutions: walk.substitutions, issues };
+  settleSlotTypes(filled, walk.candidates);
+
+  return {
+    descriptor: filled as T,
+    values,
+    substitutions: walk.substitutions,
+    issues: [...issues, ...walk.unsafe.values()],
+  };
 }
 
 export class FieldResolutionError extends Error {

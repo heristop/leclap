@@ -68,7 +68,7 @@ export type {
 import type { Filter, Input, Map, Translation } from './filter-types';
 // Whole-video overlays (global.overlays / animations / watermark) live in a sibling for the budget too.
 export type { GlobalTextOverlay, GlobalAnimation, WatermarkPosition, Watermark } from './descriptor-global';
-import type { GlobalTextOverlay, GlobalAnimation, Watermark } from './descriptor-global';
+import type { GlobalTextOverlay, GlobalAnimation, TemplateMeta, Watermark } from './descriptor-global';
 
 export type LogParams = Record<string, unknown>;
 
@@ -165,34 +165,6 @@ export interface TemplateDescriptor {
   sections?: DescriptorSection[];
   /** Per-format compositions of the same story: patches applied when that orientation renders (core/formats). */
   formats?: TemplateFormats;
-}
-
-interface TemplateMeta {
-  name?: string;
-  description?: string;
-  creativeDirection?: string;
-  /** The production brief (one-liner or path); opts into the section_without_purpose advisory. */
-  brief?: string;
-  /** Ask every rendering section for a `purpose` (advisory). */
-  requirePurpose?: boolean;
-  /**
-   * What resolve passes pinned: transcripts by section name. Written out structurally (the file's import budget
-   * is spent); it mirrors TranscriptRecordSchema in schemas/transcribe.schemas.ts.
-   */
-  resolved?: {
-    transcripts?: Record<
-      string,
-      {
-        from: string;
-        engine: string;
-        model?: string;
-        language?: string;
-        digest?: string;
-        at?: string;
-        confidence?: number;
-      }
-    >;
-  };
 }
 
 export interface TemplateDescriptorGlobal {

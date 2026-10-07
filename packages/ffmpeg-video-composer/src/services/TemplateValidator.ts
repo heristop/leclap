@@ -9,10 +9,9 @@ import { capabilityFindings } from './capability-validation';
 import type { CapabilityReport } from '@/core/capabilities';
 import { collectScriptWarnings, type ScriptLintCapabilities } from './script-lint';
 import { emojiAdvisories } from './emoji-advisories';
-import { subtitleAdvisories } from './subtitles-advisories';
 import { footageAdvisories } from './footage-advisories';
 import { beatGridAdvisories } from './beats-advisory';
-import { transcriptAdvisories } from './transcript-advisories';
+import { captionAdvisories } from './transcript-advisories';
 import { nondeterminismAdvisories } from './determinism-advisories';
 import { adviseEachFormat, adviseEachFormatSync, expandedForFormats } from './validation/format-validation';
 import { formatAdvisories } from '@/core/formats/advisories';
@@ -153,10 +152,9 @@ export class TemplateValidator extends BaseTemplateValidator {
       ...accentAdvisories(resolved),
       ...paletteAdvisories(resolved),
       ...emojiAdvisories(resolved),
-      ...subtitleAdvisories(resolved),
+      ...captionAdvisories(resolved),
       ...footageAdvisories(resolved),
       ...beatGridAdvisories(resolved),
-      ...transcriptAdvisories(resolved),
       ...nondeterminismAdvisories(resolved),
       ...takeWarnings(resolved),
       ...soundAdvisories(resolved),

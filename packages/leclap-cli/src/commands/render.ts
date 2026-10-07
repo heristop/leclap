@@ -118,11 +118,7 @@ export const render = defineCommand({
     },
     qc: { type: 'boolean', description: 'Check the output (format + content); exit 1 on a failure', default: false },
     cache: { type: 'string', description: 'Per-section render cache directory' },
-    downloadModel: {
-      type: 'boolean',
-      description: 'Allow downloading the whisper model for subtitles.transcribe (once, checksum-verified)',
-      default: false,
-    },
+    downloadModel: { type: 'boolean', description: 'Allow the one-time whisper model download', default: false },
   },
   async run({ args, rawArgs }) {
     const json = args.json;

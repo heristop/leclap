@@ -4,6 +4,7 @@
 // pass reports it: core/captions/transcript-pin.ts staleTranscripts.)
 
 import type { MotionWarning } from './motion-lint';
+import { subtitleAdvisories } from './subtitles-advisories';
 
 /** Mean confidence under this reads as "review the words". */
 export const LOW_TRANSCRIPT_CONFIDENCE = 0.6;
@@ -45,4 +46,9 @@ export function transcriptAdvisories(template: unknown): MotionWarning[] {
   if (!Array.isArray(sections)) return [];
 
   return (sections as LooseSection[]).flatMap((section, index) => sectionWarning(section, index));
+}
+
+/** Every caption advisory: the subtitle layout ones, then the pinned-transcript ones. Never throws. */
+export function captionAdvisories(template: unknown): MotionWarning[] {
+  return [...subtitleAdvisories(template), ...transcriptAdvisories(template)];
 }

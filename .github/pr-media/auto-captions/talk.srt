@@ -1,0 +1,27 @@
+1
+00:00:00,320 --> 00:00:01,880
+Every word you say becomes a
+
+2
+00:00:01,880 --> 00:00:03,940
+caption, the speech is transcribed on
+
+3
+00:00:03,940 --> 00:00:05,010
+your own machine,
+
+4
+00:00:05,010 --> 00:00:06,080
+the words are pinned in the
+
+5
+00:00:06,080 --> 00:00:06,780
+template,
+
+6
+00:00:06,780 --> 00:00:08,480
+and the next render looks exactly
+
+7
+00:00:08,480 --> 00:00:09,640
+the same.

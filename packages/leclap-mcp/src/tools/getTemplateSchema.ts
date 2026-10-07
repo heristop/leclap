@@ -102,8 +102,10 @@ const GUIDE = [
     '`global.audio.sfx: "auto"` places ' +
     'them from the motion. get_motion_catalog lists audio.sfx with when to use each sound. A cue may carry a ' +
     'composed `sound` instead of `id` ({ at, sound: { layers: [{ source: tone|noise|strike|silence, pitch, ' +
-    'envelope, filter, gain, pan, delay, repeat }], length?, anchor?, fx? } }): synthesized deterministically ' +
-    '(seeded by global.seed and the cue path), bounded to 4 s and 8 layers, peak-normalised like the library.',
+    'envelope, filter, drive, gain, pan, delay, repeat }], length?, anchor?, fx? } }) or a varied library sound ' +
+    '({ sound: { preset, pitch?, length?, brightness?, room? } }): synthesized deterministically (seeded by ' +
+    'global.seed and the cue path), bounded to 4 s and 8 layers, peak-normalised like the library. Measure one ' +
+    'with analyze_sound; get_motion_catalog audio.compose has recipes by role.',
   'Music timing: call analyze_music on the music file for bpm, offset, beatsPerBar, confidence, usable and ' +
     'cues (build, drop, end); set global.beats to { bpm, offset, beatsPerBar } and put the drop into the cues ' +
     'of the section playing then, so "beat:n", "bar:n" and "cue:drop" land on the music. Section lengths may ' +

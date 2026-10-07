@@ -12,6 +12,7 @@ export {
 export type { Transcript, Transcriber } from './transcript';
 export { meanConfidence, LOW_TRANSCRIPT_CONFIDENCE } from '../../services/transcript-advisories';
 export {
+  LANGUAGE_TAG,
   TRANSCRIBE_MODELS,
   TranscribeSchema,
   TranscriptRecordSchema,

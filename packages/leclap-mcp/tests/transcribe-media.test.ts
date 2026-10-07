@@ -81,6 +81,20 @@ describe('transcribe_media', () => {
     expect(result.structuredContent?.advice).toMatch(/review/i);
   });
 
+  it('refuses a language that is not a BCP-47 tag without transcribing', async () => {
+    const clip = path.join(mediaDir, 'talk.m4a');
+    await fs.writeFile(clip, 'audio');
+    const transcriber = vi.fn();
+    const result = await captureHandler(config, transcriber).handler({
+      path: clip,
+      language: 'en:destination=/tmp/pwn',
+    });
+
+    expect(result.isError).toBe(true);
+    expect(result.content[0]?.text).toContain('BCP-47');
+    expect(transcriber).not.toHaveBeenCalled();
+  });
+
   it('refuses a path outside the media dir without transcribing', async () => {
     const clip = path.join(outsideDir, 'talk.m4a');
     await fs.writeFile(clip, 'audio');

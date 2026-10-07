@@ -9,6 +9,10 @@ import { z } from 'zod';
 
 export const TRANSCRIBE_MODELS = ['tiny', 'base', 'small'] as const;
 
+/** A BCP-47 language tag ("en", "fr-FR", "zh-Hant-TW"): letters, digits and hyphens only, since it reaches the
+ * transcriber's command line and FFmpeg's filtergraph. */
+export const LANGUAGE_TAG = /^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
+
 export const TranscribeSchema = z
   .object({
     from: z
@@ -20,6 +24,7 @@ export const TranscribeSchema = z
       .string()
       .min(2)
       .max(35)
+      .regex(LANGUAGE_TAG, 'a BCP-47 language tag such as "en" or "fr-FR"')
       .optional()
       .describe('Spoken language as BCP-47 ("en", "fr-FR"); omitted = detected, then recorded in the pin.'),
     model: z

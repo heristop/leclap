@@ -47,9 +47,14 @@ export function runProcess(
   });
 }
 
-/** whisper.cpp takes ISO 639-1 codes: "fr-FR" → "fr"; nothing → "auto". */
+/**
+ * whisper.cpp takes ISO 639 codes: "fr-FR" → "fr". Anything that isn't a 2–3 letter primary subtag falls back to
+ * auto-detection: the value reaches FFmpeg's filtergraph, so it must never carry option or filter separators.
+ */
 export function whisperLanguage(language: string | undefined): string {
-  return language ? (language.split(/[-_]/)[0] ?? language).toLowerCase() : 'auto';
+  const primary = (language ?? '').split(/[-_]/)[0]?.toLowerCase() ?? '';
+
+  return /^[a-z]{2,3}$/.test(primary) ? primary : 'auto';
 }
 
 function tempBase(): { dir: string; base: string } {
@@ -124,9 +129,19 @@ export function parseFfmpegWhisper(output: string): RawWord[] {
     });
 }
 
-// A filtergraph option value: backslashes, colons and quotes escaped (Windows paths, odd cache dirs).
+// A filtergraph option value, escaped at both levels FFmpeg parses: the option level (backslash, colon,
+// quote), then the graph level (backslash, quote, comma, semicolon, brackets). Paths stay one inert value.
 function escapeOption(value: string): string {
-  return value.replace(/[\\:']/g, (char) => `\\${char}`);
+  const option = value.replace(/[\\:']/g, (char) => `\\${char}`);
+
+  return option.replace(/[\\',;[\]]/g, (char) => `\\${char}`);
+}
+
+/** The single `whisper` filter: model, language (a validated code or auto), queue, JSON-lines destination. */
+export function whisperFilterGraph(options: { model: string; language?: string; destination: string }): string {
+  const language = whisperLanguage(options.language);
+
+  return `whisper=model=${escapeOption(options.model)}:language=${language}:queue=10:destination=${escapeOption(options.destination)}:format=json`;
 }
 
 export interface FilterRun {
@@ -142,7 +157,7 @@ export async function runFfmpegWhisper(options: FilterRun): Promise<RawTranscrip
   const { dir, base } = tempBase();
   const destination = `${base}.jsonl`;
   const language = whisperLanguage(options.language);
-  const graph = `whisper=model=${escapeOption(options.model)}:language=${language}:queue=10:destination=${escapeOption(destination)}:format=json`;
+  const graph = whisperFilterGraph({ model: options.model, language: options.language, destination });
 
   try {
     await (options.run ?? runProcess)(

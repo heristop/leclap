@@ -25,7 +25,15 @@ function codes(descriptor: TemplateDescriptor, validator?: BaseTemplateValidator
 describe('subtitles.transcribe', () => {
   it('accepts a transcription request on its own', () => {
     expect(codes(template({ transcribe: { from: 'self', language: 'en' }, style: 'loud' }))).toEqual([]);
+    expect(codes(template({ transcribe: { language: 'fr-FR' } }))).toEqual([]);
+    expect(codes(template({ transcribe: { language: 'zh-Hant-TW' } }))).toEqual([]);
     expect(codes(template({ transcribe: {} }))).toEqual([]);
+  });
+
+  it('rejects a language that is not a BCP-47 tag (it reaches the transcriber command line)', () => {
+    for (const language of ['en:destination=/tmp/pwn', 'en,amovie=x', "e'n", 'english', 'e n']) {
+      expect(codes(template({ transcribe: { language } })).length).toBeGreaterThan(0);
+    }
   });
 
   it('rejects a request next to pinned words, cues or srt', () => {

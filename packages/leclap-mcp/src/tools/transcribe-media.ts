@@ -1,5 +1,6 @@
 import type { McpServer, ServerContext } from '@modelcontextprotocol/server';
 import {
+  LANGUAGE_TAG,
   LOW_TRANSCRIPT_CONFIDENCE,
   meanConfidence,
   transcribeMediaFile,
@@ -20,7 +21,11 @@ import { assertWithinMediaDir } from '../compose/pathGuard.js';
 
 const inputSchema = z.object({
   path: z.string().describe('Absolute path of an audio or video file under the media dir.'),
-  language: z.string().optional().describe('Spoken language, BCP-47 ("en", "fr"); omitted = detected.'),
+  language: z
+    .string()
+    .regex(LANGUAGE_TAG)
+    .optional()
+    .describe('Spoken language, BCP-47 ("en", "fr"); omitted = detected.'),
   model: z.enum(['tiny', 'base', 'small']).optional().describe('Whisper model (default base; tiny is faster).'),
 });
 
@@ -75,6 +80,11 @@ function errorResult(text: string) {
 }
 
 async function handleTranscribe(args: Args, config: McpConfig, transcriber: MediaTranscriber, signal?: AbortSignal) {
+  // Checked here too, not only by the input schema: the language reaches the transcriber's command line.
+  if (args.language !== undefined && !LANGUAGE_TAG.test(args.language)) {
+    return errorResult(`"${args.language}" is not a BCP-47 language tag (e.g. "en", "fr-FR").`);
+  }
+
   let realPath: string;
 
   try {

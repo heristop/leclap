@@ -5,10 +5,7 @@ import { loadCustomEffectCatalog } from './effects/custom-effect-catalog.js';
 import type { McpConfig } from './config.js';
 import { registerGetTemplateSchema } from './tools/getTemplateSchema.js';
 import { registerCompose } from './tools/composeVideo.js';
-import { registerProbe } from './tools/probeMedia.js';
-import { registerExtractStyle } from './tools/extractStyle.js';
-import { registerAnalyzeMusic } from './tools/analyzeMusic.js';
-import { registerAnalyzeSound } from './tools/analyzeSound.js';
+import { registerMediaAnalysis } from './tools/media-analysis.js';
 import { registerGetCapabilities } from './tools/getCapabilities.js';
 import { registerValidateTemplate } from './tools/validateTemplate.js';
 import { registerRenderRemotionClip } from './tools/renderRemotionClip.js';
@@ -71,14 +68,6 @@ function registerTemplateEdits(server: McpServer, config: McpConfig): void {
 
   registerPatchTemplate(server, effects);
   registerEditTemplate(server, effects);
-}
-
-// Media inspection and measurement: probe a file, extract a reference style, time music, hear a sound.
-function registerMediaAnalysis(server: McpServer, config: McpConfig): void {
-  registerProbe(server, config);
-  registerExtractStyle(server, config);
-  registerAnalyzeMusic(server, config);
-  registerAnalyzeSound(server, config);
 }
 
 // Config-free tools: the local FFmpeg capability report and the builder hand-off link.

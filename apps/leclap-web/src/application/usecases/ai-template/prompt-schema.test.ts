@@ -32,10 +32,8 @@ describe('promptSchema', () => {
     expect(trimmed).toContain('"words"');
   });
 
-  it('drops HTML layer inputs, which this browser cannot draw yet (html_unavailable)', () => {
-    expect(full).toContain('"html"');
-    expect(trimmed).not.toMatch(/"html"|HTML\/CSS/);
-    expect(trimmed).toContain('"animation","image"');
+  it('keeps HTML layer inputs, which the browser draws', () => {
+    expect(trimmed).toContain('"animation","image","html"');
   });
 
   it('leaves the input schema untouched', () => {

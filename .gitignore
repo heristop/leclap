@@ -46,6 +46,8 @@ examples/agentic-pr-video/evidence/
 /apps/leclap-expo/assets/fonts/
 /apps/leclap-expo/assets/emoji/
 /apps/leclap-expo/assets/videos/
+# the engine's HTML layer page (packages/ffmpeg-video-composer/dist/html-rasteriser.html)
+/apps/leclap-expo/assets/html-rasteriser/
 # keep the Expo app's own (non-library) font tracked
 !/apps/leclap-expo/assets/fonts/SpaceMono-Regular.ttf
 # server template JSONs copied from packages/server-app/templates by the same script

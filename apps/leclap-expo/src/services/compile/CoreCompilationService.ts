@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
 // Import the PRE-BUILT output (decorators compiled) — not the raw src — so Metro/Hermes never sees
 // the core's tsyringe decorators. reflect-metadata is loaded once at the app entry (app/_layout.tsx).
-import { compileReactNative, type NativeEngine } from 'ffmpeg-video-composer/reactnative';
+import { compileReactNative, registerHtmlRasteriser, type NativeEngine } from 'ffmpeg-video-composer/reactnative';
 import { renderQuip } from '@leclap/creative-kit/render-quips';
 import {
   MUSIC_ASSETS,
@@ -17,6 +17,7 @@ import {
 } from '@/src/data/mediaCatalog';
 import * as Leclap from '@/modules/leclap-ffmpeg';
 import type { CompileInput, CompileOptions, CompileResult, CompileService } from './CompileService';
+import { htmlRasterHost } from './html-raster/html-raster-host';
 
 const toPath = (uri: string): string => uri.replace(/^file:\/\//, '');
 const toUri = (p: string): string => (p.startsWith('file://') ? p : `file://${p}`);
@@ -348,6 +349,8 @@ export class CoreCompilationService implements CompileService {
     };
 
     options.signal?.addEventListener('abort', onAbort);
+    // HTML layers are drawn in a hidden WebView (Hermes has no WebAssembly), mounted on the first one.
+    registerHtmlRasteriser(htmlRasterHost.rasteriser);
 
     try {
       const outputPath = await compileReactNative(
@@ -376,6 +379,7 @@ export class CoreCompilationService implements CompileService {
       return { success: false, error: error instanceof Error ? error.message : String(error) };
     } finally {
       options.signal?.removeEventListener('abort', onAbort);
+      htmlRasterHost.release();
     }
   }
 }

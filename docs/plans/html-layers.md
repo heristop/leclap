@@ -1,6 +1,6 @@
 # HTML layers: style a moment with HTML and CSS
 
-> Status: phases 1 (engine on Node), 2 (browser) and 3 (phone) done · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
+> Status: phases 1 (Node), 2 (browser) and 3 (phone) done and integrated on `feat/html-layers`; see the final status · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
 > `leclap-expo` (on-device rasteriser), `leclap-mcp` (catalog, preview)
 
 ## Why
@@ -193,6 +193,46 @@ on the device.
   doesn't carry html inputs, which is phase 2's work. Templates with HTML layers render from the catalog and
   the check. The app stages `image_background` photos from `/assets/backgrounds/…` only, so the CLI-style
   relative `backgrounds/…` path in the sample is rewritten by the check.
+
+## Final status: the phases integrated
+
+Phases 2 and 3 were built in parallel on top of phase 1 and merged back into `feat/html-layers` (`merge: html
+layers in the browser`, `merge: html layers on the phone`). Where they overlapped:
+
+- **One pipeline.** Both phases had moved the Satori + resvg + HarfBuzz pipeline out of the Node rasteriser,
+  to two different places. It now lives once in `core/html/satori-raster.ts` (platform-neutral, no Node
+  imports), with phase 2's shape: it takes an `HtmlWasmLoader`, imports Satori and resvg on the first layer
+  and shares the instantiated engines. Per-host glue is only where the WebAssembly comes from:
+  `services/html-node` reads `node_modules`, `platform/html/html-rasteriser-browser.ts` takes the host's
+  `loadHtmlWasm`, and the WebView page (`html-raster-webview.ts`) decodes the bytes inlined in it.
+  `font-instances.ts` sits next to it in `core/html/`.
+- **One HarfBuzz shim.** `platform/html/harfbuzz-shaper.ts` (phase 2's, the bytes kept in a page-wide slot)
+  stands in for `harfbuzzjs` in the engine's browser build, the web app (vite alias) and now the WebView page
+  build, all through the tsdown `pre` resolve plugin; `withHarfbuzzShaper` hands it the loader's `hb.wasm`. Phase
+  3's page-only shim is gone. Node keeps the real package. The page still gives the golden bytes in V8.
+- **One availability rule.** `Template` (the browser and on-device validation path) reports
+  `html_unavailable` only when no rasteriser is registered. Phase 2's `new Template({ htmlLayers: true })`
+  is gone: the browser compile registers its rasteriser, the phone app calls `registerHtmlRasteriser`.
+  Validators that only check templates (MCP, the CLI, the web AI generator and template import) keep
+  `htmlLayers` at its default and accept HTML layers. The message names what each host does to lift it.
+- **No CDN.** Phase 2's fallback to the pinned files on unpkg is removed: the browser rasteriser draws only
+  with WebAssembly the host hands over (`BrowserCompileOptions.loadHtmlWasm`, which the web app passes for
+  the compile and the live preview). Without it no rasteriser is registered, validation reports
+  `html_unavailable`, and `renderHtmlLayerPreview` rejects naming the option. `HTML_WASM_CDN` is removed;
+  `HTML_WASM_FILES` still names the files and versions.
+- **Editor model.** Phase 2's round trip of `type: "html"` inputs in `@leclap/creative-kit/editor` also fixes
+  phase 3's deferred item: the phone editor's JSON import keeps HTML layers (an Expo test imports the
+  `html-card` sample through the schema and `toEditorState`). The phone builder still has no UI to edit them.
+- **Builds and staging.** `tsdown.config.ts` keeps both builds: the browser build bundles Satori behind the
+  shim, the `html-raster-page` build writes `dist/html-rasteriser.html`; the React Native build keeps `tslib`
+  external and carries no Satori. The web app stages the three WebAssembly files under `/html-engine/<version>/`
+  (`scripts/stage-html-engine.ts`); `scripts/copy-core-assets.ts` stages the page into the Expo assets.
+- **Font staging.** Phase 3's fix (two HTML layers of a section staging the same font at once share one
+  staging) is in `AssetManager`, which every host's compile uses, so the browser compile has it too.
+
+Bundle after integration: browser eager load 623.58 KB (budget 625 KB), `browser.js` 35.45 KB; lazy chunks:
+the browser rasteriser 40.0 KB, Satori and its dependencies 760.6 KB, the shim 0.8 KB; the WebView page
+5.16 MB.
 
 ## Out of scope
 

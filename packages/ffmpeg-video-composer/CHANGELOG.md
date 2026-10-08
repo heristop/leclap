@@ -11,35 +11,34 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
 
 ### Added
 
-- HTML layers on the phone. Hermes has no WebAssembly, so the React Native entry takes a rasteriser from the
-  host (`registerHtmlRasteriser`); the build ships `dist/html-rasteriser.html`, one self-contained page
-  (5.2 MB, the Satori + resvg + HarfBuzz pipeline and its WebAssembly inlined) that a hidden WebView runs,
-  spoken to with `createRasterSession` / `readRasterReply` (JSON messages, PNG and fonts as base64, each font
-  sent once per page). Its PNGs are byte-identical to Node's. The browser and phone `Template` no longer
-  reports `html_unavailable` once a rasteriser is registered.
-- HTML layers. An `inputs[]` entry of `type: "html"` takes `html`, `css`, `width` and `height` and lays out
-  a card, badge, price tag or stat row in a flexbox subset of CSS (tag, `.class` and descendant selectors).
-  The markup is sanitised (no scripts, iframes, forms, SVG, event handlers or links), `{{ name }}`
-  placeholders are filled HTML-escaped from typed fields, variables and form values, and `$color.*` /
-  `$font.*` tokens resolve in `css` and `html`. Fonts come from the registry (variable fonts are pinned to
-  static weights with HarfBuzz); images must be template assets or PNG/JPEG data URIs. On Node, Satori and
-  resvg draw the layer at 2× into a transparent PNG named by content hash (`html:<hash>`, cached per
-  process), which composites as a still image, so `position`, `scale`, `start` and `motion` work unchanged.
-  Satori, resvg and HarfBuzz load on the first layer only and stay out of the browser bundle. Validation fails
-  on `html_too_large` (a side over 1920 px) and, where a validator is built with `htmlLayers: false` (the
-  on-device engine for now), `html_unavailable`. Advisories `html_unsupported_css`,
-  `html_unsupported_markup`, `html_font_unknown`, `html_missing_field` and `html_overflow` (measured in the
-  Node geometry checks); `motionCatalog().html` lists the subset and four recipes. Sample:
-  `examples/motion-design/html-card.json`.
-- HTML layers in the browser engine. `compileBrowser` draws them with the same Satori, resvg and HarfBuzz
-  WebAssembly as Node, so a layer's PNG is byte-identical on both; they load on the first HTML layer, in
-  lazy chunks (Satori is bundled there with a shim that hands it HarfBuzz's shaping build). Hosts serve
-  the WebAssembly themselves and hand it over through `BrowserCompileOptions.loadHtmlWasm`; the engine never
-  fetches it from a third party, and without the loader a template with an HTML layer fails with
-  `html_unavailable`.
-  `renderHtmlLayerPreview(request, { loadHtmlWasm })` draws one layer with the advisories its render
-  reports, for a live preview. `new Template({ htmlLayers: true })` validates HTML layers on the browser
-  path; on-device validation still reports `html_unavailable`.
+- HTML layers, on Node, in the browser and on the phone. An `inputs[]` entry of `type: "html"` takes `html`,
+  `css`, `width` and `height` and lays out a card, badge, price tag or stat row in a flexbox subset of CSS
+  (tag, `.class` and descendant selectors). The markup is sanitised (no scripts, iframes, forms, SVG, event
+  handlers or links), `{{ name }}` placeholders are filled HTML-escaped from typed fields, variables and form
+  values, and `$color.*` / `$font.*` tokens resolve in `css` and `html`. Fonts come from the registry
+  (variable fonts are pinned to static weights with HarfBuzz); images must be template assets or PNG/JPEG data
+  URIs. Satori, resvg and HarfBuzz draw the layer at 2× into a transparent PNG named by content hash
+  (`html:<hash>`, cached per process), which composites as a still image, so `position`, `scale`, `start` and
+  `motion` work unchanged. One pipeline (`core/html/satori-raster.ts`) runs on every host, so a layer's PNG is
+  byte-identical everywhere; only where its WebAssembly comes from differs:
+  - Node reads it from `node_modules`.
+  - The browser engine (`compileBrowser`) takes it from the host through `BrowserCompileOptions.loadHtmlWasm`
+    (the web app serves it under `/html-engine/<version>/`); the engine never fetches it from a third party.
+    It loads on the first HTML layer, in lazy chunks. `renderHtmlLayerPreview(request, { loadHtmlWasm })`
+    draws one layer with the advisories its render reports, for a live preview.
+  - Hermes has no WebAssembly, so the React Native entry takes a rasteriser from the host
+    (`registerHtmlRasteriser`). The build ships `dist/html-rasteriser.html`, one self-contained page (5.2 MB,
+    the pipeline and its WebAssembly inlined) that a hidden WebView runs, spoken to with
+    `createRasterSession` / `readRasterReply` (JSON messages, PNG and fonts as base64, each font sent once per
+    page).
+
+  A host with no rasteriser registered (a browser compile without `loadHtmlWasm`, a React Native host that
+  registered none) refuses the template with `html_unavailable`; validators that only check templates (the
+  MCP server, the CLI) accept HTML layers. Validation also fails on `html_too_large` (a side over 1920 px).
+  Advisories `html_unsupported_css`, `html_unsupported_markup`, `html_font_unknown`, `html_missing_field` and
+  `html_overflow` (measured in the Node geometry checks); `motionCatalog().html` lists the subset and four
+  recipes. Sample: `examples/motion-design/html-card.json`.
+
 - Composed sound effects. An `sfx` cue takes a `sound` instead of an `id`: layers of `tone`, `noise`,
   `strike` and `silence` shaped by envelopes, filter chains, glides, drive, pan and sequences, with
   whole-sound saturate/crush/room/echo, bounded to 4 s and 8 layers. A pure TypeScript synth renders it

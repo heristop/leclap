@@ -14,14 +14,9 @@ import { parseHtml } from './html-parse';
 import { sanitiseHtml, type HtmlFinding } from './html-sanitise';
 import { styleTree } from './html-styles';
 
-/** The largest box side, in output pixels. */
-export const HTML_LAYER_MAX_SIZE = 1920;
+import { HTML_LAYER_DENSITY, HTML_LAYOUT_VERSION } from './limits';
 
-/** Pixels rendered per output pixel: the PNG is drawn at 2× and scaled into its box by the overlay. */
-export const HTML_LAYER_DENSITY = 2;
-
-/** Bumped whenever the layout rules change what a layer draws, so cached renders are not reused. */
-export const HTML_LAYOUT_VERSION = 1;
+export { HTML_LAYER_DENSITY, HTML_LAYER_MAX_SIZE, HTML_LAYOUT_VERSION } from './limits';
 
 export interface HtmlLayerSpec {
   html: string;

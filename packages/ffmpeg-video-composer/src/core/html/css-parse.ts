@@ -39,7 +39,7 @@ const COMPOUND = /^(\*|[a-zA-Z][a-zA-Z0-9-]*)?((?:\.[a-zA-Z_-][\w-]*)*)$/;
 const IMPORTANT = /\s*!important\s*$/i;
 
 function cssFinding(message: string): HtmlFinding {
-  return { code: 'html_unsupported_css', message };
+  return { code: 'html_unsupported_css', message, source: 'css' };
 }
 
 /** Splits `text` on `separator` outside quotes and parentheses. */

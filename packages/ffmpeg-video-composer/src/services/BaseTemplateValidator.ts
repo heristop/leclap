@@ -20,6 +20,7 @@ import { resolveThemeDescriptor } from '@/core/theme/resolve';
 import { resolveSectionDurations } from '@/core/timing/durations';
 import { validateBeatsAnalysis } from './time-ref-validation';
 import { validateTranscription } from './transcribe-validation';
+import { validateHtmlAvailability } from './html-validation';
 import { usesFormats } from '@/core/formats/resolve';
 import { validateEachFormat } from './validation/format-validation';
 import { validateWithFields } from './validation/field-validation';
@@ -63,6 +64,11 @@ export interface ValidatorOptions {
    * installed). False on the browser and on-device engines: transcribe_unavailable. Default true.
    */
   transcription?: boolean;
+  /**
+   * Whether the host draws HTML layers (`inputs[].type: "html"`): the Node compile does. False on the
+   * browser and on-device engines until their rasterisers land: html_unavailable. Default true.
+   */
+  htmlLayers?: boolean;
 }
 
 export class BaseTemplateValidator {
@@ -255,6 +261,7 @@ export class BaseTemplateValidator {
       ...this.validateSectionReferences(template),
       ...validateBeatsAnalysis(template, this.options.beatsAnalysis ?? true),
       ...validateTranscription(template, this.options.transcription ?? true),
+      ...validateHtmlAvailability(template, this.options.htmlLayers ?? true),
       ...validateDescriptorRules(lowered),
     ];
   }

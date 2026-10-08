@@ -6,9 +6,13 @@ import type { HtmlElementNode, HtmlNode } from './html-parse';
 
 export type HtmlFindingCode = 'html_unsupported_markup' | 'html_unsupported_css';
 
+/** Where the dropped thing was written: the markup (tags, attributes, style attributes) or the stylesheet. */
+export type HtmlFindingSource = 'html' | 'css';
+
 export interface HtmlFinding {
   code: HtmlFindingCode;
   message: string;
+  source: HtmlFindingSource;
 }
 
 export interface SanitisedHtml {
@@ -117,7 +121,7 @@ function report(pass: Pass, message: string): void {
   if (pass.seen.has(message)) return;
 
   pass.seen.add(message);
-  pass.findings.push({ code: 'html_unsupported_markup', message });
+  pass.findings.push({ code: 'html_unsupported_markup', message, source: 'html' });
 }
 
 function attributeMessage(tag: string, name: string): string {

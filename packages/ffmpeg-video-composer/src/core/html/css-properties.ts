@@ -4,7 +4,7 @@
 
 import type { CssDeclaration } from './css-parse';
 import { firstGroup } from './html-entities';
-import { isSafeAssetRef, type HtmlFinding } from './html-sanitise';
+import { isSafeAssetRef, type HtmlFinding, type HtmlFindingSource } from './html-sanitise';
 
 const SIDES = ['top', 'right', 'bottom', 'left'];
 const CORNERS = ['top-left', 'top-right', 'bottom-right', 'bottom-left'];
@@ -184,14 +184,14 @@ export function expandFontShorthand(value: string): CssDeclaration[] | null {
   return out;
 }
 
-function expanded(declarations: CssDeclaration[], findings: HtmlFinding[]): CssDeclaration[] {
+function expanded(declarations: CssDeclaration[], report: (message: string) => void): CssDeclaration[] {
   return declarations.flatMap((declaration) => {
     if (declaration.property !== 'font') return [declaration];
 
     const longhands = expandFontShorthand(declaration.value);
 
     if (!longhands) {
-      findings.push({ code: 'html_unsupported_css', message: `css font: ${declaration.value}: unreadable` });
+      report(`css font: ${declaration.value}: unreadable`);
     }
 
     return longhands ?? [];
@@ -199,13 +199,17 @@ function expanded(declarations: CssDeclaration[], findings: HtmlFinding[]): CssD
 }
 
 /** The inline style of a declaration list, with a finding for each property or value it dropped. */
-export function toLayerStyle(declarations: CssDeclaration[]): ConvertedStyle {
+export function toLayerStyle(declarations: CssDeclaration[], source: HtmlFindingSource = 'css'): ConvertedStyle {
   const findings: HtmlFinding[] = [];
   const style: LayerStyle = {};
 
-  for (const { property, value } of expanded(declarations, findings)) {
+  function report(message: string): void {
+    findings.push({ code: 'html_unsupported_css', message, source });
+  }
+
+  for (const { property, value } of expanded(declarations, report)) {
     if (!property.startsWith('--') && !SUPPORTED.has(property)) {
-      findings.push({ code: 'html_unsupported_css', message: `css ${property}: not supported in HTML layers` });
+      report(`css ${property}: not supported in HTML layers`);
 
       continue;
     }
@@ -213,7 +217,7 @@ export function toLayerStyle(declarations: CssDeclaration[]): ConvertedStyle {
     const problem = valueProblem(property, value);
 
     if (problem) {
-      findings.push({ code: 'html_unsupported_css', message: problem });
+      report(problem);
 
       continue;
     }

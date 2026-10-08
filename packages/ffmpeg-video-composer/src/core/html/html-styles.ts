@@ -49,13 +49,13 @@ function matches(rule: CssRule, subject: Subject, ancestors: Subject[]): boolean
   return next < 0;
 }
 
-function declarationsFor(element: HtmlElementNode, ancestors: Subject[], sheet: Stylesheet): CssDeclaration[] {
+function ruleDeclarations(element: HtmlElementNode, ancestors: Subject[], sheet: Stylesheet): CssDeclaration[] {
   const subject = subjectOf(element);
   const matched = sheet.rules
     .filter((rule) => matches(rule, subject, ancestors))
     .sort((a, b) => a.selector.specificity - b.selector.specificity || a.order - b.order);
 
-  return [...matched.flatMap((rule) => rule.declarations), ...parseDeclarations(element.attrs.style ?? '')];
+  return matched.flatMap((rule) => rule.declarations);
 }
 
 interface Walk {
@@ -65,9 +65,11 @@ interface Walk {
 }
 
 function styleElement(element: HtmlElementNode, ancestors: Subject[], walk: Walk): StyledElement {
-  const { style, findings } = toLayerStyle(declarationsFor(element, ancestors, walk.sheet));
+  const fromRules = toLayerStyle(ruleDeclarations(element, ancestors, walk.sheet), 'css');
+  const inline = toLayerStyle(parseDeclarations(element.attrs.style ?? ''), 'html');
+  const style = { ...fromRules.style, ...inline.style };
 
-  for (const finding of findings) {
+  for (const finding of [...fromRules.findings, ...inline.findings]) {
     if (walk.seen.has(finding.message)) continue;
 
     walk.seen.add(finding.message);

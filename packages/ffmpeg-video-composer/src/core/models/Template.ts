@@ -19,8 +19,8 @@ class Template {
 
   constructor() {
     // Template is the browser / on-device validation path: those engines cannot analyze music nor
-    // transcribe speech (both are pinned before compile).
-    this.validator = new BaseTemplateValidator({ beatsAnalysis: false, transcription: false });
+    // transcribe speech (both are pinned before compile), nor draw HTML layers yet.
+    this.validator = new BaseTemplateValidator({ beatsAnalysis: false, transcription: false, htmlLayers: false });
   }
 
   init = (): void => {

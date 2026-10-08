@@ -2,7 +2,9 @@
 // resolves to its first registry family (by family name, label, id or file), generic families map onto
 // bundled faces, and anything else falls back to the default family and is reported (html_font_unknown).
 
-import { FONTS, type FontEntry } from '../fonts';
+import { FONTS, findFont, findFontByFile, type FontEntry } from '../fonts';
+import { resolveTheme } from '../theme/resolve';
+import type { ThemeSpec } from '../theme/themes';
 import { styleValue, type LayerElement } from './html-element';
 
 export interface LayerFontFace {
@@ -128,4 +130,13 @@ export function layerFonts(
   });
 
   return { element: rewritten, faces, unknown: walk.unknown };
+}
+
+/** The CSS family an HTML layer's text falls back to: the theme's body font (`global.theme`). */
+export function defaultHtmlFamily(global: unknown): string {
+  const spec = global !== null && typeof global === 'object' ? (global as { theme?: ThemeSpec }).theme : undefined;
+  const body = resolveTheme(spec)?.fonts.body ?? 'rubik';
+  const entry = body.endsWith('.ttf') ? findFontByFile(body) : findFont(body);
+
+  return entry?.cssFamily ?? 'Rubik';
 }

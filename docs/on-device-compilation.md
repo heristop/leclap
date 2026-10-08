@@ -145,6 +145,9 @@ A layer without a large shadow fits the 150 ms budget. A big `box-shadow` blur c
 (one pixel, nearly transparent) and loaded from its file: Android barely ran an off-screen page, and handing
 it 5 MB as an inline string took the emulator 20–60 s.
 
+The table was measured on the first, one-scene `html-card`. The sample is now a three-scene reel of six layers
+whose cards keep their shadows to a 24 px blur for that reason; the check reports each layer by its box size.
+
 ---
 
 ## Build toolchain — producing the engine

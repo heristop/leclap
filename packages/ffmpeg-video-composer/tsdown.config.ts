@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, type UserConfig } from 'tsdown';
 import replace from '@rollup/plugin-replace';
 
 // Satori imports `harfbuzzjs`, whose entry fetches `hb.wasm` next to the page the moment it loads; in the
-// browser build it resolves to the shim that waits for the bytes the host's loader fetched instead.
+// browser build and the phone's WebView page it resolves to the shim that waits for the bytes the host's
+// loader brought instead.
 const HARFBUZZ_SHAPER = fileURLToPath(new URL('src/platform/html/harfbuzz-shaper.ts', import.meta.url));
 
 // Ahead of tsdown's own resolution, which would keep `harfbuzzjs` external as one of the engine's dependencies.
@@ -23,7 +23,6 @@ const harfbuzzShaper = {
 type Plugin = Extract<NonNullable<UserConfig['plugins']>, { name: string }>;
 
 const requireModule = createRequire(import.meta.url);
-const here = path.dirname(fileURLToPath(import.meta.url));
 
 function wasmBase64(specifier: string): string {
   return readFileSync(requireModule.resolve(specifier)).toString('base64');
@@ -248,15 +247,13 @@ export default defineConfig([
     target: 'es2020',
     platform: 'browser',
     inputOptions: {
-      // Satori's harfbuzzjs would fetch hb.wasm from beside its script; the shim hands it the inlined bytes.
-      // `fs` is only read on hb.js's Node branch, and Satori's `import.meta` only by Yoga's script lookup
-      // (its WebAssembly is inline): neither exists in the page.
-      resolve: {
-        alias: { harfbuzzjs: path.resolve(here, 'src/html-raster-webview/harfbuzz-shim.ts'), fs: false },
-      },
+      // Satori's harfbuzzjs resolves to the shared shim (harfbuzzShaper, as in the browser build), which the
+      // page hands the inlined bytes. `fs` is only read on hb.js's Node branch, and Satori's `import.meta` only
+      // by Yoga's script lookup (its WebAssembly is inline): neither exists in the page.
+      resolve: { alias: { fs: false } },
       transform: { define: { 'import.meta': '{}' } },
     },
     deps: { alwaysBundle: [/.*/] },
-    plugins: [htmlRasterPage()],
+    plugins: [harfbuzzShaper, htmlRasterPage()],
   },
 ]);

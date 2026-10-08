@@ -1,12 +1,12 @@
 // The Node rasteriser of HTML layers, in process: the shared Satori + resvg pipeline
-// (services/html-raster) with its WebAssembly read from the installed packages.
+// (core/html/satori-raster) with its WebAssembly read from the installed packages.
 
 import fs from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { container } from 'tsyringe';
 import { HTML_RASTERISER, type HtmlRasteriser, type HtmlRasterRequest } from '@/core/html/html-rasteriser';
 import { HTML_WASM_FILES, type HtmlWasm } from '@/core/html/html-engine';
-import { createSatoriRasteriser, measureHtmlLayout } from '../html-raster/satori-rasteriser';
+import { createSatoriRasteriser, measureHtmlLayout } from '@/core/html/satori-raster';
 
 export { HTML_RENDERER_VERSION } from '@/core/html/html-engine';
 

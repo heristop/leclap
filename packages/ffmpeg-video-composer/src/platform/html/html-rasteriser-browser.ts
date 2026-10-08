@@ -1,4 +1,4 @@
-// The browser rasteriser of HTML layers: the shared Satori + resvg pipeline (services/html-raster) with its
+// The browser rasteriser of HTML layers: the shared Satori + resvg pipeline (core/html/satori-raster) with its
 // WebAssembly fetched by the host's loader, the pinned files from unpkg when it brings none. Loaded by the
 // compile chunk and by renderHtmlLayerPreview, never by the entry a page imports: Satori, resvg and
 // HarfBuzz come in on the first HTML layer.
@@ -6,8 +6,8 @@
 import { container } from 'tsyringe';
 import { HTML_RASTERISER, type HtmlRasteriser } from '@/core/html/html-rasteriser';
 import { HTML_WASM_CDN, type HtmlWasm, type HtmlWasmLoader } from '@/core/html/html-engine';
-import { createSatoriRasteriser } from '../../services/html-raster/satori-rasteriser';
-import { provideHarfbuzzShaper } from './harfbuzz-shaper';
+import { createSatoriRasteriser } from '@/core/html/satori-raster';
+import { withHarfbuzzShaper } from './harfbuzz-shaper';
 import {
   previewHtmlLayer,
   type HtmlLayerPreview,
@@ -33,21 +33,8 @@ export async function loadHtmlWasmFromCdn(): Promise<HtmlWasm> {
   return { resvg, harfbuzz, shaper };
 }
 
-// Satori shapes text with HarfBuzz, which a page cannot locate on its own (harfbuzz-shaper.ts).
-function handingTheShaper(loadWasm: HtmlWasmLoader): HtmlWasmLoader {
-  return async () => {
-    const wasm = await loadWasm();
-
-    if (!wasm.shaper) throw new Error('html rasteriser unavailable: the loader brought no HarfBuzz shaper (hb.wasm)');
-
-    provideHarfbuzzShaper(wasm.shaper);
-
-    return wasm;
-  };
-}
-
 export function createBrowserHtmlRasteriser(loadWasm: HtmlWasmLoader = loadHtmlWasmFromCdn): HtmlRasteriser {
-  return createSatoriRasteriser(handingTheShaper(loadWasm));
+  return createSatoriRasteriser(withHarfbuzzShaper(loadWasm));
 }
 
 // One per page: the preview and the compile share the instanced faces (the WebAssembly is shared anyway).

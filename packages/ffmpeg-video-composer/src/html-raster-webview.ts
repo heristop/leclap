@@ -1,14 +1,14 @@
 // The page the phone draws HTML layers in: a hidden react-native-webview (Hermes has no WebAssembly) runs
-// the shared Satori + resvg + HarfBuzz pipeline over the WebAssembly inlined in this page
-// (dist/html-rasteriser.html, assembled by tsdown.config.ts). Messages are raster-messages.ts JSON:
+// the shared Satori + resvg + HarfBuzz pipeline (core/html/satori-raster) over the WebAssembly inlined in
+// this page (dist/html-rasteriser.html, assembled by tsdown.config.ts); like any page, Satori's harfbuzzjs
+// import resolves to the shared shim (platform/html/harfbuzz-shaper). Messages are raster-messages.ts JSON:
 // requests arrive through the WebView's postMessage, replies leave through window.ReactNativeWebView.
 
-import satori from 'satori';
-import * as resvg from '@resvg/resvg-wasm';
-import type { HbSubset } from './core/html/font-instances';
+import { HTML_RENDERER_VERSION, type HtmlWasm } from './core/html/html-engine';
 import { createRasterPage } from './core/html/raster-page';
-import { createSatoriRasteriser, HTML_RENDERER_VERSION, type RasterEngines } from './core/html/satori-raster';
+import { createSatoriRasteriser, preloadHtmlEngines } from './core/html/satori-raster';
 import type { RasterPageReply } from './core/html/raster-messages';
+import { withHarfbuzzShaper } from './platform/html/harfbuzz-shaper';
 import { pageWasm } from './html-raster-webview/page-wasm';
 
 interface PageGlobals {
@@ -28,18 +28,13 @@ function post(text: string): void {
   (page.opener ?? page.parent).postMessage(text, '*');
 }
 
-async function loadEngines(): Promise<RasterEngines> {
-  await resvg.initWasm(pageWasm('resvg'));
-  const hb = await WebAssembly.instantiate(pageWasm('subset'));
-
-  return { satori, resvg, hb: hb.instance.exports as unknown as HbSubset };
-}
-
-const engines = loadEngines();
-const handle = createRasterPage(
-  createSatoriRasteriser(() => engines),
-  post
-);
+// The page's whole WASM glue: the inlined bytes, decoded once.
+const loadWasm = withHarfbuzzShaper(async (): Promise<HtmlWasm> => ({
+  resvg: pageWasm('resvg'),
+  harfbuzz: pageWasm('subset'),
+  shaper: pageWasm('shape'),
+}));
+const handle = createRasterPage(createSatoriRasteriser(loadWasm), post);
 
 function onMessage(event: Event): void {
   const { data } = event as MessageEvent<unknown>;
@@ -53,7 +48,7 @@ function onMessage(event: Event): void {
 page.addEventListener('message', onMessage);
 document.addEventListener('message', onMessage);
 
-engines.then(
+preloadHtmlEngines(loadWasm).then(
   () => {
     post(JSON.stringify({ type: 'ready', version: HTML_RENDERER_VERSION } satisfies RasterPageReply));
   },

@@ -1,34 +1,53 @@
-// The HTML layer pipeline every platform runs: Satori lays the element tree out (Yoga, flexbox) and writes
+// The HTML layer pipeline every host runs: Satori lays the element tree out (Yoga, flexbox) and writes
 // text as vector paths, resvg draws that SVG to a transparent PNG at the requested density, HarfBuzz pins
-// variable faces to static weights first. The engines are WebAssembly handed in by the host (Node reads
-// them from node_modules, the phone's WebView page from its inlined bundle), so the same request gives
-// the same bytes wherever this code runs.
+// variable fonts to static weights. All three run as WebAssembly, loaded on the first layer only (dynamic
+// imports), so a template without an HTML layer never pays for them. Only where the WebAssembly bytes come
+// from is the host's call (HtmlWasmLoader): Node reads node_modules (services/html-node), the browser
+// fetches what its host serves (platform/html), the phone's WebView page carries them inline
+// (html-raster-webview.ts). Same request, same bytes, everywhere.
 
 import type satoriFunction from 'satori';
 import type * as ResvgWasm from '@resvg/resvg-wasm';
-import type { LayerElement } from './html-element';
 import type { HtmlRaster, HtmlRasteriser, HtmlRasterRequest, RasterFont } from './html-rasteriser';
+import { HTML_RENDERER_VERSION, type HtmlWasmLoader } from './html-engine';
+import type { LayerElement } from './html-element';
 import { faceWeight, instanceFont, isVariableFont, type HbSubset } from './font-instances';
-
-/** The engines a layer is drawn with; part of its cache key. Checked against the installed packages. */
-export const HTML_RENDERER_VERSION = 'satori@0.33.5+resvg@2.6.2+harfbuzz@0.10.0';
 
 type Satori = typeof satoriFunction;
 type SatoriFont = Parameters<Satori>[1]['fonts'][number];
 type SatoriNode = Parameters<Satori>[0];
+type ResvgModule = typeof ResvgWasm;
 
-export interface RasterEngines {
+interface Engines {
   satori: Satori;
-  /** resvg's module after `initWasm`. */
-  resvg: Pick<typeof ResvgWasm, 'Resvg'>;
-  /** hb-subset.wasm's exports. */
+  resvg: ResvgModule;
   hb: HbSubset;
 }
 
-/** Instanced faces by file, weight and size: a variable face is pinned once per weight. */
-export type FontInstances = Map<string, Uint8Array>;
+let engines: Promise<Engines> | undefined;
 
-function satoriFonts(fonts: RasterFont[], hb: HbSubset, instances: FontInstances): SatoriFont[] {
+async function loadEngines(loadWasm: HtmlWasmLoader): Promise<Engines> {
+  const [satori, resvg, wasm] = await Promise.all([import('satori'), import('@resvg/resvg-wasm'), loadWasm()]);
+
+  await resvg.initWasm(wasm.resvg);
+  const hb = await WebAssembly.instantiate(wasm.harfbuzz);
+
+  return { satori: satori.default, resvg, hb: hb.instance.exports as unknown as HbSubset };
+}
+
+// The WebAssembly modules are process-wide (resvg's initWasm may only run once), so they load once and
+// stay; a failed load is retried on the next layer rather than pinned.
+function sharedEngines(loadWasm: HtmlWasmLoader): Promise<Engines> {
+  engines ??= loadEngines(loadWasm).catch((error: unknown) => {
+    engines = undefined;
+
+    throw error;
+  });
+
+  return engines;
+}
+
+function satoriFonts(fonts: RasterFont[], hb: HbSubset, instances: Map<string, Uint8Array>): SatoriFont[] {
   return fonts.flatMap((font) => {
     if (!isVariableFont(font.data)) {
       const weight = faceWeight(font.data) as SatoriFont['weight'];
@@ -69,8 +88,12 @@ async function naturalHeight(satori: Satori, request: HtmlRasterRequest, fonts: 
   return svgHeight(svg);
 }
 
-async function render(engines: RasterEngines, request: HtmlRasterRequest, instances: FontInstances) {
-  const { satori, resvg, hb } = engines;
+async function render(
+  request: HtmlRasterRequest,
+  loadWasm: HtmlWasmLoader,
+  instances: Map<string, Uint8Array>
+): Promise<HtmlRaster> {
+  const { satori, resvg, hb } = await sharedEngines(loadWasm);
   const fonts = satoriFonts(request.fonts, hb, instances);
   const svg = await satori(request.element as unknown as SatoriNode, {
     width: request.width,
@@ -84,24 +107,29 @@ async function render(engines: RasterEngines, request: HtmlRasterRequest, instan
 
   image.free();
 
-  return { png, contentHeight: natural } satisfies HtmlRaster;
+  return { png, contentHeight: natural };
 }
+
+/** Loads the engines ahead of the first layer (the WebView page announces itself ready once they are). */
+export async function preloadHtmlEngines(loadWasm: HtmlWasmLoader): Promise<void> {
+  await sharedEngines(loadWasm);
+}
+
+const MEASURE_INSTANCES = new Map<string, Uint8Array>();
 
 /** The content's natural height in output pixels at the box width: a layout pass, nothing drawn. */
-export async function measureContent(
-  engines: RasterEngines,
+export async function measureHtmlLayout(
   request: Omit<HtmlRasterRequest, 'density'>,
-  instances: FontInstances
+  loadWasm: HtmlWasmLoader
 ): Promise<number> {
-  return naturalHeight(engines.satori, { ...request, density: 1 }, satoriFonts(request.fonts, engines.hb, instances));
+  const { satori, hb } = await sharedEngines(loadWasm);
+
+  return naturalHeight(satori, { ...request, density: 1 }, satoriFonts(request.fonts, hb, MEASURE_INSTANCES));
 }
 
-/** A rasteriser with its own cache of instanced faces, over engines the host loads (once, lazily). */
-export function createSatoriRasteriser(engines: () => Promise<RasterEngines>): HtmlRasteriser {
-  const instances: FontInstances = new Map();
+/** A rasteriser with its own cache of instanced faces; the WebAssembly engines are shared. */
+export function createSatoriRasteriser(loadWasm: HtmlWasmLoader): HtmlRasteriser {
+  const instances = new Map<string, Uint8Array>();
 
-  return {
-    version: HTML_RENDERER_VERSION,
-    render: async (request) => render(await engines(), request, instances),
-  };
+  return { version: HTML_RENDERER_VERSION, render: (request) => render(request, loadWasm, instances) };
 }

@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { prepareHtmlLayer, HTML_LAYER_DENSITY } from '@/core/html/html-layer';
 import { sha256Hex } from '@/core/determinism/sha256';
 import { createRasterSession, readRasterReply, type RasterPageReply } from '@/core/html/raster-messages';
-import { HTML_RENDERER_VERSION } from '@/core/html/satori-raster';
+import { HTML_RENDERER_VERSION } from '@/core/html/html-engine';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const PAGE = path.resolve(here, '../dist/html-rasteriser.html');

@@ -242,7 +242,7 @@ export {
   type RasterRenderMessage,
   type RasterSession,
 } from './core/html/raster-messages';
-export { HTML_RENDERER_VERSION } from './core/html/satori-raster';
+export { HTML_RENDERER_VERSION } from './core/html/html-engine';
 export { isFontRef, type FontRef, type FontInput } from './core/fonts';
 export { themeCatalog, resolveTheme, type ThemeCatalog, type ThemeSpec } from './core/theme';
 

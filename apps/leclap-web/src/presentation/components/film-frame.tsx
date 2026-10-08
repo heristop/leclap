@@ -30,11 +30,14 @@ const HINT_MS = 6000;
 export const FilmStage = ({
   frameRef,
   className,
+  still = false,
   children,
 }: {
   /** A callback ref: motion's own React types don't accept this package's `Ref`. */
   frameRef?: (node: HTMLDivElement | null) => void;
   className?: string;
+  /** No scroll reveal and no glow: a frame that does not travel with the page, like one inside a dialog. */
+  still?: boolean;
   children: ReactNode;
 }) => {
   const reduced = useReducedMotion();
@@ -51,19 +54,23 @@ export const FilmStage = ({
 
   return (
     <div ref={setScopeRef} className={cn('relative mx-auto w-full max-w-4xl perspective-[1400px]', className)}>
-      <div
-        aria-hidden="true"
-        className={cn(
-          'animate-aurora pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl transition-opacity duration-1000',
-          'bg-linear-to-tr from-brand-500/20 via-brand-400/10 to-secondary-400/16',
-          lit ? 'opacity-100' : 'opacity-0'
-        )}
-      />
+      {!still && (
+        <div
+          aria-hidden="true"
+          className={cn(
+            'animate-aurora pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] blur-2xl transition-opacity duration-1000',
+            'bg-linear-to-tr from-brand-500/20 via-brand-400/10 to-secondary-400/16',
+            lit ? 'opacity-100' : 'opacity-0'
+          )}
+        />
+      )}
       <motion.div
         ref={frameRef}
         className="relative rounded-xl shadow-xl ring-1 ring-foreground/10 sm:rounded-2xl sm:shadow-2xl"
         style={
-          reduced ? undefined : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }
+          reduced || still
+            ? undefined
+            : { opacity: reveal.opacity, y: reveal.y, rotateX: reveal.rotateX, scale: reveal.scale }
         }
       >
         {children}
@@ -73,12 +80,25 @@ export const FilmStage = ({
 };
 
 /**
+ * The shape of a film's screen. Showcase previews are letterboxed into 16:9, so a portrait or square screen
+ * crops their bars back off with the video's own `object-cover`.
+ */
+export type FilmShape = 'landscape' | 'portrait' | 'square';
+
+const SCREEN_ASPECT: Record<FilmShape, string> = {
+  landscape: 'aspect-video',
+  portrait: 'aspect-[9/16]',
+  square: 'aspect-square',
+};
+
+/**
  * The screen itself. The rounded clip is a clip-path because Chrome lets composited children (the <video>)
  * escape an overflow clip inside 3D-transformed ancestors, and the compositor always honours clip-path.
  * The control pill is a named group, so three frames' "Mute" buttons stay tell-apart for a screen reader,
  * and its buttons sit far enough apart that their 44 px hit areas meet without overlapping.
  */
 export const FilmScreen = ({
+  shape = 'landscape',
   badge,
   control,
   controlLabel,
@@ -86,6 +106,8 @@ export const FilmScreen = ({
   raised = false,
   children,
 }: {
+  /** The screen's aspect: landscape unless the film was made otherwise. */
+  shape?: FilmShape;
   /** The label pill, if any. */
   badge?: string;
   /** The corner control pill, if any. */
@@ -98,7 +120,12 @@ export const FilmScreen = ({
   raised?: boolean;
   children: ReactNode;
 }) => (
-  <div className="relative aspect-video overflow-hidden rounded-[inherit] bg-black [clip-path:inset(0_round_0.75rem)] sm:[clip-path:inset(0_round_1rem)]">
+  <div
+    className={cn(
+      'relative overflow-hidden rounded-[inherit] bg-black [clip-path:inset(0_round_0.75rem)] sm:[clip-path:inset(0_round_1rem)]',
+      SCREEN_ASPECT[shape]
+    )}
+  >
     {children}
 
     {badge && (

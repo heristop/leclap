@@ -65,7 +65,7 @@ jest.mock('ffmpeg-video-composer/reactnative', () => ({
 }));
 
 jest.mock('./html-raster/html-raster-host', () => ({
-  htmlRasterHost: { rasteriser: { version: 'test' }, release: jest.fn() },
+  htmlRasterHost: { rasteriser: { version: 'test' }, release: jest.fn(), prepare: jest.fn() },
 }));
 
 const input = { descriptor: { sections: [] }, clips: {} } as unknown as CompileInput;
@@ -106,6 +106,22 @@ describe('CoreCompilationService HTML layers', () => {
 
     expect(registerHtmlRasteriser).toHaveBeenCalledWith(htmlRasterHost.rasteriser);
     expect(htmlRasterHost.release).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads the page while the assets stage when the template has an HTML layer', async () => {
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+    const withHtml = {
+      descriptor: { sections: [{ name: 's', inputs: [{ name: 'card', type: 'html' }] }] },
+      clips: {},
+    } as unknown as CompileInput;
+
+    await new CoreCompilationService().compile(input);
+
+    expect(htmlRasterHost.prepare).not.toHaveBeenCalled();
+
+    await new CoreCompilationService().compile(withHtml);
+
+    expect(htmlRasterHost.prepare).toHaveBeenCalledTimes(1);
   });
 
   it('tears the page down when the compile fails too', async () => {

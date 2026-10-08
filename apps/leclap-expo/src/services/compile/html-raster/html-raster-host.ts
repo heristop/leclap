@@ -35,6 +35,8 @@ export interface HtmlRasterHost {
   readonly rasteriser: HtmlRasteriser;
   /** Whether a render needs the page mounted. */
   isActive: () => boolean;
+  /** Mounts the page now, so it loads while the render stages its other assets. */
+  prepare: () => void;
   subscribe: (listener: () => void) => () => void;
   attach: (view: RasterPageView | null) => void;
   /** A message the page posted. */
@@ -179,7 +181,18 @@ export function createHtmlRasterHost(options: HtmlRasterHostOptions = {}): HtmlR
     session.pending.delete(id);
   }
 
-  async function render(request: HtmlRasterRequest): Promise<HtmlRaster> {
+  // The page draws one layer at a time anyway (one JS thread); queueing here keeps each timing its own.
+  let queue: Promise<unknown> = Promise.resolve();
+
+  function render(request: HtmlRasterRequest): Promise<HtmlRaster> {
+    const next = queue.then(async () => draw(request));
+
+    queue = next.catch(() => null);
+
+    return next;
+  }
+
+  async function draw(request: HtmlRasterRequest): Promise<HtmlRaster> {
     const current = open();
 
     await current.ready.promise;
@@ -213,6 +226,9 @@ export function createHtmlRasterHost(options: HtmlRasterHostOptions = {}): HtmlR
   return {
     rasteriser: { version: HTML_RENDERER_VERSION, render },
     isActive: () => session !== null,
+    prepare: () => {
+      open();
+    },
     subscribe: (listener) => {
       listeners.add(listener);
 

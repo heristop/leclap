@@ -57,6 +57,14 @@ describe('HTML raster host', () => {
     expect(host.isActive()).toBe(false);
   });
 
+  it('mounts the page ahead of the first layer when asked to prepare', () => {
+    const host = createHtmlRasterHost();
+
+    host.prepare();
+
+    expect(host.isActive()).toBe(true);
+  });
+
   it('mounts the page on the first layer, waits for it, and returns the drawn PNG', async () => {
     const host = createHtmlRasterHost();
     let sent: Sent[] = [];
@@ -113,6 +121,29 @@ describe('HTML raster host', () => {
     await host.rasteriser.render(REQUEST);
 
     expect(sent[0].fonts[0].data).toBe('AQID');
+  });
+
+  it('sends one layer at a time, so each timing is its own', async () => {
+    const host = createHtmlRasterHost();
+    const events: string[] = [];
+
+    mountOnActivate(host, () => {
+      host.attach({
+        post: (text) => {
+          const { id } = JSON.parse(text) as Sent;
+          events.push(`sent ${id}`);
+          setTimeout(() => {
+            events.push(`drawn ${id}`);
+            host.receive(JSON.stringify({ type: 'rendered', id, png: 'iVBO', contentHeight: 30, ms: 7 }));
+          }, 5);
+        },
+      });
+      host.receive(JSON.stringify({ type: 'ready', version: 'satori@test' }));
+    });
+
+    await Promise.all([host.rasteriser.render(REQUEST), host.rasteriser.render(REQUEST)]);
+
+    expect(events).toEqual(['sent 1', 'drawn 1', 'sent 2', 'drawn 2']);
   });
 
   it('shows each drawn layer to its observers until they stop', async () => {

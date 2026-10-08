@@ -334,12 +334,32 @@ async function publishOutput(outputPath: string): Promise<string> {
   return target;
 }
 
+function hasHtmlLayers(descriptor: CompileInput['descriptor']): boolean {
+  const sections = (descriptor as { sections?: { inputs?: { type?: string }[] }[] }).sections ?? [];
+
+  return sections.some((section) => section.inputs?.some((item) => item.type === 'html'));
+}
+
 export class CoreCompilationService implements CompileService {
   async compile(input: CompileInput, options: CompileOptions = {}): Promise<CompileResult> {
     if (options.signal?.aborted) {
       return { success: false, error: 'Compilation cancelled.' };
     }
 
+    // HTML layers are drawn in a hidden WebView (Hermes has no WebAssembly): its page loads while the
+    // assets stage, and is torn down when the compile ends.
+    registerHtmlRasteriser(htmlRasterHost.rasteriser);
+
+    if (hasHtmlLayers(input.descriptor)) htmlRasterHost.prepare();
+
+    try {
+      return await this.compileWithPage(input, options);
+    } finally {
+      htmlRasterHost.release();
+    }
+  }
+
+  private async compileWithPage(input: CompileInput, options: CompileOptions): Promise<CompileResult> {
     const projectConfig = await buildProjectConfig(input);
 
     // Cooperative cancellation: ffmpeg exits as on SIGTERM, the failed run rejects inside
@@ -349,8 +369,6 @@ export class CoreCompilationService implements CompileService {
     };
 
     options.signal?.addEventListener('abort', onAbort);
-    // HTML layers are drawn in a hidden WebView (Hermes has no WebAssembly), mounted on the first one.
-    registerHtmlRasteriser(htmlRasterHost.rasteriser);
 
     try {
       const outputPath = await compileReactNative(
@@ -379,7 +397,6 @@ export class CoreCompilationService implements CompileService {
       return { success: false, error: error instanceof Error ? error.message : String(error) };
     } finally {
       options.signal?.removeEventListener('abort', onAbort);
-      htmlRasterHost.release();
     }
   }
 }

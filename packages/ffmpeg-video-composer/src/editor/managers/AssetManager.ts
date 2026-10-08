@@ -8,6 +8,8 @@ import type VariableManager from './VariableManager';
 import { lutCubeText } from '../presets/lut-staging';
 import { lutFileStem } from '../presets/lut-spec';
 import { cutawayMedia } from '../footage/cutaway-media';
+import { isBackgroundInput, markBackgroundInput } from '../utils/background-input';
+import { fnv1a32 } from '@/core/determinism/hash';
 import { generatedImage } from '../presets/generated-images';
 import { stageHtmlInput, type HtmlAssetDeps } from '../html/html-input-stage';
 import { extensionFromUrl, frameInName, frameInUrl, mediaName } from '../utils/media-naming';
@@ -81,16 +83,16 @@ class AssetManager {
         // first input: image_background loops it with `-loop 1`, which binds to the first `-i`. If an
         // animation overlay precedes it, `-loop 1` lands on an animation `.apng` (whose demuxer has no
         // `loop` option) and the overlays composite onto the wrong base stream.
+        // Marked: an authored input may share the section's name (see background-input.ts).
         currentSection.inputs = [
-          {
-            name: currentSection.name,
-            url: options[key] ?? '',
-          },
+          markBackgroundInput({ name: currentSection.name, url: options[key] ?? '' }),
           ...(currentSection.inputs ?? []),
         ];
       }
     }
   };
+
+  isBackgroundInput = (input: object | undefined): boolean => isBackgroundInput(input);
 
   fetchAssets = async (): Promise<void> => {
     this.prepareAssets();
@@ -411,7 +413,8 @@ class AssetManager {
     this.logger.info(`[${this.segment.currentSection?.name}][Media] fetching asset ${name}`);
 
     const path = await this.filesystemAdapter.fetch(url);
-    const targetPath = `${this.segment.assetsDir}/${name}.${extension}`;
+    // Suffixed by the URL: names are not unique (an input may share its section's name, the background's).
+    const targetPath = `${this.segment.assetsDir}/${name}-${fnv1a32(url).toString(36)}.${extension}`;
 
     await this.filesystemAdapter.move(path, targetPath);
 

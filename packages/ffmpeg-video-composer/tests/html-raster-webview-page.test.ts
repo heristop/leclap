@@ -46,6 +46,7 @@ function loadPage(html: string): FakeWebView {
   };
   const context = vm.createContext({
     atob,
+    performance,
     TextDecoder,
     TextEncoder,
     console,

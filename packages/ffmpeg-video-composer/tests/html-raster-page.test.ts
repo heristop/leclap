@@ -45,7 +45,11 @@ function cardRequest(): HtmlRasterRequest {
 // A page over the Node engines, talking JSON strings like the WebView does.
 function nodePage(): { send: (message: RasterRenderMessage) => Promise<RasterPageReply> } {
   const replies: RasterPageReply[] = [];
-  const handle = createRasterPage(createNodeHtmlRasteriser(), (reply) => replies.push(JSON.parse(reply)));
+  const handle = createRasterPage(
+    createNodeHtmlRasteriser(),
+    (reply) => replies.push(JSON.parse(reply)),
+    () => performance.now()
+  );
 
   return {
     send: async (message) => {

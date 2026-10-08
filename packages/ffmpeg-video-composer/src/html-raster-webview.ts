@@ -34,7 +34,7 @@ const loadWasm = withHarfbuzzShaper(async (): Promise<HtmlWasm> => ({
   harfbuzz: pageWasm('subset'),
   shaper: pageWasm('shape'),
 }));
-const handle = createRasterPage(createSatoriRasteriser(loadWasm), post);
+const handle = createRasterPage(createSatoriRasteriser(loadWasm), post, () => performance.now());
 
 function onMessage(event: Event): void {
   const { data } = event as MessageEvent<unknown>;

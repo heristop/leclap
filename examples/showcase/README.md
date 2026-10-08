@@ -28,6 +28,7 @@ The **Effects & editing** category (`effects`) demonstrates the native motion, c
 | `theme-roles`   | A TikTok portrait promo using the neon theme tokens, motion roles and platform safe zones                         |
 | `footage-edit`  | Fit blur, focus pan, user LUT, clip range, speed ramp, freeze with flash, B-roll cutaway, look strength           |
 | `sound-design`  | Placed and automatic sound effects, a riser into a drop cue, a voice preset and clip volume automation            |
+| `html-card`     | An HTML and CSS card and price tag (`inputs[].type: "html"`) filled from typed fields and theme tokens            |
 
 `footage-edit` and `sound-design` record their scenes with clips that [`synthetic-media.ts`](./synthetic-media.ts) generates on the fly: the bundled background photographs set in motion by FFmpeg (a slow drift, a push-in, a running clock that makes speed ramps and freezes readable, a waveform over a voice-like test tone). The LUT and B-roll fixtures replace the descriptor's `{{ lut }}` and `{{ broll }}` variables for the preview only; the downloaded JSON keeps its defaults. Those previews illustrate the controls, not real footage.
 

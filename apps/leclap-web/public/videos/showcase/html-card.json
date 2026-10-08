@@ -1,0 +1,113 @@
+{
+  "meta": {
+    "name": "Real-estate card",
+    "description": "An address card laid out in HTML and CSS over an interior photo: label, address, city and a stat row, filled from typed fields, with a price tag that slides in after it.",
+    "creativeDirection": "Audience: estate agents who post listings as short videos. Direction: the photo carries the mood, the card carries the facts. One card, bottom left, on the theme surface with a soft shadow: an accent label, the address in display type, the city in the body face, then two stats. It rises in once the push-in has started; the price tag slides in from the right half a second later and both hold to the end. Copy comes from the fields, so the same template lists any property. Review: the card text is crisp at 720p, the corners are round, nothing is cut at the bottom of the card, and the price never covers the lamp."
+  },
+  "global": {
+    "orientation": "landscape",
+    "musicEnabled": false,
+    "theme": "leclap",
+    "transition": {
+      "type": "cut"
+    },
+    "fields": {
+      "address": {
+        "type": "text",
+        "default": "12 rue des Lilas",
+        "maxLength": 40,
+        "label": {
+          "en": "Address"
+        }
+      },
+      "city": {
+        "type": "text",
+        "default": "Lyon 3e · 69003",
+        "maxLength": 40,
+        "label": {
+          "en": "City"
+        }
+      },
+      "rooms": {
+        "type": "text",
+        "default": "4 rooms",
+        "maxLength": 16,
+        "label": {
+          "en": "Rooms"
+        }
+      },
+      "area": {
+        "type": "text",
+        "default": "92 m²",
+        "maxLength": 16,
+        "label": {
+          "en": "Living area"
+        }
+      },
+      "price": {
+        "type": "text",
+        "default": "420 000 €",
+        "maxLength": 20,
+        "label": {
+          "en": "Price"
+        }
+      }
+    }
+  },
+  "sections": [
+    {
+      "name": "listing",
+      "type": "image_background",
+      "purpose": "Present one property: where it is, what it offers and what it costs.",
+      "options": {
+        "pictureUrl": "backgrounds/sage-wall.jpg",
+        "duration": 6
+      },
+      "camera": {
+        "preset": "push-in",
+        "amount": 0.04,
+        "includeText": false
+      },
+      "inputs": [
+        {
+          "name": "address_card",
+          "type": "html",
+          "html": "<div class=\"card\"><span class=\"tag\">For sale</span><h2>{{ address }}</h2><p class=\"city\">{{ city }}</p><div class=\"stats\"><span class=\"stat\">{{ rooms }}</span><span class=\"stat\">{{ area }}</span></div></div>",
+          "css": ".card { display: flex; flex-direction: column; gap: 6px; padding: 26px 32px 28px; border-radius: 28px; background: $color.surface@0.92; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35) } .tag { color: $color.accent; font: 600 20px Rubik; text-transform: uppercase; letter-spacing: 3px } h2 { margin: 4px 0 0; color: $color.fg; font: 64px $font.display; line-height: 1 } .city { margin: 0; color: $color.muted; font: 400 24px Rubik } .stats { display: flex; gap: 10px; margin-top: 14px } .stat { padding: 8px 16px; border-radius: 999px; background: rgba(255, 255, 255, 0.08); color: $color.fg; font: 500 20px Rubik }",
+          "width": 560,
+          "height": 300,
+          "options": {
+            "position": "56:370",
+            "start": 0.4,
+            "motion": {
+              "type": "rise",
+              "delay": 0.4,
+              "duration": 0.7,
+              "distance": 48,
+              "easing": "ease-out"
+            }
+          }
+        },
+        {
+          "name": "price_tag",
+          "type": "html",
+          "html": "<div class=\"price\"><small>Asking price</small><strong>{{ price }}</strong></div>",
+          "css": ".price { display: flex; flex-direction: column; align-items: flex-end; padding: 16px 24px; border-radius: 20px; background: $color.accent } small { color: $color.bg; font: 600 16px Rubik; text-transform: uppercase; letter-spacing: 2px } strong { color: $color.bg; font: 52px $font.display; line-height: 1.1 }",
+          "width": 300,
+          "height": 120,
+          "options": {
+            "position": "56:56",
+            "start": 1.1,
+            "motion": {
+              "type": "slide-left",
+              "delay": 1.1,
+              "duration": 0.6,
+              "distance": 80,
+              "easing": "ease-out"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

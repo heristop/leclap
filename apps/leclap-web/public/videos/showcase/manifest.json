@@ -576,6 +576,18 @@
       "templateSha256": "7be4a31ef95d50906315ff19e697f4612ea08c9c6d3f1b50c8d311a36c843811",
       "media": "Synthetic clips from bundled photos (FFmpeg) and lavfi audio",
       "bytes": 361664
+    },
+    {
+      "id": "html-card",
+      "source": "examples/motion-design/html-card.json",
+      "duration": 6.013991,
+      "hasAudio": true,
+      "orientation": "landscape",
+      "backend": "native",
+      "sha256": "fa9b6bef4135728be56f4376bad2f409d7fd2e6847cdce9e4a3e7823e4e4f4ac",
+      "templateSha256": "97a93059ccc74c631b8d24fdaa4e64e119868d6f12ec6280131c0fd8626edc73",
+      "media": "Bundled catalog / demo app fixtures",
+      "bytes": 160178
     }
   ]
 }

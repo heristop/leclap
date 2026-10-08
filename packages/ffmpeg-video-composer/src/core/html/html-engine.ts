@@ -18,6 +18,9 @@ export const HTML_WASM_FILES = {
 
 export type HtmlWasmName = keyof typeof HTML_WASM_FILES;
 
+/** Names the pair of WebAssembly builds: the directory a host serves them under changes with either. */
+export const HTML_WASM_VERSION = `resvg-${RESVG_WASM_VERSION}_harfbuzz-${HARFBUZZJS_VERSION}`;
+
 /** The pinned files on unpkg, for a browser host that serves none itself. */
 export const HTML_WASM_CDN: Readonly<Record<HtmlWasmName, string>> = {
   resvg: `https://unpkg.com/${HTML_WASM_FILES.resvg.package}@${RESVG_WASM_VERSION}/${HTML_WASM_FILES.resvg.file}`,

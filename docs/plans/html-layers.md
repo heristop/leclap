@@ -1,6 +1,6 @@
 # HTML layers: style a moment with HTML and CSS
 
-> Status: in progress · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
+> Status: phase 1 (engine on Node) done; phases 2–3 open · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
 > `leclap-expo` (on-device rasteriser), `leclap-mcp` (catalog, preview)
 
 ## Why
@@ -87,6 +87,35 @@ Per platform:
 3. **Phone:** the WebView rasteriser in Expo, wired into the RN filesystem adapter; on-device render of a template
    with an HTML layer on the Android emulator and the iOS simulator; measure time per layer.
 4. **Docs and samples:** template-configuration section, gallery sheet, one sample template (a real-estate card), MCP README.
+
+## Phase 1: what shipped, and where it differs
+
+Done on `feat/html-layers`: the schema, the sanitiser and CSS subset, Satori + resvg on Node behind `html:<hash>`
+assets, fields and tokens, the advisories, `motionCatalog().html` with the four recipes, the MCP guide, the docs
+section, a gallery sheet (`html-layers`) and the `html-card` sample in the showcase.
+
+Differences from the plan above:
+
+- **HarfBuzz added.** Satori rejects variable fonts (`fvar`), and Rubik, Oswald, Playfair Display and Roboto Mono
+  ship as variable fonts. `harfbuzzjs` (MIT) pins each to the static weights a layer uses with hb-subset, which
+  is deterministic. The three WASM packages load on the first HTML layer only and stay out of the browser bundle.
+- **Inline flow is rebuilt.** Satori can't lay out text mixed with inline elements, so a paragraph is rebuilt on
+  flexbox word by word. Line breaks can differ from a browser's.
+- **New advisory `html_unsupported_markup`** for removed tags and attributes, apart from `html_unsupported_css`.
+  `html_overflow` is measured by a Satori layout pass in the Node geometry checks (CLI and MCP validate).
+- **`html_unavailable`** is a hard error where the validator is built with `htmlLayers: false`: the browser and
+  on-device `Template` model, until phases 2–3 register a rasteriser there.
+- **The web one-shot AI prompt leaves HTML layers out** (schema fields and the `html` catalog entry), because the
+  web would refuse what it generated until phase 2.
+- **No capability-matrix entry.** The layer composites through the existing still-image overlay, so it adds no
+  FFmpeg filter. The MCP media guard is unchanged: images must be relative or `/assets/` paths (or PNG/JPEG data
+  URIs), so they stay inside the media dir.
+- **Motion:** `rise` and `slide-*` only move a layer; to keep it hidden until it moves in, set `start` to the
+  motion `delay` (the sample does).
+
+Measured: about 250 ms per 360×240 layer at 2× on Node, including the WASM and font load on the first layer;
+repeated layers come from the per-process cache. The browser eager bundle went from 614.51 KB to 620.88 KB
+(budget 625 KB) for the schema and validation code.
 
 ## Out of scope
 

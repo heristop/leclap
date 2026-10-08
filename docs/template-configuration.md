@@ -975,7 +975,7 @@ An `inputs[]` entry of `type: "html"` lays out a card, a badge, a price tag or a
 
 A layer is a still: animate it with `options.motion`. `rise` and `slide-*` only move the layer, so set `start` to the same time as the motion `delay` when the layer should not be visible before it moves in. Inline text and inline elements in one paragraph are laid out word by word on flexbox, so the browser's exact line breaks are not guaranteed.
 
-The PNG is named by a hash of everything that changes the drawing (resolved HTML and CSS, images, fonts, box, density and renderer versions), so an unchanged layer is rendered once per process. See [`examples/motion-design/html-card.json`](../examples/motion-design/html-card.json).
+The PNG is named by a hash of everything that changes the drawing (resolved HTML and CSS, images, fonts, box, density and renderer versions), so an unchanged layer is rendered once per process. See [`html-card.json`](../examples/motion-design/html-card.json) (cards, a stat row, chips), [`html-testimonial.json`](../examples/motion-design/html-testimonial.json) (mixed weights in a sentence, a round portrait, `clip-path` stars), [`html-speaker.json`](../examples/motion-design/html-speaker.json) (a lower third with wrapped title and badges) and [`html-stats.json`](../examples/motion-design/html-stats.json) (stat tiles and an aligned spec list).
 
 Where HTML layers render (everywhere, byte for byte alike):
 

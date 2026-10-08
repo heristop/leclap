@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { prepareHtmlLayer, HTML_LAYER_DENSITY } from '@/core/html/html-layer';
 import { sha256Hex } from '@/core/determinism/sha256';
-import { isVariableFont } from '@/services/html-node/font-instances';
+import { isVariableFont } from '@/core/html/font-instances';
 import { createNodeHtmlRasteriser, HTML_RENDERER_VERSION } from '@/services/html-node/html-rasteriser-node';
 import type { RasterFont } from '@/core/html/html-rasteriser';
 

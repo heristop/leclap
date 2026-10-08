@@ -39,6 +39,14 @@ describe('buildLayerElement', () => {
     });
   });
 
+  it('makes a text-only div a flex box, as Satori requires of a div whose text it splits into words', () => {
+    expect(only(build('<div class="cta">Shop the collection</div>', '.cta { padding: 8px }'))).toEqual({
+      type: 'div',
+      props: { style: { display: 'flex', padding: '8px' }, children: ['Shop the collection'] },
+    });
+    expect(only(build('<div style="display: none">x y</div>')).props.style).toEqual({ display: 'none' });
+  });
+
   it('applies matched rules and the inline style, inline last', () => {
     const p = only(
       build('<p class="a" style="color: blue">x</p>', 'p { color: red; margin: 0 } .a { font-size: 20px }')

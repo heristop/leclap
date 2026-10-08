@@ -32,6 +32,10 @@ describe('html_overflow', () => {
     expect(await htmlOverflowWarnings(template('<p>{{ city }}</p>', 200), loadFont)).toEqual([]);
   });
 
+  it('measures a div that holds only text', async () => {
+    expect(await htmlOverflowWarnings(template('<div>Shop the collection</div>', 200), loadFont)).toEqual([]);
+  }, 30_000);
+
   it('measures content taller than its box', async () => {
     const warnings = await htmlOverflowWarnings(template('<p>one</p><p>two</p><p>three</p>', 60), loadFont);
 

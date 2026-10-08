@@ -217,8 +217,11 @@ export function buildElement(element: StyledElement): LayerElement {
 
   if (children.every((child) => !isElement(child))) {
     const text = collapse(children.filter((child) => typeof child === 'string').join('')).trim();
+    // Satori splits a div's text into words and then wants the div to be a flex box.
+    const flexDiv = element.tag === 'div' && styleValue(element.style, 'display') === undefined;
+    const style = flexDiv ? { display: 'flex', ...element.style } : element.style;
 
-    return { type: element.tag, props: { style: element.style, children: text === '' ? [] : [text] } };
+    return { type: element.tag, props: { style, children: text === '' ? [] : [text] } };
   }
 
   if (styleValue(element.style, 'display') !== undefined) {

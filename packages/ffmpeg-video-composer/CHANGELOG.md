@@ -11,6 +11,20 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
 
 ### Added
 
+- HTML layers. An `inputs[]` entry of `type: "html"` takes `html`, `css`, `width` and `height` and lays out
+  a card, badge, price tag or stat row in a flexbox subset of CSS (tag, `.class` and descendant selectors).
+  The markup is sanitised (no scripts, iframes, forms, SVG, event handlers or links), `{{ name }}`
+  placeholders are filled HTML-escaped from typed fields, variables and form values, and `$color.*` /
+  `$font.*` tokens resolve in `css` and `html`. Fonts come from the registry (variable fonts are pinned to
+  static weights with HarfBuzz); images must be template assets or PNG/JPEG data URIs. On Node, Satori and
+  resvg draw the layer at 2× into a transparent PNG named by content hash (`html:<hash>`, cached per
+  process), which composites as a still image, so `position`, `scale`, `start` and `motion` work unchanged.
+  Satori, resvg and HarfBuzz load on the first layer only and stay out of the browser bundle. Validation fails
+  on `html_too_large` (a side over 1920 px) and, where a validator is built with `htmlLayers: false` (the
+  browser and on-device engines for now), `html_unavailable`. Advisories `html_unsupported_css`,
+  `html_unsupported_markup`, `html_font_unknown`, `html_missing_field` and `html_overflow` (measured in the
+  Node geometry checks); `motionCatalog().html` lists the subset and four recipes. Sample:
+  `examples/motion-design/html-card.json`.
 - Composed sound effects. An `sfx` cue takes a `sound` instead of an `id`: layers of `tone`, `noise`,
   `strike` and `silence` shaped by envelopes, filter chains, glides, drive, pan and sequences, with
   whole-sound saturate/crush/room/echo, bounded to 4 s and 8 layers. A pure TypeScript synth renders it

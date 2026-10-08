@@ -202,6 +202,15 @@ time; see the [template reference](../../docs/template-configuration.md#typed-fi
 `render_frames` refuse a missing required value or one that fails its type before rendering; and
 `get_resolved_template` shows the descriptor those `fields` produce.
 
+An `inputs[]` entry of `type: "html"` lays out a card, badge or price tag in HTML and CSS (a flexbox
+subset; see [HTML layers](../../docs/template-configuration.md#html-layers)). `compose_video` and
+`render_frames` draw it into a transparent PNG and composite it like an image. Its images must be
+template assets under the media dir (or PNG/JPEG data URIs); remote URLs and absolute paths are refused.
+`validate_template` reports `html_unsupported_css`, `html_unsupported_markup`, `html_font_unknown`,
+`html_missing_field` and `html_overflow` (the layer laid out against its box), and fails on
+`html_too_large`. `get_template_schema` explains the input, and `get_motion_catalog` lists the CSS subset
+and four layout recipes under `html`.
+
 Twenty tools are always registered: `ping`, `list_samples`, `get_sample`, `get_template_schema`,
 `get_motion_catalog`, `report_catalog_gap`, `get_timeline`, `get_resolved_template`, `validate_template`, `compose_video`,
 `render_frames`, `patch_template`, `edit_template`, `probe_media`, `extract_style`, `analyze_music`, `analyze_sound`, `transcribe_media`, `get_capabilities` and `open_in_builder`. Opt-in adds

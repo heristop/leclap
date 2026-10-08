@@ -65,8 +65,8 @@ export interface ValidatorOptions {
    */
   transcription?: boolean;
   /**
-   * Whether the host draws HTML layers (`inputs[].type: "html"`): the Node compile does. False on the
-   * browser and on-device engines until their rasterisers land: html_unavailable. Default true.
+   * Whether the host draws HTML layers (`inputs[].type: "html"`): the Node and browser compiles do. False on
+   * the on-device engine until its rasteriser lands: html_unavailable. Default true.
    */
   htmlLayers?: boolean;
 }

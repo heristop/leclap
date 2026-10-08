@@ -9,6 +9,8 @@ import { lutCubeText } from '../presets/lut-staging';
 import { lutFileStem } from '../presets/lut-spec';
 import { cutawayMedia } from '../footage/cutaway-media';
 import { generatedImage } from '../presets/generated-images';
+import { stageHtmlInput, type HtmlAssetDeps } from '../html/html-input-stage';
+import { extensionFromUrl, frameInName, frameInUrl, mediaName } from '../utils/media-naming';
 import { findFontByFile, DEFAULT_FONT_WEIGHT, type FontRef } from '@/core/fonts';
 import { googleCssUrl, extractTtfUrl, GOOGLE_FONTS_USER_AGENT } from '@/core/google-fonts';
 import { fontAssetUrl } from '@/core/asset-source';
@@ -129,6 +131,13 @@ class AssetManager {
       return;
     }
 
+    // An HTML layer is drawn, not fetched (editor/html): staged under an `html:<hash>` url.
+    if (item.type === 'html') {
+      await stageHtmlInput(item, this.htmlDeps());
+
+      return;
+    }
+
     this.resolveItemUrl(item);
 
     // A ref is an http(s) URL, an absolute staged path, or a path relative to assetsDir — all valid.
@@ -140,6 +149,16 @@ class AssetManager {
     // Single-file media — animations (.apng/.webp/.gif/.webm) are fetched like any other asset.
     await this.fetchMedia(item);
   };
+
+  private readonly htmlDeps = (): HtmlAssetDeps => ({
+    filesystem: this.filesystemAdapter,
+    logger: this.logger,
+    segment: this.segment,
+    global: this.template.descriptor.global,
+    valueOf: this.variableManager.valueOf,
+    stageFont: (request) => this.stageFont(request),
+    cache: this.inputsCache,
+  });
 
   fetchFonts = async (): Promise<void> => {
     await Promise.all(this.segment.tempFonts.map((request) => this.stageFont(request)));
@@ -404,45 +423,13 @@ class AssetManager {
 
   extractFromMedia = (media: Media, frame = 0): ResolvedMedia => {
     const mediaUrl = media.url ?? '';
-    const extension = this.getExtensionFromUrl(mediaUrl);
-    let url = this.variableManager.mapVariables(mediaUrl);
-    let name = this.generateName(media, url, frame);
+    const url = this.variableManager.mapVariables(mediaUrl);
 
-    url = this.replaceFrameInUrl(url, frame);
-    name = this.replaceFrameInName(name, frame);
-
-    return { name, url, extension };
-  };
-
-  private readonly getExtensionFromUrl = (url: string): string => {
-    return url.split('.').pop() ?? '';
-  };
-
-  private readonly generateName = (media: Media, url: string, frame: number): string => {
-    if (frame || !media.name) {
-      return url
-        .substring(url.lastIndexOf('/') + 1)
-        .split('.')
-        .slice(0, -1)
-        .join('.');
-    }
-
-    return media.name;
-  };
-
-  private readonly replaceFrameInUrl = (url: string, frame: number): string => {
-    if (frame && url.includes('%d')) {
-      const framePattern = /-([0-9]{3}).([a-z]{3})$/;
-      const frameString = `00${frame}`.slice(-3);
-
-      return framePattern.test(url) ? url.replace('%d', frameString) : url.replace('%d', `${frame}`);
-    }
-
-    return url;
-  };
-
-  private readonly replaceFrameInName = (name: string, frame: number): string => {
-    return frame ? name.replace('%d', `00${frame}`.slice(-3)) : name;
+    return {
+      name: frameInName(mediaName(media, url, frame), frame),
+      url: frameInUrl(url, frame),
+      extension: extensionFromUrl(mediaUrl),
+    };
   };
 }
 

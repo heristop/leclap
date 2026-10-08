@@ -271,6 +271,39 @@ describe('CoreCompilationService image_background staging', () => {
     // Without this staging the background image never lands on device and the render fails ffprobe.
     expect(copiedTo).toContain('file:///cache/leclap-assets/backgrounds/desk-flatlay.jpg');
   });
+
+  it('stages a bundled background an HTML layer draws as an image', async () => {
+    (FileSystem.getInfoAsync as unknown as MockFn).mockResolvedValue({ exists: false });
+    (compileReactNative as unknown as MockFn).mockResolvedValue('/cache/out.mp4');
+
+    const withHtmlImage = {
+      descriptor: {
+        sections: [
+          {
+            type: 'color_background',
+            name: 'card',
+            options: { duration: 4 },
+            inputs: [
+              {
+                name: 'portrait',
+                type: 'html',
+                html: '<img class="face" src="/assets/backgrounds/desk-flatlay.jpg" />',
+                css: '.face { width: 80px; height: 80px }',
+                width: 100,
+                height: 100,
+              },
+            ],
+          },
+        ],
+      },
+      clips: {},
+    } as unknown as CompileInput;
+
+    await new CoreCompilationService().compile(withHtmlImage);
+
+    const copiedTo = (FileSystem.copyAsync as unknown as MockFn).mock.calls.map((c) => (c[0] as { to: string }).to);
+    expect(copiedTo).toContain('file:///cache/leclap-assets/backgrounds/desk-flatlay.jpg');
+  });
 });
 
 describe('CoreCompilationService output publishing', () => {

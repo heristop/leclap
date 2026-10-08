@@ -206,8 +206,20 @@ function libraryInputFile(input: { type?: string; url?: string }): string | unde
   return file;
 }
 
-// Every bundled background file the descriptor references (image_background pictureUrls + library://
-// image inputs). Mutates library:// input urls to their canonical staged path.
+const HTML_BACKGROUND_REF = /\/assets\/backgrounds\/([\w.-]+)/g;
+
+// The bundled backgrounds an HTML layer draws (`<img src>` or CSS `url()` on `/assets/backgrounds/<file>`):
+// the engine reads them through resolveLocalAsset, so they must be staged like a pictureUrl.
+function htmlInputFiles(input: { type?: string; html?: string; css?: string }): string[] {
+  if (input.type !== 'html') return [];
+
+  const source = `${input.html ?? ''} ${input.css ?? ''}`;
+
+  return [...source.matchAll(HTML_BACKGROUND_REF)].map((match) => match[1]).filter((file) => file in BACKGROUND_ASSETS);
+}
+
+// Every bundled background file the descriptor references (image_background pictureUrls, library://
+// image inputs and HTML layer images). Mutates library:// input urls to their canonical staged path.
 function collectBundledImageFiles(descriptor: CompileInput['descriptor']): Set<string> {
   const files = new Set<string>();
 
@@ -216,12 +228,15 @@ function collectBundledImageFiles(descriptor: CompileInput['descriptor']): Set<s
 
     if (pictureFile) files.add(pictureFile);
 
-    const inputs = (section as { inputs?: Array<{ type?: string; url?: string }> }).inputs ?? [];
+    const inputs =
+      (section as { inputs?: Array<{ type?: string; url?: string; html?: string; css?: string }> }).inputs ?? [];
 
     for (const input of inputs) {
       const file = libraryInputFile(input);
 
       if (file) files.add(file);
+
+      for (const htmlFile of htmlInputFiles(input)) files.add(htmlFile);
     }
   }
 

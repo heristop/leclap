@@ -115,6 +115,24 @@ describe('HTML raster host', () => {
     expect(sent[0].fonts[0].data).toBe('AQID');
   });
 
+  it('shows each drawn layer to its observers until they stop', async () => {
+    const host = createHtmlRasterHost();
+    const seen: number[] = [];
+
+    mountOnActivate(host, () => {
+      fakePage(host);
+      host.receive(JSON.stringify({ type: 'ready', version: 'satori@test' }));
+    });
+
+    const stop = host.observe((request, raster) => seen.push(request.width, raster.png.length));
+
+    await host.rasteriser.render(REQUEST);
+    stop();
+    await host.rasteriser.render(REQUEST);
+
+    expect(seen).toEqual([120, 3]);
+  });
+
   it('fails the layer with the page error', async () => {
     const host = createHtmlRasterHost();
 

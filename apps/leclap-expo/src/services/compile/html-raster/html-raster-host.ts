@@ -47,7 +47,11 @@ export interface HtmlRasterHost {
   timings: () => LayerTiming[];
   /** How long the last page took from mount to `ready`, or null before any. */
   pageLoadMs: () => number | null;
+  /** Calls `observer` with each layer drawn from now on (the device check hashes them); returns a stop. */
+  observe: (observer: LayerObserver) => () => void;
 }
+
+export type LayerObserver = (request: HtmlRasterRequest, raster: HtmlRaster) => void;
 
 export interface HtmlRasterHostOptions {
   readyTimeoutMs?: number;
@@ -107,6 +111,7 @@ export function createHtmlRasterHost(options: HtmlRasterHostOptions = {}): HtmlR
   const readyTimeoutMs = options.readyTimeoutMs ?? 20_000;
   const layerTimeoutMs = options.layerTimeoutMs ?? 30_000;
   const listeners = new Set<() => void>();
+  const observers = new Set<LayerObserver>();
   const timings: LayerTiming[] = [];
   let session: PageSession | null = null;
   let view: RasterPageView | null = null;
@@ -200,6 +205,8 @@ export function createHtmlRasterHost(options: HtmlRasterHostOptions = {}): HtmlR
     if (timings.length > LAYER_LIMIT) timings.shift();
     console.info(`[html-raster] ${timing.width}×${timing.height} layer in ${timing.ms} ms (page ${timing.pageMs} ms)`);
 
+    for (const observer of observers) observer(request, raster);
+
     return raster;
   }
 
@@ -223,6 +230,13 @@ export function createHtmlRasterHost(options: HtmlRasterHostOptions = {}): HtmlR
     },
     timings: () => [...timings],
     pageLoadMs: () => loadMs,
+    observe: (observer) => {
+      observers.add(observer);
+
+      return () => {
+        observers.delete(observer);
+      };
+    },
   };
 }
 

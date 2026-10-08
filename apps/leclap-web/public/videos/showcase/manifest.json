@@ -620,10 +620,10 @@
       "hasAudio": true,
       "orientation": "square",
       "backend": "native",
-      "sha256": "a9d51e5a0f6719d20b5875d4c9df6afb64ddfa3288e11997c94fc077f53fe073",
-      "templateSha256": "1b63f2803f09e31292fb69a42b8a7c7e4c83d5aa8bcbd5b314095d5093f3958d",
+      "sha256": "348e772623975e3ed81f246670fc045d88d66086c12a64f112c4832fcd1009a8",
+      "templateSha256": "00f4b566ed60d57ab7cfa63909d0e2f009528dc89dd3bed593cdf397722e47a1",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 64660
+      "bytes": 61960
     }
   ]
 }

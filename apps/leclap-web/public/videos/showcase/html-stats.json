@@ -44,7 +44,7 @@
       },
       "tools": {
         "type": "text",
-        "default": "20",
+        "default": "14",
         "maxLength": 4,
         "label": {
           "en": "Tools"

@@ -6,8 +6,6 @@
 //   property pointing at them, so a cue's "id or sound" becomes "id required".
 // - `subtitles.transcribe` needs the Node transcription pass (the browser reports transcribe_unavailable),
 //   and `meta.resolved` is written by resolve passes, not by hand.
-// - HTML layers (`inputs[]` of type "html") are drawn on the Node engine only for now (the browser reports
-//   html_unavailable): the input schema loses the "html" type and its html/css/width/height fields.
 // The engine schema and MCP get_template_schema keep the full vocabulary.
 
 type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
@@ -15,7 +13,6 @@ type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 const SOUND_DEF = /^Sound/;
 const SOUND_REF = '#/$defs/Sound';
 const HOST_ONLY = new Set(['transcribe', 'resolved']);
-const HTML_INPUT_FIELDS = new Set(['html', 'css', 'width', 'height']);
 
 function pointsAtSound(node: Json): boolean {
   return (
@@ -57,31 +54,6 @@ function settleChoice(node: JsonObject): JsonObject {
   return { ...rest, required: [...new Set([...requiredOf(node), ...requiredOf(kept[0])])] };
 }
 
-// The input schema (it alone has both `shape` and `html`) without the HTML layer type and its fields.
-function withoutHtmlInput(node: JsonObject): JsonObject {
-  const { properties } = node;
-
-  if (!isObject(properties) || !('html' in properties) || !('shape' in properties)) return node;
-
-  const kept = Object.fromEntries(Object.entries(properties).filter(([key]) => !HTML_INPUT_FIELDS.has(key)));
-  const type = kept.type;
-
-  if (isObject(type) && Array.isArray(type.enum)) {
-    kept.type = {
-      ...type,
-      enum: type.enum.filter((value) => value !== 'html'),
-      description:
-        '"animation" = animated overlay (.apng/.webp/.gif/.webm); "image" = still held for section duration.',
-    };
-  }
-
-  return {
-    ...node,
-    properties: kept,
-    description: 'An external asset (animation or still image) composited into the section video.',
-  };
-}
-
 // `inProperties`: `node` is a `properties` map, whose keys are property names (not schema keywords).
 function strip(node: Json, inProperties = false): Json {
   if (Array.isArray(node)) return node.map((child) => strip(child));
@@ -98,7 +70,7 @@ function strip(node: Json, inProperties = false): Json {
     out[key] = strip(value, key === 'properties' && !inProperties);
   }
 
-  return inProperties ? out : settleChoice(withoutHtmlInput(out));
+  return inProperties ? out : settleChoice(out);
 }
 
 export function promptSchema(schema: unknown): unknown {

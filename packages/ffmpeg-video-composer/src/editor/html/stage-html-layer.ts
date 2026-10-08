@@ -7,15 +7,9 @@
 import { container } from 'tsyringe';
 import type AbstractFilesystem from '../../platform/filesystem/AbstractFilesystem';
 import type AbstractLogger from '../../platform/logging/AbstractLogger';
-import {
-  HTML_LAYER_DENSITY,
-  fillHtmlPlaceholders,
-  htmlLayerKey,
-  inlineImages,
-  prepareHtmlLayer,
-  type PreparedHtmlLayer,
-} from '@/core/html/html-layer';
+import { HTML_LAYER_DENSITY, htmlLayerKey, inlineImages, type PreparedHtmlLayer } from '@/core/html/html-layer';
 import { HTML_RASTERISER, type HtmlRasteriser, type RasterFont } from '@/core/html/html-rasteriser';
+import { overflowFinding, prepareWithFindings } from '../../services/html-raster/html-layer-findings';
 import { bytesToBase64 } from './base64';
 
 export interface HtmlLayerInput {
@@ -81,22 +75,9 @@ async function imageMap(refs: string[], ctx: HtmlStageContext): Promise<Map<stri
 }
 
 function prepare(input: HtmlLayerInput, ctx: HtmlStageContext): PreparedHtmlLayer {
-  const filled = fillHtmlPlaceholders(input.html ?? '', ctx.lookup);
+  const { prepared, findings } = prepareWithFindings(input, ctx.lookup, ctx.defaultFamily);
 
-  for (const name of filled.missing) {
-    ctx.logger.warn(`[${ctx.section}][Html] html_missing_field: {{ ${name} }} has no value`);
-  }
-
-  const prepared = prepareHtmlLayer(
-    { html: filled.html, css: input.css, width: input.width ?? 0, height: input.height ?? 0 },
-    ctx.defaultFamily
-  );
-
-  const unknownFonts = prepared.unknownFonts.map((name) => ({ code: 'html_font_unknown', message: `font "${name}"` }));
-
-  for (const finding of [...prepared.findings, ...unknownFonts]) {
-    ctx.logger.warn(`[${ctx.section}][Html] ${finding.code}: ${finding.message}`);
-  }
+  for (const finding of findings) ctx.logger.warn(`[${ctx.section}][Html] ${finding.code}: ${finding.message}`);
 
   return prepared;
 }
@@ -114,10 +95,8 @@ async function draw(
 ): Promise<Uint8Array> {
   const raster = await rasteriser.render(request);
 
-  if (raster.contentHeight > request.height + 1) {
-    ctx.logger.warn(
-      `[${ctx.section}][Html] html_overflow: the content is ${Math.round(raster.contentHeight)} px tall in a ${request.height} px box, the rest is cut`
-    );
+  for (const finding of overflowFinding(raster.contentHeight, request.height)) {
+    ctx.logger.warn(`[${ctx.section}][Html] ${finding.code}: ${finding.message}`);
   }
 
   return raster.png;

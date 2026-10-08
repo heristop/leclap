@@ -27,8 +27,13 @@ describe('motionForPrompt', () => {
     expect(trimmed.audio).not.toHaveProperty('compose');
   });
 
-  it('leaves HTML layers out until the browser engine can draw them', () => {
-    expect(motion).toHaveProperty('html');
-    expect(trimmed).not.toHaveProperty('html');
+  it('keeps HTML layers in a few lines: the shape and the subset rules, no lists or recipes', () => {
+    const html = trimmed.html as unknown as Record<string, unknown>;
+
+    expect(html.shape).toBe(motion.html.shape);
+    expect(html.layout).toBe(motion.html.layout);
+    expect(html).not.toHaveProperty('recipes');
+    expect(html).not.toHaveProperty('tags');
+    expect(JSON.stringify(html).length).toBeLessThan(1_500);
   });
 });

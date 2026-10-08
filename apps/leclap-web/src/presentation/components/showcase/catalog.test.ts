@@ -3,7 +3,15 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundledVideoFor, fieldsFor, videoFor } from '../../../../../../examples/showcase/fixtures.ts';
-import { SHOWCASE_SAMPLES, filterSamples, selectedSample, validCategory } from './catalog';
+import {
+  FEATURED_SAMPLE_IDS,
+  LIBRARY_SAMPLES,
+  SHOWCASE_SAMPLES,
+  featuredFirst,
+  filterSamples,
+  selectedSample,
+  validCategory,
+} from './catalog';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../../..');
 
@@ -33,6 +41,23 @@ describe('showcase catalog', () => {
 
   it('lists the effects tour second, after Drink & Code', () => {
     expect(SHOWCASE_SAMPLES.slice(0, 2).map((sample) => sample.id)).toEqual(['drink-and-code', 'effects-tour']);
+  });
+
+  it('opens the library on the HTML-layer samples, then keeps the catalog order', () => {
+    const ids = filterSamples('all', '').map((sample) => sample.id);
+    expect(ids.slice(0, 4)).toEqual(['html-card', 'html-testimonial', 'html-speaker', 'html-stats']);
+    expect(ids.slice(4)).toEqual(
+      SHOWCASE_SAMPLES.map((sample) => sample.id).filter((id) => !FEATURED_SAMPLE_IDS.includes(id))
+    );
+    expect(filterSamples('effects', '')[0].id).toBe('html-card');
+    expect(LIBRARY_SAMPLES).toHaveLength(SHOWCASE_SAMPLES.length);
+  });
+
+  it('features only samples the catalog has, and leaves the catalog order alone', () => {
+    const ids = new Set(SHOWCASE_SAMPLES.map((sample) => sample.id));
+    for (const id of FEATURED_SAMPLE_IDS) expect(ids.has(id)).toBe(true);
+    expect(SHOWCASE_SAMPLES[0].id).toBe('drink-and-code');
+    expect(featuredFirst(SHOWCASE_SAMPLES, ['missing'])).toEqual(SHOWCASE_SAMPLES);
   });
 
   it('renders forms without options and keeps fixture values within authoring limits', () => {

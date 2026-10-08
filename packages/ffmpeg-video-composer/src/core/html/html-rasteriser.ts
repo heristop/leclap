@@ -1,6 +1,7 @@
 // The contract between the asset stage and whatever draws HTML layers on a platform. Node registers the
-// in-process Satori + resvg rasteriser (services/html-node); the browser and the phone register theirs in
-// later phases. A host without one cannot render a template with an HTML layer: validation reports
+// in-process Satori + resvg rasteriser (services/html-node); the phone registers one that posts each layer
+// to a hidden WebView page (raster-messages.ts, html-raster-webview.ts); the browser registers its own in a
+// later phase. A host without one cannot render a template with an HTML layer: validation reports
 // html_unavailable there before any section is encoded.
 
 import type { LayerElement } from './html-element';

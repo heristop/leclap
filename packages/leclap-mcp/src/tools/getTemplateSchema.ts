@@ -124,7 +124,7 @@ const GUIDE = [
     'badge, price tag or stat row with HTML + CSS (flexbox subset: tag/.class/descendant selectors, Satori) and ' +
     'composites it like an image: options.position/scale/motion/start/duration as usual. {{ field }} values are ' +
     'HTML-escaped; $color.*/$font.* tokens work inside css; fonts come from the registry, images from template ' +
-    'assets (no remote URLs, no scripts). Node renders them; the browser and phone engines report html_unavailable. ' +
+    'assets (no remote URLs, no scripts). Node and the phone render them; the browser engine reports html_unavailable. ' +
     'validate_template warns html_unsupported_css/markup, html_font_unknown, html_missing_field and (measured) ' +
     'html_overflow; get_motion_catalog html lists the subset and recipes; render_frames previews the layer.',
   'Note: any non-"cut" transition triggers a full-timeline re-encode (costly on WASM/on-device); ' +

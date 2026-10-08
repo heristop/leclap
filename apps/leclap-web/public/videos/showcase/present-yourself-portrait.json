@@ -138,19 +138,6 @@
           "position": "center"
         }
       },
-      "lowerThird": {
-        "title": {
-          "en": "{{ form_1_firstname }}"
-        },
-        "badge": {
-          "en": "ON-DEVICE"
-        },
-        "accent": "#7C83FD",
-        "reveal": "rise",
-        "effect": {
-          "shadow": true
-        }
-      },
       "graphics": [
         {
           "type": "fx",
@@ -172,9 +159,9 @@
           "effect": "edge-glow",
           "target": {
             "x": 0,
-            "y": 1024,
+            "y": 900,
             "w": 720,
-            "h": 256
+            "h": 380
           },
           "at": 0.3,
           "duration": 5.7,
@@ -185,6 +172,27 @@
           "period": 4.4,
           "color": "#7C83FD",
           "intensity": 0.7
+        }
+      ],
+      "inputs": [
+        {
+          "name": "name_card",
+          "type": "html",
+          "html": "<div class=\"wrap\"><div class=\"card\"><span class=\"kicker\">Hi, I’m</span><h2>{{ form_1_firstname }}</h2><div class=\"chips\"><span class=\"chip on\">On-device</span><span class=\"chip\">Graded &amp; signed</span></div></div></div>",
+          "css": ".wrap { display: flex; align-items: flex-start; height: 100%; padding: 0 16px 16px 0 } .card { display: flex; flex-direction: column; padding: 20px 30px 24px; border-radius: 18px; border-top: 4px solid $color.brand; background: $color.bg@0.88; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35) } .kicker { color: $color.brand; font: 500 22px $font.body; text-transform: uppercase; letter-spacing: 3px } h2 { margin: 0; color: $color.fg; font: 92px $font.display; line-height: 1; letter-spacing: 1px } .chips { display: flex; gap: 10px; margin-top: 14px } .chip { padding: 6px 14px; border-radius: 999px; border: 2px solid $color.muted@0.5; color: $color.fg; font: 500 20px $font.body; text-transform: uppercase; letter-spacing: 1px } .chip.on { border-color: $color.brand; background: $color.brand; color: $color.bg }",
+          "width": 656,
+          "height": 364,
+          "options": {
+            "position": "32:916",
+            "start": 0.4,
+            "motion": {
+              "type": "rise",
+              "delay": 0.4,
+              "duration": 0.6,
+              "distance": 40,
+              "easing": "ease-out"
+            }
+          }
         }
       ]
     },

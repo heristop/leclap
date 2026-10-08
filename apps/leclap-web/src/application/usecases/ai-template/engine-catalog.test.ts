@@ -26,4 +26,9 @@ describe('motionForPrompt', () => {
     expect(motion.audio).toHaveProperty('compose');
     expect(trimmed.audio).not.toHaveProperty('compose');
   });
+
+  it('leaves HTML layers out until the browser engine can draw them', () => {
+    expect(motion).toHaveProperty('html');
+    expect(trimmed).not.toHaveProperty('html');
+  });
 });

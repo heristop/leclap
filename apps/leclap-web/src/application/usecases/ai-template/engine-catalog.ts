@@ -104,8 +104,9 @@ function audioForPrompt(audio: MotionCatalog['audio']): MotionCatalog['audio'] {
   return { ...rest, sfx } as unknown as MotionCatalog['audio'];
 }
 
-export function motionForPrompt(motion: MotionCatalog, genre?: string): Omit<MotionCatalog, 'partials'> {
-  const { partials: _partials, footage, fx, audio, ...rest } = motion;
+export function motionForPrompt(motion: MotionCatalog, genre?: string): Omit<MotionCatalog, 'partials' | 'html'> {
+  // HTML layers render on the Node engine only for now (this browser reports html_unavailable).
+  const { partials: _partials, html: _html, footage, fx, audio, ...rest } = motion;
   const { take: _take, ...builderFootage } = footage;
   const trimmed = {
     ...rest,

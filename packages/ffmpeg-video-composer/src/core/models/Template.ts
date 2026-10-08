@@ -7,6 +7,12 @@ function isTemplateDescriptor(data: unknown): data is TemplateDescriptor {
   return typeof data === 'object' && data !== null && !('name' in data && 'type' in data);
 }
 
+/** What the host engine can draw beyond the common set. */
+export interface TemplateCapabilities {
+  /** HTML layers (`inputs[].type: "html"`): true where a rasteriser is registered. Default false. */
+  htmlLayers?: boolean;
+}
+
 @singleton()
 class Template {
   public descriptor: TemplateDescriptor = {};
@@ -17,10 +23,15 @@ class Template {
   };
   private readonly validator: BaseTemplateValidator;
 
-  constructor() {
+  constructor(capabilities: TemplateCapabilities = {}) {
     // Template is the browser / on-device validation path: those engines cannot analyze music nor
-    // transcribe speech (both are pinned before compile), nor draw HTML layers yet.
-    this.validator = new BaseTemplateValidator({ beatsAnalysis: false, transcription: false, htmlLayers: false });
+    // transcribe speech (both are pinned before compile). HTML layers render where the host registered a
+    // rasteriser: the browser compile says so, the on-device engine cannot yet.
+    this.validator = new BaseTemplateValidator({
+      beatsAnalysis: false,
+      transcription: false,
+      htmlLayers: capabilities.htmlLayers ?? false,
+    });
   }
 
   init = (): void => {

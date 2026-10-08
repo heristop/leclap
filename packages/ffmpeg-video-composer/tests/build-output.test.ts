@@ -338,6 +338,19 @@ describe('Build Output', () => {
       expect(code).not.toMatch(/["']satori["']|@resvg\/resvg-wasm|harfbuzzjs/);
     });
 
+    it('browser entry loads the HTML layer rasteriser on demand, and Satori + resvg from there', async () => {
+      const entry = await readFile(path.join(DIST_DIR, 'browser.js'), 'utf-8');
+      const chunk = /import\(["']\.\/(html-rasteriser-browser-[^"']+\.js)["']\)/.exec(entry)?.[1];
+
+      expect(chunk).toBeDefined();
+      expect((await browserEagerFiles()).has(chunk as string)).toBe(false);
+
+      const code = await readFile(path.join(DIST_DIR, chunk as string), 'utf-8');
+
+      expect(code).toMatch(/import\(["']satori["']\)/);
+      expect(code).toMatch(/import\(["']@resvg\/resvg-wasm["']\)/);
+    });
+
     it('sourcemaps should exist and be reasonable size', async () => {
       const indexMapStats = await stat(path.join(DIST_DIR, 'index.js.map'));
       const browserMapStats = await stat(path.join(DIST_DIR, 'browser.js.map'));

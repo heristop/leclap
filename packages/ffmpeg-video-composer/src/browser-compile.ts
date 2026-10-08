@@ -8,11 +8,8 @@ import TemplateConcreteBuilder from './director/TemplateConcreteBuilder';
 import BrowserFilesystemAdapter from './platform/filesystem/BrowserFilesystemAdapter';
 import FFmpegWasmAdapter, { type FFmpegCoreLoader } from './platform/ffmpeg/FFmpegWasmAdapter';
 import MusicWasmAdapter from './platform/ffmpeg/MusicWasmAdapter';
-import AssetManager from './editor/managers/AssetManager';
 import VariableManager from './editor/managers/VariableManager';
-import MapManager from './editor/managers/MapManager';
-import FilterManager from './editor/managers/FilterManager';
-import FormattersManager from './editor/managers/FormatterManager';
+import { registerEditorManagers } from './editor/managers/register-managers';
 import Segment from './core/models/Segment';
 import AbstractLogger from './platform/logging/AbstractLogger';
 import BrowserEventManager from './platform/BrowserEventManager';
@@ -22,6 +19,8 @@ import AnimationComposer from './editor/AnimationComposer';
 import Project from './core/models/Project';
 import Template, { assertEffectsResolved } from './core/models/Template';
 import { attachCompilationListeners } from './platform/compilation-listeners';
+import { registerBrowserHtmlRasteriser } from './platform/html/html-rasteriser-browser';
+import type { HtmlWasmLoader } from './core/html/html-engine';
 import type { ProjectConfig, TemplateDescriptor } from './core/types';
 
 class BrowserLogger extends AbstractLogger {
@@ -63,12 +62,8 @@ async function registerAdapters(logger: AbstractLogger, loadFFmpegCore?: FFmpegC
   container.registerInstance('musicAdapter', musicAdapter);
 }
 
-function registerServices(): void {
-  container.register('AssetManager', { useClass: AssetManager });
-  container.register('VariableManager', { useClass: VariableManager });
-  container.register('MapManager', { useClass: MapManager });
-  container.register('FilterManager', { useClass: FilterManager });
-  container.register('FormattersManager', { useClass: FormattersManager });
+function registerServices(loadHtmlWasm?: HtmlWasmLoader): void {
+  registerEditorManagers();
 
   const eventManager = new BrowserEventManager();
   container.registerInstance('eventManager', eventManager);
@@ -78,9 +73,16 @@ function registerServices(): void {
   container.register('AnimationComposer', { useClass: AnimationComposer });
   container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
   container.register('TemplateDirector', { useClass: TemplateDirector });
+  // HTML layers: Satori + resvg, their WebAssembly fetched on the first layer only.
+  registerBrowserHtmlRasteriser(loadHtmlWasm);
 }
 
-async function initializeBrowserPlatform(loadFFmpegCore?: FFmpegCoreLoader): Promise<void> {
+export interface BrowserLoaders {
+  loadFFmpegCore?: FFmpegCoreLoader;
+  loadHtmlWasm?: HtmlWasmLoader;
+}
+
+async function initializeBrowserPlatform({ loadFFmpegCore, loadHtmlWasm }: BrowserLoaders): Promise<void> {
   if (isInitialized) return;
 
   if (initializationPromise) return initializationPromise;
@@ -92,7 +94,7 @@ async function initializeBrowserPlatform(loadFFmpegCore?: FFmpegCoreLoader): Pro
       container.registerInstance('logger', logger);
 
       await registerAdapters(logger, loadFFmpegCore);
-      registerServices();
+      registerServices(loadHtmlWasm);
 
       logger.info('Browser platform initialized');
       isInitialized = true;
@@ -254,10 +256,10 @@ export async function runBrowserCompilation(
   projectConfig: ProjectConfig,
   templateDescriptor: TemplateDescriptor,
   onProgress?: (progress: number) => void,
-  loadFFmpegCore?: FFmpegCoreLoader
+  loaders: BrowserLoaders = {}
 ): Promise<string> {
   assertEffectsResolved(templateDescriptor);
-  await initializeBrowserPlatform(loadFFmpegCore);
+  await initializeBrowserPlatform(loaders);
 
   const ctx: CompilationContext = {
     eventManager: container.resolve<BrowserEventManager>('eventManager'),
@@ -266,7 +268,7 @@ export async function runBrowserCompilation(
     filesystemAdapter: container.resolve<BrowserFilesystemAdapter>('filesystemAdapter'),
     musicAdapter: container.resolve<MusicWasmAdapter>('musicAdapter'),
     project: new Project(),
-    template: new Template(),
+    template: new Template({ htmlLayers: true }),
   };
 
   validateTemplate(ctx.template, templateDescriptor);

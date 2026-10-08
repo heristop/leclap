@@ -2,9 +2,9 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { htmlRasterHost } from '@/src/services/compile/html-raster/html-raster-host';
-import { loadRasterPage } from '@/src/services/compile/html-raster/raster-page-source';
+import { loadRasterPage, type RasterPageFile } from '@/src/services/compile/html-raster/raster-page-source';
 
-const ORIGINS = ['*'];
+const ORIGINS = ['file://*'];
 
 /**
  * The hidden WebView the engine draws HTML layers in (Hermes has no WebAssembly). Mounted only while a
@@ -12,17 +12,17 @@ const ORIGINS = ['*'];
  */
 export function HtmlRasterView() {
   const active = useSyncExternalStore(htmlRasterHost.subscribe, htmlRasterHost.isActive);
-  const [html, setHtml] = useState<string | null>(null);
+  const [page, setPage] = useState<RasterPageFile | null>(null);
 
   useEffect(() => {
-    if (!active || html) return;
+    if (!active || page) return;
 
-    loadRasterPage().then(setHtml, (error: unknown) => {
+    loadRasterPage().then(setPage, (error: unknown) => {
       htmlRasterHost.crashed(`page asset unreadable: ${String(error)}`);
     });
-  }, [active, html]);
+  }, [active, page]);
 
-  if (!active || !html) return null;
+  if (!active || !page) return null;
 
   return (
     <View
@@ -43,7 +43,10 @@ export function HtmlRasterView() {
               : null
           );
         }}
-        source={{ html }}
+        source={{ uri: page.uri }}
+        // The page is a local file: Android needs file access for it, iOS a read grant on its folder.
+        allowFileAccess
+        allowingReadAccessToURL={page.directory}
         originWhitelist={ORIGINS}
         javaScriptEnabled
         cacheEnabled={false}
@@ -63,5 +66,5 @@ export function HtmlRasterView() {
 
 const styles = StyleSheet.create({
   // Off screen and one pixel: a zero-sized or detached WebView may not run its page.
-  hidden: { position: 'absolute', left: -10, top: -10, width: 1, height: 1, opacity: 0 },
+  hidden: { position: 'absolute', left: 0, top: 0, width: 1, height: 1, opacity: 0.01 },
 });

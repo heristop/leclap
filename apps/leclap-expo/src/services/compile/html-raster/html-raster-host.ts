@@ -110,7 +110,7 @@ function parseReply(text: string): RasterPageReply | null {
 }
 
 export function createHtmlRasterHost(options: HtmlRasterHostOptions = {}): HtmlRasterHost {
-  const readyTimeoutMs = options.readyTimeoutMs ?? 20_000;
+  const readyTimeoutMs = options.readyTimeoutMs ?? 60_000;
   const layerTimeoutMs = options.layerTimeoutMs ?? 30_000;
   const listeners = new Set<() => void>();
   const observers = new Set<LayerObserver>();

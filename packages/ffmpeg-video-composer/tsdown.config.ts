@@ -1,5 +1,21 @@
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'tsdown';
 import replace from '@rollup/plugin-replace';
+
+// Satori imports `harfbuzzjs`, whose entry fetches `hb.wasm` next to the page the moment it loads; in the
+// browser build it resolves to the shim that waits for the bytes the host's loader fetched instead.
+const HARFBUZZ_SHAPER = fileURLToPath(new URL('src/platform/html/harfbuzz-shaper.ts', import.meta.url));
+
+// Ahead of tsdown's own resolution, which would keep `harfbuzzjs` external as one of the engine's dependencies.
+const harfbuzzShaper = {
+  name: 'harfbuzz-shaper',
+  resolveId: {
+    order: 'pre' as const,
+    handler(source: string): string | null {
+      return source === 'harfbuzzjs' ? HARFBUZZ_SHAPER : null;
+    },
+  },
+};
 
 export default defineConfig([
   // Sample discovery is a separate data-only entry, never imported by the renderer entries.
@@ -95,12 +111,15 @@ export default defineConfig([
         'reflect-metadata',
         'tsyringe',
         'picocolors',
+        // HTML layers: bundled (into the lazy rasteriser chunk) so its HarfBuzz import meets the shim.
+        'satori',
       ],
       // zod's declarations stay external too: rolldown-plugin-dts can't bundle zod v4's CommonJS .d.cts
       // locale files (a wall of warnings), and consumers have zod installed as a runtime dependency.
       dts: { neverBundle: ['zod'] },
     },
     plugins: [
+      harfbuzzShaper,
       replace({
         preventAssignment: true,
         // Leading boundary excludes a preceding word char, `$`, `.` or `/` so the bare `global`

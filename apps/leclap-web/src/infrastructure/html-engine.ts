@@ -1,4 +1,4 @@
-// The WebAssembly the HTML layer rasteriser runs on (resvg, HarfBuzz's subsetter), for the builder's live
+// The WebAssembly the HTML layer rasteriser runs on (resvg, HarfBuzz's subsetter and shaper), for the builder's live
 // preview and the browser render alike. Served from this origin (scripts/stage-html-engine.ts stages it into
 // public/ on dev and build) under a versioned path, so the HTTP cache and the service worker keep it.
 import { HTML_WASM_VERSION, type HtmlWasm } from 'ffmpeg-video-composer/src/core/html/html-engine.ts';
@@ -15,7 +15,11 @@ async function fetchWasm(file: string): Promise<ArrayBuffer> {
 }
 
 export async function loadSelfHostedHtmlWasm(): Promise<HtmlWasm> {
-  const [resvg, harfbuzz] = await Promise.all([fetchWasm('resvg.wasm'), fetchWasm('hb-subset.wasm')]);
+  const [resvg, harfbuzz, shaper] = await Promise.all([
+    fetchWasm('resvg.wasm'),
+    fetchWasm('hb-subset.wasm'),
+    fetchWasm('hb.wasm'),
+  ]);
 
-  return { resvg, harfbuzz };
+  return { resvg, harfbuzz, shaper };
 }

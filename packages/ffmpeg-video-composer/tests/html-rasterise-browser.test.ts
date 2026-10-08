@@ -62,6 +62,7 @@ describe('browser HTML rasteriser', () => {
   it('pins the CDN files to the versions the renderer names', () => {
     expect(HTML_WASM_CDN.resvg).toMatch(/^https:\/\/unpkg\.com\/@resvg\/resvg-wasm@2\.6\.2\/index_bg\.wasm$/);
     expect(HTML_WASM_CDN.harfbuzz).toMatch(/^https:\/\/unpkg\.com\/harfbuzzjs@0\.10\.0\/hb-subset\.wasm$/);
+    expect(HTML_WASM_CDN.shaper).toMatch(/^https:\/\/unpkg\.com\/harfbuzzjs@0\.10\.0\/hb\.wasm$/);
     expect(HTML_RENDERER_VERSION).toContain('resvg@2.6.2');
     expect(HTML_RENDERER_VERSION).toContain('harfbuzz@0.10.0');
   });
@@ -82,7 +83,13 @@ describe('browser HTML rasteriser', () => {
 
     expect(rasteriser.version).toBe(HTML_RENDERER_VERSION);
     expect(sha256Hex(raster.png)).toBe(NODE_GOLDEN);
-    expect(requested.toSorted()).toEqual([HTML_WASM_CDN.harfbuzz, HTML_WASM_CDN.resvg].toSorted());
+    expect(requested.toSorted()).toEqual(
+      [HTML_WASM_CDN.harfbuzz, HTML_WASM_CDN.resvg, HTML_WASM_CDN.shaper].toSorted()
+    );
+    // Satori's text shaper (harfbuzzjs, aliased to the shim in browser bundles) got its WebAssembly too.
+    const shaper = await (await import('@/platform/html/harfbuzz-shaper')).default;
+
+    expect(typeof shaper.createBlob).toBe('function');
   }, 30_000);
 
   it('registers once for the compile, with the host loader', () => {

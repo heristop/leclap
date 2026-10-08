@@ -47,6 +47,25 @@ async function browserEagerFiles(): Promise<Map<string, string>> {
   return files;
 }
 
+// A chunk and every chunk it imports, statically or on demand, with their code.
+async function chunkGraph(start: string): Promise<Map<string, string>> {
+  const files = new Map<string, string>();
+  const walk = async (file: string): Promise<void> => {
+    if (files.has(file)) return;
+
+    const code = await readFile(path.join(DIST_DIR, file), 'utf-8');
+
+    files.set(file, code);
+    const imports = [...code.matchAll(/(?:from\s*|import\()["']\.\/([^"']+)["']/g)];
+
+    await Promise.all(imports.map((match) => walk(match[1])));
+  };
+
+  await walk(start);
+
+  return files;
+}
+
 describe('Build Output', () => {
   describe('File Existence', () => {
     it('should have index.js in dist', async () => {
@@ -338,17 +357,21 @@ describe('Build Output', () => {
       expect(code).not.toMatch(/["']satori["']|@resvg\/resvg-wasm|harfbuzzjs/);
     });
 
-    it('browser entry loads the HTML layer rasteriser on demand, and Satori + resvg from there', async () => {
+    // Satori is bundled into the lazy chunks (its `harfbuzzjs` import resolved to the shim that waits for the
+    // host's bytes); resvg stays a dependency the host's bundler resolves.
+    it('browser entry loads the HTML layer rasteriser on demand, Satori with its HarfBuzz shim from there', async () => {
       const entry = await readFile(path.join(DIST_DIR, 'browser.js'), 'utf-8');
       const chunk = /import\(["']\.\/(html-rasteriser-browser-[^"']+\.js)["']\)/.exec(entry)?.[1];
 
       expect(chunk).toBeDefined();
       expect((await browserEagerFiles()).has(chunk as string)).toBe(false);
 
-      const code = await readFile(path.join(DIST_DIR, chunk as string), 'utf-8');
+      const code = [...(await chunkGraph(chunk as string)).values()].join('\n');
 
-      expect(code).toMatch(/import\(["']satori["']\)/);
+      expect(code).toContain('satori_bct-');
       expect(code).toMatch(/import\(["']@resvg\/resvg-wasm["']\)/);
+      expect(code).toMatch(/from ["']harfbuzzjs\/hb\.js["']/);
+      expect(code).not.toMatch(/from ["']harfbuzzjs["']|import\(["']harfbuzzjs["']\)/);
     });
 
     it('sourcemaps should exist and be reasonable size', async () => {

@@ -1,10 +1,11 @@
-// Stages the HTML layer rasteriser's WebAssembly (resvg and HarfBuzz's subsetter) into
-// public/html-engine/<version>/ before `vite` runs (dev and build), so the builder's live preview and the
-// browser render fetch it from this origin rather than a CDN: see src/infrastructure/html-engine.ts, which
-// loads it. Satori needs no file of its own (its Yoga build is inlined in its JS, which Vite bundles).
+// Stages the HTML layer rasteriser's WebAssembly (resvg, HarfBuzz's subsetter and the HarfBuzz build Satori
+// shapes text with) into public/html-engine/<version>/ before `vite` runs (dev and build), so the builder's
+// live preview and the browser render fetch it from this origin rather than a CDN: see
+// src/infrastructure/html-engine.ts, which loads it. Satori's Yoga build is inlined in its JS.
 //
-// The versions are the engine's (HTML_WASM_FILES), and the installed packages have to match them. Both files
-// are small (~2.4 MB and ~0.6 MB), far under the 25 MiB Cloudflare Pages takes per file, so they ship as is.
+// The versions are the engine's (HTML_WASM_FILES), and the installed packages have to match them. The files
+// are small (~2.4 MB, ~0.6 MB and ~0.4 MB), far under the 25 MiB Cloudflare Pages takes per file, so they
+// ship as is.
 //
 // Runs as plain `node scripts/stage-html-engine.ts`, hence the `.ts` extension on the engine import.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync } from 'node:fs';
@@ -21,13 +22,13 @@ export interface StageHtmlEngineOptions {
 }
 
 /** The served name of each file (the resvg package calls its own `index_bg.wasm`). */
-export const HTML_ENGINE_FILES = { resvg: 'resvg.wasm', harfbuzz: 'hb-subset.wasm' } as const;
+export const HTML_ENGINE_FILES = { resvg: 'resvg.wasm', harfbuzz: 'hb-subset.wasm', shaper: 'hb.wasm' } as const;
 
 function installedVersion(dir: string): string {
   return (JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as { version: string }).version;
 }
 
-/** Stage both files under `<publicDir>/html-engine/<version>/`; returns that directory. */
+/** Stage the files under `<publicDir>/html-engine/<version>/`; returns that directory. */
 export function stageHtmlEngine({ packageDir, publicDir }: StageHtmlEngineOptions): string {
   const root = join(publicDir, 'html-engine');
   const dir = join(root, HTML_WASM_VERSION);
@@ -39,7 +40,7 @@ export function stageHtmlEngine({ packageDir, publicDir }: StageHtmlEngineOption
     if (entry !== HTML_WASM_VERSION) rmSync(join(root, entry), { recursive: true, force: true });
   }
 
-  for (const key of ['resvg', 'harfbuzz'] as const) {
+  for (const key of ['resvg', 'harfbuzz', 'shaper'] as const) {
     const spec = HTML_WASM_FILES[key];
     const source = packageDir(spec.package);
     const version = installedVersion(source);

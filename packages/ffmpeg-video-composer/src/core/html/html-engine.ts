@@ -1,7 +1,8 @@
 // The engines HTML layers are drawn with, pinned once for every host: Satori lays out (its Yoga build is
-// inlined in its JS), resvg rasterises and HarfBuzz instances variable fonts, the last two from WebAssembly
-// files a host loads its own way (Node reads them from node_modules, the web app serves them itself, any
-// other page falls back to unpkg). Checked against the installed packages by the rasteriser tests.
+// inlined in its JS) and shapes text with HarfBuzz, resvg rasterises and HarfBuzz's subsetter instances
+// variable fonts. Their WebAssembly files are loaded the host's way (Node reads them from node_modules, the
+// web app serves them itself, any other page falls back to unpkg). Checked against the installed packages by
+// the rasteriser tests.
 
 const SATORI_VERSION = '0.33.5';
 const RESVG_WASM_VERSION = '2.6.2';
@@ -14,6 +15,8 @@ export const HTML_RENDERER_VERSION = `satori@${SATORI_VERSION}+resvg@${RESVG_WAS
 export const HTML_WASM_FILES = {
   resvg: { package: '@resvg/resvg-wasm', version: RESVG_WASM_VERSION, file: 'index_bg.wasm' },
   harfbuzz: { package: 'harfbuzzjs', version: HARFBUZZJS_VERSION, file: 'hb-subset.wasm' },
+  // Satori's text shaper: on Node harfbuzzjs reads it itself, a browser has to be handed it.
+  shaper: { package: 'harfbuzzjs', version: HARFBUZZJS_VERSION, file: 'hb.wasm' },
 } as const;
 
 export type HtmlWasmName = keyof typeof HTML_WASM_FILES;
@@ -25,10 +28,11 @@ export const HTML_WASM_VERSION = `resvg-${RESVG_WASM_VERSION}_harfbuzz-${HARFBUZ
 export const HTML_WASM_CDN: Readonly<Record<HtmlWasmName, string>> = {
   resvg: `https://unpkg.com/${HTML_WASM_FILES.resvg.package}@${RESVG_WASM_VERSION}/${HTML_WASM_FILES.resvg.file}`,
   harfbuzz: `https://unpkg.com/${HTML_WASM_FILES.harfbuzz.package}@${HARFBUZZJS_VERSION}/${HTML_WASM_FILES.harfbuzz.file}`,
+  shaper: `https://unpkg.com/${HTML_WASM_FILES.shaper.package}@${HARFBUZZJS_VERSION}/${HTML_WASM_FILES.shaper.file}`,
 };
 
-/** The bytes of both WebAssembly modules. */
-export type HtmlWasm = Record<HtmlWasmName, BufferSource>;
+/** The bytes of the WebAssembly modules; `shaper` is required in a browser, Node's harfbuzzjs reads its own. */
+export type HtmlWasm = Record<'resvg' | 'harfbuzz', BufferSource> & { shaper?: BufferSource };
 
 /** Loads the rasteriser's WebAssembly: where it comes from is the host's call. */
 export type HtmlWasmLoader = () => Promise<HtmlWasm>;

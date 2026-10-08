@@ -82,11 +82,14 @@ function inlineStyle(style: LayerStyle, images: ReadonlyMap<string, string>): La
   return Object.fromEntries(
     Object.entries(style).map(([key, value]) => [
       key,
-      value.replace(/url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/gi, (match, a?: string, b?: string, c?: string) => {
-        const data = images.get(a ?? b ?? c ?? '');
+      value.replace(
+        /url\(\s*(?:"([^"]*)"|'([^']*)'|([^)\s]*))\s*\)/gi,
+        (_match, a?: string, b?: string, c?: string) => {
+          const data = images.get(a ?? b ?? c ?? '');
 
-        return data === undefined ? 'none' : `url("${data}")`;
-      }),
+          return data === undefined ? 'none' : `url("${data}")`;
+        }
+      ),
     ])
   );
 }

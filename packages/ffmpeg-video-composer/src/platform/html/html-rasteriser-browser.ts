@@ -1,11 +1,11 @@
 // The browser rasteriser of HTML layers: the shared Satori + resvg pipeline (core/html/satori-raster) with its
-// WebAssembly fetched by the host's loader, the pinned files from unpkg when it brings none. Loaded by the
+// WebAssembly the host's loader brings (BrowserCompileOptions.loadHtmlWasm); it fetches none itself. Loaded by the
 // compile chunk and by renderHtmlLayerPreview, never by the entry a page imports: Satori, resvg and
 // HarfBuzz come in on the first HTML layer.
 
 import { container } from 'tsyringe';
 import { HTML_RASTERISER, type HtmlRasteriser } from '@/core/html/html-rasteriser';
-import { HTML_WASM_CDN, type HtmlWasm, type HtmlWasmLoader } from '@/core/html/html-engine';
+import type { HtmlWasmLoader } from '@/core/html/html-engine';
 import { createSatoriRasteriser } from '@/core/html/satori-raster';
 import { withHarfbuzzShaper } from './harfbuzz-shaper';
 import {
@@ -14,49 +14,40 @@ import {
   type HtmlLayerPreviewRequest,
 } from '../../services/html-raster/html-layer-preview';
 
-async function fetchWasm(url: string): Promise<ArrayBuffer> {
-  const response = await fetch(url);
+// The engine fetches no WebAssembly itself: without the host's loader there is nothing to draw with.
+function requireLoader(loadWasm: HtmlWasmLoader | undefined): HtmlWasmLoader {
+  if (loadWasm) return loadWasm;
 
-  if (!response.ok) throw new Error(`html rasteriser unavailable: ${url} answered ${response.status}`);
-
-  return response.arrayBuffer();
+  throw new Error(
+    'html rasteriser unavailable: pass BrowserCompileOptions.loadHtmlWasm, a loader for the WebAssembly ' +
+      '(resvg.wasm, hb-subset.wasm, hb.wasm) your host serves'
+  );
 }
 
-/** The default loader: the pinned WebAssembly files from unpkg. */
-export async function loadHtmlWasmFromCdn(): Promise<HtmlWasm> {
-  const [resvg, harfbuzz, shaper] = await Promise.all([
-    fetchWasm(HTML_WASM_CDN.resvg),
-    fetchWasm(HTML_WASM_CDN.harfbuzz),
-    fetchWasm(HTML_WASM_CDN.shaper),
-  ]);
-
-  return { resvg, harfbuzz, shaper };
-}
-
-export function createBrowserHtmlRasteriser(loadWasm: HtmlWasmLoader = loadHtmlWasmFromCdn): HtmlRasteriser {
+export function createBrowserHtmlRasteriser(loadWasm: HtmlWasmLoader): HtmlRasteriser {
   return createSatoriRasteriser(withHarfbuzzShaper(loadWasm));
 }
 
 // One per page: the preview and the compile share the instanced faces (the WebAssembly is shared anyway).
 let pageRasteriser: HtmlRasteriser | undefined;
 
-function sharedRasteriser(loadWasm?: HtmlWasmLoader): HtmlRasteriser {
+function sharedRasteriser(loadWasm: HtmlWasmLoader): HtmlRasteriser {
   pageRasteriser ??= createBrowserHtmlRasteriser(loadWasm);
 
   return pageRasteriser;
 }
 
 /** Registers the rasteriser the asset stage draws HTML layers with (the browser compile). */
-export function registerBrowserHtmlRasteriser(loadWasm?: HtmlWasmLoader): void {
+export function registerBrowserHtmlRasteriser(loadWasm: HtmlWasmLoader): void {
   if (container.isRegistered(HTML_RASTERISER)) return;
 
   container.registerInstance<HtmlRasteriser>(HTML_RASTERISER, sharedRasteriser(loadWasm));
 }
 
 /** Draws one layer as the render would, with what it would report. */
-export function previewHtmlLayerInBrowser(
+export async function previewHtmlLayerInBrowser(
   request: HtmlLayerPreviewRequest,
-  loadWasm?: HtmlWasmLoader
+  loadWasm: HtmlWasmLoader | undefined
 ): Promise<HtmlLayerPreview> {
-  return previewHtmlLayer(request, sharedRasteriser(loadWasm));
+  return previewHtmlLayer(request, sharedRasteriser(requireLoader(loadWasm)));
 }

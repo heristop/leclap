@@ -60,9 +60,11 @@ export function validateHtmlAvailability(template: unknown, canRender: boolean):
   return htmlInputs(template).map(({ path }) => ({
     path,
     code: 'html_unavailable',
-    message: 'this engine has no HTML rasteriser registered',
+    message:
+      'this engine has no HTML rasteriser registered: a browser host passes BrowserCompileOptions.loadHtmlWasm ' +
+      '(the WebAssembly it serves), a React Native host calls registerHtmlRasteriser',
     hint:
-      'register one on the host (the browser compile and the LeClap app do), render this template with the Node ' +
-      'engine (leclap render, the MCP server), or replace the layer with an image input rendered from it',
+      'give the host its rasteriser as above (the web app and the LeClap app do), render this template with the ' +
+      'Node engine (leclap render, the MCP server), or replace the layer with an image input rendered from it',
   }));
 }

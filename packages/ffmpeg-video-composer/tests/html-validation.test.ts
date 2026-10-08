@@ -75,7 +75,13 @@ describe('html input schema', () => {
     const browser = new BaseTemplateValidator({ htmlLayers: false });
 
     expect(errors(template(CARD), browser)).toEqual([
-      expect.objectContaining({ code: 'html_unavailable', path: 'sections[0].inputs[0]', hint: expect.any(String) }),
+      expect.objectContaining({
+        code: 'html_unavailable',
+        path: 'sections[0].inputs[0]',
+        // What each host does to lift it: the browser's loader option, the phone's registration.
+        message: expect.stringMatching(/loadHtmlWasm.*registerHtmlRasteriser/),
+        hint: expect.any(String),
+      }),
     ]);
     expect(new Template().setDescriptor(template(CARD)).errors?.map((error) => error.code)).toEqual([
       'html_unavailable',

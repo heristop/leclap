@@ -125,7 +125,8 @@ edits them with a live preview, and the one-shot prompt describes them again.
 - **One pipeline, two loaders.** `services/html-raster/satori-rasteriser.ts` is the Satori + resvg +
   HarfBuzz pipeline both hosts share; only where the WebAssembly comes from differs (`HtmlWasmLoader`):
   Node reads `node_modules`, the browser fetches it (`platform/html/html-rasteriser-browser.ts`), from the
-  host's `BrowserCompileOptions.loadHtmlWasm` or the pinned files on unpkg. `browser-compile` registers it and
+  host's `BrowserCompileOptions.loadHtmlWasm` (the pinned files on unpkg when omitted, dropped at integration:
+  see the final status). `browser-compile` registers it and
   builds `new Template({ htmlLayers: true })`; on-device validation keeps `html_unavailable`.
 - **Same bytes as Node, checked in a real browser.** The phase 1 golden card (360×240 at 2×) hashes to the
   same `891095…2885` in headless Chromium through the web app's served WebAssembly as on Node; the vitest

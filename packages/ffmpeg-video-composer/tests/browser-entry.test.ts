@@ -317,6 +317,28 @@ describe('browser.ts compileBrowser', () => {
     expect(loadHtmlWasm).not.toHaveBeenCalled();
   });
 
+  it('refuses a template with an HTML layer when the host brings no loadHtmlWasm, and registers no rasteriser', async () => {
+    vi.resetModules();
+    const { container } = await import('tsyringe');
+    container.reset();
+    const descriptor = {
+      global: { orientation: 'landscape' as const },
+      sections: [
+        {
+          name: 'card',
+          type: 'color_background' as const,
+          options: { duration: 2, backgroundColor: '#000000' },
+          inputs: [{ name: 'tag', type: 'html' as const, html: '<p>Hi</p>', width: 200, height: 80 }],
+        },
+      ],
+    };
+
+    const { compile } = await loadBrowser();
+
+    await expect(compile({ buildDir: '/build' }, descriptor as never)).rejects.toThrow(/loadHtmlWasm/);
+    expect(container.isRegistered('htmlRasteriser')).toBe(false);
+  });
+
   it('previews an HTML layer through a lazily loaded rasteriser', async () => {
     const mod = await loadBrowser();
 

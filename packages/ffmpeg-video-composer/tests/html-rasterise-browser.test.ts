@@ -7,12 +7,18 @@ import { container } from 'tsyringe';
 import { prepareHtmlLayer, HTML_LAYER_DENSITY } from '@/core/html/html-layer';
 import { sha256Hex } from '@/core/determinism/sha256';
 import { HTML_RASTERISER, type HtmlRasteriser, type RasterFont } from '@/core/html/html-rasteriser';
-import { HTML_RENDERER_VERSION, HTML_WASM_CDN } from '@/core/html/html-engine';
-import { createBrowserHtmlRasteriser, registerBrowserHtmlRasteriser } from '@/platform/html/html-rasteriser-browser';
+import * as htmlEngine from '@/core/html/html-engine';
+import { HTML_RENDERER_VERSION, HTML_WASM_FILES, type HtmlWasm } from '@/core/html/html-engine';
+import {
+  createBrowserHtmlRasteriser,
+  previewHtmlLayerInBrowser,
+  registerBrowserHtmlRasteriser,
+} from '@/platform/html/html-rasteriser-browser';
 
-// The browser path runs here on Node's WebAssembly, with `fetch` stubbed to serve the installed WASM files:
-// the same Satori, resvg and HarfBuzz builds, so the bytes must match the Node golden
-// (tests/html-rasterise-node.test.ts). A real page renders it too (the web app's live preview).
+// The browser path runs here on Node's WebAssembly, handed over by a host loader that reads the installed WASM
+// files: the same Satori, resvg and HarfBuzz builds, so the bytes must match the Node golden
+// (tests/html-rasterise-node.test.ts). A real page renders it too (the web app's live preview). The engine
+// itself never fetches the WebAssembly: `fetch` is stubbed to catch any request that is not a data: URL.
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const modules = path.resolve(here, '../node_modules');
@@ -36,21 +42,29 @@ function fontsFor(faces: { family: string; file: string; weights: number[] }[]):
 
 const realFetch = globalThis.fetch;
 
-// Serves `https://unpkg.com/<package>@<version>/<file>` from node_modules, like the CDN would. Satori reads its
-// inlined Yoga build through fetch too (a data: URL): that one goes through.
-function cdnFetch(requested: string[]) {
+// Satori reads its inlined Yoga build through fetch (a data: URL): that one goes through, anything else is
+// recorded and refused.
+function guardedFetch(requested: string[]) {
   return vi.fn(async (url: string) => {
     if (url.startsWith('data:')) return realFetch(url);
 
     requested.push(url);
-    const match = /^https:\/\/unpkg\.com\/((?:@[^/]+\/)?[^@/]+)@[^/]+\/(.+)$/.exec(url);
 
-    if (!match) return new Response(null, { status: 404 });
-
-    return new Response(fs.readFileSync(path.join(modules, match[1], match[2])), {
-      headers: { 'Content-Type': 'application/wasm' },
-    });
+    return new Response(null, { status: 404 });
   });
+}
+
+function readInstalled({ package: name, file }: { package: string; file: string }): Uint8Array<ArrayBuffer> {
+  return new Uint8Array(fs.readFileSync(path.join(modules, name, file)));
+}
+
+// What a host such as the web app does: hand over the WebAssembly it serves itself.
+async function hostLoader(): Promise<HtmlWasm> {
+  return {
+    resvg: readInstalled(HTML_WASM_FILES.resvg),
+    harfbuzz: readInstalled(HTML_WASM_FILES.harfbuzz),
+    shaper: readInstalled(HTML_WASM_FILES.shaper),
+  };
 }
 
 afterEach(() => {
@@ -59,19 +73,19 @@ afterEach(() => {
 });
 
 describe('browser HTML rasteriser', () => {
-  it('pins the CDN files to the versions the renderer names', () => {
-    expect(HTML_WASM_CDN.resvg).toMatch(/^https:\/\/unpkg\.com\/@resvg\/resvg-wasm@2\.6\.2\/index_bg\.wasm$/);
-    expect(HTML_WASM_CDN.harfbuzz).toMatch(/^https:\/\/unpkg\.com\/harfbuzzjs@0\.10\.0\/hb-subset\.wasm$/);
-    expect(HTML_WASM_CDN.shaper).toMatch(/^https:\/\/unpkg\.com\/harfbuzzjs@0\.10\.0\/hb\.wasm$/);
+  it('names the WebAssembly files with the versions the renderer names, and no third-party URL', () => {
+    expect(HTML_WASM_FILES.resvg).toMatchObject({ package: '@resvg/resvg-wasm', version: '2.6.2' });
+    expect(HTML_WASM_FILES.shaper).toMatchObject({ package: 'harfbuzzjs', version: '0.10.0', file: 'hb.wasm' });
     expect(HTML_RENDERER_VERSION).toContain('resvg@2.6.2');
     expect(HTML_RENDERER_VERSION).toContain('harfbuzz@0.10.0');
+    expect(JSON.stringify(htmlEngine)).not.toMatch(/https?:\/\//);
   });
 
-  it('draws the same bytes as Node (golden), loading the WASM over fetch', async () => {
+  it('draws the same bytes as Node (golden) from the WASM the host hands over, fetching nothing', async () => {
     const requested: string[] = [];
-    vi.stubGlobal('fetch', cdnFetch(requested));
+    vi.stubGlobal('fetch', guardedFetch(requested));
     const layer = prepareHtmlLayer(CARD, 'Rubik');
-    const rasteriser = createBrowserHtmlRasteriser();
+    const rasteriser = createBrowserHtmlRasteriser(hostLoader);
 
     const raster = await rasteriser.render({
       element: layer.element,
@@ -83,14 +97,21 @@ describe('browser HTML rasteriser', () => {
 
     expect(rasteriser.version).toBe(HTML_RENDERER_VERSION);
     expect(sha256Hex(raster.png)).toBe(NODE_GOLDEN);
-    expect(requested.toSorted()).toEqual(
-      [HTML_WASM_CDN.harfbuzz, HTML_WASM_CDN.resvg, HTML_WASM_CDN.shaper].toSorted()
-    );
+    expect(requested).toEqual([]);
     // Satori's text shaper (harfbuzzjs, aliased to the shim in browser bundles) got its WebAssembly too.
     const shaper = await (await import('@/platform/html/harfbuzz-shaper')).default;
 
     expect(typeof shaper.createBlob).toBe('function');
   }, 30_000);
+
+  it('refuses to preview without a host loader, naming loadHtmlWasm, and fetches nothing', async () => {
+    const requested: string[] = [];
+    vi.stubGlobal('fetch', guardedFetch(requested));
+    const request = { html: CARD.html, css: CARD.css, width: CARD.width, height: CARD.height, loadFont: vi.fn() };
+
+    await expect(previewHtmlLayerInBrowser(request, undefined)).rejects.toThrow(/loadHtmlWasm/);
+    expect(requested).toEqual([]);
+  });
 
   it('registers once for the compile, with the host loader', () => {
     const loader = vi.fn();

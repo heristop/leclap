@@ -62,7 +62,7 @@ async function registerAdapters(logger: AbstractLogger, loadFFmpegCore?: FFmpegC
   container.registerInstance('musicAdapter', musicAdapter);
 }
 
-function registerServices(loadHtmlWasm?: HtmlWasmLoader): void {
+function registerServices(): void {
   registerEditorManagers();
 
   const eventManager = new BrowserEventManager();
@@ -73,7 +73,14 @@ function registerServices(loadHtmlWasm?: HtmlWasmLoader): void {
   container.register('AnimationComposer', { useClass: AnimationComposer });
   container.register('TemplateConcreteBuilder', { useClass: TemplateConcreteBuilder });
   container.register('TemplateDirector', { useClass: TemplateDirector });
-  // HTML layers: Satori + resvg, their WebAssembly fetched on the first layer only.
+}
+
+// HTML layers render once the host hands over the rasteriser's WebAssembly (loaded on the first layer only);
+// without it nothing is registered and validation refuses them (html_unavailable): the engine fetches no
+// WebAssembly from a third party.
+function registerHtmlLayers(loadHtmlWasm: HtmlWasmLoader | undefined): void {
+  if (!loadHtmlWasm) return;
+
   registerBrowserHtmlRasteriser(loadHtmlWasm);
 }
 
@@ -82,7 +89,7 @@ export interface BrowserLoaders {
   loadHtmlWasm?: HtmlWasmLoader;
 }
 
-async function initializeBrowserPlatform({ loadFFmpegCore, loadHtmlWasm }: BrowserLoaders): Promise<void> {
+async function initializeBrowserPlatform({ loadFFmpegCore }: BrowserLoaders): Promise<void> {
   if (isInitialized) return;
 
   if (initializationPromise) return initializationPromise;
@@ -94,7 +101,7 @@ async function initializeBrowserPlatform({ loadFFmpegCore, loadHtmlWasm }: Brows
       container.registerInstance('logger', logger);
 
       await registerAdapters(logger, loadFFmpegCore);
-      registerServices(loadHtmlWasm);
+      registerServices();
 
       logger.info('Browser platform initialized');
       isInitialized = true;
@@ -260,6 +267,7 @@ export async function runBrowserCompilation(
 ): Promise<string> {
   assertEffectsResolved(templateDescriptor);
   await initializeBrowserPlatform(loaders);
+  registerHtmlLayers(loaders.loadHtmlWasm);
 
   const ctx: CompilationContext = {
     eventManager: container.resolve<BrowserEventManager>('eventManager'),

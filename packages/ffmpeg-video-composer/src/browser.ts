@@ -11,7 +11,11 @@ export interface BrowserCompileOptions {
    * omitted. Read once, on the compile that initializes the platform.
    */
   loadFFmpegCore?: FFmpegCoreLoader;
-  /** Loads the HTML layer rasteriser's WebAssembly, for a host that serves it itself; unpkg when omitted. */
+  /**
+   * Loads the HTML layer rasteriser's WebAssembly (resvg.wasm, hb-subset.wasm, hb.wasm), which the host serves
+   * itself; the engine fetches none from a third party. Without it, a template with an HTML layer fails
+   * validation with html_unavailable.
+   */
   loadHtmlWasm?: HtmlWasmLoader;
 }
 
@@ -32,7 +36,10 @@ export async function compileBrowser(
   }
 }
 
-/** Draws one HTML layer as a render would (the builder's live preview); the rasteriser loads on first use. */
+/**
+ * Draws one HTML layer as a render would (the builder's live preview); the rasteriser loads on first use, from
+ * `options.loadHtmlWasm` (required: without it the preview rejects).
+ */
 export async function renderHtmlLayerPreview(
   request: HtmlLayerPreviewRequest,
   options: Pick<BrowserCompileOptions, 'loadHtmlWasm'> = {}

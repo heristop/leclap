@@ -34,7 +34,9 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
 - HTML layers in the browser engine. `compileBrowser` draws them with the same Satori, resvg and HarfBuzz
   WebAssembly as Node, so a layer's PNG is byte-identical on both; they load on the first HTML layer, in
   lazy chunks (Satori is bundled there with a shim that hands it HarfBuzz's shaping build). Hosts serve
-  the WebAssembly through `BrowserCompileOptions.loadHtmlWasm`, or it comes from unpkg.
+  the WebAssembly themselves and hand it over through `BrowserCompileOptions.loadHtmlWasm`; the engine never
+  fetches it from a third party, and without the loader a template with an HTML layer fails with
+  `html_unavailable`.
   `renderHtmlLayerPreview(request, { loadHtmlWasm })` draws one layer with the advisories its render
   reports, for a live preview. `new Template({ htmlLayers: true })` validates HTML layers on the browser
   path; on-device validation still reports `html_unavailable`.

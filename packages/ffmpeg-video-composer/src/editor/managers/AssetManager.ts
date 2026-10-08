@@ -43,6 +43,8 @@ type ResolvedMedia = {
 
 @injectable()
 class AssetManager {
+  private readonly fontsInFlight = new Map<string, Promise<void>>();
+
   constructor(
     @inject('template') private readonly template: Template,
     @inject('VariableManager') private readonly variableManager: VariableManager,
@@ -164,12 +166,23 @@ class AssetManager {
     await Promise.all(this.segment.tempFonts.map((request) => this.stageFont(request)));
   };
 
+  // Requests for the same font that overlap (two HTML layers of a section are staged in parallel) share
+  // one staging: a second copy would see the first one half-written through stat and read it as is.
+  private stageFont(request: FontRequest): Promise<void> {
+    const targetPath = `${this.segment.fontsDir}/${request.file}`;
+    const staging =
+      this.fontsInFlight.get(targetPath) ??
+      this.stageFontOnce(request, targetPath).finally(() => this.fontsInFlight.delete(targetPath));
+
+    this.fontsInFlight.set(targetPath, staging);
+
+    return staging;
+  }
+
   // Stages one font, trying the cheapest source first. Every rung is a real fallback except the last:
   // a font that cannot be staged throws, because a missing font does not stop the render — drawtext
   // simply draws with the wrong face, and the failure only shows up as a visibly wrong video.
-  private async stageFont({ file, ref }: FontRequest): Promise<void> {
-    const targetPath = `${this.segment.fontsDir}/${file}`;
-
+  private async stageFontOnce({ file, ref }: FontRequest, targetPath: string): Promise<void> {
     if (await this.stageFontLocally(file, targetPath)) {
       return;
     }

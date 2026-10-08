@@ -268,7 +268,7 @@ export async function runBrowserCompilation(
     filesystemAdapter: container.resolve<BrowserFilesystemAdapter>('filesystemAdapter'),
     musicAdapter: container.resolve<MusicWasmAdapter>('musicAdapter'),
     project: new Project(),
-    template: new Template({ htmlLayers: true }),
+    template: new Template(),
   };
 
   validateTemplate(ctx.template, templateDescriptor);

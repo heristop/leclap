@@ -8,12 +8,6 @@ function isTemplateDescriptor(data: unknown): data is TemplateDescriptor {
   return typeof data === 'object' && data !== null && !('name' in data && 'type' in data);
 }
 
-/** What the host engine can draw beyond the common set. */
-export interface TemplateCapabilities {
-  /** HTML layers (`inputs[].type: "html"`): true where a rasteriser is registered. Default false. */
-  htmlLayers?: boolean;
-}
-
 @singleton()
 class Template {
   public descriptor: TemplateDescriptor = {};
@@ -22,20 +16,14 @@ class Template {
     musics: {},
     inputs: [],
   };
-  private readonly capabilities: TemplateCapabilities;
-
-  constructor(capabilities: TemplateCapabilities = {}) {
-    this.capabilities = capabilities;
-  }
-
   // Template is the browser / on-device validation path: those engines cannot analyze music nor transcribe
-  // speech (both are pinned before compile). They draw HTML layers once the host registered a rasteriser,
-  // so that is read at each validation.
+  // speech (both are pinned before compile). They draw HTML layers once the host registered a rasteriser
+  // (the browser compile with its WebAssembly loader, the phone's WebView page), read at each validation.
   private get validator(): BaseTemplateValidator {
     return new BaseTemplateValidator({
       beatsAnalysis: false,
       transcription: false,
-      htmlLayers: this.capabilities.htmlLayers ?? container.isRegistered(HTML_RASTERISER),
+      htmlLayers: container.isRegistered(HTML_RASTERISER),
     });
   }
 

@@ -65,8 +65,9 @@ export interface ValidatorOptions {
    */
   transcription?: boolean;
   /**
-   * Whether the host draws HTML layers (`inputs[].type: "html"`): the Node compile does; the browser and
-   * phone `Template` reads it from whether the host registered a rasteriser (else html_unavailable). Default true.
+   * Whether the host draws HTML layers (`inputs[].type: "html"`). Default true: the Node compile does, and
+   * validator-only contexts (MCP, the web AI generator) check html inputs without drawing them. The browser
+   * and phone `Template` passes whether the host registered a rasteriser (else html_unavailable).
    */
   htmlLayers?: boolean;
 }

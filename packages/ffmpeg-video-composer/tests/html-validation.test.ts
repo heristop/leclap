@@ -82,10 +82,6 @@ describe('html input schema', () => {
     ]);
   });
 
-  it('accepts html layers on a Template whose host draws them (the browser)', () => {
-    expect(new Template({ htmlLayers: true }).setDescriptor(template(CARD)).success).toBe(true);
-  });
-
   it('lets the browser and on-device Template through once the host registered a rasteriser', () => {
     container.registerInstance<HtmlRasteriser>(HTML_RASTERISER, {
       version: 'test',

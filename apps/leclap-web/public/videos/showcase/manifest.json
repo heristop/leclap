@@ -145,11 +145,11 @@
       "hasAudio": true,
       "orientation": "portrait",
       "backend": "native",
-      "sha256": "81fbe3a3e105610d08d775c0bfd30cd7bf95df449d6e4b2ad3511fc1b61fe87d",
-      "templateSha256": "3f3f5a6d022cc602a66e9f7c1215025e28ab5fcc6a377d806bb652c61d987ff8",
+      "sha256": "f93c25bccd2203de46e8b7f3a1479441189cc2f0956ecaa5c30f874212b2f1db",
+      "templateSha256": "10d597c262a7b11f4db9e50f351fac1471a50d01aa9237b85d0ab9b0e2b9801f",
       "mediaSource": "packages/leclap-creative-kit/src/library/videos/video_portrait.mp4",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 400133
+      "bytes": 409011
     },
     {
       "id": "present-yourself",
@@ -158,10 +158,10 @@
       "hasAudio": true,
       "orientation": "landscape",
       "backend": "native",
-      "sha256": "cf2611e31fc987303791afa0cf0bdbbb65858b6b03db7a2794c13405cb3eef41",
-      "templateSha256": "8679800e88a972c7a2750d4bb843e04674f95752f7af9a82b001f421fc3f383f",
+      "sha256": "ddcd71510bdf308dfd7fd1118939753709d4a362e45b4332d0cbc04c89cfc5d3",
+      "templateSha256": "e9c8a8bcd8336da764fc84c9cb2c3442dde9e485d995e4b2af5040ad3ea6e047",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 637578
+      "bytes": 629931
     },
     {
       "id": "editorial-masked-rise",

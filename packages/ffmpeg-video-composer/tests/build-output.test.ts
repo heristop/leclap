@@ -331,6 +331,13 @@ describe('Build Output', () => {
       expect(code).not.toContain('Light profile across the band');
     });
 
+    // HTML layers render with Satori + resvg (WebAssembly, megabytes): never part of the eager load.
+    it('browser entry eager load carries no HTML layer rasteriser', async () => {
+      const code = [...(await browserEagerFiles()).values()].join('\n');
+
+      expect(code).not.toMatch(/["']satori["']|@resvg\/resvg-wasm|harfbuzzjs/);
+    });
+
     it('sourcemaps should exist and be reasonable size', async () => {
       const indexMapStats = await stat(path.join(DIST_DIR, 'index.js.map'));
       const browserMapStats = await stat(path.join(DIST_DIR, 'browser.js.map'));

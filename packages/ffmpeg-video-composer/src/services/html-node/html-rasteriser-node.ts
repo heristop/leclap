@@ -106,16 +106,28 @@ async function render(request: HtmlRasterRequest, instances: Map<string, Uint8Ar
     fonts,
   });
   // Laid out again without the box height: the content's natural height, for the overflow advisory.
-  const natural = await satori(withoutHeight(request.element) as unknown as SatoriNode, {
-    width: request.width,
-    fonts,
-  });
+  const natural = await naturalHeight(satori, request, fonts);
   const image = new resvg.Resvg(svg, { fitTo: { mode: 'zoom', value: request.density } }).render();
   const png = image.asPng();
 
   image.free();
 
-  return { png, contentHeight: svgHeight(natural) };
+  return { png, contentHeight: natural };
+}
+
+async function naturalHeight(satori: Satori, request: HtmlRasterRequest, fonts: SatoriFont[]): Promise<number> {
+  const svg = await satori(withoutHeight(request.element) as unknown as SatoriNode, { width: request.width, fonts });
+
+  return svgHeight(svg);
+}
+
+const MEASURE_INSTANCES = new Map<string, Uint8Array>();
+
+/** The content's natural height in output pixels at the box width: a layout pass, nothing drawn. */
+export async function measureHtmlContent(request: Omit<HtmlRasterRequest, 'density'>): Promise<number> {
+  const { satori, hb } = await sharedEngines();
+
+  return naturalHeight(satori, { ...request, density: 1 }, satoriFonts(request.fonts, hb, MEASURE_INSTANCES));
 }
 
 /** A rasteriser with its own cache of instanced faces; the WebAssembly engines are shared. */

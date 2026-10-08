@@ -8,6 +8,7 @@ import {
   LIBRARY_SAMPLES,
   SHOWCASE_SAMPLES,
   featuredFirst,
+  sampleShape,
   filterSamples,
   selectedSample,
   validCategory,
@@ -58,6 +59,14 @@ describe('showcase catalog', () => {
     for (const id of FEATURED_SAMPLE_IDS) expect(ids.has(id)).toBe(true);
     expect(SHOWCASE_SAMPLES[0].id).toBe('drink-and-code');
     expect(featuredFirst(SHOWCASE_SAMPLES, ['missing'])).toEqual(SHOWCASE_SAMPLES);
+  });
+
+  it('sizes each sample by the orientation it was made in, not its letterboxed preview', () => {
+    const shapeOf = (id: string) => sampleShape(selectedSample(id));
+    expect(shapeOf('html-testimonial')).toBe('portrait');
+    expect(shapeOf('story-reel')).toBe('portrait');
+    expect(shapeOf('square-promo')).toBe('square');
+    expect(shapeOf('html-card')).toBe('landscape');
   });
 
   it('renders forms without options and keeps fixture values within authoring limits', () => {

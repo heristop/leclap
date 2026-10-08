@@ -1595,10 +1595,11 @@ html.theme-vt::view-transition-new(root) {
 /* Professional, accessible focus ring (keyboard navigation only). Controls that carry their own
    indicator opt out (the gradient field border, or the studio-range thumb ring) so they don't also
    get this outer outline — every other focusable keeps the outline for keyboard a11y. So do the
-   landmarks a script focuses to announce them (the skip link's main, an error page's heading): they
-   are not stops in the tab order, and a ring around a whole heading reads as a selection. Roving
-   widgets also sit at tabindex="-1" but are reached by arrow keys, so they keep the ring. */
-:focus-visible:not(.field-focus-gradient):not(.studio-range):not(:is(main, h1, h2)[tabindex='-1']) {
+   landmarks a script focuses to announce them (the skip link's main, an error page's heading, a
+   dialog's panel): they are not stops in the tab order, and a ring around a whole heading reads as a
+   selection. Roving widgets also sit at tabindex="-1" but are reached by arrow keys, so they keep
+   the ring. */
+:focus-visible:not(.field-focus-gradient):not(.studio-range):not(:is(main, h1, h2, [role='dialog'])[tabindex='-1']) {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
 }

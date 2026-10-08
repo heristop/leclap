@@ -1,6 +1,6 @@
 # HTML layers: style a moment with HTML and CSS
 
-> Status: phase 1 (engine on Node) done; phases 2–3 open · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
+> Status: phases 1 (engine on Node) and 2 (browser) done; phase 3 open · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
 > `leclap-expo` (on-device rasteriser), `leclap-mcp` (catalog, preview)
 
 ## Why
@@ -116,6 +116,52 @@ Differences from the plan above:
 Measured: about 250 ms per 360×240 layer at 2× on Node, including the WASM and font load on the first layer;
 repeated layers come from the per-process cache. The browser eager bundle went from 614.51 KB to 620.88 KB
 (budget 625 KB) for the schema and validation code.
+
+## Phase 2: what shipped, and where it differs
+
+Done on `feat/html-layers-web` (on top of phase 1): the browser engine draws HTML layers, the web builder
+edits them with a live preview, and the one-shot prompt describes them again.
+
+- **One pipeline, two loaders.** `services/html-raster/satori-rasteriser.ts` is the Satori + resvg +
+  HarfBuzz pipeline both hosts share; only where the WebAssembly comes from differs (`HtmlWasmLoader`):
+  Node reads `node_modules`, the browser fetches it (`platform/html/html-rasteriser-browser.ts`), from the
+  host's `BrowserCompileOptions.loadHtmlWasm` or the pinned files on unpkg. `browser-compile` registers it and
+  builds `new Template({ htmlLayers: true })`; on-device validation keeps `html_unavailable`.
+- **Same bytes as Node, checked in a real browser.** The phase 1 golden card (360×240 at 2×) hashes to the
+  same `891095…2885` in headless Chromium through the web app's served WebAssembly as on Node; the vitest
+  browser-path test checks it too, on Node's WebAssembly with `fetch` stubbed. The `html-card` sample
+  renders through the web app's compile path (ffmpeg.wasm) with both layers in place (about 70 s under
+  load, `ultrafast`).
+- **A third WebAssembly file.** Satori 0.33 shapes text with `harfbuzzjs` (its `hb.wasm`, 373 KiB), whose
+  entry fetches `hb.wasm` next to the page as soon as it is imported. Browser bundles alias that import to
+  `platform/html/harfbuzz-shaper.ts`, which starts the same build from bytes the loader hands over (kept in a
+  page-wide slot, so a dev server's pre-bundled copy of Satori sees them too). The engine's browser build
+  bundles Satori into its lazy chunks for that; the web app aliases it in `vite.config.ts`.
+- **Lazy, and inside the budget.** The browser eager load went from 620.88 KB to 623.36 KB (the preview
+  entry point and rolldown's CommonJS interop helpers for the bundled Satori). Lazy: the rasteriser chunk
+  (42.5 KB), Satori and its dependencies (779 KB), the shaper shim (0.5 KB). WebAssembly: `resvg.wasm`
+  2.36 MiB, `hb-subset.wasm` 582 KiB, `hb.wasm` 373 KiB, each far under Cloudflare Pages' 25 MiB, served
+  as is by the web app under `/html-engine/<resvg-x_harfbuzz-y>/` (`scripts/stage-html-engine.ts`).
+- **Preview.** `renderHtmlLayerPreview(request, { loadHtmlWasm })` draws one layer as the render would and
+  returns every advisory its render logs (`html_unsupported_css`, `html_unsupported_markup`,
+  `html_font_unknown`, `html_missing_field`, `html_overflow`), from the same code the asset stage uses
+  (`html-layer-findings.ts`). In the page: about 1.4 s for the first layer (WebAssembly and fonts
+  included), under 100 ms for the next.
+- **Builder.** An "HTML layer" entry in the element menu (video, colour and image scenes), an inspector with
+  the layer name (`@name` for maps), HTML and CSS code fields, `{{ field }}` chips (typed fields, variables,
+  form fields; inserted at the caret), the box, the live preview (debounced 250 ms, cached by content) and
+  the advisories. On the canvas the layer is the drawn still in the same draggable, rotatable box as images;
+  the resize grip changes the layer's box, so the content lays out again rather than stretching. The model
+  (`@leclap/creative-kit/editor`) round-trips `type: "html"` inputs with their name, so WebMCP's
+  descriptor tools and the AI generator keep them whole.
+- **Prompt.** The one-shot prompt schema keeps the html input again; the catalog entry travels compactly
+  (shape and subset rules, no tag/property lists or recipes) so the prompt stays within its budget with the
+  schema whole.
+- **Not done here.** The service worker caches `/html-engine/` stale-while-revalidate like other assets,
+  not cache-first like the ffmpeg core. Code fields are plain textareas (no syntax highlighting: the
+  CodeMirror HTML/CSS languages are not installed). The browser render of `html-card` comes out 1280×810
+  where Node renders 1280×720; it does the same without the HTML layers, so it is the browser path's
+  `image_background` + camera, not this phase.
 
 ## Out of scope
 

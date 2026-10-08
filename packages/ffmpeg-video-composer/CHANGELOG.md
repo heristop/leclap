@@ -21,10 +21,17 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
   process), which composites as a still image, so `position`, `scale`, `start` and `motion` work unchanged.
   Satori, resvg and HarfBuzz load on the first layer only and stay out of the browser bundle. Validation fails
   on `html_too_large` (a side over 1920 px) and, where a validator is built with `htmlLayers: false` (the
-  browser and on-device engines for now), `html_unavailable`. Advisories `html_unsupported_css`,
+  on-device engine for now), `html_unavailable`. Advisories `html_unsupported_css`,
   `html_unsupported_markup`, `html_font_unknown`, `html_missing_field` and `html_overflow` (measured in the
   Node geometry checks); `motionCatalog().html` lists the subset and four recipes. Sample:
   `examples/motion-design/html-card.json`.
+- HTML layers in the browser engine. `compileBrowser` draws them with the same Satori, resvg and HarfBuzz
+  WebAssembly as Node, so a layer's PNG is byte-identical on both; they load on the first HTML layer, in
+  lazy chunks (Satori is bundled there with a shim that hands it HarfBuzz's shaping build). Hosts serve
+  the WebAssembly through `BrowserCompileOptions.loadHtmlWasm`, or it comes from unpkg.
+  `renderHtmlLayerPreview(request, { loadHtmlWasm })` draws one layer with the advisories its render
+  reports, for a live preview. `new Template({ htmlLayers: true })` validates HTML layers on the browser
+  path; on-device validation still reports `html_unavailable`.
 - Composed sound effects. An `sfx` cue takes a `sound` instead of an `id`: layers of `tone`, `noise`,
   `strike` and `silence` shaped by envelopes, filter chains, glides, drive, pan and sequences, with
   whole-sound saturate/crush/room/echo, bounded to 4 s and 8 layers. A pure TypeScript synth renders it

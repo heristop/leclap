@@ -32,7 +32,7 @@
 /* The sample dialog (components/showcase/sample-dialog.tsx). Its layer keeps clear of the notch and the home
    indicator; the screen takes the sample's own ratio (--sample-ratio) at the largest size that fits beside
    the dialog's other rows (mobile: the title above, a glimpse of the details below) or its side column
-   (desktop). Open and close are short fades with a slight rise; reduced motion is instant (index.css). */
+   (desktop), and the film's control bar wherever that sits under the screen (index.css, `.film-bar`). Open and close are short fades with a slight rise; reduced motion is instant (index.css). */
 .showcase-dialog-viewport {
   --dialog-gap: 0.5rem;
   padding: max(var(--dialog-gap), env(safe-area-inset-top)) max(var(--dialog-gap), env(safe-area-inset-right))
@@ -42,11 +42,12 @@
 .showcase-dialog {
   --screen-gap: 0.75rem;
   --dialog-gap: 0.5rem;
+  --film-bar: 4.75rem;
   --frame-x: calc(
     2 * var(--dialog-gap) + 2 * var(--screen-gap) + env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)
   );
   --frame-y: calc(
-    2 * var(--dialog-gap) + 2 * var(--screen-gap) + 7.5rem + env(safe-area-inset-top, 0px) +
+    2 * var(--dialog-gap) + 2 * var(--screen-gap) + 7.5rem + var(--film-bar) + env(safe-area-inset-top, 0px) +
       env(safe-area-inset-bottom, 0px)
   );
 }
@@ -69,8 +70,15 @@
 @media (min-width: 64rem) {
   .showcase-dialog {
     --frame-x: calc(2 * var(--dialog-gap) + 2 * var(--screen-gap) + 20rem);
-    --frame-y: calc(2 * var(--dialog-gap) + 2 * var(--screen-gap));
+    --frame-y: calc(2 * var(--dialog-gap) + 2 * var(--screen-gap) + var(--film-bar));
     max-height: calc(100dvh - 2 * var(--dialog-gap));
+  }
+}
+
+/* With a hovering pointer, a large screen's bar lies over its foot and takes no height of its own. */
+@media (min-width: 64rem) and (hover: hover) {
+  .showcase-dialog {
+    --film-bar: 0rem;
   }
 }
 

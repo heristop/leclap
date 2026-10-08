@@ -91,11 +91,41 @@ const SCREEN_ASPECT: Record<FilmShape, string> = {
   square: 'aspect-square',
 };
 
+/** The rounded clip: a clip-path because Chrome lets composited children (the <video>) escape an overflow clip
+ * inside 3D-transformed ancestors, and the compositor always honours clip-path. */
+const FRAME_CLIP = 'rounded-[inherit] bg-black [clip-path:inset(0_round_0.75rem)] sm:[clip-path:inset(0_round_1rem)]';
+
 /**
- * The screen itself. The rounded clip is a clip-path because Chrome lets composited children (the <video>)
- * escape an overflow clip inside 3D-transformed ancestors, and the compositor always honours clip-path.
- * The control pill is a named group, so three frames' "Mute" buttons stay tell-apart for a screen reader,
+ * The glass control pill: a named group, so three frames' "Mute" buttons stay tell-apart for a screen reader,
  * and its buttons sit far enough apart that their 44 px hit areas meet without overlapping.
+ */
+export const ControlPill = ({
+  label,
+  className,
+  children,
+}: {
+  /** Which video these controls drive. */
+  label?: string;
+  className?: string;
+  children: ReactNode;
+}) => (
+  <div
+    role="group"
+    aria-label={label}
+    className={cn(
+      'flex items-center gap-3 rounded-full bg-black/60 px-1.5 py-1 ring-1 ring-white/15 backdrop-blur-sm',
+      className
+    )}
+  >
+    {children}
+  </div>
+);
+
+/**
+ * The screen itself, its control pill in the corner. With a `bar` (a showcase film's seek bar and pill), the
+ * frame holds the screen and the bar: the bar lies over the screen's foot only where the screen is large and a
+ * pointer can hover, and hides there while the film plays; on a small screen or a touch device it sits under
+ * the screen, so no control ever covers a small film (index.css, `.film-frame`).
  */
 export const FilmScreen = ({
   shape = 'landscape',
@@ -103,7 +133,7 @@ export const FilmScreen = ({
   control,
   controlLabel,
   paused = false,
-  raised = false,
+  bar,
   children,
 }: {
   /** The screen's aspect: landscape unless the film was made otherwise. */
@@ -116,41 +146,40 @@ export const FilmScreen = ({
   controlLabel?: string;
   /** Whether the video is stopped: the sprocket holes stop with it, like film in a projector. */
   paused?: boolean;
-  /** Lift the control pill clear of a seek bar along the bottom edge. */
-  raised?: boolean;
+  /** Controls laid out with the screen rather than in its corner. */
+  bar?: ReactNode;
   children: ReactNode;
-}) => (
-  <div
-    className={cn(
-      'relative overflow-hidden rounded-[inherit] bg-black [clip-path:inset(0_round_0.75rem)] sm:[clip-path:inset(0_round_1rem)]',
-      SCREEN_ASPECT[shape]
-    )}
-  >
-    {children}
+}) => {
+  const screen = (
+    <div className={cn('relative overflow-hidden', SCREEN_ASPECT[shape], !bar && FRAME_CLIP)}>
+      {children}
 
-    {badge && (
-      <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/65 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
-        {badge}
-      </span>
-    )}
+      {badge && (
+        <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/65 px-3 py-1 text-xs font-medium text-white/90 ring-1 ring-white/15 backdrop-blur-sm">
+          {badge}
+        </span>
+      )}
 
-    <FilmEdge side="top" paused={paused} />
-    <FilmEdge side="bottom" paused={paused} />
+      <FilmEdge side="top" paused={paused} />
+      <FilmEdge side="bottom" paused={paused} />
 
-    {control && (
-      <div
-        role="group"
-        aria-label={controlLabel}
-        className={cn(
-          'absolute right-3 flex items-center gap-3 rounded-full bg-black/60 px-1.5 py-1 ring-1 ring-white/15 backdrop-blur-sm',
-          raised ? 'bottom-10' : 'bottom-3'
-        )}
-      >
-        {control}
-      </div>
-    )}
-  </div>
-);
+      {control && (
+        <ControlPill label={controlLabel} className="absolute bottom-3 right-3">
+          {control}
+        </ControlPill>
+      )}
+    </div>
+  );
+
+  if (!bar) return screen;
+
+  return (
+    <div className={cn('film-frame relative', FRAME_CLIP)} data-shape={shape} data-playing={paused ? undefined : ''}>
+      {screen}
+      {bar}
+    </div>
+  );
+};
 
 /**
  * Film-cell edges: sprocket holes drift along the frame's top or bottom (the footer motif), on a slim dark

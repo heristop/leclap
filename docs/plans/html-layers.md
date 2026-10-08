@@ -1,6 +1,6 @@
 # HTML layers: style a moment with HTML and CSS
 
-> Status: phases 1 (engine on Node) and 2 (browser) done; phase 3 open · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
+> Status: phases 1 (engine on Node), 2 (browser) and 3 (phone) done · Scope: `ffmpeg-video-composer` (schema, rasteriser, asset stage), `leclap-web` (builder),
 > `leclap-expo` (on-device rasteriser), `leclap-mcp` (catalog, preview)
 
 ## Why
@@ -162,6 +162,36 @@ edits them with a live preview, and the one-shot prompt describes them again.
   CodeMirror HTML/CSS languages are not installed). The browser render of `html-card` comes out 1280×810
   where Node renders 1280×720; it does the same without the HTML layers, so it is the browser path's
   `image_background` + camera, not this phase.
+
+## Phase 3: what shipped, and where it differs
+
+Done on `feat/html-layers-expo`. The pipeline moved into `core/html/satori-raster.ts`, shared by Node and
+the phone. `dist/html-rasteriser.html` is the phone's page, built by the engine's tsdown with the WebAssembly
+inlined. `raster-messages.ts` and `raster-page.ts` define the JSON protocol. The RN entry gains
+`registerHtmlRasteriser`, and `Template` lifts `html_unavailable` once a rasteriser is registered. In the app,
+`htmlRasterHost` and `<HtmlRasterView />` handle the page, and `leclap://ffmpeg-spike?check=html` checks it
+on the device.
+
+- **Same bytes, verified:** the html-card layers match Node's PNGs on the iOS simulator and the Android
+  emulator. The page also gives the golden bytes in desktop Chromium 151, in WebKit 26.5, and in a bare V8
+  context (`tests/html-raster-webview-page.test.ts`).
+- **Satori needs HarfBuzz's shaper too:** satori 0.33 imports `harfbuzzjs`, which fetches `hb.wasm` from
+  beside its script. The page build aliases it to a shim that hands over inlined bytes, so the page carries
+  three modules (resvg, hb-subset, hb).
+- **No native rebuild:** `react-native-webview` 13.16.1 was already a dependency and linked in both native
+  builds. The page ships as an asset (`html` added to Metro's `assetExts`).
+- **Android gotchas:** an off-screen page barely ran, so the WebView is one on-screen pixel at 0.01 opacity.
+  A 5 MB `source.html` took 20–60 s to load, so the page opens from its local file.
+- **Engine fix on the way:** two HTML layers of a section staged the same font concurrently, and one could
+  read it half-copied ("could not instance the variable font"). Concurrent requests for a font now share one
+  staging.
+- **Budget:** a layer without a large shadow takes 14 ms on the iOS simulator and 73–83 ms on the Pixel 3a
+  emulator. The html-card's card layer, with a 40 px `box-shadow`, takes 1.7 s (iOS sim), 7–25 s (Android
+  emulator, host under load), and 2–3 s on Node. resvg's blur is the cost, on every platform.
+- **Not done:** HTML editing in the phone builder. The shared editor model (`@leclap/creative-kit/editor`)
+  doesn't carry html inputs, which is phase 2's work. Templates with HTML layers render from the catalog and
+  the check. The app stages `image_background` photos from `/assets/backgrounds/…` only, so the CLI-style
+  relative `backgrounds/…` path in the sample is rewritten by the check.
 
 ## Out of scope
 

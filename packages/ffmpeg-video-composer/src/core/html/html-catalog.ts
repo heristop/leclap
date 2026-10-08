@@ -130,8 +130,8 @@ export function htmlCatalog(): HtmlCatalog {
       'The layer is a still: animate it with options.motion (rise, slide-*, fade), start/duration, camera and fx.',
     limits: `width and height in output pixels, ${HTML_LAYER_MAX_SIZE} max; drawn at 2× and scaled into the box. Content taller than the box is cut (html_overflow).`,
     platforms:
-      'Node (CLI, MCP) and the browser (web app) render HTML layers, byte for byte alike; the on-device engine ' +
-      'reports html_unavailable for now.',
+      'Node (CLI, MCP), the browser (web app) and the phone (a hidden WebView) render HTML layers, byte for ' +
+      'byte alike.',
     recipes: RECIPES,
   };
 }

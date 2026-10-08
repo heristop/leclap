@@ -9,7 +9,7 @@ import { HTML_RENDERER_VERSION, type HtmlWasmLoader } from '@/core/html/html-eng
 import type { LayerElement } from '@/core/html/html-element';
 import type satoriFunction from 'satori';
 import type * as ResvgWasm from '@resvg/resvg-wasm';
-import { faceWeight, instanceFont, isVariableFont, type HbSubset } from './font-instances';
+import { faceWeight, instanceFont, isVariableFont, type HbSubset } from '@/core/html/font-instances';
 
 type Satori = typeof satoriFunction;
 type SatoriFont = Parameters<Satori>[1]['fonts'][number];

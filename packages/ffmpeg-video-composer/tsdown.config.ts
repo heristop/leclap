@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'tsdown';
+import { defineConfig, type UserConfig } from 'tsdown';
 import replace from '@rollup/plugin-replace';
 
 // Satori imports `harfbuzzjs`, whose entry fetches `hb.wasm` next to the page the moment it loads; in the
@@ -16,6 +19,45 @@ const harfbuzzShaper = {
     },
   },
 };
+
+type Plugin = Extract<NonNullable<UserConfig['plugins']>, { name: string }>;
+
+const requireModule = createRequire(import.meta.url);
+const here = path.dirname(fileURLToPath(import.meta.url));
+
+function wasmBase64(specifier: string): string {
+  return readFileSync(requireModule.resolve(specifier)).toString('base64');
+}
+
+// The phone's HTML layer page (src/html-raster-webview.ts) as one self-contained HTML file: the script and
+// the WebAssembly it draws with inlined, so the app ships a single asset and the WebView loads nothing.
+function htmlRasterPage(): Plugin {
+  return {
+    name: 'leclap-html-raster-page',
+    generateBundle(_options, bundle) {
+      const entry = Object.values(bundle).find((output) => output.type === 'chunk' && output.isEntry);
+
+      if (entry?.type !== 'chunk') return;
+
+      const wasm = {
+        resvg: wasmBase64('@resvg/resvg-wasm/index_bg.wasm'),
+        subset: wasmBase64('harfbuzzjs/hb-subset.wasm'),
+        shape: wasmBase64('harfbuzzjs/hb.wasm'),
+      };
+      // `</script` would end the inline script early.
+      const code = entry.code.replaceAll('</script', String.raw`<\/script`);
+
+      delete bundle[entry.fileName];
+      this.emitFile({
+        type: 'asset',
+        fileName: 'html-rasteriser.html',
+        source:
+          '<!doctype html><html><head><meta charset="utf-8"><title>LeClap HTML layers</title></head><body>' +
+          `<script>window.__LECLAP_RASTER_WASM__=${JSON.stringify(wasm)}</script><script>${code}</script></body></html>`,
+      });
+    },
+  };
+}
 
 export default defineConfig([
   // Sample discovery is a separate data-only entry, never imported by the renderer entries.
@@ -191,5 +233,30 @@ export default defineConfig([
       // rolldown-plugin-dts doesn't try to bundle zod v4's CommonJS .d.cts locales.
       dts: { neverBundle: ['zod'] },
     },
+  },
+  // The phone's HTML layer page: a hidden WebView runs it (htmlRasterPage above writes the HTML file).
+  {
+    name: 'html-raster-page',
+    clean: false,
+    entry: { 'html-raster-webview': 'src/html-raster-webview.ts' },
+    format: ['iife'],
+    outExtensions: () => ({ js: '.js' }),
+    dts: false,
+    sourcemap: false,
+    minify: true,
+    outDir: 'dist',
+    target: 'es2020',
+    platform: 'browser',
+    inputOptions: {
+      // Satori's harfbuzzjs would fetch hb.wasm from beside its script; the shim hands it the inlined bytes.
+      // `fs` is only read on hb.js's Node branch, and Satori's `import.meta` only by Yoga's script lookup
+      // (its WebAssembly is inline): neither exists in the page.
+      resolve: {
+        alias: { harfbuzzjs: path.resolve(here, 'src/html-raster-webview/harfbuzz-shim.ts'), fs: false },
+      },
+      transform: { define: { 'import.meta': '{}' } },
+    },
+    deps: { alwaysBundle: [/.*/] },
+    plugins: [htmlRasterPage()],
   },
 ]);

@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { Asset } from 'expo-asset';
 // Import the PRE-BUILT output (decorators compiled) — not the raw src — so Metro/Hermes never sees
 // the core's tsyringe decorators. reflect-metadata is loaded once at the app entry (app/_layout.tsx).
-import { compileReactNative, type NativeEngine } from 'ffmpeg-video-composer/reactnative';
+import { compileReactNative, registerHtmlRasteriser, type NativeEngine } from 'ffmpeg-video-composer/reactnative';
 import { renderQuip } from '@leclap/creative-kit/render-quips';
 import {
   MUSIC_ASSETS,
@@ -17,6 +17,7 @@ import {
 } from '@/src/data/mediaCatalog';
 import * as Leclap from '@/modules/leclap-ffmpeg';
 import type { CompileInput, CompileOptions, CompileResult, CompileService } from './CompileService';
+import { htmlRasterHost } from './html-raster/html-raster-host';
 
 const toPath = (uri: string): string => uri.replace(/^file:\/\//, '');
 const toUri = (p: string): string => (p.startsWith('file://') ? p : `file://${p}`);
@@ -333,12 +334,32 @@ async function publishOutput(outputPath: string): Promise<string> {
   return target;
 }
 
+function hasHtmlLayers(descriptor: CompileInput['descriptor']): boolean {
+  const sections = (descriptor as { sections?: { inputs?: { type?: string }[] }[] }).sections ?? [];
+
+  return sections.some((section) => section.inputs?.some((item) => item.type === 'html'));
+}
+
 export class CoreCompilationService implements CompileService {
   async compile(input: CompileInput, options: CompileOptions = {}): Promise<CompileResult> {
     if (options.signal?.aborted) {
       return { success: false, error: 'Compilation cancelled.' };
     }
 
+    // HTML layers are drawn in a hidden WebView (Hermes has no WebAssembly): its page loads while the
+    // assets stage, and is torn down when the compile ends.
+    registerHtmlRasteriser(htmlRasterHost.rasteriser);
+
+    if (hasHtmlLayers(input.descriptor)) htmlRasterHost.prepare();
+
+    try {
+      return await this.compileWithPage(input, options);
+    } finally {
+      htmlRasterHost.release();
+    }
+  }
+
+  private async compileWithPage(input: CompileInput, options: CompileOptions): Promise<CompileResult> {
     const projectConfig = await buildProjectConfig(input);
 
     // Cooperative cancellation: ffmpeg exits as on SIGTERM, the failed run rejects inside

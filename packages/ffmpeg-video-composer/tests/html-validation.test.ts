@@ -1,5 +1,7 @@
 import 'reflect-metadata';
 import { describe, expect, it } from 'vitest';
+import { container } from 'tsyringe';
+import { HTML_RASTERISER, type HtmlRasteriser } from '@/core/html/html-rasteriser';
 import { TemplateValidator } from '@/services/TemplateValidator';
 import { BaseTemplateValidator } from '@/services/BaseTemplateValidator';
 import Template from '@/core/models/Template';
@@ -82,6 +84,19 @@ describe('html input schema', () => {
 
   it('accepts html layers on a Template whose host draws them (the browser)', () => {
     expect(new Template({ htmlLayers: true }).setDescriptor(template(CARD)).success).toBe(true);
+  });
+
+  it('lets the browser and on-device Template through once the host registered a rasteriser', () => {
+    container.registerInstance<HtmlRasteriser>(HTML_RASTERISER, {
+      version: 'test',
+      render: () => Promise.reject(new Error('not drawn here')),
+    });
+
+    try {
+      expect(new Template().setDescriptor(template(CARD)).errors).toBeUndefined();
+    } finally {
+      container.reset();
+    }
   });
 });
 

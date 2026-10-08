@@ -136,7 +136,7 @@ leclap render examples/motion-design/formats.json --formats all \
 
 ## HTML layers
 
-[`html-card.json`](./html-card.json) lays out a property card and a price tag in HTML and CSS (`inputs[].type: "html"`) over a slow push-in. The copy comes from typed `global.fields` and the colours and faces from `$color.*` / `$font.*` tokens, so the same template lists any property. Each layer is drawn once into a transparent PNG and then moves like any image overlay (`rise`, `slide-left`). HTML layers render on Node only for now; see [HTML layers](../../docs/template-configuration.md#html-layers).
+[`html-card.json`](./html-card.json) lays out a property card and a price tag in HTML and CSS (`inputs[].type: "html"`) over a slow push-in. The copy comes from typed `global.fields` and the colours and faces from `$color.*` / `$font.*` tokens, so the same template lists any property. Each layer is drawn once into a transparent PNG and then moves like any image overlay (`rise`, `slide-left`). HTML layers render on Node and in the LeClap app (not yet in the browser); see [HTML layers](../../docs/template-configuration.md#html-layers).
 
 ## Native controls
 

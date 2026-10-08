@@ -1,7 +1,8 @@
 // Descriptor rules for HTML layers (`inputs[]` entries of `type: "html"`):
 //
 // - html_too_large: the box is wider or taller than HTML_LAYER_MAX_SIZE output pixels.
-// - html_unavailable: the engine has no HTML rasteriser (the on-device engine, until its phase lands): the template cannot render there, so it is refused before any section is encoded.
+// - html_unavailable: the engine has no HTML rasteriser registered: the template cannot render there, so it
+//   is refused before any section is encoded.
 // The advisories (html-advisories.ts) say what a layer drops; these are the hard errors.
 
 import { HTML_LAYER_MAX_SIZE } from '@/core/html/limits';
@@ -59,9 +60,9 @@ export function validateHtmlAvailability(template: unknown, canRender: boolean):
   return htmlInputs(template).map(({ path }) => ({
     path,
     code: 'html_unavailable',
-    message: 'html layers do not render on the on-device engine yet: it has no HTML rasteriser',
+    message: 'this engine has no HTML rasteriser registered',
     hint:
-      'render this template with the Node engine (leclap render, the MCP server) or in the browser (the web app), ' +
-      'or replace the layer with an image input rendered from it',
+      'register one on the host (the browser compile and the LeClap app do), render this template with the Node ' +
+      'engine (leclap render, the MCP server), or replace the layer with an image input rendered from it',
   }));
 }

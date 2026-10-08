@@ -975,7 +975,15 @@ An `inputs[]` entry of `type: "html"` lays out a card, a badge, a price tag or a
 
 A layer is a still: animate it with `options.motion`. `rise` and `slide-*` only move the layer, so set `start` to the same time as the motion `delay` when the layer should not be visible before it moves in. Inline text and inline elements in one paragraph are laid out word by word on flexbox, so the browser's exact line breaks are not guaranteed.
 
-The PNG is named by a hash of everything that changes the drawing (resolved HTML and CSS, images, fonts, box, density and renderer versions), so an unchanged layer is rendered once per process. HTML layers render on **Node** (CLI, MCP, programmatic API). The browser and on-device engines report `html_unavailable` for now. See [`examples/motion-design/html-card.json`](../examples/motion-design/html-card.json).
+The PNG is named by a hash of everything that changes the drawing (resolved HTML and CSS, images, fonts, box, density and renderer versions), so an unchanged layer is rendered once per process. Where HTML layers render:
+
+| Engine                             | Status                                                                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Node (CLI, MCP, programmatic API)  | Rendered in process.                                                                              |
+| Phone (LeClap app, Hermes)         | Rendered in a hidden WebView running the same WebAssembly; the PNGs are byte-identical to Node's. |
+| Browser (web builder, WASM engine) | Not yet: validation reports `html_unavailable`.                                                   |
+
+See [`examples/motion-design/html-card.json`](../examples/motion-design/html-card.json).
 
 ![The four HTML layout recipes](./media/gallery/html-layers.webp)
 

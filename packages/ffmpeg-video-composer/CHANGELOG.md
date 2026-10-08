@@ -11,6 +11,12 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
 
 ### Added
 
+- HTML layers on the phone. Hermes has no WebAssembly, so the React Native entry takes a rasteriser from the
+  host (`registerHtmlRasteriser`); the build ships `dist/html-rasteriser.html`, one self-contained page
+  (5.2 MB, the Satori + resvg + HarfBuzz pipeline and its WebAssembly inlined) that a hidden WebView runs,
+  spoken to with `createRasterSession` / `readRasterReply` (JSON messages, PNG and fonts as base64, each font
+  sent once per page). Its PNGs are byte-identical to Node's. The browser and phone `Template` no longer
+  reports `html_unavailable` once a rasteriser is registered.
 - HTML layers. An `inputs[]` entry of `type: "html"` takes `html`, `css`, `width` and `height` and lays out
   a card, badge, price tag or stat row in a flexbox subset of CSS (tag, `.class` and descendant selectors).
   The markup is sanitised (no scripts, iframes, forms, SVG, event handlers or links), `{{ name }}`
@@ -256,6 +262,8 @@ required?, maxLength?, min?, max?, options?, label?, description? }`, types text
 
 ### Fixed
 
+- Two HTML layers of one section asking for the same font no longer race: the second could read the font
+  half-copied and fail with "could not instance the variable font".
 - Karaoke captions that enlarge the spoken word (`loud`, `neon`, pop) leave room for it on both sides, so it no
   longer overlaps its neighbours or leaves a narrow portrait frame; the line stays still as the highlight moves.
 - A composed note shorter than its attack plus release (a tick, a fast roll) is audible instead of silent, and

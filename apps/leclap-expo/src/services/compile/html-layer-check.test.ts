@@ -7,9 +7,11 @@ declare const jest: {
   fn(): unknown;
 };
 
+type Section = { options: { pictureUrl: string } };
 type Mock = { mockImplementation(impl: (...args: never[]) => unknown): void };
 
 jest.mock('./compileOnDevice', () => ({ compileOnDevice: jest.fn() }));
+jest.mock('expo-file-system/legacy', () => ({ cacheDirectory: 'file:///cache/', deleteAsync: jest.fn() }));
 jest.mock('ffmpeg-video-composer/src/core/determinism/sha256.ts', () => ({
   sha256Hex: (bytes: Uint8Array) => (bytes[0] === 1 ? HTML_CARD_GOLDENS['560×300'] : 'other'),
 }));
@@ -34,8 +36,10 @@ describe('HTML layer device check', () => {
     let drawn = [earlier];
 
     (htmlRasterHost.timings as unknown as Mock).mockImplementation(() => drawn);
-    (compileOnDevice as unknown as Mock).mockImplementation(async (descriptor: { sections: unknown[] }) => {
-      expect(descriptor.sections).toHaveLength(1);
+    (compileOnDevice as unknown as Mock).mockImplementation(async (descriptor: { sections: Section[] }) => {
+      expect(descriptor.sections.map((section) => section.options.pictureUrl)).toEqual([
+        '/assets/backgrounds/sage-wall.jpg',
+      ]);
 
       drawn = [
         earlier,

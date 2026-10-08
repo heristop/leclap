@@ -2,6 +2,7 @@
 // layers drawn in the hidden WebView, and reports each layer's time and whether its PNG is byte-identical
 // to the one Node draws (packages/ffmpeg-video-composer/tests/html-card-sample.test.ts holds the same hashes).
 
+import * as FileSystem from 'expo-file-system/legacy';
 import { sha256Hex } from 'ffmpeg-video-composer/src/core/determinism/sha256.ts';
 import htmlCard from '../../../../../examples/motion-design/html-card.json';
 import { compileOnDevice } from './compileOnDevice';
@@ -28,6 +29,17 @@ export interface HtmlLayerCheck {
   layers: CheckedLayer[];
 }
 
+// The sample names its photo relative to the CLI's assets dir; the app stages bundled backgrounds from
+// their canonical /assets/backgrounds/ path.
+function onDevice(descriptor: typeof htmlCard): typeof htmlCard {
+  const sections = descriptor.sections.map((section) => ({
+    ...section,
+    options: { ...section.options, pictureUrl: `/assets/${section.options.pictureUrl}` },
+  }));
+
+  return { ...descriptor, sections };
+}
+
 export async function runHtmlLayerCheck(append: (line: string) => void): Promise<HtmlLayerCheck> {
   const hashes: { size: string; sha: string }[] = [];
   const stop = htmlRasterHost.observe((request, raster) => {
@@ -36,9 +48,12 @@ export async function runHtmlLayerCheck(append: (line: string) => void): Promise
   const before = htmlRasterHost.timings().length;
 
   append('Compiling the html-card sample (two HTML layers drawn in the hidden WebView)…');
+  // Layers an earlier run staged are reused by hash (the build's panels): drop them so this run draws.
+  // Within one app session the engine also remembers drawn layers, so only the first run is cold.
+  await FileSystem.deleteAsync(`${FileSystem.cacheDirectory}leclap-build/panels`, { idempotent: true });
 
   try {
-    const result = await compileOnDevice(structuredClone(htmlCard), {}, { qualityTier: 'draft' });
+    const result = await compileOnDevice(onDevice(structuredClone(htmlCard)), {}, { qualityTier: 'draft' });
 
     if (!result.success || !result.outputUri) throw new Error(result.error ?? 'HTML layer compile produced no output');
 
@@ -52,6 +67,8 @@ export async function runHtmlLayerCheck(append: (line: string) => void): Promise
     const check = { outputUri: result.outputUri, pageLoadMs: htmlRasterHost.pageLoadMs(), layers };
 
     append(`Page ready in ${check.pageLoadMs ?? '?'} ms`);
+
+    if (layers.length === 0) append('No layer drawn: both came from the engine’s memory of this session.');
 
     for (const layer of layers) {
       const verdict = layer.golden ? '✅ same bytes as Node' : '❌ differs from Node';

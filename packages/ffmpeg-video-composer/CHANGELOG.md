@@ -271,6 +271,8 @@ required?, maxLength?, min?, max?, options?, label?, description? }`, types text
 
 ### Fixed
 
+- A letterboxed clip (`fit: "letterbox"` or `forceOriginalAspectRatio`) under an image, animation or HTML
+  input keeps its bars: the overlay path cover-cropped the footage to fill the frame.
 - Two HTML layers of one section asking for the same font no longer race: the second could read the font
   half-copied and fail with "could not instance the variable font".
 - Karaoke captions that enlarge the spoken word (`loud`, `neon`, pop) leave room for it on both sides, so it no

@@ -4,10 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bundledVideoFor, fieldsFor, videoFor } from '../../../../../../examples/showcase/fixtures.ts';
 import {
-  FEATURED_SAMPLE_IDS,
+  HTML_SAMPLE_IDS,
+  HTML_SAMPLES_AFTER,
   LIBRARY_SAMPLES,
   SHOWCASE_SAMPLES,
-  featuredFirst,
+  placeAfter,
   sampleShape,
   filterSamples,
   selectedSample,
@@ -44,21 +45,31 @@ describe('showcase catalog', () => {
     expect(SHOWCASE_SAMPLES.slice(0, 2).map((sample) => sample.id)).toEqual(['drink-and-code', 'effects-tour']);
   });
 
-  it('opens the library on the HTML-layer samples, then keeps the catalog order', () => {
+  it('lists the HTML-layer samples right after Type impact, then keeps the catalog order', () => {
     const ids = filterSamples('all', '').map((sample) => sample.id);
-    expect(ids.slice(0, 4)).toEqual(['html-card', 'html-testimonial', 'html-speaker', 'html-stats']);
-    expect(ids.slice(4)).toEqual(
-      SHOWCASE_SAMPLES.map((sample) => sample.id).filter((id) => !FEATURED_SAMPLE_IDS.includes(id))
+    expect(ids.slice(0, 7)).toEqual([
+      'drink-and-code',
+      'effects-tour',
+      'type-impact',
+      'html-card',
+      'html-testimonial',
+      'html-speaker',
+      'html-stats',
+    ]);
+    expect(ids.slice(7)).toEqual(
+      SHOWCASE_SAMPLES.map((sample) => sample.id).filter(
+        (id) => !HTML_SAMPLE_IDS.includes(id) && !['drink-and-code', 'effects-tour', 'type-impact'].includes(id)
+      )
     );
-    expect(filterSamples('effects', '')[0].id).toBe('html-card');
     expect(LIBRARY_SAMPLES).toHaveLength(SHOWCASE_SAMPLES.length);
   });
 
-  it('features only samples the catalog has, and leaves the catalog order alone', () => {
+  it('places only samples the catalog has, and leaves the catalog order alone', () => {
     const ids = new Set(SHOWCASE_SAMPLES.map((sample) => sample.id));
-    for (const id of FEATURED_SAMPLE_IDS) expect(ids.has(id)).toBe(true);
+    for (const id of [...HTML_SAMPLE_IDS, HTML_SAMPLES_AFTER]) expect(ids.has(id)).toBe(true);
     expect(SHOWCASE_SAMPLES[0].id).toBe('drink-and-code');
-    expect(featuredFirst(SHOWCASE_SAMPLES, ['missing'])).toEqual(SHOWCASE_SAMPLES);
+    expect(placeAfter(SHOWCASE_SAMPLES, ['missing'], 'type-impact')).toEqual(SHOWCASE_SAMPLES);
+    expect(placeAfter(SHOWCASE_SAMPLES, HTML_SAMPLE_IDS, 'missing')).toEqual(SHOWCASE_SAMPLES);
   });
 
   it('sizes each sample by the orientation it was made in, not its letterboxed preview', () => {

@@ -15,22 +15,24 @@ export type ShowcaseSample = {
 
 export const SHOWCASE_SAMPLES = catalog.samples as ShowcaseSample[];
 
-// The samples the web library opens on, in this order: the HTML-layer samples. The catalog keeps its own
-// order, which the CLI and the MCP list too; only the library here leads with these.
-export const FEATURED_SAMPLE_IDS: readonly string[] = ['html-card', 'html-testimonial', 'html-speaker', 'html-stats'];
+// The HTML-layer samples, listed together right after Type impact. The catalog keeps its own order, which the
+// CLI and the MCP list too; only the library here moves them up.
+export const HTML_SAMPLE_IDS: readonly string[] = ['html-card', 'html-testimonial', 'html-speaker', 'html-stats'];
+export const HTML_SAMPLES_AFTER = 'type-impact';
 
-// The featured samples first, in their listed order, then every other sample in catalog order.
-export function featuredFirst(samples: ShowcaseSample[], featured: readonly string[]): ShowcaseSample[] {
-  const rank = (sample: ShowcaseSample): number => {
-    const index = featured.indexOf(sample.id);
+// `ids`, in their listed order, moved to just after `anchor`; every other sample keeps catalog order. Missing
+// ids are skipped, and without the anchor the catalog order is kept.
+export function placeAfter(samples: ShowcaseSample[], ids: readonly string[], anchor: string): ShowcaseSample[] {
+  const moved = ids.flatMap((id) => samples.filter((sample) => sample.id === id));
+  const rest = samples.filter((sample) => !ids.includes(sample.id));
+  const at = rest.findIndex((sample) => sample.id === anchor);
 
-    return index === -1 ? featured.length : index;
-  };
+  if (at === -1 || moved.length === 0) return samples;
 
-  return samples.toSorted((a, b) => rank(a) - rank(b));
+  return [...rest.slice(0, at + 1), ...moved, ...rest.slice(at + 1)];
 }
 
-export const LIBRARY_SAMPLES = featuredFirst(SHOWCASE_SAMPLES, FEATURED_SAMPLE_IDS);
+export const LIBRARY_SAMPLES = placeAfter(SHOWCASE_SAMPLES, HTML_SAMPLE_IDS, HTML_SAMPLES_AFTER);
 
 export function validCategory(value: string | null): ShowcaseCategory {
   return CATEGORIES.find((category) => category === value) ?? 'all';

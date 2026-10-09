@@ -96,11 +96,11 @@
       "hasAudio": true,
       "orientation": "portrait",
       "backend": "native",
-      "sha256": "c11a1f976bcb0df2e1d507d90a83f8abf93103f54c4a2f06578e2316334a2127",
-      "templateSha256": "b7839cbf2a8d229fc81e7eab5c5908035a38736290cbc96a10a5162722df9287",
+      "sha256": "e4b9e382ab6b674f44bd25d7b5d2aa063f25de61058b3c3471509a7dd60d6114",
+      "templateSha256": "faa40f358133856d61ea3cb19c0a0e903bcbaf2182c4bade02ba6a3407bf54e9",
       "mediaSource": "packages/leclap-creative-kit/src/library/videos/video_portrait.mp4",
       "media": "Bundled catalog / demo app fixtures",
-      "bytes": 503153
+      "bytes": 499950
     },
     {
       "id": "fast-curious",

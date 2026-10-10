@@ -27,7 +27,9 @@ MUSIC=$ASSETS/musics/lofi-chill.mp3
 # cut falls on a beat of it: a moment is 2, 3 or 4 beats, 28 beats in all.
 BED_START=17.683
 BEATS=28
-FPS=30
+# 60 fps: the chapters render at it (step 1) and the reel keeps it. At 30 fps a moving line (the before/after
+# divider) steps visibly on 60 and 120 Hz screens, however even each step is.
+FPS=60
 # Landing loudness: the films sit at -16 LUFS; the reel is ambient, so it sits 4 LU under them.
 TARGET_LUFS=-20
 
@@ -68,13 +70,14 @@ portrait=(
 #    under the effect label of the split (white sky behind it), and in portrait the effect label at 22 px from
 #    x 40 (the tour's is 32 px from x 64, sized for 1280 px).
 for orientation in landscape portrait; do
-  mkdir -p "$W/$orientation" "$W/templates/$orientation"
+  mkdir -p "$W/$orientation-$FPS" "$W/templates/$orientation"
   for chapter in 01-type 02-camera-graphics 03-transitions 04-captions 05-compositing; do
-    [ -f "$W/$orientation/$chapter.mp4" ] && continue
-    python3 - "$TOUR/$chapter.json" "$W/templates/$orientation/$chapter.json" "$orientation" <<'PY'
+    [ -f "$W/$orientation-$FPS/$chapter.mp4" ] && continue
+    python3 - "$TOUR/$chapter.json" "$W/templates/$orientation/$chapter.json" "$orientation" "$FPS" <<'PY'
 import json, sys
 template = json.load(open(sys.argv[1]))
 template['global']['orientation'] = sys.argv[3]
+template['global']['fps'] = int(sys.argv[4])
 template['global'].pop('overlays', None)
 if sys.argv[3] == 'portrait':
     for section in template['sections']:
@@ -90,8 +93,8 @@ for section in template['sections']:
 json.dump(template, open(sys.argv[2], 'w'), indent=2)
 PY
     echo "render $chapter ($orientation)"
-    $LECLAP render "$W/templates/$orientation/$chapter.json" --assets "$ASSETS" --build "$W/build/$orientation/$chapter" \
-      --cache build/effects-tour/cache -q -o "$W/$orientation/$chapter.mp4"
+    $LECLAP render "$W/templates/$orientation/$chapter.json" --assets "$ASSETS" --build "$W/build/$orientation-$FPS/$chapter" \
+      --cache build/effects-tour/cache -q -o "$W/$orientation-$FPS/$chapter.mp4"
   done
 done
 
@@ -117,8 +120,9 @@ reel() {
   local inputs=() graph="" chain="" index=0 beat=0
   for moment in "$@"; do
     read -r chapter at beats _ <<<"$moment"
-    # Frame-exact: each moment ends on the frame nearest its last beat, so the cuts never drift off the music.
-    local from=$(((beat * 1800 + 42) / 84)) to=$((((beat + beats) * 1800 + 42) / 84))
+    # Frame-exact: each moment ends on the frame nearest its last beat (a beat is FPS * 60 / 84 frames), so the cuts
+    # never drift off the music.
+    local from=$(((beat * FPS * 60 + 42) / 84)) to=$((((beat + beats) * FPS * 60 + 42) / 84))
     inputs+=(-ss "$at" -i "$dir/$chapter.mp4")
     graph+="[$index:v]fps=$FPS,trim=end_frame=$((to - from)),setpts=PTS-STARTPTS,scale=$size,setsar=1,format=yuv420p[m$index];"
     chain+="[m$index]"
@@ -130,7 +134,7 @@ reel() {
   ffmpeg -hide_banner -loglevel error -y "${inputs[@]}" -i "$W/bed-level.wav" -filter_complex "$graph" \
     -map "[v]" -map "$index:a" -c:v libx264 -profile:v high -preset slow -crf "$crf" -pix_fmt yuv420p \
     -color_primaries bt709 -color_trc bt709 -colorspace bt709 -color_range tv \
-    -c:a aac -b:a 128k -shortest -movflags +faststart "$OUT/$name.mp4"
+    -r "$FPS" -c:a aac -b:a 128k -shortest -movflags +faststart "$OUT/$name.mp4"
   ffmpeg -hide_banner -loglevel error -y -i "$OUT/$name.mp4" -c:v libvpx-vp9 -crf "$vp9" -b:v 0 -row-mt 1 \
     -deadline good -cpu-used 2 -pix_fmt yuv420p -color_primaries bt709 -color_trc bt709 -colorspace bt709 \
     -color_range tv -c:a libopus -b:a 96k "$OUT/$name.webm"
@@ -139,5 +143,5 @@ reel() {
   ffprobe -v error -show_entries format=duration,size -of csv=p=0 "$OUT/$name.mp4" | sed "s|^|$name.mp4 |"
 }
 
-reel effects-reel "$W/landscape" 1280:720 23 36 "${landscape[@]}"
-reel effects-reel-portrait "$W/portrait" 720:1280 23 36 "${portrait[@]}"
+reel effects-reel "$W/landscape-$FPS" 1280:720 23 36 "${landscape[@]}"
+reel effects-reel-portrait "$W/portrait-$FPS" 720:1280 23 36 "${portrait[@]}"

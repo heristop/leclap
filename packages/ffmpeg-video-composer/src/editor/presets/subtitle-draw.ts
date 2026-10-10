@@ -111,34 +111,88 @@ function rect({ x, y, w, h }: Rect, color: string, enable: string): Filter {
   return { type: 'drawbox', values: { x: fmt(x), y: fmt(y), w: fmt(w), h: fmt(h), color, t: 'fill', enable } };
 }
 
-// Horizontal inset of the corner's pixel row `row` (0 = outermost) for a quarter circle of radius r.
-function cornerInset(radius: number, row: number): number {
-  const mid = radius - row - 0.5;
+/** Samples per pixel side when measuring how much of a corner pixel the arc covers. */
+const COVERAGE_SAMPLES = 8;
+/** Edge-pixel opacity is quantised to this many levels, so neighbouring pixels can share a box. */
+const COVERAGE_LEVELS = 8;
 
-  return Math.round(radius - Math.sqrt(radius * radius - mid * mid));
+// How much of pixel (col, row) of a top-left corner of radius r (circle centre at (r, r)) lies inside the
+// arc, in COVERAGE_LEVELS steps: 0 outside, COVERAGE_LEVELS fully inside.
+function pixelCoverage(radius: number, col: number, row: number): number {
+  const n = COVERAGE_SAMPLES;
+  const inside = Array.from({ length: n * n }, (_, k) => {
+    const dx = radius - (col + ((k % n) + 0.5) / n);
+    const dy = radius - (row + (Math.floor(k / n) + 0.5) / n);
+
+    return dx * dx + dy * dy <= radius * radius ? 1 : 0;
+  }).reduce<number>((sum, hit) => sum + hit, 0);
+
+  return Math.round((inside / (n * n)) * COVERAGE_LEVELS);
 }
 
-// The corner's pixel rows as strips: consecutive rows with the same inset share one strip.
-function cornerStrips(radius: number): Array<{ from: number; height: number; inset: number }> {
-  const insets = Array.from({ length: radius }, (_, row) => cornerInset(radius, row));
+interface CornerRun {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  /** Coverage in COVERAGE_LEVELS steps; COVERAGE_LEVELS is a solid strip reaching the plate's middle. */
+  level: number;
+}
 
-  return insets.reduce<Array<{ from: number; height: number; inset: number }>>((strips, inset, row) => {
-    const last = strips.at(-1);
+// Rows of the same run (same x, width and level) one under the other become one taller run.
+function mergeDown(runs: CornerRun[]): CornerRun[] {
+  return runs.reduce<CornerRun[]>((merged, run) => {
+    const above = merged.find((m) => m.x === run.x && m.w === run.w && m.level === run.level && m.y + m.h === run.y);
 
-    if (last?.inset === inset) {
-      last.height += 1;
+    if (above) {
+      above.h += 1;
 
-      return strips;
+      return merged;
     }
 
-    return [...strips, { from: row, height: 1, inset }];
+    return [...merged, { ...run }];
   }, []);
 }
 
+// A top-left corner of radius r as runs in corner coordinates: per pixel row, the solid strip from the
+// first fully covered pixel to the corner's inner edge, and the partly covered pixels before it, each
+// drawn at its coverage (horizontal neighbours at the same level share a run).
+function cornerRuns(radius: number): CornerRun[] {
+  const rows = Array.from({ length: radius }, (_, row) => {
+    const levels = Array.from({ length: radius }, (_, col) => pixelCoverage(radius, col, row));
+    const solidFrom = levels.findIndex((level) => level === COVERAGE_LEVELS);
+    const inset = solidFrom === -1 ? radius : solidFrom;
+    const partial = levels.slice(0, inset).reduce<CornerRun[]>((runs, level, col) => {
+      if (level === 0) return runs;
+
+      const last = runs.at(-1);
+
+      if (last?.level === level && last.x + last.w === col) {
+        last.w += 1;
+
+        return runs;
+      }
+
+      return [...runs, { x: col, y: row, w: 1, h: 1, level }];
+    }, []);
+
+    return [...partial, { x: inset, y: row, w: radius - inset, h: 1, level: COVERAGE_LEVELS }];
+  });
+
+  return mergeDown(rows.flat().filter((run) => run.w > 0));
+}
+
+// `#rrggbb@a` at `level` of its opacity.
+function colorAtLevel(color: string, level: number): string {
+  const [hex, alpha = '1'] = color.split('@');
+
+  return level === COVERAGE_LEVELS ? color : `${hex}@${fmt((Number(alpha) * level) / COVERAGE_LEVELS)}`;
+}
+
 /**
- * A plate behind one line: a filled rectangle whose corners follow the arc pixel row by pixel row (rows
- * with the same inset share a strip). Edges are whole pixels and the strips never overlap, so a
- * translucent plate has no seams.
+ * A plate behind one line: a filled rectangle with anti-aliased rounded corners. Each corner pixel the
+ * arc crosses is drawn at the share of it the arc covers; whole-pixel edges and runs that never overlap
+ * keep a translucent plate free of seams.
  */
 export function plateFilters(
   line: PlacedLine,
@@ -154,13 +208,18 @@ export function plateFilters(
   const top = Math.round(line.top - padY);
   const bottom = Math.round(line.top + size + padY);
   const radius = Math.floor(Math.min(box.radius * size, (bottom - top) / 2, (right - left) / 2));
-  const strips = cornerStrips(radius).flatMap(({ from, height, inset }) => {
-    const w = right - left - 2 * inset;
+  // A solid run reaching the corner's inner edge spans the plate to the mirrored edge in one box.
+  const strips = cornerRuns(radius).flatMap(({ x, y, w, h, level }) => {
+    const paint = colorAtLevel(color, level);
+    const solid = level === COVERAGE_LEVELS;
+    const width = solid ? right - left - 2 * x : w;
+    const mirrored = solid ? [] : [{ x: right - x - w, w }];
+    const xs = [{ x: left + x, w: width }, ...mirrored];
 
-    return [
-      rect({ x: left + inset, y: top + from, w, h: height }, color, enable),
-      rect({ x: left + inset, y: bottom - from - height, w, h: height }, color, enable),
-    ];
+    return xs.flatMap((span) => [
+      rect({ x: span.x, y: top + y, w: span.w, h }, paint, enable),
+      rect({ x: span.x, y: bottom - y - h, w: span.w, h }, paint, enable),
+    ]);
   });
   const body = rect({ x: left, y: top + radius, w: right - left, h: bottom - top - 2 * radius }, color, enable);
 

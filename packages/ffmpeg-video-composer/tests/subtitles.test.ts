@@ -323,14 +323,37 @@ describe('subtitle lowering', () => {
     expect(texts[0]).toMatchObject({ text: 'Make every word land.', fontfile: 'Oswald.ttf' });
   });
 
-  it('boxed: a seamless stepped plate per line behind the words', () => {
+  it('boxed: a seamless rounded plate per line behind the words', () => {
     const filters = subtitlesToFilters({ ...track, style: 'boxed' }, ctx());
     const boxes = values(filters, 'drawbox');
 
-    expect(boxes).toHaveLength(7);
     expect(boxes[0].color).toBe('#141416@0.82');
-    expect(filters.findIndex((f) => f.type === 'drawtext')).toBe(7);
+    expect(filters.findIndex((f) => f.type === 'drawtext')).toBe(boxes.length);
     for (const box of boxes) expect(Number(box.w)).toBeGreaterThan(0);
+  });
+
+  it('boxed: the plate corners follow the arc row by row, not in a few coarse steps', () => {
+    const boxes = values(subtitlesToFilters({ ...track, style: 'boxed' }, ctx()), 'drawbox').map((box) => ({
+      x: Number(box.x),
+      y: Number(box.y),
+      w: Number(box.w),
+      h: Number(box.h),
+    }));
+    const left = Math.min(...boxes.map((box) => box.x));
+    const top = Math.min(...boxes.map((box) => box.y));
+    const bottom = Math.max(...boxes.map((box) => box.y + box.h));
+    const radius = boxes[0].y - top;
+
+    expect(radius).toBeGreaterThan(3);
+    for (let row = top; row < bottom; row++) {
+      const covering = boxes.filter((box) => row >= box.y && row < box.y + box.h);
+      const fromEdge = Math.min(row - top, bottom - 1 - row);
+      const dy = radius - fromEdge - 0.5;
+      const inset = fromEdge >= radius ? 0 : Math.round(radius - Math.sqrt(radius * radius - dy * dy));
+
+      expect(covering, `row ${row}`).toHaveLength(1);
+      expect(covering[0].x - left, `row ${row}`).toBe(inset);
+    }
   });
 
   it('resolves theme colours against global.theme', () => {

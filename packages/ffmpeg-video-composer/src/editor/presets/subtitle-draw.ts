@@ -1,5 +1,5 @@
 // Drawing primitives for subtitles: the colour a DNA token paints, the time window a filter is enabled
-// in, the cue's entrance (a reveal preset), a positioned drawtext and the stepped rounded plate behind a
+// in, the cue's entrance (a reveal preset), a positioned drawtext and the rounded plate behind a
 // line. Every number goes through `fmt`, so the same plan always writes the same bytes.
 
 import type { Filter } from '@/core/types';
@@ -11,8 +11,6 @@ import type { PlacedLine } from '@/core/captions/plan';
 import { applyTextEffect, revealToExpr } from './text';
 
 const FALLBACK_COLOR = '#FFFFFF';
-/** Rounded corners are drawn as this many stepped strips per corner. */
-const CORNER_STEPS = 3;
 /** Vertical plate padding relative to the horizontal one. */
 const PLATE_VERTICAL = 0.55;
 
@@ -113,16 +111,34 @@ function rect({ x, y, w, h }: Rect, color: string, enable: string): Filter {
   return { type: 'drawbox', values: { x: fmt(x), y: fmt(y), w: fmt(w), h: fmt(h), color, t: 'fill', enable } };
 }
 
-// Horizontal inset of corner strip `step` (0 = outermost row) for a quarter circle of radius r.
-function cornerInset(radius: number, step: number): number {
-  const mid = radius - ((step + 0.5) * radius) / CORNER_STEPS;
+// Horizontal inset of the corner's pixel row `row` (0 = outermost) for a quarter circle of radius r.
+function cornerInset(radius: number, row: number): number {
+  const mid = radius - row - 0.5;
 
   return Math.round(radius - Math.sqrt(radius * radius - mid * mid));
 }
 
+// The corner's pixel rows as strips: consecutive rows with the same inset share one strip.
+function cornerStrips(radius: number): Array<{ from: number; height: number; inset: number }> {
+  const insets = Array.from({ length: radius }, (_, row) => cornerInset(radius, row));
+
+  return insets.reduce<Array<{ from: number; height: number; inset: number }>>((strips, inset, row) => {
+    const last = strips.at(-1);
+
+    if (last?.inset === inset) {
+      last.height += 1;
+
+      return strips;
+    }
+
+    return [...strips, { from: row, height: 1, inset }];
+  }, []);
+}
+
 /**
- * A plate behind one line: a filled rectangle whose corners are rounded in CORNER_STEPS stepped strips.
- * Edges are whole pixels and the strips never overlap, so a translucent plate has no seams.
+ * A plate behind one line: a filled rectangle whose corners follow the arc pixel row by pixel row (rows
+ * with the same inset share a strip). Edges are whole pixels and the strips never overlap, so a
+ * translucent plate has no seams.
  */
 export function plateFilters(
   line: PlacedLine,
@@ -137,19 +153,13 @@ export function plateFilters(
   const right = Math.round(line.x + line.width + padX);
   const top = Math.round(line.top - padY);
   const bottom = Math.round(line.top + size + padY);
-  const radius = Math.round(Math.min(box.radius * size, (bottom - top) / 2, (right - left) / 2));
-  const rows = Array.from({ length: CORNER_STEPS + 1 }, (_, j) => Math.round((j * radius) / CORNER_STEPS));
-  const strips = rows.slice(0, -1).flatMap((from, j) => {
-    const inset = cornerInset(radius, j);
-    const height = rows[j + 1] - from;
-
-    if (height <= 0) return [];
-
+  const radius = Math.floor(Math.min(box.radius * size, (bottom - top) / 2, (right - left) / 2));
+  const strips = cornerStrips(radius).flatMap(({ from, height, inset }) => {
     const w = right - left - 2 * inset;
 
     return [
       rect({ x: left + inset, y: top + from, w, h: height }, color, enable),
-      rect({ x: left + inset, y: bottom - rows[j + 1], w, h: height }, color, enable),
+      rect({ x: left + inset, y: bottom - from - height, w, h: height }, color, enable),
     ];
   });
   const body = rect({ x: left, y: top + radius, w: right - left, h: bottom - top - 2 * radius }, color, enable);

@@ -5,6 +5,8 @@
 // effects a headless browser can't reproduce. A developer diagnostic: loaded only behind the flag, and
 // its panel is not translated.
 
+import { isWarmUpStream } from './video-encoder-warm-up';
+
 export function cameraDebugRequested(search: string): boolean {
   return new URLSearchParams(search).get('debugCamera') === '1';
 }
@@ -186,7 +188,7 @@ function watchRecorders(state: DebugState): void {
       const settings = stream.getVideoTracks().at(0)?.getSettings();
       this.sample = {
         index: count,
-        kind: stream.getAudioTracks().length > 0 ? 'take' : 'warm-up',
+        kind: isWarmUpStream(stream) ? 'warm-up' : 'take',
         mimeType: options?.mimeType,
         size: `${settings?.width ?? '?'}x${settings?.height ?? '?'}`,
         startCall: 0,

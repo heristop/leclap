@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
-import { warmUpVideoEncoder, resetVideoEncoderWarmUp, warmUpMimeType } from './video-encoder-warm-up';
+import { warmUpVideoEncoder, resetVideoEncoderWarmUp, warmUpMimeType, isWarmUpStream } from './video-encoder-warm-up';
 
 // Chrome sets up its hardware H.264 encoder the first time a MediaRecorder encodes H.264 in the browser
 // session, and every video on screen stalls while it does: the live preview froze the moment the first
@@ -73,6 +73,7 @@ const installFakes = (): void => {
     } as unknown as HTMLElement;
   };
   vi.stubGlobal('document', { createElement });
+  vi.stubGlobal('navigator', { userAgentData: { brands: [{ brand: 'Chromium', version: '141' }] } });
 };
 
 beforeEach(installFakes);
@@ -146,6 +147,21 @@ describe('warmUpVideoEncoder', () => {
 
     expect(recorders[0].state).toBe('inactive');
     expect(canvases[0].trackStopped).toBe(true);
+  });
+
+  it('does nothing outside Chromium, whose H.264 set-up is the one that stalls the page', async () => {
+    vi.stubGlobal('navigator', {});
+
+    await warmUpVideoEncoder(mp4);
+
+    expect(recorders).toHaveLength(0);
+  });
+
+  it('marks its throwaway stream, so a take is never mistaken for it', async () => {
+    await warmUpVideoEncoder(mp4);
+
+    expect(isWarmUpStream(recorders[0].stream)).toBe(true);
+    expect(isWarmUpStream({} as MediaStream)).toBe(false);
   });
 
   it('does nothing where MediaRecorder is missing', async () => {

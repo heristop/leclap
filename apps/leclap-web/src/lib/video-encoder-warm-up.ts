@@ -16,6 +16,21 @@ const GIVE_UP_MS = 30_000;
 
 let warmUp: Promise<void> | null = null;
 
+// The throwaway streams this module encodes, so a diagnostic can tell them from a take.
+const warmUpStreams = new WeakSet<MediaStream>();
+
+export function isWarmUpStream(stream: MediaStream): boolean {
+  return warmUpStreams.has(stream);
+}
+
+// The stall was measured in Chromium only; Safari also records H.264 MP4 but was never seen to stall,
+// so it isn't handed an extra encoder while its camera opens. `userAgentData` exists only in Chromium.
+function isChromium(): boolean {
+  const brands = (navigator as { userAgentData?: { brands?: Array<{ brand: string }> } }).userAgentData?.brands;
+
+  return brands?.some((entry) => entry.brand === 'Chromium') ?? false;
+}
+
 // The video-only H.264 type to warm, or null when the recording is not H.264 (WebM's VP8/VP9 encoders
 // start without the stall).
 export function warmUpMimeType(mimeType: string | undefined): string | null {
@@ -45,6 +60,7 @@ function paintingCanvas(width: number, height: number): { stream: MediaStream; s
   };
   paint();
   const stream = canvas.captureStream(30);
+  warmUpStreams.add(stream);
 
   return {
     stream,
@@ -113,7 +129,7 @@ export function warmUpVideoEncoder(mimeType: string | undefined): Promise<void> 
 
   const videoType = warmUpMimeType(mimeType);
 
-  if (!videoType || typeof MediaRecorder === 'undefined' || typeof document === 'undefined') {
+  if (!videoType || typeof MediaRecorder === 'undefined' || typeof document === 'undefined' || !isChromium()) {
     return Promise.resolve();
   }
 

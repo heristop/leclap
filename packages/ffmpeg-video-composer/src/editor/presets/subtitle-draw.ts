@@ -120,12 +120,14 @@ const COVERAGE_LEVELS = 8;
 // arc, in COVERAGE_LEVELS steps: 0 outside, COVERAGE_LEVELS fully inside.
 function pixelCoverage(radius: number, col: number, row: number): number {
   const n = COVERAGE_SAMPLES;
-  const inside = Array.from({ length: n * n }, (_, k) => {
-    const dx = radius - (col + ((k % n) + 0.5) / n);
-    const dy = radius - (row + (Math.floor(k / n) + 0.5) / n);
+  let inside = 0;
 
-    return dx * dx + dy * dy <= radius * radius ? 1 : 0;
-  }).reduce<number>((sum, hit) => sum + hit, 0);
+  for (let k = 0; k < n * n; k++) {
+    const dx = radius - col - ((k % n) + 0.5) / n;
+    const dy = radius - row - (Math.floor(k / n) + 0.5) / n;
+
+    if (dx * dx + dy * dy <= radius * radius) inside++;
+  }
 
   return Math.round((inside / (n * n)) * COVERAGE_LEVELS);
 }
@@ -139,47 +141,45 @@ interface CornerRun {
   level: number;
 }
 
-// Rows of the same run (same x, width and level) one under the other become one taller run.
-function mergeDown(runs: CornerRun[]): CornerRun[] {
-  return runs.reduce<CornerRun[]>((merged, run) => {
-    const above = merged.find((m) => m.x === run.x && m.w === run.w && m.level === run.level && m.y + m.h === run.y);
-
-    if (above) {
-      above.h += 1;
-
-      return merged;
-    }
-
-    return [...merged, { ...run }];
-  }, []);
-}
-
-// A top-left corner of radius r as runs in corner coordinates: per pixel row, the solid strip from the
-// first fully covered pixel to the corner's inner edge, and the partly covered pixels before it, each
-// drawn at its coverage (horizontal neighbours at the same level share a run).
+// A top-left corner of radius r as runs in corner coordinates. Per pixel row: the partly covered pixels,
+// each at its coverage (neighbours at the same level share a run), then a solid strip from the first fully
+// covered pixel to the corner's inner edge. A run identical to the one right above it extends that one.
 function cornerRuns(radius: number): CornerRun[] {
-  const rows = Array.from({ length: radius }, (_, row) => {
-    const levels = Array.from({ length: radius }, (_, col) => pixelCoverage(radius, col, row));
-    const solidFrom = levels.findIndex((level) => level === COVERAGE_LEVELS);
-    const inset = solidFrom === -1 ? radius : solidFrom;
-    const partial = levels.slice(0, inset).reduce<CornerRun[]>((runs, level, col) => {
-      if (level === 0) return runs;
+  const runs: CornerRun[] = [];
 
-      const last = runs.at(-1);
+  for (let y = 0; y < radius; y++) {
+    const row: CornerRun[] = [];
 
-      if (last?.level === level && last.x + last.w === col) {
-        last.w += 1;
+    for (let x = 0; x < radius; x++) {
+      const level = pixelCoverage(radius, x, y);
+      const last = row.at(-1);
 
-        return runs;
+      if (level === COVERAGE_LEVELS) {
+        row.push({ x, y, w: radius - x, h: 1, level });
+        break;
       }
 
-      return [...runs, { x: col, y: row, w: 1, h: 1, level }];
-    }, []);
+      if (last?.level === level && last.x + last.w === x) {
+        last.w++;
+        continue;
+      }
 
-    return [...partial, { x: inset, y: row, w: radius - inset, h: 1, level: COVERAGE_LEVELS }];
-  });
+      if (level > 0) row.push({ x, y, w: 1, h: 1, level });
+    }
 
-  return mergeDown(rows.flat().filter((run) => run.w > 0));
+    for (const run of row) {
+      const above = runs.find((m) => m.x === run.x && m.w === run.w && m.level === run.level && m.y + m.h === y);
+
+      if (above) {
+        above.h++;
+        continue;
+      }
+
+      runs.push(run);
+    }
+  }
+
+  return runs;
 }
 
 // `#rrggbb@a` at `level` of its opacity.

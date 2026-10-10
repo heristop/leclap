@@ -36,6 +36,13 @@
           "isSecret": false
         },
         {
+          "name": "LECLAP_MCP_FONTS_DIR",
+          "description": "Optional read-only directory a template's global.fonts files may be read from, before the media dir. Fonts are never fetched.",
+          "format": "filepath",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
           "name": "LECLAP_MCP_RENDER_TIMEOUT_MS",
           "description": "Separate queue, effect-preflight and worker setup/render deadlines in milliseconds, not an end-to-end budget. Defaults to 600000.",
           "format": "number",

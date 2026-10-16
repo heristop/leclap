@@ -16,6 +16,7 @@ import { validateEffects } from './effects/title-registry.js';
 import { registerSamples } from './tools/samples.js';
 import { registerComposeGuide } from './prompts/composeGuide.js';
 import { registerInspectTools } from './tools/inspectTools.js';
+import { registerExtractBrand } from './tools/extract-brand.js';
 import { registerOpenInBuilder } from './tools/open-in-builder.js';
 
 // Each tool group is registered by a small `registerXxx(server, config)` function, called from
@@ -23,8 +24,8 @@ import { registerOpenInBuilder } from './tools/open-in-builder.js';
 // probe, plus the Remotion authoring helpers behind their opt-in. Every tool's name and description is
 // paid for on every agent turn, so a tool earns its place only when no other one can answer it.
 
-// The tool/prompt surface is fixed for the process lifetime (only `allowRemotion`, a start-up
-// config, changes it), so the 2026-07-28 `CacheableResult` fields can advertise a real freshness
+// The tool/prompt surface is fixed for the process lifetime (only `allowRemotion` and `allowNetwork`, start-up
+// config, change it), so the 2026-07-28 `CacheableResult` fields can advertise a real freshness
 // window instead of the SDK's conservative `ttlMs: 0`. `private` because the listing depends on this
 // server's configuration — no shared intermediary should serve it to another client.
 const LIST_CACHE_HINT = { ttlMs: 300_000, cacheScope: 'private' } as const;
@@ -94,6 +95,11 @@ export function createServer(input: McpConfig): McpServer {
   // surface. Register it only when the operator explicitly opted in for trusted local design-time use.
   if (config.allowRemotion) {
     registerRenderRemotionClip(server, config);
+  }
+
+  // extract_brand fetches websites: register it only when the operator opted into network access.
+  if (config.allowNetwork) {
+    registerExtractBrand(server, config);
   }
 
   registerComposeGuide(server);

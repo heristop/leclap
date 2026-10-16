@@ -38,6 +38,8 @@ export interface PromptInput {
   budget?: number;
   // Keep / avoid rules from a reference image or clip ("Match a reference"); binding when present.
   referenceStyle?: string;
+  /** The user's brand kit rules (theme, name, fonts); binding, separate from a reference's style. */
+  brand?: string;
 }
 
 export interface BuiltPrompt {
@@ -77,6 +79,13 @@ export function referenceBlock(rules: string | undefined): string[] {
   return trimmed ? [`${REFERENCE_STYLE_HEADING}\n${trimmed}`] : [];
 }
 
+/** The binding brand block (empty without a kit), shared by the plan and template prompts. */
+export function brandBlock(rules: string | undefined): string[] {
+  const trimmed = rules?.trim();
+
+  return trimmed ? [trimmed] : [];
+}
+
 function fixedBlocks(input: PromptInput): string[] {
   return [
     OUTPUT_CONTRACT,
@@ -87,6 +96,7 @@ function fixedBlocks(input: PromptInput): string[] {
     LAZY_DEFAULTS,
     `Engine catalog:\n${formatCatalog(input.catalog, input.hints.genre)}`,
     ...referenceBlock(input.referenceStyle),
+    ...brandBlock(input.brand),
   ];
 }
 

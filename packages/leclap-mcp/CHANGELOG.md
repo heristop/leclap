@@ -7,10 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-15
+
 ### Added
 
 - `extract_structure`: a reference clip's format (shots, rhythm, transitions, grounds, layout) as binding
   rules, from at most 480 sampled frames.
+- `get_template_schema`'s guide describes layer keyframe tracks (`options.animate` with x/y/scale/scaleX/
+  scaleY/rotate/opacity and `options.origin` on image, animation and html inputs), the `path` graphic and the
+  `drip` transition. `get_motion_catalog` lists the `burst` and `goo` fx and the art-direction rules for the
+  new effects; `validate_template` and `compose_video` accept everything `ffmpeg-video-composer` 3.2.0 adds.
+
+### Changed
+
+- Requires `ffmpeg-video-composer` ^3.2.0.
 
 ## [0.6.0] - 2026-10-11
 

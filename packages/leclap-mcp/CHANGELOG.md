@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `extract_structure`: a reference clip's format (shots, rhythm, transitions, grounds, layout) as binding
   rules, from at most 480 sampled frames.
+- `extract_brand` (behind `--allow-network` / `LECLAP_MCP_ALLOW_NETWORK`): a website's brand kit as a theme and binding rules, saved under the media dir.
 
 ## [0.6.0] - 2026-10-11
 

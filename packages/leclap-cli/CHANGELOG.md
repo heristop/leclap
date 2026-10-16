@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `leclap reference <clip>` prints a reference clip's format as binding rules (`--json`, `--out`);
   `--check template.json` exits 1 on drift. `leclap compare --reference <clip>` adds the reference's frame
   as the first tile.
+- `leclap brand <url>` writes a brand kit, a theme and binding rules.
 
 ## [0.5.0] - 2026-10-11
 

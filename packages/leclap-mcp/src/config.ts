@@ -26,6 +26,11 @@ export interface McpConfig {
    * Off by default; opt in with --allow-remotion / LECLAP_MCP_ALLOW_REMOTION for local design-time use.
    */
   allowRemotion: boolean;
+  /**
+   * Enable extract_brand, which fetches a website (HTTPS, public hosts only, size and time caps) to read
+   * its brand. Off by default; opt in with --allow-network / LECLAP_MCP_ALLOW_NETWORK.
+   */
+  allowNetwork?: boolean;
   /** Default Remotion entry (the module that calls registerRoot) for render_remotion_clip; optional. */
   remotionEntry?: string;
   /** Optional host Chromium/Chrome executable for registered effect rendering. */
@@ -155,6 +160,8 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
   const browserExecutable = readFlag(argv, '--remotion-browser') ?? process.env.LECLAP_MCP_REMOTION_BROWSER;
   const allowRemotion = readBoolean(argv, '--allow-remotion', process.env.LECLAP_MCP_ALLOW_REMOTION);
 
+  const allowNetwork = readBoolean(argv, '--allow-network', process.env.LECLAP_MCP_ALLOW_NETWORK);
+
   return {
     ...directoryConfig(argv),
     ...fontsDirConfig(argv),
@@ -163,6 +170,7 @@ export function loadConfig(argv: readonly string[] = process.argv): McpConfig {
       readFlag(argv, '--effect-cache-max-bytes') ?? process.env.LECLAP_MCP_EFFECT_CACHE_MAX_BYTES
     ),
     allowRemotion,
+    allowNetwork,
     ...catalogPathConfig(argv),
     ...(browserExecutable ? { browserExecutable: path.resolve(browserExecutable) } : {}),
     ...(remotionEntry ? { remotionEntry: path.resolve(remotionEntry) } : {}),

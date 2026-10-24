@@ -420,8 +420,10 @@ const Mouth = ({ mood }: { mood: ClappyMood }) => {
   if (mood === 'grin' || mood === 'wink' || mood === 'love') {
     return (
       <g>
-        <path d="M274 440 Q300 480 326 440 Z" fill={PUPIL} stroke={OUTLINE} strokeWidth={7} strokeLinejoin="round" />
-        <path d="M287 458 Q300 471 313 458 Q300 463 287 458 Z" fill={CHEEK} />
+        {/* the tongue sits inside the mouth, and the ink goes on last so its bottom edge stays drawn */}
+        <path d="M274 440 Q300 480 326 440 Z" fill={PUPIL} />
+        <path d="M286 451 Q300 466 314 451 Q300 448 286 451 Z" fill={CHEEK} />
+        <path d="M274 440 Q300 480 326 440 Z" fill="none" stroke={OUTLINE} strokeWidth={7} strokeLinejoin="round" />
       </g>
     );
   }

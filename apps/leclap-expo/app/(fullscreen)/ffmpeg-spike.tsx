@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useEffectEvent, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -120,7 +120,7 @@ export default function FFmpegSpikeScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleClose} style={styles.iconBtn} accessibilityLabel="Close">
-          <Ionicons name="close" size={26} color={colors.text} />
+          <Icon name="x" size={26} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Native JSON engine check</Text>
         <View style={styles.iconBtn} />
@@ -129,7 +129,7 @@ export default function FFmpegSpikeScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.row}>
           <TouchableOpacity testID="spike-version" onPress={checkVersion} style={styles.btn} disabled={busy}>
-            <Ionicons name="information-circle-outline" size={18} color={colors.primary} />
+            <Icon name="info" size={18} color={colors.primary} />
             <Text style={styles.btnText}>Check version</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -140,7 +140,7 @@ export default function FFmpegSpikeScreen() {
             style={[styles.btn, styles.btnPrimary]}
             disabled={busy}
           >
-            {busy ? <ActivityIndicator color="#fff" /> : <Ionicons name="play" size={18} color="#fff" />}
+            {busy ? <ActivityIndicator color="#fff" /> : <Icon name="play" size={18} color="#fff" />}
             <Text style={[styles.btnText, styles.btnTextPrimary]}>Compile clip</Text>
           </TouchableOpacity>
         </View>
@@ -152,7 +152,7 @@ export default function FFmpegSpikeScreen() {
           style={[styles.btn, styles.btnWide]}
           disabled={busy}
         >
-          <Ionicons name="code-slash" size={18} color={colors.primary} />
+          <Icon name="code-xml" size={18} color={colors.primary} />
           <Text style={styles.btnText}>HTML layers</Text>
         </TouchableOpacity>
 

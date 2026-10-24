@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, Alert } from 'react-native';
 import { Sheet } from '@/src/features/templates/components/Sheet';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { Clappy } from '@/src/components/clappy/Clappy';
@@ -105,7 +105,7 @@ interface ActionRowProps {
   onPress: () => void;
   disabled?: boolean;
   busy?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
 }
 
 const ActionRow = ({ label, sublabel, onPress, disabled, busy, icon }: ActionRowProps) => (
@@ -117,7 +117,7 @@ const ActionRow = ({ label, sublabel, onPress, disabled, busy, icon }: ActionRow
     accessibilityLabel={label}
     accessibilityState={{ disabled, busy }}
   >
-    <Ionicons name={icon} size={24} color={colors.primaryDark} accessible={false} />
+    <Icon name={icon} size={24} color={colors.primaryDark} accessible={false} />
     <View style={styles.actionRowText}>
       <Text style={styles.actionLabel}>{label}</Text>
       {sublabel ? <Text style={styles.actionSublabel}>{sublabel}</Text> : null}
@@ -186,7 +186,7 @@ const UploadSection = ({
       style={styles.uploadDisclosure}
     >
       <Text style={styles.uploadTitle}>{t('export.uploadTitle')}</Text>
-      <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
+      <Icon name={open ? 'chevron-up' : 'chevron-down'} size={18} color={colors.textSecondary} />
     </TouchableOpacity>
     {open ? (
       <View style={styles.uploadFields}>
@@ -255,7 +255,7 @@ const ExportSession = ({ visible, videoUri, onClose }: ExportSheetProps) => {
           </View>
         </View>
         <ActionRow
-          icon="download-outline"
+          icon="download"
           label={saveLabel(saveState, t)}
           sublabel={t('export.saveBody')}
           onPress={() => {
@@ -266,7 +266,7 @@ const ExportSession = ({ visible, videoUri, onClose }: ExportSheetProps) => {
         />
 
         <ActionRow
-          icon="share-outline"
+          icon="share"
           label={t('export.share')}
           sublabel={t('export.shareBody')}
           onPress={() => {

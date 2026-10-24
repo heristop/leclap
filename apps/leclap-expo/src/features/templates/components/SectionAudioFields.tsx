@@ -4,7 +4,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { AFADE_CURVES } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 import { Slider, Segmented } from './EditorControls';
@@ -61,7 +61,7 @@ export const SectionAudioFields = ({ musicVolume, audioFade, audioEffect, t, onC
             }}
             style={styles.resetBtn}
           >
-            <Ionicons name="refresh" size={14} color={colors.textSecondary} />
+            <Icon name="refresh-cw" size={14} color={colors.textSecondary} />
           </TouchableOpacity>
         )}
       </View>
@@ -130,8 +130,9 @@ const FadeSideRow = ({ label, value, t, onChange }: FadeSideRowProps) => {
         }}
         style={styles.fadeToggle}
       >
-        <Ionicons
-          name={enabled ? 'checkbox' : 'square-outline'}
+        <Icon
+          name={enabled ? 'square-check' : 'square'}
+          active={enabled}
           size={20}
           color={enabled ? colors.primary : colors.textSecondary}
         />

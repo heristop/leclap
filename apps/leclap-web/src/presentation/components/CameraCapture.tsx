@@ -1,7 +1,14 @@
 import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
-import { X, Check, RotateCcw, Loader2, CameraOff, TimerReset } from '@/presentation/components/icons';
-import { SwitchCameraIcon } from '@/presentation/components/icons/switch-camera';
+import {
+  X,
+  Check,
+  RotateCcw,
+  Loader2,
+  CameraOff,
+  TimerReset,
+  SwitchCamera as SwitchCameraIcon,
+} from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { motion, useReducedMotion } from 'motion/react';

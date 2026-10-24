@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Scissors, Trash2 } from '@/presentation/components/icons';
-import { GaugeIcon } from '@/presentation/components/icons/gauge';
+import { Scissors, Trash2, Gauge as GaugeIcon } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import type { ClipSegment } from '@/domain/valueObjects/videoEdits';
 import { SPEED_PRESETS } from '@/features/editor/timelineSegments';

@@ -6,7 +6,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Segmented } from './EditorControls';
 import {
@@ -48,7 +48,7 @@ export const CaptureModeFields = ({ selection, t, onChange }: CaptureModeFieldsP
               }}
               style={[styles.chip, active && styles.chipActive]}
             >
-              {active ? <Ionicons name="checkmark" size={13} color={colors.primary} /> : null}
+              {active ? <Icon name="check" size={13} color={colors.primary} /> : null}
               <Text style={[styles.chipText, active && styles.chipTextActive]}>{t(`capture.mode.${mode}`)}</Text>
             </TouchableOpacity>
           );

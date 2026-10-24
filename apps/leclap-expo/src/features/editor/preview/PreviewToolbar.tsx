@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { useTranslation } from 'react-i18next';
 import { colors } from '@/src/styles/theme';
 import { styles } from './previewStyles';
@@ -11,7 +11,7 @@ function ToolButton({
   active,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   label: string;
   active?: boolean;
   onPress: () => void;
@@ -24,7 +24,7 @@ function ToolButton({
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Ionicons name={icon} size={24} color={active ? colors.accent : colors.surface} />
+      <Icon name={icon} active={active} size={24} color={active ? colors.accent : colors.surface} />
       <Text style={[styles.toolButtonText, active && { color: colors.accent }]}>{label}</Text>
     </TouchableOpacity>
   );
@@ -72,22 +72,22 @@ export function PreviewToolbar({
         disabled={saving}
         accessibilityLabel={t('toolbar.saveAndClose')}
       >
-        {saving ? <ActivityIndicator color="#000" /> : <Ionicons name="checkmark" size={32} color="#000" />}
+        {saving ? <ActivityIndicator color="#000" /> : <Icon name="check" size={32} color="#000" />}
       </TouchableOpacity>
 
       <View style={styles.toolbar}>
-        {onExport && <ToolButton icon="share-outline" label={t('export.title')} onPress={onExport} />}
-        {canEdit && <ToolButton icon="cut-outline" label={t('toolbar.trim')} active={trimActive} onPress={onTrim} />}
-        {canEdit && <ToolButton icon="crop-outline" label={t('toolbar.crop')} active={cropActive} onPress={onCrop} />}
+        {onExport && <ToolButton icon="share" label={t('export.title')} onPress={onExport} />}
+        {canEdit && <ToolButton icon="scissors" label={t('toolbar.trim')} active={trimActive} onPress={onTrim} />}
+        {canEdit && <ToolButton icon="crop" label={t('toolbar.crop')} active={cropActive} onPress={onCrop} />}
         {canCaption && onCaptions && (
           <ToolButton
-            icon="chatbox-ellipses-outline"
+            icon="message-square-more"
             label={t('toolbar.captions')}
             active={captionsActive}
             onPress={onCaptions}
           />
         )}
-        {canEdit && <ToolButton icon="refresh" label={t('toolbar.retake')} onPress={onRetake} />}
+        {canEdit && <ToolButton icon="refresh-cw" label={t('toolbar.retake')} onPress={onRetake} />}
       </View>
     </>
   );

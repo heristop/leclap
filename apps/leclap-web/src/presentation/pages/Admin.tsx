@@ -2,12 +2,17 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { Pencil, Trash2, Braces, Scissors } from '@/presentation/components/icons';
-import { ArrowRightIcon } from '@/presentation/components/icons/arrow-right';
-import { PlusIcon } from '@/presentation/components/icons/plus';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
-import { FolderOpenIcon } from '@/presentation/components/icons/folder-open';
-import { GithubIcon } from '@/presentation/components/icons/github';
+import {
+  Pencil,
+  Trash2,
+  Braces,
+  Scissors,
+  ArrowRight as ArrowRightIcon,
+  Plus as PlusIcon,
+  Sparkles as SparklesIcon,
+  FolderOpen as FolderOpenIcon,
+  Github as GithubIcon,
+} from '@/presentation/components/icons';
 import { Button, Reveal } from '@/presentation/components/ui';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { Template } from '@/services/templateService';

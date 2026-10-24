@@ -12,7 +12,7 @@ import {
   Easing,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { useVideoPlayer } from 'expo-video';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -191,8 +191,8 @@ const MusicArtwork = ({
     {previewing ? (
       <Equalizer color={accentColor} />
     ) : (
-      <Ionicons
-        name={source === undefined ? 'musical-notes' : 'play'}
+      <Icon
+        name={source === undefined ? 'music' : 'play'}
         size={source === undefined ? 22 : 20}
         color={accentColor}
         style={source === undefined ? undefined : st.playGlyph}
@@ -224,7 +224,7 @@ const MusicSelection = ({ item, selected, onPress }: { item: MediaCredit; select
       importantForAccessibility="no-hide-descendants"
       style={[st.trackCheck, selected && st.trackCheckSelected]}
     >
-      {selected ? <Ionicons name="checkmark" size={16} color="#fff" /> : null}
+      {selected ? <Icon name="check" size={16} color="#fff" /> : null}
     </TouchableOpacity>
   </>
 );
@@ -302,14 +302,14 @@ function PictureCard({ item, selected, onPress }: PictureCardProps) {
       <View style={st.pictureThumb}>
         {source === undefined ? (
           <View style={[st.thumbImage, st.thumbPlaceholder]}>
-            <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
+            <Icon name="image" size={24} color={colors.textSecondary} />
           </View>
         ) : (
           <Image source={source} style={st.thumbImage} resizeMode="cover" accessibilityIgnoresInvertColors />
         )}
         {selected && (
           <View style={st.checkBadge}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+            <Icon name="circle-check" active size={20} color={colors.primary} />
           </View>
         )}
       </View>
@@ -325,7 +325,7 @@ function PictureCard({ item, selected, onPress }: PictureCardProps) {
 
 interface UploadRowProps {
   label: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
+  icon: IconName;
   chosen: boolean;
   loading: boolean;
   onPress: () => void;
@@ -343,11 +343,11 @@ function UploadRow({ label, icon, chosen, loading, onPress }: UploadRowProps) {
         {loading ? (
           <ActivityIndicator size="small" color={colors.primary} />
         ) : (
-          <Ionicons name={icon} size={24} color={chosen ? colors.primary : colors.textSecondary} />
+          <Icon name={icon} size={24} color={chosen ? colors.primary : colors.textSecondary} />
         )}
       </View>
       <Text style={[st.uploadLabel, chosen && st.uploadLabelSelected]}>{label}</Text>
-      {chosen && <Ionicons name="checkmark-circle" size={22} color={colors.primary} style={st.uploadCheck} />}
+      {chosen && <Icon name="circle-check" active size={22} color={colors.primary} style={st.uploadCheck} />}
     </TouchableOpacity>
   );
 }
@@ -410,7 +410,7 @@ function MusicSection({ allowedIds, allowUpload, choice, onChange }: MusicSectio
       {allowUpload && (
         <UploadRow
           label={uploadLabel}
-          icon="cloud-upload-outline"
+          icon="cloud-upload"
           chosen={isUploadSelected}
           loading={uploading}
           onPress={() => {
@@ -474,7 +474,7 @@ function BackgroundSection({ allowedIds, allowUpload, choice, onChange }: Backgr
       {allowUpload && (
         <UploadRow
           label={uploadLabel}
-          icon="image-outline"
+          icon="image"
           chosen={isUploadSelected}
           loading={uploading}
           onPress={() => {
@@ -510,7 +510,7 @@ export function UserMediaPicker({
           <View style={st.header}>
             <Text style={st.title}>Music &amp; Background</Text>
             <TouchableOpacity onPress={onClose} accessibilityLabel="Close">
-              <Ionicons name="close" size={24} color={colors.text} />
+              <Icon name="x" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 

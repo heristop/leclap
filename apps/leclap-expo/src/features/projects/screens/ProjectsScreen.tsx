@@ -2,7 +2,7 @@ import { useAdaptiveLayout } from '@/src/hooks/use-adaptive-layout';
 import React, { useCallback, useState } from 'react';
 import { Platform, View, Text, StyleSheet, FlatList, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useRouter, useFocusEffect, useIsFocused } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/src/types';
@@ -153,7 +153,7 @@ export default function ProjectsScreen() {
                 }}
                 accessibilityLabel={t('createNew')}
               >
-                <Ionicons name="add-circle" size={22} color={colors.onPrimary} />
+                <Icon name="circle-plus" size={22} color={colors.onPrimary} />
                 <Text style={styles.createNewButtonText}>{t('createNew')}</Text>
               </PressableScale>
             </View>

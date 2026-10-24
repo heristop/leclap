@@ -16,9 +16,15 @@ describe('coverGradient', () => {
 });
 
 describe('templatePoster', () => {
-  it('caps glyphs at five and preserves order', () => {
+  it('caps glyphs at six and preserves order', () => {
     const sections = Array.from({ length: 8 }, () => ({ type: 'project_video' }));
-    expect(templatePoster('id', descriptor(sections)).glyphs).toHaveLength(5);
+    expect(templatePoster('id', descriptor(sections)).glyphs).toHaveLength(6);
+  });
+
+  it('counts the scenes the strip leaves out', () => {
+    const sections = Array.from({ length: 8 }, () => ({ type: 'project_video' }));
+    expect(templatePoster('id', descriptor(sections)).more).toBe(2);
+    expect(templatePoster('id', descriptor(sections.slice(0, 4))).more).toBe(0);
   });
 
   it('handles a descriptor with no sections', () => {

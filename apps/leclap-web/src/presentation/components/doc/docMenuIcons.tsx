@@ -1,4 +1,4 @@
-// Monochrome marks for the Copy-page menu rows. lucide has no brand logos, so these are hand-drawn
+// Monochrome marks for the Copy-page menu rows. the icon set has no brand logos, so these are hand-drawn
 // glyphs in `currentColor` to match the muted icon treatment of the surrounding UI.
 
 type MarkProps = { className?: string };

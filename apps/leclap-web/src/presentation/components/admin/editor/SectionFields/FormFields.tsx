@@ -3,8 +3,7 @@
 // author types one. Removing a field offers Undo in place.
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Info } from '@/presentation/components/icons';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { Info, Plus as PlusIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { EditorSection, FormField } from '../../templateEditorModel';
 import { FormFieldCard } from './form-field-card';

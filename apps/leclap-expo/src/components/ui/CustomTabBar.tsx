@@ -8,7 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { type Tabs } from 'expo-router';
 import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
 import { motion } from '@/src/styles/motion';
@@ -33,11 +33,11 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
         {state.routes.map((route, index) => {
           const label = descriptors[route.key].options.title ?? route.name;
           const selected = state.index === index;
-          const icons: Record<string, readonly [keyof typeof Ionicons.glyphMap, keyof typeof Ionicons.glyphMap]> = {
-            index: ['film-outline', 'film'],
-            'videos/index': ['videocam-outline', 'videocam'],
+          const icons: Record<string, IconName> = {
+            index: 'film',
+            'videos/index': 'video',
           };
-          const icon = (icons[route.name] ?? icons.index)[selected ? 1 : 0];
+          const icon = icons[route.name] ?? icons.index;
 
           return (
             <TabItem
@@ -72,7 +72,7 @@ function TabItem({
   onLongPress,
 }: {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   selected: boolean;
   rail: boolean;
   onPress: () => void;
@@ -106,8 +106,9 @@ function TabItem({
     >
       <View style={styles.iconWrap}>
         <Animated.View pointerEvents="none" style={[styles.selected, badgeStyle]} />
-        <Ionicons
+        <Icon
           name={icon}
+          active={selected}
           size={24}
           color={selected ? colors.primaryDark : colors.textSecondary}
           accessible={false}

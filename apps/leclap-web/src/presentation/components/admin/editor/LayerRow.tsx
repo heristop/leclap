@@ -3,9 +3,7 @@
 // solid layers, the %
 // geometry box for extra layers, and reorder/remove controls. The base (first) layer is
 // full-bleed, so it shows no geometry and cannot be removed/moved.
-import { Trash2 } from '@/presentation/components/icons';
-import { ChevronUpIcon } from '@/presentation/components/icons/chevron-up';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { Trash2, ChevronUp as ChevronUpIcon, ChevronDown as ChevronDownIcon } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { TFunction } from 'i18next';

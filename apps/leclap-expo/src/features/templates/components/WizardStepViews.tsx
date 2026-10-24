@@ -4,7 +4,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
 import { SceneCard } from './SceneCard';
 import { ORIENTATION_ICON, ORIENTATION_ORDER } from '../orientationMeta';
@@ -23,13 +23,13 @@ import {
 
 type VideoSection = Extract<EditorSection, { kind: 'video' }>;
 
-const KIND_ICON: Record<EditorSection['kind'], keyof typeof Ionicons.glyphMap> = {
-  video: 'videocam',
-  form: 'text',
-  color: 'color-palette',
-  music: 'musical-notes',
-  image: 'image-outline',
-  partial: 'cube-outline',
+const KIND_ICON: Record<EditorSection['kind'], IconName> = {
+  video: 'video',
+  form: 'type',
+  color: 'palette',
+  music: 'music',
+  image: 'image',
+  partial: 'box',
 };
 
 interface InfoStepProps {
@@ -81,7 +81,7 @@ export const InfoStep = ({ state, t, onPatch }: InfoStepProps) => (
             accessibilityRole="radio"
             accessibilityState={{ selected: active }}
           >
-            <Ionicons name={ORIENTATION_ICON[o]} size={16} color={active ? '#fff' : colors.textSecondary} />
+            <Icon name={ORIENTATION_ICON[o]} size={16} color={active ? '#fff' : colors.textSecondary} />
             <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{t(`orientation.${o}`)}</Text>
           </TouchableOpacity>
         );
@@ -134,7 +134,7 @@ const VariablesEditor = ({ state, t, onPatch }: InfoStepProps) => {
             }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+            <Icon name="trash" size={18} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
       ))}
@@ -144,7 +144,7 @@ const VariablesEditor = ({ state, t, onPatch }: InfoStepProps) => {
         }}
         style={styles.addInline}
       >
-        <Ionicons name="add" size={14} color={colors.primary} />
+        <Icon name="plus" size={14} color={colors.primary} />
         <Text style={styles.addInlineText}>{t('variables.add')}</Text>
       </TouchableOpacity>
     </View>
@@ -233,7 +233,7 @@ export const ScenesStep = (props: ScenesStepProps) => {
             }}
             style={styles.addBtn}
           >
-            <Ionicons name={KIND_ICON[kind]} size={16} color={colors.primary} />
+            <Icon name={KIND_ICON[kind]} size={16} color={colors.primary} />
             <Text style={styles.addBtnText}>{SECTION_LABELS[kind]}</Text>
           </TouchableOpacity>
         ))}
@@ -263,7 +263,7 @@ const TransitionConnector = ({ section, t, onPress }: TransitionConnectorProps) 
     >
       <View style={styles.connectorLine} />
       <View style={styles.connectorChip}>
-        <Ionicons name="swap-vertical" size={13} color={colors.primary} />
+        <Icon name="arrow-up-down" size={13} color={colors.primary} />
         <Text style={styles.connectorText}>{label}</Text>
       </View>
       <View style={styles.connectorLine} />

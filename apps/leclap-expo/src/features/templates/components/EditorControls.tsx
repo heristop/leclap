@@ -11,7 +11,7 @@ import {
   type LayoutChangeEvent,
   type GestureResponderEvent,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
 const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
@@ -97,7 +97,7 @@ export const Slider = ({ label, value, min, max, step = 0.01, format, resetTo, o
               }}
               style={styles.resetBtn}
             >
-              <Ionicons name="refresh" size={14} color={colors.textSecondary} />
+              <Icon name="refresh-cw" size={14} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -122,7 +122,7 @@ export const Slider = ({ label, value, min, max, step = 0.01, format, resetTo, o
 export interface SegmentChoice<T extends string> {
   value: T;
   label: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
 }
 
 interface SegmentedProps<T extends string> {
@@ -151,9 +151,7 @@ export const Segmented = <T extends string>({ label, value, options, onChange }:
             }}
             style={[styles.segItem, active && styles.segItemActive]}
           >
-            {option.icon ? (
-              <Ionicons name={option.icon} size={15} color={active ? '#fff' : colors.textSecondary} />
-            ) : null}
+            {option.icon ? <Icon name={option.icon} size={15} color={active ? '#fff' : colors.textSecondary} /> : null}
             <Text style={[styles.segText, active && styles.segTextActive]} numberOfLines={1}>
               {option.label}
             </Text>

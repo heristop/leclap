@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import { Camera, useCameraDevice, type VideoFile, type CameraDevice } from 'react-native-vision-camera';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import * as ImagePicker from 'expo-image-picker';
@@ -146,7 +146,7 @@ function EndWarningOverlay({
   return (
     <Animated.View style={[styles.endWarningBorder, { opacity: pulse }]} pointerEvents="none">
       <View style={styles.endWarningBadge}>
-        <Ionicons name="timer-outline" size={16} color="white" />
+        <Icon name="timer" size={16} color="white" />
         <Text style={styles.endWarningText}>
           {remaining > 0 ? t('endWarning.wrapUp', { remaining }) : t('endWarning.timesUp')}
         </Text>
@@ -310,7 +310,7 @@ function FlipButton({ isPortrait, isRecording, onPress }: FlipButtonProps) {
       onPress={onPress}
       disabled={isRecording}
     >
-      <Ionicons name="camera-reverse-outline" size={24} color={isRecording ? 'rgba(255,255,255,0.5)' : 'white'} />
+      <Icon name="switch-camera" size={24} color={isRecording ? 'rgba(255,255,255,0.5)' : 'white'} />
     </TouchableOpacity>
   );
 }
@@ -371,7 +371,7 @@ function UploadPlaceholder({ onPick }: UploadPlaceholderProps) {
 
   return (
     <View style={styles.uploadPlaceholder}>
-      <Ionicons name="cloud-upload-outline" size={64} color="rgba(255,255,255,0.7)" />
+      <Icon name="cloud-upload" size={64} color="rgba(255,255,255,0.7)" />
       <Text style={styles.uploadLabel}>Pick a video from your gallery</Text>
       <TouchableOpacity style={styles.uploadButton} onPress={handlePress}>
         <Text style={styles.uploadButtonText}>Choose Video</Text>
@@ -395,9 +395,9 @@ function DescriptionOverlay({ isPortrait, description, onDismiss }: DescriptionO
       ]}
       onPress={onDismiss}
     >
-      <Ionicons name="sparkles" size={16} color={colors.primary} style={styles.descriptionIcon} />
+      <Icon name="sparkles" size={16} color={colors.primary} style={styles.descriptionIcon} />
       <Text style={styles.descriptionOverlayText}>{description}</Text>
-      <Ionicons name="close" size={16} color="rgba(255,255,255,0.6)" style={styles.descriptionClose} />
+      <Icon name="x" size={16} color="rgba(255,255,255,0.6)" style={styles.descriptionClose} />
     </TouchableOpacity>
   );
 }
@@ -874,11 +874,7 @@ const RecorderFooter = ({
       )}
       {!isRecording && (isPortrait || !hasModeBar) && (
         <View style={[styles.instructionChip, isPortrait ? portraitInstructions : styles.landscapeInstructions]}>
-          <Ionicons
-            name={isPortrait ? 'phone-portrait-outline' : 'phone-landscape-outline'}
-            size={13}
-            color="rgba(255,255,255,0.7)"
-          />
+          <Icon name={isPortrait ? 'smartphone' : 'smartphone-landscape'} size={13} color="rgba(255,255,255,0.7)" />
           <Text style={styles.instructionText}>{getInstructionText(orientation, t)}</Text>
         </View>
       )}
@@ -918,7 +914,7 @@ const permissionGate = ({
   if (!hasPermission) {
     return (
       <View style={styles.permissionContainer}>
-        <Ionicons name="camera-outline" size={48} color={colors.error} />
+        <Icon name="camera" size={48} color={colors.error} />
         <Text style={styles.permissionTitle}>{t('permissions.title')}</Text>
         <Text style={styles.permissionText}>{t('permissions.message')}</Text>
         <TouchableOpacity

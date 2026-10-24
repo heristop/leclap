@@ -5,8 +5,7 @@
 // one click away. The finishing controls (Effects, Section audio, Camera guide) live in collapsed
 // disclosures that only appear in Advanced mode; recorder-only controls hide in clip mode.
 import { useState } from 'react';
-import { Camera, SwitchCamera } from '@/presentation/components/icons';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { Camera, SwitchCamera, Sparkles as SparklesIcon } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { Checkbox } from '@/presentation/components/ui';
 import { defaultCountdownFor, type EditorSection, type EditorState } from '../../templateEditorModel';

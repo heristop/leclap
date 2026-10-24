@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Image, StatusBar, type ImageSourcePropType } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/src/styles/theme';
@@ -16,7 +16,7 @@ interface HeaderProps {
   onBackPress?: () => void;
   showSlogan?: boolean;
   variant?: 'primary' | 'transparent' | 'light';
-  actions?: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; color?: string }[];
+  actions?: { icon: IconName; label: string; onPress: () => void; color?: string }[];
 }
 
 function backAction(onBackPress: (() => void) | undefined, router: ReturnType<typeof useRouter>): void {
@@ -64,7 +64,7 @@ function HeaderLeft({
           style={styles.action}
           haptic={false}
         >
-          <Ionicons name="chevron-back" size={24} color={textColor} />
+          <Icon name="chevron-left" size={24} color={textColor} />
         </PressableScale>
       ) : null}
       {showLogo ? (
@@ -87,7 +87,7 @@ function HeaderActions({ actions, textColor }: { actions: HeaderProps['actions']
           style={styles.action}
           haptic={false}
         >
-          <Ionicons name={action.icon} size={24} color={action.color ?? textColor} />
+          <Icon name={action.icon} size={24} color={action.color ?? textColor} />
         </PressableScale>
       ))}
     </>

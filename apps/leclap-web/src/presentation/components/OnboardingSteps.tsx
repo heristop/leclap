@@ -1,7 +1,14 @@
 import type { RefObject } from 'react';
-import { Video as VideoIcon, Check, Download, ArrowRight, RotateCcw, X } from '@/presentation/components/icons';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
-import { UploadIcon } from '@/presentation/components/icons/upload';
+import {
+  Video as VideoIcon,
+  Check,
+  Download,
+  ArrowRight,
+  RotateCcw,
+  X,
+  Sparkles as SparklesIcon,
+  Upload as UploadIcon,
+} from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';

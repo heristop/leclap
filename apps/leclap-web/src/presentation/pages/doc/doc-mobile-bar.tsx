@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { ChevronDown as ChevronDownIcon } from '@/presentation/components/icons';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { cn } from '@/lib/utils';
 import { DocNavList, NAV_LABEL } from './doc-nav-list';

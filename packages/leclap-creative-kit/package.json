@@ -53,6 +53,10 @@
     "./clappy": {
       "types": "./src/clappy.ts",
       "default": "./src/clappy.ts"
+    },
+    "./icons": {
+      "types": "./src/icons/index.ts",
+      "default": "./src/icons/index.ts"
     }
   },
   "scripts": {

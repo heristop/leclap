@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -237,7 +237,7 @@ export default function CreateTemplateScreen() {
             style={styles.iconBtn}
             accessibilityLabel={t('header.back')}
           >
-            <Ionicons name="close" size={26} color={colors.text} />
+            <Icon name="x" size={26} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.headerSpacer} />
           <View style={styles.actions}>
@@ -247,7 +247,7 @@ export default function CreateTemplateScreen() {
               accessibilityLabel={t('header.undo')}
               style={styles.actionBtn}
             >
-              <Ionicons name="arrow-undo" size={20} color={canUndo ? colors.text : colors.divider} />
+              <Icon name="undo-2" size={20} color={canUndo ? colors.text : colors.divider} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={redo}
@@ -255,13 +255,13 @@ export default function CreateTemplateScreen() {
               accessibilityLabel={t('header.redo')}
               style={styles.actionBtn}
             >
-              <Ionicons name="arrow-redo" size={20} color={canRedo ? colors.text : colors.divider} />
+              <Icon name="redo-2" size={20} color={canRedo ? colors.text : colors.divider} />
             </TouchableOpacity>
             <TouchableOpacity onPress={onImport} accessibilityLabel={t('header.import')} style={styles.actionBtn}>
-              <Ionicons name="download-outline" size={20} color={colors.text} />
+              <Icon name="download" size={20} color={colors.text} />
             </TouchableOpacity>
             <TouchableOpacity onPress={onExport} accessibilityLabel={t('header.export')} style={styles.actionBtn}>
-              <Ionicons name="share-outline" size={20} color={colors.text} />
+              <Icon name="share" size={20} color={colors.text} />
             </TouchableOpacity>
           </View>
         </View>

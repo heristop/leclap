@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import FormSection from '../components/FormSection';
 import type { Template, Section, Project } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
@@ -65,16 +65,16 @@ function checkSectionDone(section: Section, project: Project): boolean {
   return false;
 }
 
-function getSectionIcon(type: string): React.ComponentProps<typeof Ionicons>['name'] {
-  if (type === 'project_video') return 'videocam';
+function getSectionIcon(type: string): IconName {
+  if (type === 'project_video') return 'video';
 
-  if (type === 'form') return 'document-text';
+  if (type === 'form') return 'file-text';
 
-  if (type === 'music') return 'musical-notes';
+  if (type === 'music') return 'music';
 
   if (type === 'picture') return 'image';
 
-  return 'document';
+  return 'file';
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -96,7 +96,7 @@ const FullscreenWrap: React.FC<FullscreenWrapProps> = ({ section, onBack, childr
     <View style={{ flex: 1 }}>
       <StatusBar hidden={false} backgroundColor="transparent" translucent />
       <TouchableOpacity style={st.fsBack} onPress={onBack}>
-        <Ionicons name="arrow-back" size={24} color="white" />
+        <Icon name="arrow-left" size={24} color="white" />
       </TouchableOpacity>
       <View style={st.fsTitleBox}>
         <Text style={st.fsTitle}>{section.title?.en ?? section.name}</Text>
@@ -115,7 +115,7 @@ const SectionRow: React.FC<SectionRowProps> = ({ section, done, onPress }) => (
   <TouchableOpacity style={st.row} onPress={onPress}>
     <View style={st.rowContent}>
       <View style={st.rowIcon}>
-        <Ionicons name={getSectionIcon(section.type)} size={24} color={colors.primary} />
+        <Icon name={getSectionIcon(section.type)} size={24} color={colors.primary} />
       </View>
       <View style={st.rowText}>
         <Text style={st.rowTitle}>{section.title?.en ?? section.name}</Text>
@@ -127,9 +127,9 @@ const SectionRow: React.FC<SectionRowProps> = ({ section, done, onPress }) => (
       </View>
       <View style={st.rowStatus}>
         {done ? (
-          <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+          <Icon name="circle-check" active size={24} color={colors.success} />
         ) : (
-          <Ionicons name="ellipse-outline" size={24} color={colors.divider} />
+          <Icon name="circle" size={24} color={colors.divider} />
         )}
       </View>
     </View>
@@ -170,7 +170,7 @@ const SectionContent: React.FC<SectionContentProps> = ({
           });
         }}
       >
-        <Ionicons name="videocam" size={32} color={colors.surface} />
+        <Icon name="video" size={32} color={colors.surface} />
         <Text style={st.recordBtnText}>Start Recording</Text>
       </TouchableOpacity>
     );
@@ -191,7 +191,7 @@ const SectionContent: React.FC<SectionContentProps> = ({
   if (section.type === 'music') {
     return (
       <View style={st.placeholder}>
-        <Ionicons name="musical-notes" size={48} color={colors.primary} />
+        <Icon name="music" size={48} color={colors.primary} />
         <Text style={st.placeholderText}>Music selection coming soon</Text>
         <TouchableOpacity
           style={st.tempBtn}
@@ -384,7 +384,7 @@ export const EditorScreen: React.FC<Props> = ({ route, navigation }) => {
             navigation.goBack();
           }}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Icon name="arrow-left" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={st.title}>{template.name.replace('.json', '')}</Text>
       </View>

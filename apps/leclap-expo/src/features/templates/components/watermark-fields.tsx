@@ -7,7 +7,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { WATERMARK_POSITIONS } from 'ffmpeg-video-composer/src/schemas/global.schemas.ts';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { BACKGROUND_LIBRARY, backgroundAsset } from '@/src/data/mediaCatalog';
@@ -50,7 +50,7 @@ const WatermarkSource = ({
 }) =>
   mode === 'library' ? (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.strip}>
-      <WatermarkCard label={t('watermark.none')} active={!value} onPress={clear} icon="ban-outline" />
+      <WatermarkCard label={t('watermark.none')} active={!value} onPress={clear} icon="ban" />
       {BACKGROUND_LIBRARY.map((background) => (
         <WatermarkCard
           key={background.id}
@@ -173,8 +173,8 @@ export const WatermarkField = ({ value, onChange, t }: WatermarkFieldProps) => {
         label={t('watermark.source')}
         value={mode}
         options={[
-          { value: 'library', label: t('watermark.sourceLibrary'), icon: 'images-outline' },
-          { value: 'url', label: t('watermark.sourceUrl'), icon: 'link-outline' },
+          { value: 'library', label: t('watermark.sourceLibrary'), icon: 'images' },
+          { value: 'url', label: t('watermark.sourceUrl'), icon: 'link' },
         ]}
         onChange={setMode}
       />
@@ -204,7 +204,7 @@ const WatermarkCard = ({
   active: boolean;
   onPress: () => void;
   source?: number;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
 }) => (
   <TouchableOpacity
     accessibilityRole="button"
@@ -217,7 +217,7 @@ const WatermarkCard = ({
       {source ? (
         <Image source={source} style={styles.thumbImg} resizeMode="cover" />
       ) : (
-        <Ionicons name={icon ?? 'image-outline'} size={18} color={colors.textSecondary} />
+        <Icon name={icon ?? 'image'} size={18} color={colors.textSecondary} />
       )}
     </View>
     <Text style={[styles.cardLabel, active && { color: colors.primary }]} numberOfLines={1}>

@@ -12,7 +12,7 @@ import {
   Proportions,
   Scissors,
   Sparkles,
-  type LucideIcon,
+  type IconComponent,
 } from '@/presentation/components/icons';
 import { SegmentedControl } from '@/presentation/components/ui';
 import { KineticHeading, GradientMeter, PressableScale, ratio01 } from '@/presentation/components/kinetic';
@@ -68,7 +68,7 @@ interface EditorShellProps {
 
 interface RailItem {
   tool: Tool;
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
 }
 

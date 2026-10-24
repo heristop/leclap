@@ -4,7 +4,7 @@
 // (0fr → 1fr) — not height — and the revealed body fades in through FadeIn (the alpha apparition).
 // While collapsed, a summary chip on the header tells the author what's configured without expanding.
 import { useId, useState, type ReactNode } from 'react';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { ChevronDown as ChevronDownIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import { FadeIn } from './FadeIn';

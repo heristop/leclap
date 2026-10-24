@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, Share2 } from '@/presentation/components/icons';
-import { DownloadIcon } from '@/presentation/components/icons/download';
+import { Check, Share2, Download as DownloadIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { logger } from '@/lib/logger';
 import { Button } from '@/presentation/components/ui';

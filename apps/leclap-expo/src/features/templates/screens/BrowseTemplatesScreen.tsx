@@ -1,7 +1,7 @@
 import { useAdaptiveLayout } from '@/src/hooks/use-adaptive-layout';
 import React from 'react';
 import { Platform, View, StyleSheet, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useRouter, useIsFocused } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import TemplateList from '../components/TemplateList';
@@ -63,7 +63,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
             onPress={() => {
               refetch().catch(console.error);
             }}
-            icon="refresh"
+            icon="refresh-cw"
             size="large"
             fullWidth={false}
           >
@@ -99,7 +99,7 @@ const BrowseTemplatesScreen = ({ onRecordPress: _onRecordPress }: BrowseTemplate
           haptic="medium"
           accessibilityLabel={t('createTemplate')}
         >
-          <Ionicons name="add" size={22} color={colors.onPrimary} />
+          <Icon name="plus" size={22} color={colors.onPrimary} />
           <Text style={styles.fabText}>{t('createTemplate')}</Text>
         </PressableScale>
       </View>

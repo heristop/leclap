@@ -1,7 +1,6 @@
 import * as React from 'react';
 import * as SelectPrimitive from '@radix-ui/react-select';
-import { Check } from '@/presentation/components/icons';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { Check, ChevronDown as ChevronDownIcon } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 

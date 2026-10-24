@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { type ComponentType } from 'react';
-import { Video } from '@/presentation/components/icons';
-import { FileTextIcon } from '@/presentation/components/icons/file-text';
+import { Video, FileText as FileTextIcon } from '@/presentation/components/icons';
 import { FONTS } from '@leclap/creative-kit/fonts';
 import type { Template, InputSection } from '@/services/templateService';
 import { resolveTranslation, resolveVariables, buildDescriptionVars } from '@/lib/i18nText';

@@ -29,7 +29,7 @@ jest.mock('react-native', () => ({
 jest.mock('expo-router', () => ({ useLocalSearchParams: () => params, useRouter: () => ({ back: jest.fn() }) }));
 jest.mock('expo-video', () => ({ VideoView: 'VideoView' }));
 jest.mock('react-native-safe-area-context', () => ({ SafeAreaView: 'SafeAreaView' }));
-jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Icon' }));
+jest.mock('@/src/components/ui/Icon', () => ({ Icon: 'Icon' }));
 jest.mock('@/src/components/kinetic/pressable-scale', () => ({ PressableScale: 'PressableScale' }));
 jest.mock('@/src/hooks/useProjects', () => ({ useProject: () => ({ data: undefined }), useSaveProject: () => ({}) }));
 jest.mock('@/src/features/editor/components/CropOverlay', () => 'CropOverlay');

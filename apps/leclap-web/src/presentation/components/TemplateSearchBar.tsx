@@ -1,4 +1,4 @@
-import { SearchIcon } from '@/presentation/components/icons/search';
+import { Search as SearchIcon } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { SegmentedControl } from '@/presentation/components/ui';
 import type { ComplexityFacet, OrientationFacet } from '@/lib/filterTemplates';

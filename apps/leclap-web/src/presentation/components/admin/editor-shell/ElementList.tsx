@@ -7,9 +7,16 @@ import { useState, type ComponentType, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
-import { Code2, Image, Plus, Square, Trash2, Type } from '@/presentation/components/icons';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
-import { ChevronUpIcon } from '@/presentation/components/icons/chevron-up';
+import {
+  Code2,
+  Image,
+  Plus,
+  Square,
+  Trash2,
+  Type,
+  ChevronDown as ChevronDownIcon,
+  ChevronUp as ChevronUpIcon,
+} from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { FamilyTile, familyNameKey } from '../editor/animationKinds';
 import type { ElementRef } from './useSectionSelection';

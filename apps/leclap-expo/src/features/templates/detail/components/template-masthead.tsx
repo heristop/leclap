@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import type { Orientation } from '@/src/types';
 import { colors } from '@/src/styles/theme';
 import { ORIENTATION_ICON } from '@/src/features/templates/orientationMeta';
@@ -24,10 +24,10 @@ export function TemplateMasthead({ title, description, orientation, onBack }: Te
     <View style={styles.masthead}>
       <View style={styles.mastheadTopRow}>
         <PressableScale style={styles.backChevron} onPress={onBack} accessibilityLabel={t('backToTemplates')}>
-          <Ionicons name="chevron-back" size={26} color={colors.textStrong} />
+          <Icon name="chevron-left" size={26} color={colors.textStrong} />
         </PressableScale>
         <View style={styles.formatChip}>
-          <Ionicons name={ORIENTATION_ICON[orientation]} size={13} color={colors.primary} />
+          <Icon name={ORIENTATION_ICON[orientation]} size={13} color={colors.primary} />
           <Text style={styles.formatChipText}>{t(`orientation.${orientation}`)}</Text>
         </View>
       </View>

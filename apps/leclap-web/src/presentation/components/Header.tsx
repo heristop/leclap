@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MenuIcon } from './icons/menu';
-import { XIcon } from './icons/x';
+import {
+  Menu as MenuIcon,
+  X as XIcon,
+  Sun as SunIcon,
+  Moon as MoonIcon,
+  Github as GithubIcon,
+  type AnimatedIconHandle as GithubIconHandle,
+  Globe as GlobeIcon,
+} from '@/presentation/components/icons';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
@@ -8,10 +15,6 @@ import { Button } from '@/presentation/components/ui';
 import { SnakeBorder } from '@/presentation/components/kinetic';
 import { BottomSheet } from '@/presentation/components/ui/BottomSheet';
 import { LogoMark, type LogoMarkHandle } from './LogoMark';
-import { SunIcon } from './icons/sun';
-import { MoonIcon } from './icons/moon';
-import { GithubIcon, type GithubIconHandle } from './icons/github';
-import { GlobeIcon } from './icons/globe';
 import { useIconHover } from './icons/useIconHover';
 import { isNavActive, navigationItems, type NavItem } from './header-nav.logic';
 import { useDarkSurface } from '@/hooks/use-dark-surface';

@@ -25,11 +25,19 @@ const TYPE_TO_KIND: Record<string, SectionKind> = {
 
 const typeToKind = (type?: string): SectionKind => TYPE_TO_KIND[type ?? ''] ?? 'video';
 
-// A seeded gradient + up to five section glyphs that preview a template's shape.
+const STRIP_LENGTH = 6;
+
+// A seeded gradient, up to six section glyphs that preview a template's shape, and how many scenes
+// the strip leaves out.
 export const templatePoster = (
   id: string,
   descriptor: TemplateDescriptor
-): { gradient: string; glyphs: SectionKind[] } => ({
-  gradient: coverGradient(id),
-  glyphs: (descriptor.sections ?? []).slice(0, 5).map((section) => typeToKind((section as { type?: string }).type)),
-});
+): { gradient: string; glyphs: SectionKind[]; more: number } => {
+  const sections = descriptor.sections ?? [];
+
+  return {
+    gradient: coverGradient(id),
+    glyphs: sections.slice(0, STRIP_LENGTH).map((section) => typeToKind((section as { type?: string }).type)),
+    more: Math.max(0, sections.length - STRIP_LENGTH),
+  };
+};

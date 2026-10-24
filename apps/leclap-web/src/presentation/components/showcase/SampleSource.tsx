@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, Copy, Check, RefreshCw, ChevronDown } from 'lucide-react';
+import { Download, Copy, Check, RefreshCw, ChevronDown } from '@/presentation/components/icons';
 import { Button } from '@/presentation/components/ui/button';
 import { mediaPath, type ShowcaseSample } from './catalog';
 

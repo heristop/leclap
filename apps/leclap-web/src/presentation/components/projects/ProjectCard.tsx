@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Film, Pencil } from '@/presentation/components/icons';
-import { ClockIcon } from '@/presentation/components/icons/clock';
-import { PlayIcon } from '@/presentation/components/icons/play';
+import { Film, Pencil, Clock as ClockIcon, Play as PlayIcon } from '@/presentation/components/icons';
 import { relativeTime } from '@/lib/relativeTime';
 import { useProjectPoster } from '@/hooks/useProjectPoster';
 import { Card } from '@/presentation/components/ui';

@@ -7,7 +7,7 @@ import {
   type VideoFile,
   type CameraCaptureError,
 } from 'react-native-vision-camera';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 
 interface CameraModalProps {
   visible: boolean;
@@ -76,10 +76,10 @@ function CameraControls({
     <>
       <RecordButton isRecording={isRecording} onStart={onStart} onStop={onStop} />
       <TouchableOpacity style={styles.flipButton} onPress={onFlip}>
-        <Ionicons name="camera-reverse-outline" size={24} color="white" />
+        <Icon name="switch-camera" size={24} color="white" />
       </TouchableOpacity>
       <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <Ionicons name="close-outline" size={28} color="white" />
+        <Icon name="x" size={28} color="white" />
       </TouchableOpacity>
       <View style={styles.instructionContainer}>
         <Text style={styles.instructionText}>Hold your device vertically for best results</Text>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { VideoView } from 'expo-video';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, fonts, withAlpha } from '@/src/styles/theme';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { useProject, useSaveProject } from '@/src/hooks/useProjects';
@@ -266,7 +266,7 @@ function PreviewMonitorFrame({ onClose }: { onClose: () => void }) {
         </View>
       </View>
       <PressableScale style={monitorStyles.close} onPress={onClose} accessibilityLabel="Close preview">
-        <Ionicons name="chevron-down" size={26} color="#FFFFFF" />
+        <Icon name="chevron-down" size={26} color="#FFFFFF" />
       </PressableScale>
     </>
   );

@@ -3,8 +3,7 @@
 // the engine's FormatterManager at compile time. Lives in the Advanced panel, mirroring the
 // Global-variables editor's row chrome.
 import { useTranslation } from 'react-i18next';
-import { Trash2 } from '@/presentation/components/icons';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { Trash2, Plus as PlusIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { ColorPicker, ColorVariablesProvider } from '@/presentation/components/ui';
 import { BRAND_SWATCHES } from '@/lib/color';

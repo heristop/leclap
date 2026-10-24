@@ -5,13 +5,11 @@ import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { AlertCircle, ArrowRight } from '@/presentation/components/icons';
-import { CopyIcon } from '@/presentation/components/icons/copy';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { AlertCircle, ArrowRight, Copy as CopyIcon, Plus as PlusIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Button, Card } from '@/presentation/components/ui';
 import { Clappy } from '@/presentation/components/clappy';
-import { TemplatePoster } from '@/presentation/components/TemplatePoster';
+import { TemplateCardContent } from '@/presentation/components/template-card-content';
 import type { Template } from '@/services/templateService';
 import { cn } from '@/lib/utils';
 
@@ -23,9 +21,8 @@ interface TemplateCardProps {
   t: TFunction<'admin'>;
 }
 
-// The poster-card language, shared with /studio: a seeded gradient band fronts a surface-2 card that
-// lifts and spotlights on hover with a brand ring. The complexity tag lives on the poster, so the
-// body carries the name, description and a compact meta line.
+// The library card: the same content as the studio's (TemplateCardContent), on a static card that lifts
+// and spotlights on hover with a brand ring, with the page's actions under its footer line.
 export const TemplateCard = ({ template, actions, t }: TemplateCardProps) => (
   <Card
     data-vt-card
@@ -36,35 +33,12 @@ export const TemplateCard = ({ template, actions, t }: TemplateCardProps) => (
     }}
     className="lift spotlight group relative flex h-full flex-col overflow-hidden border-foreground/10 p-0 hover:border-brand-500/40"
   >
-    <TemplatePoster template={template} />
-
-    <div className="flex flex-1 flex-col p-5">
-      <h3
-        data-vt-title
-        className="mb-1.5 font-display text-lg font-bold text-foreground transition-colors group-hover:text-brand-300"
-      >
-        {template.name}
-      </h3>
-      <p className="mb-4 line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-muted-foreground">
-        {template.description || t('card.noDescription')}
-      </p>
-      <p className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-        <span>{t(`orientationLabel.${template.orientation}`)}</span>
-        <span aria-hidden className="text-foreground/25">
-          ·
-        </span>
-        <span>{t('card.section', { count: template.descriptor.sections?.length ?? 0 })}</span>
-        {template.hasForm && (
-          <>
-            <span aria-hidden className="text-foreground/25">
-              ·
-            </span>
-            <span>{t('card.form')}</span>
-          </>
-        )}
-      </p>
-      <div className="mt-auto flex gap-2">{actions}</div>
-    </div>
+    <TemplateCardContent
+      template={template}
+      title={template.name}
+      description={template.description || t('card.noDescription')}
+      actions={actions}
+    />
   </Card>
 );
 
@@ -169,9 +143,9 @@ export const LibrarySkeleton = () => (
         key={slot}
         className="animate-pulse overflow-hidden rounded-2xl border border-foreground/10 bg-surface-2/50 motion-reduce:animate-none"
       >
-        <div className="h-24 bg-foreground/[0.07]" />
+        <div className="h-40 bg-foreground/[0.07]" />
         <div className="p-5">
-          <div className="mb-3 h-5 w-2/5 rounded-md bg-foreground/10" />
+          <div className="mb-3 h-3.5 rounded bg-foreground/[0.07]" />
           <div className="mb-2 h-3.5 rounded bg-foreground/[0.07]" />
           <div className="mb-5 h-3.5 w-4/5 rounded bg-foreground/[0.07]" />
           <div className="mb-5 h-3 w-1/3 rounded bg-foreground/[0.06]" />

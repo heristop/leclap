@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, StatusBar, Alert } from 'react-native';
 import { MotiView } from 'moti';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -69,7 +69,7 @@ const RecordSectionHeader = ({
         disabled={backDisabled}
         accessibilityLabel={t('actions.back', { ns: 'common' })}
       >
-        <Ionicons name="chevron-back" size={26} color={backDisabled ? 'rgba(255,255,255,0.4)' : '#FFFFFF'} />
+        <Icon name="chevron-left" size={26} color={backDisabled ? 'rgba(255,255,255,0.4)' : '#FFFFFF'} />
       </PressableScale>
 
       <View style={styles.headerTitleContainer}>

@@ -23,7 +23,7 @@ jest.mock('react-native', () => ({
   StyleSheet: { create: (s: unknown) => s },
   Alert: { alert: jest.fn() },
 }));
-jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Icon' }));
+jest.mock('@/src/components/ui/Icon', () => ({ Icon: 'Icon' }));
 jest.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 jest.mock('@/src/features/templates/components/Sheet', () => ({ Sheet: 'Sheet' }));
 jest.mock('@/src/components/clappy/Clappy', () => ({ Clappy: 'Clappy' }));

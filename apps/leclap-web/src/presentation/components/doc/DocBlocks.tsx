@@ -1,6 +1,5 @@
 import { useId, useState } from 'react';
-import { Check, Info, Lightbulb } from '@/presentation/components/icons';
-import { CopyIcon } from '@/presentation/components/icons/copy';
+import { Check, Info, Lightbulb, Copy as CopyIcon } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { SegmentedControl } from '@/presentation/components/ui';
 import { commandSegments } from './command-wrap.logic';

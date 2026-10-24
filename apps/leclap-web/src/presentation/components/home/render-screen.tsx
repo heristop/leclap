@@ -2,6 +2,7 @@ import { useRef, useState, useSyncExternalStore, type CSSProperties, type RefObj
 import { useTranslation } from 'react-i18next';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { Clappy, clappyHeight } from '@/presentation/components/clappy';
+import { Lock } from '@/presentation/components/icons';
 import { READY_FRAME, renderReadout, screenClappyFrame } from './render-screen.logic';
 import { createFrameStore, useRenderScrub, type FrameStore, type ScreenLines } from './use-render-scrub';
 
@@ -143,18 +144,7 @@ const Swap = ({
 
 const PrivacyLine = ({ label }: { label: string }) => (
   <p className="mt-[calc(var(--u)*20)] flex items-center gap-[calc(var(--u)*5)] font-[system-ui,sans-serif] text-[length:calc(var(--u)*7.5)] text-[#C6C2DD]">
-    <svg
-      viewBox="0 0 24 24"
-      className="h-[calc(var(--u)*9)] w-auto shrink-0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect x="5" y="11" width="14" height="10" rx="2" />
-      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-    </svg>
+    <Lock className="h-[calc(var(--u)*9)] w-auto shrink-0" />
     {label}
   </p>
 );

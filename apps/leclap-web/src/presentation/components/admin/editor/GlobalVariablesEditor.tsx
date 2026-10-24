@@ -3,8 +3,7 @@
 // the legacy editor and the studio shell's Variables panel render the exact same authoring UI.
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2 } from '@/presentation/components/icons';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { Trash2, Plus as PlusIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { normalizeHex } from '@/lib/color';
 import type { EditorState } from '../templateEditorModel';

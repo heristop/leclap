@@ -1,30 +1,22 @@
-import { useState, useEffect, forwardRef, type ComponentType, type ReactNode } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Video, Image, Square, SearchX, type LucideIcon } from '@/presentation/components/icons';
-import { type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
-import { ZapIcon } from '@/presentation/components/icons/zap';
-import { UsersIcon } from '@/presentation/components/icons/users';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
-import { LayersIcon } from '@/presentation/components/icons/layers';
-import { FolderOpenIcon } from '@/presentation/components/icons/folder-open';
+import {
+  SearchX,
+  ArrowRight as ArrowRightIcon,
+  Sparkles as SparklesIcon,
+  FolderOpen as FolderOpenIcon,
+} from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { logger } from '@/lib/logger';
 import { filterTemplates, type ComplexityFacet, type OrientationFacet } from '@/lib/filterTemplates';
 import { Badge, Button, Card, Reveal } from '@/presentation/components/ui';
-import { GradientMeter, PressableScale, ProgramMonitor } from '@/presentation/components/kinetic';
-import { TemplatePoster } from './TemplatePoster';
+import { PressableScale } from '@/presentation/components/kinetic';
+import { TemplateCardContent } from './template-card-content';
 import { HighlightMatch } from './HighlightMatch';
 import { TemplateSearchBar } from './TemplateSearchBar';
 import { EmptyState } from './EmptyState';
 import { ClappyReaction } from '@/presentation/components/clappy';
-
-// SearchX has no animated variant; this shim accepts (and ignores) the handle ref so it satisfies
-// EmptyState's animated-icon prop type without throwing when the hover handler reaches for its handle.
-const SearchXIcon = forwardRef<AnimatedIconHandle, { className?: string }>(({ className }, _ref) => (
-  <SearchX className={className} />
-));
-SearchXIcon.displayName = 'SearchXIcon';
 
 interface TemplateSelectorProps {
   onTemplateSelected: (template: Template) => void;
@@ -39,55 +31,6 @@ interface TemplateCardProps {
   query: string;
 }
 
-const MetaChip = ({ icon: Icon, children }: { icon: ComponentType<{ className?: string }>; children: ReactNode }) => (
-  <span className="inline-flex items-center gap-1.5 rounded-full bg-foreground/[0.05] px-2.5 py-1 text-xs font-medium text-gray-400">
-    <Icon className="w-3.5 h-3.5 text-brand-600 dark:text-brand-300" />
-    {children}
-  </span>
-);
-
-// Orientation → meta-chip icon (portrait a tall image, square a 1:1 box, landscape a wide frame).
-const ORIENTATION_ICON: Record<Template['orientation'], LucideIcon> = {
-  portrait: Image,
-  square: Square,
-  landscape: Video,
-};
-
-// Complexity → GradientMeter fill (0..1) — the at-a-glance "level" bar in the pro-editor vocabulary.
-const COMPLEXITY_PROGRESS: Record<Template['complexity'], number> = {
-  simple: 0.34,
-  intermediate: 0.67,
-  advanced: 1,
-};
-
-const CardMetaChips = ({
-  template,
-  fieldCount,
-  sectionCount,
-}: {
-  template: Template;
-  fieldCount: number;
-  sectionCount: number;
-}) => {
-  const { t } = useTranslation('templates');
-  const orientation = template.orientation;
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      <MetaChip icon={ORIENTATION_ICON[orientation]}>{t(`orientation.${orientation}`)}</MetaChip>
-      <MetaChip icon={template.hasForm ? UsersIcon : ZapIcon}>
-        {template.hasForm ? t('fields', { count: fieldCount }) : t('autoProcess')}
-      </MetaChip>
-      <MetaChip icon={LayersIcon}>{t('sections', { count: sectionCount })}</MetaChip>
-      {template.descriptor.global?.musicEnabled && (
-        <Badge variant="secondary" className="normal-case tracking-normal">
-          <SparklesIcon size={14} /> {t('music')}
-        </Badge>
-      )}
-    </div>
-  );
-};
-
 // Mark this card's title as the View Transition's shared element so it morphs into the editor titlebar
 // when the editor opens. Set imperatively at click time so the name is on the DOM before the snapshot.
 const tagTitleForTransition = (card: HTMLElement): void => {
@@ -98,8 +41,6 @@ const tagTitleForTransition = (card: HTMLElement): void => {
 
 const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardProps) => {
   const { t } = useTranslation('templates');
-  const fieldCount = templateService.extractFormFields(template.descriptor).length;
-  const sectionCount = template.descriptor.sections?.length ?? 0;
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -122,43 +63,25 @@ const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardPro
       onKeyDown={handleKeyDown}
       aria-pressed={isSelected}
       className={clsx(
-        'group relative h-full w-full overflow-hidden p-0 text-left',
+        'group relative flex h-full w-full flex-col overflow-hidden p-0 text-left',
         isSelected
           ? 'border-brand-500 shadow-lg shadow-brand-500/15 ring-2 ring-brand-500/30'
           : 'border-foreground/10 hover:border-brand-500/40'
       )}
     >
-      {/* Frame the poster as a program monitor: corner registration brackets over the preview band
-          (no tally chip — the poster already carries the complexity badge top-left). */}
-      <ProgramMonitor label={null} scanline className="rounded-none border-0">
-        <TemplatePoster template={template} isSelected={isSelected} />
-      </ProgramMonitor>
-
-      <div className="p-5">
-        {template.source === 'user' && (
-          <div className="mb-2">
-            <Badge variant="brand">{t('custom')}</Badge>
-          </div>
-        )}
-        <h3
-          data-vt-title
-          className="mb-1.5 font-display text-xl font-bold text-foreground transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-300"
-        >
-          <HighlightMatch text={template.name} query={query} />
-        </h3>
-        <p className="mb-4 text-sm leading-relaxed text-gray-400">
-          <HighlightMatch text={template.description} query={query} />
-        </p>
-        <CardMetaChips template={template} fieldCount={fieldCount} sectionCount={sectionCount} />
-
-        {/* Complexity as a lavender→pink level meter — the gradient-meter accent from the kinetic set. */}
-        <div className="mt-4 flex items-center gap-2.5">
-          <span className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-gray-500">
-            {t(`complexity.${template.complexity}`)}
+      <TemplateCardContent
+        template={template}
+        isSelected={isSelected}
+        title={<HighlightMatch text={template.name} query={query} />}
+        description={<HighlightMatch text={template.description} query={query} />}
+        badge={template.source === 'user' ? <Badge variant="brand">{t('custom')}</Badge> : undefined}
+        cue={
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 opacity-70 transition-opacity group-hover:opacity-100 dark:text-brand-300">
+            {t('useTemplate')}
+            <ArrowRightIcon className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
           </span>
-          <GradientMeter progress={COMPLEXITY_PROGRESS[template.complexity]} className="flex-1" />
-        </div>
-      </div>
+        }
+      />
     </Card>
   );
 };
@@ -167,7 +90,7 @@ const LoadingSkeleton = () => (
   <div className="grid gap-6 md:grid-cols-2">
     {[1, 2, 3, 4].map((index) => (
       <div key={index} className="overflow-hidden rounded-2xl border border-foreground/10 bg-surface/50">
-        <div className="h-24 shimmer" />
+        <div className="h-40 shimmer" />
         <div className="space-y-3 p-5">
           <div className="h-5 w-1/2 rounded shimmer" />
           <div className="h-4 w-full rounded shimmer" />
@@ -313,7 +236,7 @@ export const TemplateSelector = ({
       {shown.length === 0 ? (
         // Nothing matched: Clappy looks around the frame and shrugs, as on the 404 — same meaning, same act.
         <EmptyState
-          icon={SearchXIcon}
+          icon={SearchX}
           visual={<ClappyReaction reaction="search" size={112} />}
           title={t('empty.title')}
           hint={t('empty.hint')}

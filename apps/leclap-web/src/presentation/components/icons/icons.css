@@ -1,0 +1,498 @@
+/* The LeClap icons (leclap-icon.tsx): duotone paint and the one gesture each glyph makes.
+   Paint: lines in the text colour; `.lc-f` parts take a soft lavender tint that turns into the brand gradient
+   while the icon is hovered, played, or sits in an active control. Motion: transform and opacity only, on the
+   shared curves, using the individual transform properties so a part's own geometry is never overridden;
+   none at all under reduced motion. */
+
+.lc-icon {
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+:where(.lc-icon) .lc-f {
+  fill: color-mix(in oklab, var(--color-brand-500) 30%, transparent);
+  transition: fill 0.25s var(--ease-smooth);
+}
+
+:where(.dark .lc-icon) .lc-f {
+  fill: color-mix(in oklab, var(--color-brand-300) 34%, transparent);
+}
+
+.lc-icon .lc-stop-a {
+  stop-color: var(--color-brand-500);
+}
+
+.lc-icon .lc-stop-b {
+  stop-color: var(--color-secondary-400);
+}
+
+/* Hovered, played, or in an active control: the tint becomes the brand gradient. */
+:where(
+    .lc-icon:hover,
+    .lc-icon[data-animate],
+    :is(button, a, [role='button'], [role='tab'], [role='menuitem']):hover > .lc-icon,
+    :is(
+        [aria-current]:not([aria-current='false']),
+        [aria-pressed='true'],
+        [aria-selected='true'],
+        [data-state='active'],
+        [data-state='on']
+      )
+      > .lc-icon
+  )
+  .lc-f {
+  fill: var(--lc-gradient, color-mix(in oklab, var(--color-brand-500) 55%, transparent));
+}
+
+/* A caller that fills the glyph (fill-current on the icon, [&_svg]:fill-… on its control, a fill prop) gets a
+   solid shape. */
+:is(.lc-icon[class*='fill-'], [class*='fill-'] > .lc-icon, .lc-icon[fill]:not([fill='none'])) .lc-f {
+  fill: inherit;
+}
+
+.lc-icon .lc-m,
+.lc-icon .lc-m2 {
+  transform-box: view-box;
+  transform-origin: var(--lc-origin, 12px 12px);
+}
+
+.lc-icon .lc-s {
+  stroke: none;
+}
+
+/* ---------- gestures ---------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(
+    .lc-icon:hover,
+    .lc-icon[data-animate],
+    :is(button, a, [role='button'], [role='tab'], [role='menuitem']):hover > .lc-icon
+  ) {
+    &[data-motion='nudge'] .lc-m {
+      animation: lc-nudge 0.5s var(--ease-spring);
+    }
+
+    &[data-motion='slide-right'] .lc-m {
+      animation: lc-slide-right 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='slide-left'] .lc-m {
+      animation: lc-slide-left 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='slide-up'] .lc-m {
+      animation: lc-slide-up 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='slide-down'] .lc-m {
+      animation: lc-slide-down 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='slide-up-right'] .lc-m {
+      animation: lc-slide-up-right 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='drop'] .lc-m {
+      animation: lc-drop 0.55s var(--ease-spring);
+    }
+
+    &[data-motion='rise'] .lc-m {
+      animation: lc-rise 0.55s var(--ease-spring);
+    }
+
+    &[data-motion='lid'] .lc-m {
+      animation: lc-lid 0.6s var(--ease-spring);
+    }
+
+    &[data-motion='draw'] .lc-m {
+      stroke-dasharray: 1;
+      animation: lc-draw 0.45s var(--ease-smooth);
+    }
+
+    &[data-motion='pop'] .lc-m {
+      animation: lc-pop 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='pulse'] .lc-m {
+      animation: lc-pulse 0.7s var(--ease-smooth);
+    }
+
+    &[data-motion='twinkle'] :is(.lc-m, .lc-m2) {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: lc-twinkle 0.6s var(--ease-spring);
+    }
+
+    &[data-motion='twinkle'] .lc-m2 {
+      animation-delay: 0.12s;
+    }
+
+    &[data-motion='blink'] .lc-m {
+      animation: lc-blink 0.9s steps(2, jump-none) 2;
+    }
+
+    &[data-motion='bob'] .lc-m {
+      animation: lc-bob 0.55s var(--ease-spring);
+    }
+
+    &[data-motion='snip'] .lc-m {
+      animation: lc-snip-a 0.4s var(--ease-spring) 2;
+    }
+
+    &[data-motion='snip'] .lc-m2 {
+      animation: lc-snip-b 0.4s var(--ease-spring) 2;
+    }
+
+    &[data-motion='tilt'] .lc-m {
+      animation: lc-tilt 0.55s var(--ease-spring);
+    }
+
+    &[data-motion='shake'] .lc-m {
+      animation: lc-shake 0.5s var(--ease-smooth);
+    }
+
+    &[data-motion='clap'] .lc-m {
+      animation: lc-clap 0.55s var(--ease-spring);
+    }
+
+    &[data-motion='spin'] .lc-m {
+      animation: lc-spin 0.7s var(--ease-smooth);
+    }
+
+    &[data-motion='spin-back'] .lc-m {
+      animation: lc-spin-back 0.6s var(--ease-smooth);
+    }
+
+    &[data-motion='spin-half'] .lc-m {
+      animation: lc-spin-half 0.55s var(--ease-smooth);
+    }
+
+    &[data-motion='spin-quarter'] .lc-m {
+      animation: lc-spin-quarter 0.4s var(--ease-spring);
+    }
+
+    &[data-motion='spin-y'] .lc-m {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: lc-spin-y 0.7s var(--ease-smooth);
+    }
+
+    &[data-motion='sweep'] .lc-m {
+      animation: lc-sweep 0.7s var(--ease-spring);
+    }
+
+    &[data-motion='squash'] :is(.lc-m, .lc-m2) {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: lc-squash 0.4s var(--ease-spring);
+    }
+
+    &[data-motion='squash'] .lc-m2 {
+      animation-delay: 0.06s;
+    }
+
+    &[data-motion='wave'] .lc-m {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: lc-wave 0.8s var(--ease-smooth);
+    }
+
+    &[data-motion='lift'] .lc-m {
+      animation: lc-lift 0.5s var(--ease-spring);
+    }
+
+    &[data-motion='spread'] .lc-m {
+      animation: lc-spread-a 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='spread'] .lc-m2 {
+      animation: lc-spread-b 0.45s var(--ease-spring);
+    }
+
+    &[data-motion='spread-x'] .lc-m {
+      animation: lc-knob-a 0.5s var(--ease-spring);
+    }
+
+    &[data-motion='spread-x'] .lc-m2 {
+      animation: lc-knob-b 0.5s var(--ease-spring);
+    }
+
+    &[data-motion='spread-y'] .lc-m {
+      animation: lc-drift-down 0.5s var(--ease-spring);
+    }
+
+    &[data-motion='spread-y'] .lc-m2 {
+      animation: lc-drift-up 0.5s var(--ease-spring);
+    }
+
+    &[data-motion='scan'] .lc-m {
+      animation: lc-scan 0.9s var(--ease-smooth);
+    }
+
+    &[data-motion='slide-knobs'] .lc-m {
+      animation: lc-knob-a 0.6s var(--ease-spring);
+    }
+
+    &[data-motion='slide-knobs'] .lc-m2 {
+      animation: lc-knob-b 0.6s var(--ease-spring);
+    }
+  }
+}
+
+@keyframes lc-nudge {
+  30% {
+    translate: -1.5px 0;
+  }
+  60% {
+    translate: 2px 0;
+  }
+}
+
+@keyframes lc-slide-right {
+  0% {
+    translate: -5px 0;
+    opacity: 0;
+  }
+}
+
+@keyframes lc-slide-left {
+  0% {
+    translate: 5px 0;
+    opacity: 0;
+  }
+}
+
+@keyframes lc-slide-up {
+  0% {
+    translate: 0 5px;
+    opacity: 0;
+  }
+}
+
+@keyframes lc-slide-down {
+  0% {
+    translate: 0 -5px;
+    opacity: 0;
+  }
+}
+
+@keyframes lc-slide-up-right {
+  0% {
+    translate: -4px 4px;
+    opacity: 0;
+  }
+}
+
+@keyframes lc-drop {
+  0% {
+    translate: 0 -6px;
+    opacity: 0;
+  }
+}
+
+@keyframes lc-rise {
+  0% {
+    translate: 0 6px;
+    opacity: 0;
+  }
+}
+
+@keyframes lc-lid {
+  40% {
+    rotate: 18deg;
+    translate: 0 -1.5px;
+  }
+}
+
+@keyframes lc-draw {
+  0% {
+    stroke-dashoffset: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lc-pop {
+  40% {
+    scale: 1.14;
+  }
+}
+
+@keyframes lc-pulse {
+  25%,
+  65% {
+    scale: 1.14;
+  }
+  45% {
+    scale: 1;
+  }
+}
+
+@keyframes lc-twinkle {
+  40% {
+    scale: 1.3;
+    rotate: 18deg;
+  }
+}
+
+@keyframes lc-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes lc-bob {
+  35% {
+    translate: 0 -2.5px;
+  }
+  70% {
+    translate: 0 0.5px;
+  }
+}
+
+@keyframes lc-snip-a {
+  50% {
+    rotate: -12deg;
+  }
+}
+
+@keyframes lc-snip-b {
+  50% {
+    rotate: 12deg;
+  }
+}
+
+@keyframes lc-tilt {
+  40% {
+    rotate: -14deg;
+    scale: 1.06;
+  }
+}
+
+@keyframes lc-shake {
+  20%,
+  60% {
+    rotate: -8deg;
+  }
+  40%,
+  80% {
+    rotate: 8deg;
+  }
+}
+
+/* The stick is drawn open: it slams shut on the board, bounces a touch past open, settles. */
+@keyframes lc-clap {
+  45% {
+    rotate: 18deg;
+  }
+  70% {
+    rotate: -5deg;
+  }
+}
+
+@keyframes lc-spin {
+  100% {
+    rotate: 360deg;
+  }
+}
+
+@keyframes lc-spin-back {
+  100% {
+    rotate: -360deg;
+  }
+}
+
+@keyframes lc-spin-half {
+  100% {
+    rotate: 180deg;
+  }
+}
+
+@keyframes lc-spin-quarter {
+  100% {
+    rotate: 90deg;
+  }
+}
+
+@keyframes lc-spin-y {
+  50% {
+    scale: -1 1;
+  }
+}
+
+@keyframes lc-sweep {
+  35% {
+    rotate: -40deg;
+  }
+  70% {
+    rotate: 25deg;
+  }
+}
+
+@keyframes lc-squash {
+  40% {
+    scale: 1 0.7;
+  }
+}
+
+@keyframes lc-wave {
+  0% {
+    opacity: 0;
+    scale: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes lc-lift {
+  40% {
+    translate: 0 -2.5px;
+  }
+}
+
+@keyframes lc-spread-a {
+  40% {
+    translate: 1.5px -1.5px;
+  }
+}
+
+@keyframes lc-spread-b {
+  40% {
+    translate: -1.5px 1.5px;
+  }
+}
+
+@keyframes lc-drift-down {
+  40% {
+    translate: 0 2.5px;
+  }
+}
+
+@keyframes lc-drift-up {
+  40% {
+    translate: 0 -2.5px;
+  }
+}
+
+@keyframes lc-scan {
+  30% {
+    translate: 0 -5px;
+  }
+  70% {
+    translate: 0 5px;
+  }
+}
+
+@keyframes lc-knob-a {
+  40% {
+    translate: 3px 0;
+  }
+}
+
+@keyframes lc-knob-b {
+  40% {
+    translate: -3px 0;
+  }
+}

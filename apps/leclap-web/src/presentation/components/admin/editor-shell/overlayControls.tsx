@@ -3,8 +3,7 @@
 // — these render in the left OverlayInspector and patch the overlay through `onPatch`.
 import { useEffect, useRef, useState } from 'react';
 import type { TFunction } from 'i18next';
-import { Trash2, Type } from '@/presentation/components/icons';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { Trash2, Type, ChevronDown as ChevronDownIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { FONTS } from '@leclap/creative-kit/fonts';
 import { DEFAULT_BOX_PADDING } from '@leclap/creative-kit/editor';

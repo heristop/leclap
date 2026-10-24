@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import type { Section, Project } from '@/src/types';
 import { resolveTranslation, resolveVariables } from '@/src/utils/i18nText';
 import { colors } from '@/src/styles/theme';
@@ -40,7 +40,7 @@ export function ShotRow({ section, project, index, vars, onPress, onPreview }: S
         <View style={styles.shotBody}>
           <View style={styles.shotHeadline}>
             <Text style={styles.shotIndex}>{pad(index)}</Text>
-            <Ionicons name={getSectionIcon(section)} size={15} color={colors.textSecondary} />
+            <Icon name={getSectionIcon(section)} size={15} color={colors.textSecondary} />
             <Text style={styles.shotTitle} numberOfLines={1}>
               {title}
             </Text>
@@ -55,7 +55,7 @@ export function ShotRow({ section, project, index, vars, onPress, onPreview }: S
 
       {hasClip ? (
         <PressableScale style={styles.thumbChip} onPress={onPreview} accessibilityLabel={t('preview')}>
-          <Ionicons name="play" size={18} color={colors.primary} />
+          <Icon name="play" size={18} color={colors.primary} />
         </PressableScale>
       ) : null}
     </View>

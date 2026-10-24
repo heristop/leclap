@@ -1,5 +1,5 @@
 import { type ColorTokens, type FontSizeTokens, Button as TamaguiButton, Text, XStack } from 'tamagui';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { ActivityIndicator } from 'react-native';
 import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
 import { colors } from '@/src/styles/theme';
@@ -15,7 +15,7 @@ interface ButtonProps {
   onPress?: () => void | Promise<void>;
   disabled?: boolean;
   loading?: boolean;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
   hapticFeedback?: boolean;
@@ -142,7 +142,7 @@ const getScales = (disabled: boolean, reduced: boolean) =>
 
 interface ButtonContentProps {
   loading: boolean;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   iconPosition: 'left' | 'right';
   iconSize: number;
   iconColor: string;
@@ -166,11 +166,11 @@ function ButtonContent({
       <ActivityIndicator size="small" color={iconColor} />
     </XStack>
   ) : (
-    icon && iconPosition === 'left' && <Ionicons name={icon} size={iconSize} color={iconColor} />
+    icon && iconPosition === 'left' && <Icon name={icon} size={iconSize} color={iconColor} />
   );
 
   const rightIcon = !loading && icon && iconPosition === 'right' && (
-    <Ionicons name={icon} size={iconSize} color={iconColor} />
+    <Icon name={icon} size={iconSize} color={iconColor} />
   );
 
   return (

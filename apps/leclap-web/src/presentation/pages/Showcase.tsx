@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowUpRight, Play, Search, Plus, X, SearchX } from 'lucide-react';
+import { ArrowUpRight, Play, Search, Plus, X, SearchX } from '@/presentation/components/icons';
 import { Seo } from '@/presentation/components/Seo';
 import { Button } from '@/presentation/components/ui/button';
 import { Reveal } from '@/presentation/components/ui/reveal';

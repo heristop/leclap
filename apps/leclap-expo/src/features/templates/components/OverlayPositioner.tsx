@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { FONTS, findFont } from '@leclap/creative-kit/fonts';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Slider, Segmented } from './EditorControls';
@@ -103,11 +103,11 @@ export const OverlayPositioner = ({
         <SafeAreaView style={styles.container}>
           <View style={styles.header}>
             <TouchableOpacity onPress={onClose} accessibilityLabel={t('header.close')} style={styles.iconBtn}>
-              <Ionicons name="close" size={24} color={colors.text} />
+              <Icon name="x" size={24} color={colors.text} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{t('overlay.title')}</Text>
             <TouchableOpacity onPress={onRemove} accessibilityLabel={t('overlay.remove')} style={styles.iconBtn}>
-              <Ionicons name="trash-outline" size={22} color={colors.error} />
+              <Icon name="trash" size={22} color={colors.error} />
             </TouchableOpacity>
           </View>
 

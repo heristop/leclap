@@ -14,7 +14,7 @@ import type { Template } from '@/src/types';
 import TemplateCard from './TemplateCard';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Clappy } from '@/src/components/clappy/Clappy';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useTranslation } from 'react-i18next';
 import { filterTemplates, templateColumns } from '../template-presentation';
 import { CONTENT_MAX_WIDTH } from '@/src/styles/adaptive-layout';
@@ -70,7 +70,7 @@ const TemplateListHeader = ({
         {fontScale < 1.3 ? <Clappy size={76} state={focused ? 'search' : 'welcome'} active={motionActive} /> : null}
       </View>
       <View style={[styles.search, focused && styles.searchFocused]}>
-        <Ionicons name="search-outline" size={20} color={colors.textSecondary} accessible={false} />
+        <Icon name="search" size={20} color={colors.textSecondary} accessible={false} />
         <TextInput
           style={styles.searchInput}
           placeholder={t('search.placeholder')}
@@ -93,7 +93,7 @@ const TemplateListHeader = ({
             }}
             style={({ pressed }) => [styles.clear, pressed && styles.pressed]}
           >
-            <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+            <Icon name="circle-x" size={20} color={colors.textSecondary} />
           </Pressable>
         ) : null}
       </View>

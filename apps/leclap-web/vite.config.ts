@@ -19,7 +19,6 @@ const VENDOR_GROUPS: { test: RegExp; name: string }[] = [
   },
   { test: /[\\/]node_modules[\\/](motion|framer-motion|motion-dom|motion-utils)[\\/]/, name: 'vendor-motion' },
   { test: /[\\/]node_modules[\\/](i18next|react-i18next|i18next-browser-languagedetector)[\\/]/, name: 'vendor-i18n' },
-  { test: /[\\/]node_modules[\\/]lucide-react[\\/]/, name: 'vendor-icons' },
 ];
 
 export default defineConfig({

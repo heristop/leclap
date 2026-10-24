@@ -1,7 +1,6 @@
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Info } from '@/presentation/components/icons';
-import { CopyIcon } from '@/presentation/components/icons/copy';
+import { Info, Copy as CopyIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Button } from '@/presentation/components/ui';
 import { SectionFields } from '../editor/SectionFields';

@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { useCompileProgressStore } from '@/src/stores/useCompileProgressStore';
 import { Clappy } from '@/src/components/clappy/Clappy';
 import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
@@ -67,7 +67,7 @@ export function CompileProgressOverlay() {
               {cancelling ? t('compile.cancelling') : stage || t('compile.preparing')}
             </Text>
             <View style={styles.privacy}>
-              <Ionicons name="lock-closed-outline" size={18} color={colors.monitorSecondary} accessible={false} />
+              <Icon name="lock" size={18} color={colors.monitorSecondary} accessible={false} />
               <Text style={styles.privacyText}>{t('compile.private')}</Text>
             </View>
             <Pressable

@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, ArrowUpRight } from '@/presentation/components/icons';
-import { GithubIcon } from '@/presentation/components/icons/github';
+import { Check, ArrowUpRight, Github as GithubIcon } from '@/presentation/components/icons';
 import {
   Button,
   Dialog,

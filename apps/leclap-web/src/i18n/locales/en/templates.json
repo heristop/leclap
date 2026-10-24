@@ -14,6 +14,7 @@
   "sections_one": "{{count}} section",
   "sections_other": "{{count}} sections",
   "music": "Music",
+  "useTemplate": "Use template",
   "custom": "Custom",
   "sections": {
     "myTemplates": "My templates",

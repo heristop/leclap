@@ -1,12 +1,10 @@
-import React, { useState, useEffect, type ComponentProps } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { XStack, YStack, Text, Card } from 'tamagui';
 import { useOffline } from '@/src/providers/OfflineProvider';
 import { useTemplatesSyncStatus } from '@/src/hooks/useTemplates';
 import * as Haptics from 'expo-haptics';
-
-type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
 interface NetworkStatusIndicatorProps {
   showWhenOnline?: boolean;
@@ -21,14 +19,14 @@ interface SyncStatus {
   needsSync: boolean;
 }
 
-function getConnectionIcon(isOffline: boolean, networkType: string | null | undefined): IoniconName {
-  if (isOffline) return 'wifi-outline';
+function getConnectionIcon(isOffline: boolean, networkType: string | null | undefined): IconName {
+  if (isOffline) return 'wifi-off';
 
   if (networkType === 'wifi') return 'wifi';
 
-  if (networkType === 'cellular') return 'cellular';
+  if (networkType === 'cellular') return 'signal';
 
-  return 'globe-outline';
+  return 'globe';
 }
 
 function getConnectionColor(isOffline: boolean, hasInternet: boolean | null | undefined): string {
@@ -107,7 +105,7 @@ function SyncStatusRows({ syncStatus }: SyncStatusRowsProps) {
 }
 
 interface ConnectionHeaderProps {
-  connectionIcon: IoniconName;
+  connectionIcon: IconName;
   connectionColor: string;
   statusText: string;
   networkType: string | null | undefined;
@@ -131,7 +129,7 @@ function ConnectionHeader({
     <XStack alignItems="center" justifyContent="space-between" gap="$m">
       <XStack alignItems="center" gap="$s" flex={1}>
         <XStack alignItems="center" gap="$xs">
-          <Ionicons name={connectionIcon} size={20} color={connectionColor} />
+          <Icon name={connectionIcon} size={20} color={connectionColor} />
 
           {networkType === 'cellular' && hasInternet && <CellularBars />}
         </XStack>
@@ -149,7 +147,7 @@ function ConnectionHeader({
         </YStack>
       </XStack>
 
-      {expandable && <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="$colorTransparent" />}
+      {expandable && <Icon name={isExpanded ? 'chevron-up' : 'chevron-down'} size={16} color="$colorTransparent" />}
     </XStack>
   );
 }
@@ -200,7 +198,7 @@ const NetworkStatusContent = ({
 }: {
   compact: boolean;
   expandable: boolean;
-  connectionIcon: keyof typeof Ionicons.glyphMap;
+  connectionIcon: IconName;
   connectionColor: string;
   statusText: string;
   networkType: string;
@@ -220,7 +218,7 @@ const NetworkStatusContent = ({
   if (compact) {
     return (
       <XStack padding="$xs">
-        <Ionicons name={connectionIcon} size={16} color={connectionColor} />
+        <Icon name={connectionIcon} size={16} color={connectionColor} />
       </XStack>
     );
   }

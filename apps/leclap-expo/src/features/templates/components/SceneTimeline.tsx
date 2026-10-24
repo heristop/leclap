@@ -5,18 +5,18 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
 import { isVisualKind } from './wizardSteps';
 import type { EditorSection, EditorState } from '../model/templateEditorModel';
 
-const KIND_ICON: Record<EditorSection['kind'], keyof typeof Ionicons.glyphMap> = {
-  video: 'videocam',
-  form: 'text',
-  color: 'color-palette',
-  music: 'musical-notes',
-  image: 'image-outline',
-  partial: 'cube-outline',
+const KIND_ICON: Record<EditorSection['kind'], IconName> = {
+  video: 'video',
+  form: 'type',
+  color: 'palette',
+  music: 'music',
+  image: 'image',
+  partial: 'box',
 };
 
 // A visual scene's duration drives its chip width; non-visual scenes (form/music/partial) have no
@@ -51,11 +51,7 @@ export const SceneTimeline = ({ state, t, onSelect }: SceneTimelineProps) => {
               : { backgroundColor: withAlpha(colors.primary, 0.1) },
           ]}
         >
-          <Ionicons
-            name={KIND_ICON[section.kind]}
-            size={12}
-            color={section.kind === 'color' ? '#fff' : colors.primary}
-          />
+          <Icon name={KIND_ICON[section.kind]} size={12} color={section.kind === 'color' ? '#fff' : colors.primary} />
           <Text style={[styles.chipNum, section.kind === 'color' ? { color: '#fff' } : null]}>{i + 1}</Text>
         </TouchableOpacity>
       ))}

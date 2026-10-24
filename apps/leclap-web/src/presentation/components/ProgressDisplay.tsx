@@ -1,10 +1,13 @@
 import { createElement, useEffect, useRef, useState, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Hourglass } from 'lucide-react';
-import { CheckCircle2, AlertCircle } from '@/presentation/components/icons';
-import { ClockIcon } from '@/presentation/components/icons/clock';
-import { CpuIcon } from '@/presentation/components/icons/cpu';
-import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
+import {
+  Hourglass,
+  CheckCircle2,
+  AlertCircle,
+  Clock as ClockIcon,
+  Cpu as CpuIcon,
+  ShieldCheck as ShieldCheckIcon,
+} from '@/presentation/components/icons';
 import clsx from 'clsx';
 import { GradientMeter } from '@/presentation/components/kinetic';
 import { ClappyRunner } from '@/presentation/components/clappy';

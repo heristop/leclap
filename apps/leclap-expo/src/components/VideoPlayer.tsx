@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, StatusBar } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
 interface VideoPlayerProps {
@@ -30,12 +30,12 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUri, onClose, onRetake }
           activeOpacity={0.7}
           hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
         >
-          <Ionicons name="close" size={36} color="#000000" />
+          <Icon name="x" size={36} color="#000000" />
         </TouchableOpacity>
 
         {onRetake && (
           <TouchableOpacity style={styles.retakeButton} onPress={onRetake}>
-            <Ionicons name="refresh" size={20} color="white" />
+            <Icon name="refresh-cw" size={20} color="white" />
             <Text style={styles.buttonText}>Re-take</Text>
           </TouchableOpacity>
         )}

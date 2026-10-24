@@ -3,10 +3,17 @@ import { useTranslation } from 'react-i18next';
 import * as SliderPrimitive from '@radix-ui/react-slider';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { Check, Maximize, Minimize } from 'lucide-react';
-import { Captions, CaptionsOff, Volume2, VolumeX } from '@/presentation/components/icons';
-import { PlayIcon } from '@/presentation/components/icons/play';
-import { PauseIcon } from '@/presentation/components/icons/pause';
+import {
+  Check,
+  Maximize,
+  Minimize,
+  Captions,
+  CaptionsOff,
+  Volume2,
+  VolumeX,
+  Play as PlayIcon,
+  Pause as PauseIcon,
+} from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { PLAYBACK_RATES, formatClock, formatRate } from './player.logic';
 import { rateRoll } from './timeline.logic';

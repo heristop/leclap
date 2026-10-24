@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
 interface StepperProps {
@@ -43,7 +43,7 @@ export const Stepper = ({ steps, currentStep }: StepperProps) => {
                 accessibilityLabel={`${label}${stepStateSuffix(isActive, isDone)}`}
               >
                 {isDone ? (
-                  <Ionicons name="checkmark" size={16} color="#fff" />
+                  <Icon name="check" size={16} color="#fff" />
                 ) : (
                   <Text style={[styles.nodeNumber, isActive && styles.nodeNumberActive]}>{index + 1}</Text>
                 )}

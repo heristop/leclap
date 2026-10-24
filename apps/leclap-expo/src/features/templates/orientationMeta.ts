@@ -1,15 +1,13 @@
 // Shared orientation presentation metadata — one icon per format, reused by the editor's orientation
 // toggle, the template detail row, and the template card so they never drift. Labels come from i18n
 // (`orientation.<value>`); the union itself is the shared `Orientation` (landscape | portrait | square).
-import type { Ionicons } from '@expo/vector-icons';
+import type { IconName } from '@/src/components/ui/Icon';
 import type { Orientation } from '@/src/types';
 
-type IoniconName = keyof typeof Ionicons.glyphMap;
-
-export const ORIENTATION_ICON: Record<Orientation, IoniconName> = {
-  landscape: 'phone-landscape-outline',
-  portrait: 'phone-portrait-outline',
-  square: 'square-outline',
+export const ORIENTATION_ICON: Record<Orientation, IconName> = {
+  landscape: 'smartphone-landscape',
+  portrait: 'smartphone',
+  square: 'square',
 };
 
 // Display order for the editor's orientation toggle.

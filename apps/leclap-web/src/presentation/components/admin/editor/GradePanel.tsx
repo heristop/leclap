@@ -5,8 +5,10 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
-import { SlidersHorizontalIcon } from '@/presentation/components/icons/sliders-horizontal';
+import {
+  ChevronDown as ChevronDownIcon,
+  SlidersHorizontal as SlidersHorizontalIcon,
+} from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import { Select, SelectTrigger, SelectValue, SelectItem } from '@/presentation/components/ui';

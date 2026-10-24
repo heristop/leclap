@@ -17,7 +17,6 @@
   "dependencies": {
     "@expo-google-fonts/oswald": "^0.4.2",
     "@expo/metro-runtime": "~57.0.16",
-    "@expo/vector-icons": "^15.0.2",
     "@leclap/creative-kit": "workspace:*",
     "@react-native-community/netinfo": "12.0.1",
     "@tamagui/animations-moti": "^2.7.7",

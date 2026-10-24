@@ -1,6 +1,5 @@
 import { useEffect, useId } from 'react';
-import { Trash2 } from '@/presentation/components/icons';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { Trash2, Plus as PlusIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { AvailablePartial } from '@/services/templatePartialService';
 import type { EditorSection } from '../../templateEditorModel';

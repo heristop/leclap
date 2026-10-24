@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   SearchX,
-  Music as MusicIcon,
   ArrowRight as ArrowRightIcon,
   Sparkles as SparklesIcon,
   FolderOpen as FolderOpenIcon,
@@ -13,8 +12,7 @@ import { logger } from '@/lib/logger';
 import { filterTemplates, type ComplexityFacet, type OrientationFacet } from '@/lib/filterTemplates';
 import { Badge, Button, Card, Reveal } from '@/presentation/components/ui';
 import { PressableScale } from '@/presentation/components/kinetic';
-import { TemplatePoster } from './TemplatePoster';
-import { ComplexityMeter } from './complexity-meter';
+import { TemplateCardContent } from './template-card-content';
 import { HighlightMatch } from './HighlightMatch';
 import { TemplateSearchBar } from './TemplateSearchBar';
 import { EmptyState } from './EmptyState';
@@ -33,48 +31,6 @@ interface TemplateCardProps {
   query: string;
 }
 
-// The card's one meta line: format, scene count, what the user fills in, and music when it has some.
-const CardMeta = ({
-  template,
-  fieldCount,
-  sectionCount,
-}: {
-  template: Template;
-  fieldCount: number;
-  sectionCount: number;
-}) => {
-  const { t } = useTranslation('templates');
-  const parts = [
-    t(`orientation.${template.orientation}`),
-    t('sections', { count: sectionCount }),
-    template.hasForm ? t('fields', { count: fieldCount }) : t('autoProcess'),
-  ];
-
-  return (
-    <p className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-      {parts.map((part, index) => (
-        <span key={part} className="inline-flex items-center gap-2">
-          {index > 0 && (
-            <span aria-hidden className="text-foreground/25">
-              ·
-            </span>
-          )}
-          {part}
-        </span>
-      ))}
-      {template.descriptor.global?.musicEnabled && (
-        <span className="inline-flex items-center gap-1 font-medium text-secondary-600 dark:text-secondary-300">
-          <span aria-hidden className="text-foreground/25">
-            ·
-          </span>
-          <MusicIcon className="size-3.5" />
-          {t('music')}
-        </span>
-      )}
-    </p>
-  );
-};
-
 // Mark this card's title as the View Transition's shared element so it morphs into the editor titlebar
 // when the editor opens. Set imperatively at click time so the name is on the DOM before the snapshot.
 const tagTitleForTransition = (card: HTMLElement): void => {
@@ -85,8 +41,6 @@ const tagTitleForTransition = (card: HTMLElement): void => {
 
 const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardProps) => {
   const { t } = useTranslation('templates');
-  const fieldCount = templateService.extractFormFields(template.descriptor).length;
-  const sectionCount = template.descriptor.sections?.length ?? 0;
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -115,33 +69,19 @@ const TemplateCard = ({ template, isSelected, onSelect, query }: TemplateCardPro
           : 'border-foreground/10 hover:border-brand-500/40'
       )}
     >
-      <TemplatePoster template={template} isSelected={isSelected} />
-
-      <div className="flex flex-1 flex-col p-5">
-        {template.source === 'user' && (
-          <div className="mb-2">
-            <Badge variant="brand">{t('custom')}</Badge>
-          </div>
-        )}
-        <h3
-          data-vt-title
-          className="mb-1.5 font-display text-xl font-bold text-foreground transition-colors group-hover:text-brand-600 dark:group-hover:text-brand-300"
-        >
-          <HighlightMatch text={template.name} query={query} />
-        </h3>
-        <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
-          <HighlightMatch text={template.description} query={query} />
-        </p>
-        <CardMeta template={template} fieldCount={fieldCount} sectionCount={sectionCount} />
-
-        <div className="mt-auto flex items-center justify-between border-t border-foreground/10 pt-4">
-          <ComplexityMeter complexity={template.complexity} label={t(`complexity.${template.complexity}`)} />
+      <TemplateCardContent
+        template={template}
+        isSelected={isSelected}
+        title={<HighlightMatch text={template.name} query={query} />}
+        description={<HighlightMatch text={template.description} query={query} />}
+        badge={template.source === 'user' ? <Badge variant="brand">{t('custom')}</Badge> : undefined}
+        cue={
           <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 opacity-70 transition-opacity group-hover:opacity-100 dark:text-brand-300">
             {t('useTemplate')}
             <ArrowRightIcon className="size-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
           </span>
-        </div>
-      </div>
+        }
+      />
     </Card>
   );
 };
@@ -150,7 +90,7 @@ const LoadingSkeleton = () => (
   <div className="grid gap-6 md:grid-cols-2">
     {[1, 2, 3, 4].map((index) => (
       <div key={index} className="overflow-hidden rounded-2xl border border-foreground/10 bg-surface/50">
-        <div className="h-24 shimmer" />
+        <div className="h-40 shimmer" />
         <div className="space-y-3 p-5">
           <div className="h-5 w-1/2 rounded shimmer" />
           <div className="h-4 w-full rounded shimmer" />

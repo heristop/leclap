@@ -3,9 +3,9 @@ import {
   FileText,
   Image as ImageIcon,
   Music,
-  Square,
+  Palette,
   Video,
-  type LucideIcon,
+  type IconComponent,
 } from '@/presentation/components/icons';
 
 // Shared section-type metadata, reused by the add-section menu, the template poster glyph strip, and
@@ -14,10 +14,10 @@ export type SectionKind = 'video' | 'form' | 'color' | 'music' | 'image' | 'part
 
 export const SECTION_KINDS: SectionKind[] = ['video', 'form', 'color', 'music', 'image', 'partial'];
 
-export const SECTION_ICON: Record<SectionKind, LucideIcon> = {
+export const SECTION_ICON: Record<SectionKind, IconComponent> = {
   video: Video,
   form: FileText,
-  color: Square,
+  color: Palette,
   music: Music,
   image: ImageIcon,
   partial: Braces,

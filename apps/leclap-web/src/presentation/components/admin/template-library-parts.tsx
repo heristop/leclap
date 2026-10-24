@@ -5,13 +5,12 @@ import type { ComponentType, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { AlertCircle, ArrowRight } from '@/presentation/components/icons';
-import { CopyIcon } from '@/presentation/components/icons/copy';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { AlertCircle, ArrowRight, Copy as CopyIcon, Plus as PlusIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Button, Card } from '@/presentation/components/ui';
 import { Clappy } from '@/presentation/components/clappy';
 import { TemplatePoster } from '@/presentation/components/TemplatePoster';
+import { ComplexityMeter } from '@/presentation/components/complexity-meter';
 import type { Template } from '@/services/templateService';
 import { cn } from '@/lib/utils';
 
@@ -23,9 +22,9 @@ interface TemplateCardProps {
   t: TFunction<'admin'>;
 }
 
-// The poster-card language, shared with /studio: a seeded gradient band fronts a surface-2 card that
-// lifts and spotlights on hover with a brand ring. The complexity tag lives on the poster, so the
-// body carries the name, description and a compact meta line.
+// The poster-card language, shared with /studio: the template's film strip fronts a surface-2 card that
+// lifts and spotlights on hover with a brand ring; the body carries the name, description and a compact
+// meta line ending on the complexity meter.
 export const TemplateCard = ({ template, actions, t }: TemplateCardProps) => (
   <Card
     data-vt-card
@@ -62,11 +61,18 @@ export const TemplateCard = ({ template, actions, t }: TemplateCardProps) => (
             <span>{t('card.form')}</span>
           </>
         )}
+        <CardComplexity complexity={template.complexity} />
       </p>
       <div className="mt-auto flex gap-2">{actions}</div>
     </div>
   </Card>
 );
+
+const CardComplexity = ({ complexity }: { complexity: Template['complexity'] }) => {
+  const { t } = useTranslation('templates');
+
+  return <ComplexityMeter complexity={complexity} label={t(`complexity.${complexity}`)} className="ml-auto" />;
+};
 
 export const LibrarySectionHeading = ({
   id,

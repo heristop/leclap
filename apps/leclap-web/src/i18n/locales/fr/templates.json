@@ -14,6 +14,7 @@
   "sections_one": "{{count}} section",
   "sections_other": "{{count}} sections",
   "music": "Musique",
+  "useTemplate": "Utiliser",
   "custom": "Perso",
   "sections": {
     "myTemplates": "Mes modèles",

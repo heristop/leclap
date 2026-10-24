@@ -1,0 +1,39 @@
+{
+  "ticket": "PR 149",
+  "summary": "Clappy's open mouth keeps its bottom outline when he grins",
+  "clipSeconds": 5,
+  "freeze": { "at": 2.4, "hold": 3 },
+  "intro": { "headline": "THE OUTLINE STAYS DRAWN" },
+  "outro": {
+    "headline": "REVIEW THE MOUTH LAYERS",
+    "subtitle": "Fill, tongue, then ink in Mouth, web and Expo"
+  },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "raw/before.mp4",
+      "trim": 15.5,
+      "highlight": { "x": 432, "y": 330, "w": 170, "h": 110 },
+      "callout": "Pink spills out",
+      "chip": "No bottom outline",
+      "pane": {
+        "title": "The tongue covers the ink",
+        "desc": "On the grin the tongue is painted over the mouth's bottom edge, so the outline vanishes and pink spills below."
+      }
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "raw/after.mp4",
+      "trim": 16.94,
+      "highlight": { "x": 432, "y": 330, "w": 170, "h": 110 },
+      "callout": "A closed outline",
+      "chip": "Outline drawn last",
+      "pane": {
+        "title": "The outline is drawn last",
+        "desc": "A smaller tongue sits inside the mouth and the ink goes on top, so the bottom edge stays closed."
+      }
+    }
+  ]
+}

@@ -5,13 +5,13 @@ import { templateService, type Template } from '@/services/templateService';
 import { TemplatePoster } from './TemplatePoster';
 import { ComplexityMeter } from './complexity-meter';
 
-// The card's one meta line: format, scene count, what the user fills in, and music when it has some.
+// The card's one meta line: format, what the user fills in, and music when it has some (the section count
+// labels the poster's strip).
 const TemplateMeta = ({ template }: { template: Template }) => {
   const { t } = useTranslation('templates');
   const fieldCount = templateService.extractFormFields(template.descriptor).length;
   const parts = [
     t(`orientation.${template.orientation}`),
-    t('sections', { count: template.descriptor.sections?.length ?? 0 }),
     template.hasForm ? t('fields', { count: fieldCount }) : t('autoProcess'),
   ];
 

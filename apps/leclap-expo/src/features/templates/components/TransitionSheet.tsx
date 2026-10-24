@@ -4,7 +4,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Sheet } from './Sheet';
 import { Slider } from './EditorControls';
@@ -42,7 +42,7 @@ export const TransitionSheet = ({ visible, t, transition, onClose, onChange }: T
         onPress={() => {
           pick('cut');
         }}
-        icon="cut-outline"
+        icon="scissors"
       />
 
       {GROUPS.map((group) => (
@@ -86,7 +86,7 @@ interface TileProps {
   label: string;
   active: boolean;
   onPress: () => void;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
 }
 
 const Tile = ({ label, active, onPress, icon }: TileProps) => (
@@ -97,7 +97,7 @@ const Tile = ({ label, active, onPress, icon }: TileProps) => (
     onPress={onPress}
     style={[styles.tile, active && styles.tileActive]}
   >
-    {icon ? <Ionicons name={icon} size={15} color={active ? '#fff' : colors.textSecondary} /> : null}
+    {icon ? <Icon name={icon} size={15} color={active ? '#fff' : colors.textSecondary} /> : null}
     <Text style={[styles.tileText, active && styles.tileTextActive]} numberOfLines={1}>
       {label}
     </Text>

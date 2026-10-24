@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors } from '@/src/styles/theme';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { KeyframeDot } from '@/src/features/templates/detail/components/keyframe-dot';
@@ -28,7 +28,7 @@ export function MediaStepRow({ index, done, onPress }: MediaStepRowProps) {
         <View style={styles.shotBody}>
           <View style={styles.shotHeadline}>
             <Text style={styles.shotIndex}>{pad(index)}</Text>
-            <Ionicons name="musical-notes" size={15} color={colors.textSecondary} />
+            <Icon name="music" size={15} color={colors.textSecondary} />
             <Text style={styles.shotTitle} numberOfLines={1}>
               {t('media.title')}
             </Text>

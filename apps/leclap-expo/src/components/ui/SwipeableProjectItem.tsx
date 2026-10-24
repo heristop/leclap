@@ -10,13 +10,11 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import type { Project } from '@/src/types';
 import ConfirmDialog from './dialog/ConfirmDialog';
 import * as Haptics from 'expo-haptics';
-
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface SwipeableProjectItemProps {
   project: Project;
@@ -37,14 +35,14 @@ function getStatusColor(status: Project['status']): string {
   }
 }
 
-function getStatusIcon(status: Project['status']): IoniconName {
+function getStatusIcon(status: Project['status']): IconName {
   switch (status) {
     case 'completed':
-      return 'checkmark-circle';
+      return 'circle-check';
     case 'processing':
-      return 'time';
+      return 'clock';
     default:
-      return 'document-text';
+      return 'file-text';
   }
 }
 
@@ -145,7 +143,7 @@ function ProjectThumbnail({ project }: ProjectThumbnailProps) {
 
   return (
     <View style={[styles.statusIcon, { backgroundColor: `${statusColor}20`, borderColor: statusColor }]}>
-      <Ionicons name={icon} size={24} color={statusColor} />
+      <Icon name={icon} size={24} color={statusColor} />
     </View>
   );
 }
@@ -158,10 +156,10 @@ function ProjectActions({ onDeletePress }: ProjectActionsProps) {
   return (
     <View style={styles.actions}>
       <TouchableOpacity style={styles.actionButton} onPress={onDeletePress}>
-        <Ionicons name="trash-outline" size={20} color={colors.error} />
+        <Icon name="trash" size={20} color={colors.error} />
       </TouchableOpacity>
       <View style={styles.chevron}>
-        <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+        <Icon name="chevron-right" size={20} color={colors.textSecondary} />
       </View>
     </View>
   );
@@ -181,7 +179,7 @@ function SwipeDeleteButton({ deleteButtonTranslateX, onPress, isDeleting }: Swip
           <ActivityIndicator size="small" color="white" />
         ) : (
           <>
-            <Ionicons name="trash" size={24} color="white" />
+            <Icon name="trash" size={24} color="white" />
             <Text style={styles.deleteText}>Delete</Text>
           </>
         )}
@@ -270,7 +268,7 @@ const SwipeableProjectItem = React.memo(function SwipeableProjectItem({
                 {getSubtitleText(project.status)}
               </Text>
               <View style={styles.dateContainer}>
-                <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+                <Icon name="calendar" size={14} color={colors.textSecondary} />
                 <Text style={styles.date}>{new Date(project.updatedAt).toLocaleDateString()}</Text>
               </View>
             </View>

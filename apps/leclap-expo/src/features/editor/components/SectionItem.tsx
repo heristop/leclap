@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import type { Section } from '@/src/types';
 import { colors, spacing, typography } from '@/src/styles/theme';
 
@@ -15,13 +15,13 @@ const SectionItem: React.FC<SectionItemProps> = ({ section, isActive, isComplete
   const getIconName = () => {
     switch (section.type) {
       case 'project_video':
-        return 'videocam-outline';
+        return 'video';
       case 'form':
-        return 'document-text-outline';
+        return 'file-text';
       case 'music':
-        return 'musical-notes-outline';
+        return 'music';
       default:
-        return 'document-outline';
+        return 'file';
     }
   };
 
@@ -34,8 +34,8 @@ const SectionItem: React.FC<SectionItemProps> = ({ section, isActive, isComplete
       <View
         style={[styles.statusIndicator, isCompleted && styles.completedIndicator, isActive && styles.activeIndicator]}
       >
-        <Ionicons
-          name={isCompleted ? 'checkmark' : getIconName()}
+        <Icon
+          name={isCompleted ? 'check' : getIconName()}
           size={16}
           color={isCompleted || isActive ? 'white' : colors.textSecondary}
         />

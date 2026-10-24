@@ -4,7 +4,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Slider, Segmented } from './EditorControls';
 import { newBaseLayer, newExtraLayer } from './editorPrimitives';
@@ -56,7 +56,7 @@ export const LayerRows = ({ layers, baseColor, t, onChange }: LayerRowsProps) =>
         }}
         style={styles.addBtn}
       >
-        <Ionicons name="add" size={16} color={colors.primary} />
+        <Icon name="plus" size={16} color={colors.primary} />
         <Text style={styles.addBtnText}>{t('layers.add')}</Text>
       </TouchableOpacity>
     </View>
@@ -85,7 +85,7 @@ const LayerRow = ({ layer, index, isBase, t, onPatch, onRemove }: LayerRowProps)
             accessibilityLabel={t('layers.remove', { n: index + 1 })}
             style={styles.iconBtn}
           >
-            <Ionicons name="trash-outline" size={18} color={colors.error} />
+            <Icon name="trash" size={18} color={colors.error} />
           </TouchableOpacity>
         )}
       </View>

@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { Slider, Segmented } from './EditorControls';
 import { TransitionSheet } from './TransitionSheet';
@@ -58,9 +58,9 @@ export const StyleAudioStep = ({ state, t, onPatch }: StyleAudioStepProps) => {
         }}
         style={styles.pickerRow}
       >
-        <Ionicons name="swap-horizontal" size={18} color={colors.primary} />
+        <Icon name="arrow-left-right" size={18} color={colors.primary} />
         <Text style={styles.pickerValue}>{transitionLabel}</Text>
-        <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        <Icon name="chevron-right" size={18} color={colors.textSecondary} />
       </TouchableOpacity>
 
       <Text style={[styles.label, { marginTop: spacing.l }]}>{t('style.globalAudio')}</Text>

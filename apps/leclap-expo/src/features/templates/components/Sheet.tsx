@@ -2,7 +2,7 @@
 // backdrop, the grab handle's close button, or the hardware back button. Content scrolls.
 import React, { type ReactNode } from 'react';
 import { Modal, View, Text, TouchableWithoutFeedback, ScrollView, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useMotionPreferences } from '@/src/hooks/use-motion-preferences';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
@@ -38,7 +38,7 @@ export const Sheet = ({ visible, title, onClose, children }: SheetProps) => {
                 style={styles.closeBtn}
                 haptic={false}
               >
-                <Ionicons name="close" size={22} color={colors.textSecondary} />
+                <Icon name="x" size={22} color={colors.textSecondary} />
               </PressableScale>
             </View>
             <ScrollView

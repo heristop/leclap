@@ -5,7 +5,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { LOOK_PRESETS } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
 
@@ -82,12 +82,10 @@ export const LookCarousel = ({ look, t, onChange }: LookCarouselProps) => (
               end={{ x: 1, y: 1 }}
               style={styles.swatch}
             >
-              {option.value === undefined ? (
-                <Ionicons name="ban-outline" size={20} color={colors.textSecondary} />
-              ) : null}
+              {option.value === undefined ? <Icon name="ban" size={20} color={colors.textSecondary} /> : null}
               {active ? (
                 <View style={styles.check}>
-                  <Ionicons name="checkmark" size={14} color="#fff" />
+                  <Icon name="check" size={14} color="#fff" />
                 </View>
               ) : null}
             </LinearGradient>

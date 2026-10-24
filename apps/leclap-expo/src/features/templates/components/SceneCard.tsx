@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors } from '@/src/styles/theme';
 import { LookCarousel } from './LookCarousel';
 import { GradeFields } from './GradeFields';
@@ -29,13 +29,13 @@ import {
   type Orientation,
 } from '../model/templateEditorModel';
 
-const KIND_ICON: Record<EditorSection['kind'], keyof typeof Ionicons.glyphMap> = {
-  video: 'videocam',
-  form: 'text',
-  color: 'color-palette',
-  music: 'musical-notes',
-  image: 'image-outline',
-  partial: 'cube-outline',
+const KIND_ICON: Record<EditorSection['kind'], IconName> = {
+  video: 'video',
+  form: 'type',
+  color: 'palette',
+  music: 'music',
+  image: 'image',
+  partial: 'box',
 };
 
 interface SceneCardProps {
@@ -85,11 +85,11 @@ export const SceneCard = (props: SceneCardProps) => {
             setCollapsed((c) => !c);
           }}
         >
-          <Ionicons name={collapsed ? 'chevron-forward' : 'chevron-down'} size={16} color={colors.textSecondary} />
+          <Icon name={collapsed ? 'chevron-right' : 'chevron-down'} size={16} color={colors.textSecondary} />
           <View style={sceneStyles.numberBadge}>
             <Text style={sceneStyles.numberBadgeText}>{index + 1}</Text>
           </View>
-          <Ionicons name={KIND_ICON[section.kind]} size={18} color={colors.primary} />
+          <Icon name={KIND_ICON[section.kind]} size={18} color={colors.primary} />
           <Text style={sceneStyles.cardTitleText}>{SECTION_LABELS[section.kind]}</Text>
         </TouchableOpacity>
         <View style={sceneStyles.cardActions}>
@@ -109,8 +109,8 @@ export const SceneCard = (props: SceneCardProps) => {
               onMove(1);
             }}
           />
-          <IconBtn testID={`section-${index}-duplicate`} icon="copy-outline" onPress={onDuplicate} />
-          <IconBtn testID={`section-${index}-remove`} icon="trash-outline" tint={colors.error} onPress={onRemove} />
+          <IconBtn testID={`section-${index}-duplicate`} icon="copy" onPress={onDuplicate} />
+          <IconBtn testID={`section-${index}-remove`} icon="trash" tint={colors.error} onPress={onRemove} />
         </View>
       </View>
 
@@ -146,7 +146,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
   if (section.kind === 'video') {
     return (
       <View>
-        <Disclosure title={t('advanced.look')} icon="color-filter-outline">
+        <Disclosure title={t('advanced.look')} icon="blend">
           <LookCarousel
             look={section.look}
             t={t}
@@ -155,7 +155,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.fineTune')} icon="options-outline">
+        <Disclosure title={t('advanced.fineTune')} icon="sliders-horizontal">
           <GradeFields
             grade={section.grade}
             t={t}
@@ -164,7 +164,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.letterbox')} icon="scan-outline">
+        <Disclosure title={t('advanced.letterbox')} icon="scan">
           <LetterboxFields
             value={section.letterbox}
             t={t}
@@ -173,7 +173,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.caption')} icon="text-outline">
+        <Disclosure title={t('advanced.caption')} icon="type">
           <CaptionFields
             caption={section.caption}
             t={t}
@@ -182,7 +182,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.audio')} icon="volume-medium-outline">
+        <Disclosure title={t('advanced.audio')} icon="volume-1">
           <SectionAudioFields
             musicVolume={section.musicVolume}
             audioFade={section.audioFade}
@@ -191,7 +191,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             onChange={onChange}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.cameraGuide')} icon="body-outline">
+        <Disclosure title={t('advanced.cameraGuide')} icon="person-standing">
           <FramingGuideRow
             guide={section.framingGuide}
             t={t}
@@ -200,7 +200,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.capture')} icon="camera-reverse-outline">
+        <Disclosure title={t('advanced.capture')} icon="switch-camera">
           <CaptureModeFields
             selection={{ captureMode: section.captureMode, allowedCaptureModes: section.allowedCaptureModes }}
             t={t}
@@ -209,7 +209,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.chromaKey')} icon="color-wand-outline">
+        <Disclosure title={t('advanced.chromaKey')} icon="wand-sparkles">
           <ChromaKeyFields
             value={section.chromaKey}
             t={t}
@@ -218,7 +218,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.lowerThird')} icon="albums-outline">
+        <Disclosure title={t('advanced.lowerThird')} icon="gallery-vertical-end">
           <LowerThirdFields
             value={section.lowerThird}
             t={t}
@@ -235,10 +235,10 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
   if (section.kind === 'color') {
     return (
       <View>
-        <Disclosure title={t('advanced.layers')} icon="layers-outline">
+        <Disclosure title={t('advanced.layers')} icon="layers">
           <LayerRows layers={section.layers} baseColor={section.color} t={t} onChange={onLayers} />
         </Disclosure>
-        <Disclosure title={t('advanced.look')} icon="color-filter-outline">
+        <Disclosure title={t('advanced.look')} icon="blend">
           <LookCarousel
             look={section.look}
             t={t}
@@ -247,7 +247,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.fineTune')} icon="options-outline">
+        <Disclosure title={t('advanced.fineTune')} icon="sliders-horizontal">
           <GradeFields
             grade={section.grade}
             t={t}
@@ -256,7 +256,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.letterbox')} icon="scan-outline">
+        <Disclosure title={t('advanced.letterbox')} icon="scan">
           <LetterboxFields
             value={section.letterbox}
             t={t}
@@ -265,7 +265,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.caption')} icon="text-outline">
+        <Disclosure title={t('advanced.caption')} icon="type">
           <CaptionFields
             caption={section.caption}
             t={t}
@@ -274,7 +274,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.titleCard')} icon="albums-outline">
+        <Disclosure title={t('advanced.titleCard')} icon="gallery-vertical-end">
           <TitleCardFields
             value={section.titleCard}
             t={t}
@@ -284,7 +284,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
             }}
           />
         </Disclosure>
-        <Disclosure title={t('advanced.audio')} icon="volume-medium-outline">
+        <Disclosure title={t('advanced.audio')} icon="volume-1">
           <SectionAudioFields
             musicVolume={section.musicVolume}
             audioFade={section.audioFade}
@@ -301,7 +301,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
 
   return (
     <View>
-      <Disclosure title={t('advanced.motion')} icon="move-outline">
+      <Disclosure title={t('advanced.motion')} icon="move">
         <MotionFields
           motion={section.motion}
           t={t}
@@ -310,7 +310,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           }}
         />
       </Disclosure>
-      <Disclosure title={t('advanced.look')} icon="color-filter-outline">
+      <Disclosure title={t('advanced.look')} icon="blend">
         <LookCarousel
           look={section.look}
           t={t}
@@ -319,7 +319,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           }}
         />
       </Disclosure>
-      <Disclosure title={t('advanced.fineTune')} icon="options-outline">
+      <Disclosure title={t('advanced.fineTune')} icon="sliders-horizontal">
         <GradeFields
           grade={section.grade}
           t={t}
@@ -328,7 +328,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           }}
         />
       </Disclosure>
-      <Disclosure title={t('advanced.letterbox')} icon="scan-outline">
+      <Disclosure title={t('advanced.letterbox')} icon="scan">
         <LetterboxFields
           value={section.letterbox}
           t={t}
@@ -337,7 +337,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           }}
         />
       </Disclosure>
-      <Disclosure title={t('advanced.caption')} icon="text-outline">
+      <Disclosure title={t('advanced.caption')} icon="type">
         <CaptionFields
           caption={section.caption}
           t={t}
@@ -346,7 +346,7 @@ const SceneAdvanced = ({ section, t, variables, onChange, onLayers }: SceneAdvan
           }}
         />
       </Disclosure>
-      <Disclosure title={t('advanced.audio')} icon="volume-medium-outline">
+      <Disclosure title={t('advanced.audio')} icon="volume-1">
         <SectionAudioFields
           musicVolume={section.musicVolume}
           audioFade={section.audioFade}

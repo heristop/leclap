@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, Animated, Easing, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { colors } from '@/src/styles/theme';
@@ -9,10 +9,10 @@ const { width: _width } = Dimensions.get('window');
 
 interface FloatingActionButtonProps {
   onPress: () => void;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   showMenu?: boolean;
   menuItems?: {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: IconName;
     label: string;
     onPress: () => void;
   }[];
@@ -25,7 +25,7 @@ interface MenuItemAnimValues {
 
 interface MenuItemProps {
   item: {
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: IconName;
     label: string;
     onPress: () => void;
   };
@@ -62,7 +62,7 @@ function MenuItem({ item, index, anim, onToggleMenu }: MenuItemProps) {
       ]}
     >
       <TouchableOpacity style={styles.menuItemButton} onPress={handleMenuItemPress}>
-        <Ionicons name={item.icon} size={24} color={colors.primary} />
+        <Icon name={item.icon} size={24} color={colors.primary} />
       </TouchableOpacity>
     </Animated.View>
   );
@@ -141,7 +141,7 @@ function animatePressScale(scaleAnim: Animated.Value): void {
 
 export default function FloatingActionButton({
   onPress,
-  icon = 'add',
+  icon = 'plus',
   showMenu = false,
   menuItems = [],
 }: FloatingActionButtonProps) {
@@ -220,7 +220,7 @@ export default function FloatingActionButton({
             style={styles.gradient}
           >
             <View style={styles.innerCircle}>
-              <Ionicons name={icon} size={28} color="white" />
+              <Icon name={icon} size={28} color="white" />
             </View>
           </LinearGradient>
         </TouchableOpacity>

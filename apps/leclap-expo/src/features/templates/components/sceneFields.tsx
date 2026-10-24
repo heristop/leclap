@@ -4,7 +4,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, Switch, ScrollView, Image, StyleSheet } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { SAMPLE_LIBRARY, BACKGROUND_LIBRARY, backgroundAsset } from '@/src/data/mediaCatalog';
 import { EngineEffectsField } from './EngineEffectsField';
@@ -103,11 +103,11 @@ export const SceneBasics = ({
             }}
             style={styles.overlayBtn}
           >
-            <Ionicons name="text-outline" size={16} color={colors.primary} />
+            <Icon name="type" size={16} color={colors.primary} />
             <Text style={styles.overlayBtnText} numberOfLines={1}>
               {o.text.trim() === '' ? t('overlay.sample') : o.text}
             </Text>
-            <Ionicons name="chevron-forward" size={16} color={colors.textSecondary} />
+            <Icon name="chevron-right" size={16} color={colors.textSecondary} />
           </TouchableOpacity>
         ))}
         <TouchableOpacity
@@ -119,7 +119,7 @@ export const SceneBasics = ({
           }}
           style={styles.addInline}
         >
-          <Ionicons name="add" size={14} color={colors.primary} />
+          <Icon name="plus" size={14} color={colors.primary} />
           <Text style={styles.addInlineText}>{t('section.addText')}</Text>
         </TouchableOpacity>
         <Toggle
@@ -244,7 +244,7 @@ export const SceneBasics = ({
               />
               {section.fields.length > 1 ? (
                 <IconBtn
-                  icon="close"
+                  icon="x"
                   tint={colors.error}
                   onPress={() => {
                     onChange({ fields: section.fields.filter((_, idx) => idx !== fi) });
@@ -262,7 +262,7 @@ export const SceneBasics = ({
           }}
           style={styles.addInline}
         >
-          <Ionicons name="add" size={14} color={colors.primary} />
+          <Icon name="plus" size={14} color={colors.primary} />
           <Text style={styles.addInlineText}>{t('field.add')}</Text>
         </TouchableOpacity>
       </View>
@@ -411,14 +411,14 @@ export const IconBtn = ({
   tint,
   testID,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   onPress: () => void;
   disabled?: boolean;
   tint?: string;
   testID?: string;
 }) => (
   <TouchableOpacity testID={testID} disabled={disabled} onPress={onPress} style={styles.iconBtnSm}>
-    <Ionicons name={icon} size={18} color={disabled ? colors.divider : (tint ?? colors.textSecondary)} />
+    <Icon name={icon} size={18} color={disabled ? colors.divider : (tint ?? colors.textSecondary)} />
   </TouchableOpacity>
 );
 
@@ -458,8 +458,8 @@ export const OverlaysField = ({
         label={t('overlays.kind')}
         value={kind}
         options={[
-          { value: 'animation', label: t('overlays.animation'), icon: 'film-outline' },
-          { value: 'image', label: t('overlays.image'), icon: 'image-outline' },
+          { value: 'animation', label: t('overlays.animation'), icon: 'film' },
+          { value: 'image', label: t('overlays.image'), icon: 'image' },
         ]}
         onChange={setKind}
       />
@@ -513,7 +513,7 @@ export const AnimationFieldsList = ({
               accessibilityLabel={t('animation.remove')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+              <Icon name="trash" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <AnimationFields
@@ -710,7 +710,7 @@ export const AnimationFields = ({
           onPress={() => {
             onChange();
           }}
-          icon="ban-outline"
+          icon="ban"
         />
         {SAMPLE_LIBRARY.map((animation) => (
           <AnimCard
@@ -829,14 +829,14 @@ const AnimCard = ({
   active: boolean;
   onPress: () => void;
   source?: number;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
 }) => (
   <TouchableOpacity onPress={onPress} style={[styles.animCard, active && styles.animCardActive]}>
     <View style={styles.animThumb}>
       {source ? (
         <Image source={source} style={styles.animThumbImg} resizeMode="contain" />
       ) : (
-        <Ionicons name={icon ?? 'ban-outline'} size={18} color={colors.textSecondary} />
+        <Icon name={icon ?? 'ban'} size={18} color={colors.textSecondary} />
       )}
     </View>
     <Text style={[styles.animCardLabel, active && { color: colors.primary }]} numberOfLines={1}>
@@ -886,7 +886,7 @@ export const ImageFieldsList = ({
               accessibilityLabel={t('image.remove')}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+              <Icon name="trash" size={18} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
           <ImageFields
@@ -944,7 +944,7 @@ export const ImageFields = ({
     <View style={{ marginTop: spacing.m }}>
       <Text style={styles.fieldLabel}>{t('image.label')}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.animStrip}>
-        <AnimCard label={t('image.none')} active={!value} onPress={clear} icon="ban-outline" />
+        <AnimCard label={t('image.none')} active={!value} onPress={clear} icon="ban" />
         {BACKGROUND_LIBRARY.map((background) => (
           <PictureCard
             key={background.id}
@@ -986,7 +986,7 @@ const PictureCard = ({
   <TouchableOpacity onPress={onPress} style={[styles.animCard, active && styles.animCardActive]}>
     <View style={styles.animThumb}>
       {source === undefined ? (
-        <Ionicons name="image-outline" size={18} color={colors.textSecondary} />
+        <Icon name="image" size={18} color={colors.textSecondary} />
       ) : (
         <Image source={source} style={styles.animThumbImg} resizeMode="cover" />
       )}

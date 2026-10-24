@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import type { Template } from '@/src/types';
 import { colors, spacing, typography, withAlpha } from '@/src/styles/theme';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
@@ -33,11 +33,7 @@ export default function TemplateCard({ template, onPress }: TemplateCardProps) {
         {poster ? (
           <Image source={poster} style={styles.poster} resizeMode="contain" accessible={false} />
         ) : (
-          <Ionicons
-            name={template.source === 'user' ? 'sparkles-outline' : 'film-outline'}
-            size={32}
-            color={colors.primaryDark}
-          />
+          <Icon name={template.source === 'user' ? 'sparkles' : 'film'} size={32} color={colors.primaryDark} />
         )}
         {template.source === 'user' ? <Text style={styles.customBadge}>{t('custom')}</Text> : null}
       </View>

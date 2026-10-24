@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { colors, typography, spacing } from '@/src/styles/theme';
 
 interface FooterProps {
@@ -11,7 +11,7 @@ const Footer = ({ onCreatePress }: FooterProps) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.createButton} onPress={onCreatePress} activeOpacity={0.8}>
-        <Ionicons name="add-circle" size={24} color={colors.surface} />
+        <Icon name="circle-plus" size={24} color={colors.surface} />
         <Text style={styles.createButtonText}>Create New Video</Text>
       </TouchableOpacity>
     </View>

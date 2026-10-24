@@ -6,7 +6,7 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import type { TFunction } from 'i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import type { Graphic } from 'ffmpeg-video-composer/src/schemas/graphics.schemas.ts';
 import { colors, spacing, typography } from '@/src/styles/theme';
 import { enginePoster } from '@/src/data/mediaCatalog';
@@ -61,7 +61,7 @@ export const EngineEffectsField = ({ section, orientation, salt, onChange, t }: 
                 {poster ? (
                   <Image source={poster} style={styles.thumbImg} resizeMode="cover" />
                 ) : (
-                  <Ionicons name="sparkles-outline" size={18} color={colors.textSecondary} />
+                  <Icon name="sparkles" size={18} color={colors.textSecondary} />
                 )}
               </View>
               <Text style={styles.cardLabel} numberOfLines={1}>
@@ -84,9 +84,9 @@ export const EngineEffectsField = ({ section, orientation, salt, onChange, t }: 
           }}
         >
           <View style={styles.presetHeading}>
-            <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
+            <Icon name="sparkles" size={16} color={colors.primary} />
             <Text style={styles.presetTitle}>{t(preset.nameKey)}</Text>
-            <Ionicons name="add" size={18} color={colors.primary} />
+            <Icon name="plus" size={18} color={colors.primary} />
           </View>
           <Text style={styles.presetDescription}>{t(preset.descriptionKey)}</Text>
         </TouchableOpacity>
@@ -113,7 +113,7 @@ export const EngineEffectsField = ({ section, orientation, salt, onChange, t }: 
                     onChange(next.length > 0 ? next : undefined);
                   }}
                 >
-                  <Ionicons name="trash-outline" size={18} color={colors.textSecondary} />
+                  <Icon name="trash" size={18} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             );

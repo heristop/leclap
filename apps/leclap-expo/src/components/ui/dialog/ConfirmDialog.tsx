@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, spacing, typography } from '@/src/styles/theme';
-
-type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 interface ConfirmDialogProps {
   visible: boolean;
@@ -11,7 +9,7 @@ interface ConfirmDialogProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  confirmIconName?: IoniconName;
+  confirmIconName?: IconName;
   confirmType?: 'danger' | 'success' | 'warning' | 'primary';
   onConfirm: () => void;
   onCancel: () => void;
@@ -36,7 +34,7 @@ export default function ConfirmDialog({
   message,
   confirmText = 'Confirm',
   cancelText = 'Cancel',
-  confirmIconName = 'checkmark',
+  confirmIconName = 'check',
   confirmType = 'danger',
   onConfirm,
   onCancel,
@@ -113,7 +111,7 @@ export default function ConfirmDialog({
               onPress={onConfirm}
               activeOpacity={0.7}
             >
-              <Ionicons name={confirmIconName} size={16} color="white" style={styles.icon} />
+              <Icon name={confirmIconName} size={16} color="white" style={styles.icon} />
               <Text style={styles.confirmText}>{confirmText}</Text>
             </TouchableOpacity>
           </View>

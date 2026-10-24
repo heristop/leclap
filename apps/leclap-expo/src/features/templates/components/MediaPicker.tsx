@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import {
   MUSIC_LIBRARY,
   BACKGROUND_LIBRARY,
@@ -66,11 +66,11 @@ function MusicCard({ item, selected, onPress }: CardBaseProps) {
         {cover ? (
           <Image source={cover} style={styles.thumbImage} resizeMode="cover" accessibilityIgnoresInvertColors />
         ) : (
-          <Ionicons name="musical-notes" size={28} color={selected ? colors.primary : colors.textSecondary} />
+          <Icon name="music" size={28} color={selected ? colors.primary : colors.textSecondary} />
         )}
         {selected && (
           <View style={styles.checkBadge}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+            <Icon name="circle-check" active size={20} color={colors.primary} />
           </View>
         )}
       </View>
@@ -99,14 +99,14 @@ function PictureCard({ item, selected, onPress }: CardBaseProps) {
       <View style={styles.pictureThumb}>
         {source === undefined ? (
           <View style={[styles.thumbImage, styles.thumbPlaceholder]}>
-            <Ionicons name="image-outline" size={24} color={colors.textSecondary} />
+            <Icon name="image" size={24} color={colors.textSecondary} />
           </View>
         ) : (
           <Image source={source} style={styles.thumbImage} resizeMode="cover" accessibilityIgnoresInvertColors />
         )}
         {selected && (
           <View style={styles.checkBadge}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.primary} />
+            <Icon name="circle-check" active size={20} color={colors.primary} />
           </View>
         )}
       </View>

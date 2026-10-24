@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ImageBackground } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { colors, typography, spacing } from '@/src/styles/theme';
 import { elevation } from '@/src/styles/elevation';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
@@ -8,7 +8,7 @@ import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 interface CardProps {
   title: string;
   description?: string;
-  iconName?: string;
+  iconName?: IconName;
   status?: 'completed' | 'in-progress' | 'new';
   imageUri?: string;
   onPress: () => void;
@@ -18,25 +18,25 @@ interface CardProps {
 const Card = ({
   title,
   description,
-  iconName = 'document-text',
+  iconName = 'file-text',
   status,
   imageUri,
   onPress,
   accentColor = colors.accent,
 }: CardProps) => {
   // Determine icon based on status
-  let statusIcon = iconName;
+  let statusIcon: IconName = iconName;
   let statusColor = colors.primary;
   let statusText = '';
 
   if (status === 'completed') {
-    statusIcon = 'checkmark-circle';
+    statusIcon = 'circle-check';
     statusColor = colors.success;
     statusText = 'Completed';
   }
 
   if (status === 'in-progress') {
-    statusIcon = 'time';
+    statusIcon = 'clock';
     statusColor = colors.warning;
     statusText = 'In Progress';
   }
@@ -53,7 +53,7 @@ const Card = ({
         <ImageBackground source={{ uri: imageUri }} style={styles.cardImageContainer} imageStyle={{ opacity: 0.8 }}>
           <View style={[styles.overlay, { backgroundColor: `${colors.primary}80` }]} />
           <View style={[styles.cardImage, { borderColor: accentColor }]}>
-            <Ionicons name={statusIcon as keyof typeof Ionicons.glyphMap} size={32} color={statusColor} />
+            <Icon name={statusIcon} size={32} color={statusColor} />
           </View>
 
           {/* Add gradient overlay for better text readability */}
@@ -68,7 +68,7 @@ const Card = ({
       ) : (
         <View style={[styles.cardImageContainer, { backgroundColor: `${colors.primary}15` }]}>
           <View style={[styles.cardImage, { borderColor: accentColor }]}>
-            <Ionicons name={statusIcon as keyof typeof Ionicons.glyphMap} size={32} color={statusColor} />
+            <Icon name={statusIcon} size={32} color={statusColor} />
           </View>
         </View>
       )}

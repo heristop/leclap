@@ -1,7 +1,7 @@
 import { Image, Modal, ScrollView, View, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import type { Section } from '@/src/types';
 import { colors } from '@/src/styles/theme';
 import { MUSIC_LIBRARY, findMusic, musicCover } from '@/src/data/mediaCatalog';
@@ -59,14 +59,14 @@ function MusicTrackContent({
         {cover ? (
           <Image source={cover} style={styles.musicRowCover} accessibilityIgnoresInvertColors />
         ) : (
-          <Ionicons name="musical-note" size={18} color={selected ? colors.primary : colors.textSecondary} />
+          <Icon name="music" size={18} color={selected ? colors.primary : colors.textSecondary} />
         )}
       </>
       <View style={styles.musicRowText}>
         <Text style={styles.musicRowTitle}>{track?.title ?? id}</Text>
         {track?.author ? <Text style={styles.musicRowAuthor}>{track.author}</Text> : null}
       </View>
-      {selected ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
+      {selected ? <Icon name="circle-check" active size={20} color={colors.primary} /> : null}
     </>
   );
 }
@@ -110,7 +110,7 @@ export function MusicModal({ section, allowedMusic, selectedId, onSelect, onClos
           <View style={styles.formHeader}>
             <Text style={styles.formTitle}>{section.title?.en ?? section.name}</Text>
             <PressableScale onPress={onClose} accessibilityRole="button" accessibilityLabel={t('music.done')}>
-              <Ionicons name="close" size={26} color={colors.textStrong} />
+              <Icon name="x" size={26} color={colors.textStrong} />
             </PressableScale>
           </View>
           <ScrollView contentContainerStyle={styles.musicScroll}>
@@ -123,9 +123,9 @@ export function MusicModal({ section, allowedMusic, selectedId, onSelect, onClos
               }}
               style={[styles.musicRow, selectedId === 'default' && styles.musicRowActive]}
             >
-              <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+              <Icon name="sparkles" size={18} color={colors.primary} />
               <Text style={styles.musicDefaultText}>{t('music.defaultOption')}</Text>
-              {selectedId === 'default' ? <Ionicons name="checkmark-circle" size={20} color={colors.primary} /> : null}
+              {selectedId === 'default' ? <Icon name="circle-check" active size={20} color={colors.primary} /> : null}
             </PressableScale>
             <MusicSectionPicker allowed={allowed} selectedId={selectedId} onSelect={onSelect} />
             <PressableScale style={styles.formSubmitButton} onPress={onUseDefault} haptic="medium">

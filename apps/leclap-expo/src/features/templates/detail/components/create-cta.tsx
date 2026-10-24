@@ -1,6 +1,6 @@
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
+import { Icon } from '@/src/components/ui/Icon';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { QualityTier } from 'ffmpeg-video-composer/src/core/encoding.ts';
 import { colors, withAlpha } from '@/src/styles/theme';
@@ -18,7 +18,7 @@ function CtaVisuals({ isDisabled, isPending, color }: { isDisabled: boolean; isP
       {isDisabled ? null : (
         <LinearGradient colors={[...gradients.brand]} {...gradientDir.horizontal} style={StyleSheet.absoluteFill} />
       )}
-      {isPending ? <ActivityIndicator size="small" color={color} /> : <Ionicons name="play" size={18} color={color} />}
+      {isPending ? <ActivityIndicator size="small" color={color} /> : <Icon name="play" size={18} color={color} />}
     </>
   );
 }

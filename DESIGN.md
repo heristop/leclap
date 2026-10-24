@@ -47,8 +47,17 @@ Surfaces and text are **semantic tokens** that default to **light** in `@theme` 
 
 - **Brand gradient:** `linear-gradient(135deg, brand-500 → secondary-400)` (`brand-gradient` utility, the logo and primary CTAs); `--grad-text` for gradient headings.
 - **Motion:** three shared easing curves for a cohesive "juicy" feel — `--ease-smooth`, `--ease-spring`, `--ease-out-expo`. Prefer these over ad-hoc transitions.
+- **Theme switch:** the "slate stripes" view transition — the new theme comes in through diagonal stripes at the logo's stripe angle, opening in a wave from the toggle until they merge ([`slate-wipe.ts`](apps/leclap-web/src/lib/slate-wipe.ts)); a short colour cross-fade where view transitions or motion aren't available.
 - **Elevation:** brand-tinted shadows — `--shadow-md`, `--shadow-lg`, and `--shadow-glow` (a lavender glow). Surfaces use restrained glassmorphism over the ink canvas.
 - **Radii:** `sm 6px · md 8px · lg 12px · xl 16px · 2xl 20px`.
+
+## Icons
+
+One duotone set for both apps, drawn once in [`packages/leclap-creative-kit/src/icons/`](packages/leclap-creative-kit/src/icons/) (24-unit grid, 2-unit round line).
+
+- **Paint:** the line takes the text colour; one part per icon takes a soft lavender tint, which turns into the brand gradient while the icon is hovered or marks the active choice (current page, pressed toggle, selected item).
+- **Motion (web):** each icon has one gesture on the shared curves, played when the icon or the button/link around it is hovered (or from `useIconHover`): the clapper claps, the bin lifts its lid, a check draws itself, arrows slide in. Transform and opacity only; none under reduced motion.
+- **Use:** web imports from `@/presentation/components/icons` (PascalCase names such as `Trash2`, `ChevronDown`); Expo uses `<Icon name="…" active? />` from `src/components/ui/Icon`. Add an icon to the glyph table, not a new library.
 
 ## Video player
 

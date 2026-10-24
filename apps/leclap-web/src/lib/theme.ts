@@ -1,3 +1,5 @@
+import { slateWipeFrames } from './slate-wipe';
+
 export type Theme = 'light' | 'dark';
 
 const STORAGE_KEY = 'leclap-theme';
@@ -78,26 +80,14 @@ type VTDocument = Omit<Document, 'startViewTransition'> & {
   startViewTransition?: (cb: () => void) => { ready: Promise<void> };
 };
 
-/** Largest distance from the origin to any of the 4 viewport corners. */
-const maxCornerRadius = (x: number, y: number): number => {
-  const right = window.innerWidth;
-  const bottom = window.innerHeight;
-
-  return Math.max(
-    Math.hypot(x, y),
-    Math.hypot(right - x, y),
-    Math.hypot(x, bottom - y),
-    Math.hypot(right - x, bottom - y)
-  );
-};
-
 /**
  * Flip the theme and return the new value.
  *
  * When the View Transitions API is available (and motion is allowed), the new
- * theme is revealed with a circular clip-path wipe expanding from `origin`
- * (defaults to viewport center). Otherwise falls back to the brief color
- * cross-fade. The new `Theme` is returned synchronously regardless.
+ * theme comes in through the "slate stripes" wipe (lib/slate-wipe.ts): diagonal
+ * stripes, leaning like the clapperboard's, open in a wave from `origin`
+ * (defaults to viewport center) and merge. Otherwise falls back to the brief
+ * color cross-fade. The new `Theme` is returned synchronously regardless.
  */
 export const toggleTheme = (origin?: ToggleOrigin): Theme => {
   const next: Theme = getTheme() === 'dark' ? 'light' : 'dark';
@@ -105,13 +95,8 @@ export const toggleTheme = (origin?: ToggleOrigin): Theme => {
   const doc = document as VTDocument;
 
   if (doc.startViewTransition && !prefersReducedMotion()) {
-    const x = origin?.x ?? window.innerWidth / 2;
-    const y = origin?.y ?? window.innerHeight / 2;
-    const r = maxCornerRadius(x, y);
-
-    root.style.setProperty('--vt-x', `${x}px`);
-    root.style.setProperty('--vt-y', `${y}px`);
-    root.style.setProperty('--vt-r', `${r}px`);
+    const from = origin ?? { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    const frames = slateWipeFrames({ width: window.innerWidth, height: window.innerHeight }, from);
     // Marks this transition as the theme wipe so the scoped CSS in index.css
     // disables the default cross-fade (route changes keep their slide/fade).
     root.classList.add('theme-vt');
@@ -125,15 +110,10 @@ export const toggleTheme = (origin?: ToggleOrigin): Theme => {
     (async () => {
       try {
         await transition.ready;
+        // Each stripe's own ease is baked into the frames, so they play back linearly.
         const wipe = root.animate(
-          {
-            clipPath: ['circle(0px at var(--vt-x) var(--vt-y))', 'circle(var(--vt-r) at var(--vt-x) var(--vt-y))'],
-          },
-          {
-            duration: 450,
-            easing: 'ease-in-out',
-            pseudoElement: '::view-transition-new(root)',
-          }
+          { clipPath: frames },
+          { duration: 720, easing: 'linear', pseudoElement: '::view-transition-new(root)' }
         );
         await wipe.finished;
       } catch {

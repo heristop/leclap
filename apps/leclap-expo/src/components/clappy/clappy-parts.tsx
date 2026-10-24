@@ -179,8 +179,10 @@ export function Face({ id }: { id: string }) {
 
 const Grin = () => (
   <G>
-    <Path d="M274 440 Q300 480 326 440 Z" fill={PUPIL} stroke={OUTLINE} strokeWidth={7} />
-    <Path d="M287 458 Q300 471 313 458 Q300 463 287 458 Z" fill={CHEEK} />
+    {/* the tongue sits inside the mouth, and the ink goes on last so its bottom edge stays drawn */}
+    <Path d="M274 440 Q300 480 326 440 Z" fill={PUPIL} />
+    <Path d="M286 451 Q300 466 314 451 Q300 448 286 451 Z" fill={CHEEK} />
+    <Path d="M274 440 Q300 480 326 440 Z" fill="none" stroke={OUTLINE} strokeWidth={7} strokeLinejoin="round" />
   </G>
 );
 

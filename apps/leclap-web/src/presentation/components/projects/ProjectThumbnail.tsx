@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Clapperboard } from '@/presentation/components/icons';
-import { PlayIcon } from '@/presentation/components/icons/play';
+import { Clapperboard, Play as PlayIcon } from '@/presentation/components/icons';
 import type { StoredProject } from '@/lib/projectModel';
 
 interface ProjectThumbnailProps {
@@ -42,7 +41,7 @@ export const ProjectThumbnail = ({ project, poster, onOpen }: ProjectThumbnailPr
           <span aria-hidden className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
           <span aria-hidden className="absolute inset-0 grid place-items-center">
             <span className="grid size-12 place-items-center rounded-full bg-white/90 text-brand-600 shadow-lg ring-1 ring-black/10 transition-transform duration-200 group-hover/thumb:scale-110 motion-reduce:transition-none">
-              <PlayIcon size={20} className="[&_polygon]:fill-current" />
+              <PlayIcon size={20} className="fill-current" />
             </span>
           </span>
         </>

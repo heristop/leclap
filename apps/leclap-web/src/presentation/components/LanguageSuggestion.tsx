@@ -4,9 +4,7 @@ import i18n from '@/i18n';
 import { LOCALIZED_PATHS } from '@/config/site';
 import { cn } from '@/lib/utils';
 import { isBot } from '@/lib/isBot';
-import { GlobeIcon } from '@/presentation/components/icons/globe';
-import { ChevronRightIcon } from '@/presentation/components/icons/chevron-right';
-import { XIcon } from '@/presentation/components/icons/x';
+import { Globe as GlobeIcon, ChevronRight as ChevronRightIcon, X as XIcon } from '@/presentation/components/icons';
 import { getLanguage, localePath, setStoredLanguage, LANGUAGE_STORAGE_KEY, type Language } from '@/lib/language';
 import {
   pickSuggestedLanguage,

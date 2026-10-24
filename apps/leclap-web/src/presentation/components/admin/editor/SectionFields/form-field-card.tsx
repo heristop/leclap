@@ -3,7 +3,7 @@
 // actions. Alt+↑/↓ on the summary moves the field. Collapsed bodies are inert, so Tab skips them.
 import { useId, type KeyboardEvent, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Trash2 } from '@/presentation/components/icons';
 import { Checkbox, Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui';
 import { NumberField } from '@/presentation/components/ui/NumberField';
 import { cn } from '@/lib/utils';

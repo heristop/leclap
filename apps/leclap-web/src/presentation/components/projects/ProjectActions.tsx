@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
-import { Trash2 } from '@/presentation/components/icons';
-import { PlayIcon } from '@/presentation/components/icons/play';
-import { CopyIcon } from '@/presentation/components/icons/copy';
-import { SquarePenIcon } from '@/presentation/components/icons/square-pen';
+import {
+  Trash2,
+  Play as PlayIcon,
+  Copy as CopyIcon,
+  SquarePen as SquarePenIcon,
+} from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { Button } from '@/presentation/components/ui';
 import type { StoredProject } from '@/lib/projectModel';
@@ -29,7 +31,7 @@ export const ProjectActions = ({ project, onOpen, onEdit, onDuplicate, onDelete 
   return (
     <div className="flex items-center gap-1.5">
       <Button size="sm" variant="secondary" className="flex-1" onClick={onOpen} {...hoverProps}>
-        <PlayIcon ref={playRef} size={16} className="[&_polygon]:fill-current" />
+        <PlayIcon ref={playRef} size={16} className="fill-current" />
         {completed ? t('actions.view') : t('actions.resume')}
       </Button>
       <div className="flex items-center gap-0.5 transition-opacity duration-200 pointer-fine:opacity-0 pointer-fine:group-hover/card:opacity-100 pointer-fine:group-focus-within/card:opacity-100 motion-reduce:transition-none">

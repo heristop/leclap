@@ -1,10 +1,12 @@
 import React, { forwardRef } from 'react';
-import { Globe } from '@/presentation/components/icons';
-import { UsersIcon } from '@/presentation/components/icons/users';
-import { CogIcon } from '@/presentation/components/icons/cog';
-import { ZapIcon } from '@/presentation/components/icons/zap';
-import { FileTextIcon } from '@/presentation/components/icons/file-text';
-import { ShieldCheckIcon } from '@/presentation/components/icons/shield-check';
+import {
+  Globe,
+  Users as UsersIcon,
+  Cog as CogIcon,
+  Zap as ZapIcon,
+  FileText as FileTextIcon,
+  ShieldCheck as ShieldCheckIcon,
+} from '@/presentation/components/icons';
 import { useIconHover, type AnimatedIconHandle } from '@/presentation/components/icons/useIconHover';
 import { useTranslation } from 'react-i18next';
 import { useMediaQuery } from '@/hooks/use-media-query';

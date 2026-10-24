@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { Download } from '@/presentation/components/icons';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
-import { PlayIcon } from '@/presentation/components/icons/play';
+import { Download, Sparkles as SparklesIcon, Play as PlayIcon } from '@/presentation/components/icons';
 import {
   Button,
   Badge,

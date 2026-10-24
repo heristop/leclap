@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { PictureInPicture, PictureInPicture2 } from 'lucide-react';
+import { PictureInPicture, PictureInPicture2 } from '@/presentation/components/icons';
 import { PlayerButton } from './player-controls';
 import type { PlayerPip } from './use-pip';
 

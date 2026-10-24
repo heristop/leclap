@@ -5,10 +5,15 @@
 import { useId, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import { ZoomIn, ZoomOut, ArrowLeft, ArrowRight } from '@/presentation/components/icons';
-import { ArrowUpIcon } from '@/presentation/components/icons/arrow-up';
-import { ArrowDownIcon } from '@/presentation/components/icons/arrow-down';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import {
+  ZoomIn,
+  ZoomOut,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp as ArrowUpIcon,
+  ArrowDown as ArrowDownIcon,
+  Sparkles as SparklesIcon,
+} from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/presentation/components/ui';

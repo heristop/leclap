@@ -11,10 +11,10 @@ import {
   Link,
   List,
   Palette,
-  type LucideIcon,
+  type IconComponent,
+  FileText as FileTextIcon,
+  User as UserIcon,
 } from '@/presentation/components/icons';
-import { FileTextIcon } from '@/presentation/components/icons/file-text';
-import { UserIcon } from '@/presentation/components/icons/user';
 import clsx from 'clsx';
 import { templateService, type Template } from '@/services/templateService';
 import { resolveTranslation } from '@/lib/i18nText';
@@ -41,7 +41,7 @@ interface TemplateFormProps {
 }
 
 // A typed field shows its type's icon; a plain text field keeps the name-based one.
-const ICON_BY_TYPE: Partial<Record<TemplateField['type'], LucideIcon>> = {
+const ICON_BY_TYPE: Partial<Record<TemplateField['type'], IconComponent>> = {
   color: Palette,
   number: Hash,
   time: Clock,
@@ -175,7 +175,7 @@ const FormFieldItem = ({ field, index, formData, touched, onFieldChange }: FormF
         htmlFor={fieldId}
         className="flex items-center space-x-2 text-sm font-medium text-gray-700 dark:text-gray-300"
       >
-        {createElement(IconComponent as LucideIcon, { className: 'w-4 h-4 text-brand-600 dark:text-brand-300' })}
+        {createElement(IconComponent, { className: 'w-4 h-4 text-brand-600 dark:text-brand-300' })}
         <span>{label}</span>
         {required && (
           <span className="text-brand-600 dark:text-brand-300" aria-label={t('form.status.requiredMark')}>

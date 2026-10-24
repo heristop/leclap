@@ -7,7 +7,7 @@
 // effects (global.sfx, the editor's audio.cues) sit in a collapsed group below the mix.
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MicIcon } from '@/presentation/components/icons/mic';
+import { Mic as MicIcon } from '@/presentation/components/icons';
 import { Checkbox } from '@/presentation/components/ui';
 import type { AudioMix, DuckingSettings } from '../templateEditorModel';
 import { RangeSlider, SegmentedControl, VolumeSlider, type SegmentOption } from './controls';

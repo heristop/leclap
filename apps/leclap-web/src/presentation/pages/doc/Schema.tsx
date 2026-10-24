@@ -1,6 +1,5 @@
 import { useId, useState } from 'react';
-import { BookOpen, Code2 } from '@/presentation/components/icons';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { BookOpen, Code2, ChevronDown as ChevronDownIcon } from '@/presentation/components/icons';
 import { templateDescriptorJsonSchema } from 'ffmpeg-video-composer/src/schemas/template.schemas.ts';
 import { Seo } from '@/presentation/components/Seo';
 import { DocSection, Prose, Code, JsonBlock } from '@/presentation/components/doc/DocBlocks';

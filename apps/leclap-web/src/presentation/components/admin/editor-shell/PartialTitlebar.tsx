@@ -1,7 +1,5 @@
 import type { TFunction } from 'i18next';
-import { ArrowLeft, Save, Trash2 } from '@/presentation/components/icons';
-import { PlusIcon } from '@/presentation/components/icons/plus';
-import { CopyIcon } from '@/presentation/components/icons/copy';
+import { ArrowLeft, Save, Trash2, Plus as PlusIcon, Copy as CopyIcon } from '@/presentation/components/icons';
 import { Badge } from '@/presentation/components/ui';
 import { Select, SelectItem, SelectTrigger, SelectValue } from '@/presentation/components/ui/select';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';

@@ -2,11 +2,14 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/presentation/components/ui';
-import { ArrowLeft, ChevronDown } from '@/presentation/components/icons';
-import { HomeIcon } from '@/presentation/components/icons/home';
-import { RotateCCWIcon } from '@/presentation/components/icons/rotate-ccw';
-import { CopyIcon } from '@/presentation/components/icons/copy';
-import { GithubIcon } from '@/presentation/components/icons/github';
+import {
+  ArrowLeft,
+  ChevronDown,
+  Home as HomeIcon,
+  RotateCcw as RotateCCWIcon,
+  Copy as CopyIcon,
+  Github as GithubIcon,
+} from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import type { ClappyReactionName } from '@/presentation/components/clappy';
 import { ErrorScene, SceneActions, SceneMessage, type SceneTone } from './error-scene';

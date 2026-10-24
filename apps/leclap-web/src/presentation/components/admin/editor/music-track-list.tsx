@@ -4,9 +4,7 @@
 // the art is never covered by a control, and titles wrap rather than truncate.
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Info, Loader2, Music } from '@/presentation/components/icons';
-import { PlayIcon } from '@/presentation/components/icons/play';
-import { PauseIcon } from '@/presentation/components/icons/pause';
+import { Info, Loader2, Music, Play as PlayIcon, Pause as PauseIcon } from '@/presentation/components/icons';
 import { CheckboxMark, RadioMark } from '@/presentation/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { coverGradient } from '@/lib/poster';

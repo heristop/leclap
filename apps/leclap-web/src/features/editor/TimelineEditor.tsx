@@ -1,10 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Crop, Scissors, RotateCcw, Trash2, Undo2, Redo2 } from '@/presentation/components/icons';
-import { PlayIcon } from '@/presentation/components/icons/play';
-import { PauseIcon } from '@/presentation/components/icons/pause';
+import {
+  Crop,
+  Scissors,
+  RotateCcw,
+  Trash2,
+  Undo2,
+  Redo2,
+  Play as PlayIcon,
+  Pause as PauseIcon,
+  ArrowRightLeft,
+} from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
-import { ArrowRightLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/presentation/components/ui';
 import { GradientMeter, ratio01 } from '@/presentation/components/kinetic';

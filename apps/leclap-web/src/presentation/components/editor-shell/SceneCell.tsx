@@ -1,5 +1,5 @@
 import { type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
-import { Check, type LucideIcon } from '@/presentation/components/icons';
+import { Check, type IconComponent } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import { PressableScale } from '@/presentation/components/kinetic';
 
@@ -10,7 +10,7 @@ interface SceneCellProps {
   eyebrow?: string;
   // Width in rem, for a lane that sizes clips by their duration; the default is a fixed card.
   widthRem?: number;
-  icon: LucideIcon;
+  icon: IconComponent;
   poster?: ReactNode;
   done?: boolean;
   active?: boolean;

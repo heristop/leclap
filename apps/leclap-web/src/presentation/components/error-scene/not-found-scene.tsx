@@ -1,9 +1,7 @@
 import { Link, useHref } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/presentation/components/ui';
-import { ArrowRight } from '@/presentation/components/icons';
-import { HomeIcon } from '@/presentation/components/icons/home';
-import { CompassIcon } from '@/presentation/components/icons/compass';
+import { ArrowRight, Home as HomeIcon, Compass as CompassIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { ErrorScene, PathSentence, SceneActions, SceneMessage } from './error-scene';
 import { statusTimecode } from './route-error.logic';

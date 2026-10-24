@@ -12,8 +12,7 @@ import {
   DEFAULT_TRANSITION_DURATION,
   MAX_TRANSITION_DURATION,
 } from 'ffmpeg-video-composer/src/schemas/effects.schemas.ts';
-import { Scissors } from '@/presentation/components/icons';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { Scissors, Sparkles as SparklesIcon } from '@/presentation/components/icons';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 import type { DefaultTransition, SectionTransition } from '../templateEditorModel';

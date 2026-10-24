@@ -4,9 +4,7 @@
 // are surfaced inline (the shell has no separate error dialog for this panel).
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check } from '@/presentation/components/icons';
-import { DownloadIcon } from '@/presentation/components/icons/download';
-import { UploadIcon } from '@/presentation/components/icons/upload';
+import { Check, Download as DownloadIcon, Upload as UploadIcon } from '@/presentation/components/icons';
 import type { EditorState } from '../templateEditorModel';
 import { FieldGroupHeader } from './FieldGroupHeader';
 import { exportDescriptorJson, exportFilename, importDescriptorJson } from './templateIO';

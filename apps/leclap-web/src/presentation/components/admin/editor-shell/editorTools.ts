@@ -1,8 +1,11 @@
 import type { ComponentType } from 'react';
-import { Music, Hash } from '@/presentation/components/icons';
-import { LayersIcon } from '@/presentation/components/icons/layers';
-import { FileTextIcon } from '@/presentation/components/icons/file-text';
-import { SlidersHorizontalIcon } from '@/presentation/components/icons/sliders-horizontal';
+import {
+  Music,
+  Hash,
+  Layers as LayersIcon,
+  FileText as FileTextIcon,
+  SlidersHorizontal as SlidersHorizontalIcon,
+} from '@/presentation/components/icons';
 
 export type EditorToolId = 'scenes' | 'basics' | 'audio' | 'variables' | 'advanced';
 

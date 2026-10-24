@@ -141,7 +141,7 @@ describe('TemplateForm typed controls', () => {
 
   it('gives each control type its own icon', () => {
     const html = render(typed);
-    const icons = new Set([...html.matchAll(/lucide-([a-z-]+)/g)].map((match) => match[1]).filter((n) => n !== 'icon'));
+    const icons = new Set([...html.matchAll(/lc-icon-([a-z-]+)/g)].map((match) => match[1]));
 
     expect(icons.size).toBeGreaterThanOrEqual(5);
   });

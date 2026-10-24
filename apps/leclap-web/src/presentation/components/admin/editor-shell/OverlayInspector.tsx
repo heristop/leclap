@@ -3,8 +3,7 @@
 // box controls. Selection is shared with the canvas via `selection` + `onSelectText`, so picking a row
 // here highlights it on the preview and selecting on the preview reveals its controls here.
 import { useTranslation } from 'react-i18next';
-import { Trash2, Type } from '@/presentation/components/icons';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { Trash2, Type, Plus as PlusIcon } from '@/presentation/components/icons';
 import { Button } from '@/presentation/components/ui';
 import { cn } from '@/lib/utils';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';

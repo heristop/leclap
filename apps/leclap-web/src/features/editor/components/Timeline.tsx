@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import type { ClipSegment } from '@/domain/valueObjects/videoEdits';
 import { SegmentMenu } from '@/features/editor/components/SegmentMenu';

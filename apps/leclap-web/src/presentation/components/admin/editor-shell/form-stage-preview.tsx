@@ -2,7 +2,7 @@
 // render. So the monitor shows the form as they will see it (labels, required marks, defaults as
 // placeholders, help lines, character budgets) and, under it, where each answer lands in the video.
 import { useTranslation } from 'react-i18next';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown } from '@/presentation/components/icons';
 import { cn } from '@/lib/utils';
 import type { EditorSection, FormField } from '../templateEditorModel';
 import { scenesUsing } from '../editor/SectionFields/form-fields.logic';

@@ -5,8 +5,7 @@
 // overlayControls' VariableMenu (outside-click + Escape).
 import { useEffect, useRef, useState, type ComponentType } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Circle, Code2, Image, Square, Type } from '@/presentation/components/icons';
-import { PlusIcon } from '@/presentation/components/icons/plus';
+import { Circle, Code2, Image, Square, Type, Plus as PlusIcon } from '@/presentation/components/icons';
 import { Button } from '@/presentation/components/ui';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';

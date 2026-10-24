@@ -1,8 +1,12 @@
 import { motion } from 'motion/react';
 import { useState } from 'react';
-import { ArrowUpRightIcon } from '@/presentation/components/icons/arrow-up-right';
+import { ArrowUpRight as ArrowUpRightIcon } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
+import { GLYPHS } from '@leclap/creative-kit/icons';
 import { useInView } from '@/hooks/useInView';
+
+// The set's own heart (@leclap/creative-kit/icons), drawn large so its outline can draw itself.
+const [[, { d: HEART }]] = GLYPHS.heart.parts;
 
 // A sincere acknowledgment to the FFmpeg project — the engine every clip, filter and
 // transition runs on. Kept deliberately editorial (not a tech badge): an oversized, offset
@@ -34,10 +38,10 @@ export const AboutThanks = () => {
         strokeLinecap="round"
         strokeLinejoin="round"
         xmlns="http://www.w3.org/2000/svg"
-        className="lucide pointer-events-none absolute -right-8 -bottom-10 rotate-12 text-secondary-500/10"
+        className="pointer-events-none absolute -right-8 -bottom-10 rotate-12 text-secondary-500/10"
       >
         <motion.path
-          d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"
+          d={HEART}
           pathLength={1}
           strokeDasharray={1}
           initial={{ strokeDashoffset: reduced ? 0 : 1 }}

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Video, Image, Music, File, Square, type LucideIcon } from '@/presentation/components/icons';
+import { Video, Image, Music, File, Square, type IconComponent } from '@/presentation/components/icons';
 import { FONTS } from '@leclap/creative-kit/fonts';
 import { listAvailablePartials, materializeTemplatePartials } from '@/services/templatePartialService';
 import { userPartialService } from '@/services/userPartialService';
@@ -39,14 +39,14 @@ interface ComposedSection {
 }
 
 // A glyph per descriptor section type, so the fallback tile reads the partial's make-up at a glance.
-const TYPE_ICONS: Record<string, LucideIcon> = {
+const TYPE_ICONS: Record<string, IconComponent> = {
   video: Video,
   image_background: Image,
   color_background: Square,
   music: Music,
 };
 
-const iconForType = (type: string | undefined): LucideIcon => TYPE_ICONS[type ?? ''] ?? File;
+const iconForType = (type: string | undefined): IconComponent => TYPE_ICONS[type ?? ''] ?? File;
 
 const fontFamilyOf = (file: string | undefined): string =>
   FONTS.find((font) => font.file === file)?.cssFamily ?? 'inherit';

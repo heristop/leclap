@@ -4,8 +4,7 @@
 // home hero — so scrubbing and playback stay at 60fps with zero re-renders.
 import { useEffect, useRef, type ChangeEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { PlayIcon } from '@/presentation/components/icons/play';
-import { PauseIcon } from '@/presentation/components/icons/pause';
+import { Play as PlayIcon, Pause as PauseIcon } from '@/presentation/components/icons';
 import { formatTimecode } from '../../home/hero-timecode.logic';
 import { totalDuration, type Segment } from './program-timeline.logic';
 import { PREVIEW_FPS, sceneEdges, snapToEdge } from './program-music.logic';

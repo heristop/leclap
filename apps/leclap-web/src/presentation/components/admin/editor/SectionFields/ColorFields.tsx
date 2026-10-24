@@ -1,8 +1,7 @@
 // Field block for a color_background section. Essentials (always visible): duration. The per-element
 // editors (background layers, animations) now live in the left panel's element inspector; finishing
 // controls (Effects, Section audio, Sound effects) live in collapsed disclosures that only appear in Advanced mode.
-import { Type } from '@/presentation/components/icons';
-import { SparklesIcon } from '@/presentation/components/icons/sparkles';
+import { Type, Sparkles as SparklesIcon } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import type { EditorSection, Orientation } from '../../templateEditorModel';
 import { SectionDisclosure } from '../SectionDisclosure';

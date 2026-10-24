@@ -7,9 +7,7 @@
 // never had. Plain buttons in tab order after the toggle, Escape back to it, and closing as focus or
 // a click leaves the widget, so it can't stay open over the page title once the reader has moved on.
 import { useEffect, useId, useRef, useState, type ComponentType } from 'react';
-import { ArrowUpRight, Check } from 'lucide-react';
-import { CopyIcon } from '@/presentation/components/icons/copy';
-import { ChevronDownIcon } from '@/presentation/components/icons/chevron-down';
+import { ArrowUpRight, Check, Copy as CopyIcon, ChevronDown as ChevronDownIcon } from '@/presentation/components/icons';
 import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import { cn } from '@/lib/utils';
 import { aiChatUrl, mcpInstallUrl, pageMarkdown, pageTitle } from './docMarkdown';

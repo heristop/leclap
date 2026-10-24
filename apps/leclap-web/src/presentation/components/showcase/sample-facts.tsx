@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight } from '@/presentation/components/icons';
 import { SampleSource } from './SampleSource';
 import { isNative, sampleShape, type ShowcaseSample } from './catalog';
 

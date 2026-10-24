@@ -1,4 +1,4 @@
-import { Video, FileText, type LucideIcon } from '@/presentation/components/icons';
+import { Video, FileText, type IconComponent } from '@/presentation/components/icons';
 import type { InputSection } from '@/services/templateService';
 
 // Per-item framing: each section announces its task type rather than hiding under one umbrella word.
@@ -8,7 +8,7 @@ export type SectionKind = 'record' | 'details';
 
 export interface SectionKindMeta {
   kind: SectionKind;
-  Icon: LucideIcon;
+  Icon: IconComponent;
   labelKey: 'editor.record' | 'editor.details';
 }
 

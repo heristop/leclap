@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw } from '@/presentation/components/icons';
 import { Button } from '@/presentation/components/ui';
 import { ClappyReaction, ClappyRunner } from '@/presentation/components/clappy';
 import { fraction } from './player.logic';

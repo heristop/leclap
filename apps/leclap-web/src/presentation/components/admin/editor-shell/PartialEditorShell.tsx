@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { LayersIcon } from '@/presentation/components/icons/layers';
-import { FileTextIcon } from '@/presentation/components/icons/file-text';
+import { Layers as LayersIcon, FileText as FileTextIcon, Monitor } from '@/presentation/components/icons';
 import type { TemplatePartial } from '@leclap/creative-kit/partials';
-import { Monitor } from '@/presentation/components/icons';
 import { ShellChrome, ToolDock, ProgramMonitor, type ViewTab } from '@/presentation/components/editor-shell';
 import { ColorVariablesProvider } from '@/presentation/components/ui';
 import type { EditorSection } from '../templateEditorModel';

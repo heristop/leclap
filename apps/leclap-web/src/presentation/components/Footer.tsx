@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogoMark, type LogoMarkHandle } from './LogoMark';
 import { ArrowUpRight } from './icons';
-import { GithubIcon, type GithubIconHandle } from './icons/github';
+import { Github as GithubIcon, type AnimatedIconHandle as GithubIconHandle } from '@/presentation/components/icons';
 import { perforationMaskStyle, perforationTileStyle } from '@/lib/film-strip';
 
 const REPO_URL = 'https://github.com/heristop/leclap';

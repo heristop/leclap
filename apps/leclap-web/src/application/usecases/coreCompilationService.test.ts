@@ -5,7 +5,11 @@ const mocks = vi.hoisted(() => ({
   compile: vi.fn(),
   emit: vi.fn(),
   clear: vi.fn(),
+  keepAwake: vi.fn(),
+  releaseWakeLock: vi.fn(),
 }));
+
+vi.mock('@/lib/screen-wake-lock', () => ({ keepScreenAwake: mocks.keepAwake }));
 
 vi.mock('reflect-metadata', () => ({}));
 vi.mock('ffmpeg-video-composer/src/browser.ts', () => ({
@@ -49,6 +53,7 @@ const config = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mocks.keepAwake.mockReturnValue(mocks.releaseWakeLock);
   vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:out');
 });
 
@@ -57,6 +62,8 @@ describe('compileVideo abort signal', () => {
     mocks.compile.mockResolvedValue('/tmp/build/out.mp4');
 
     await expect(coreCompilationService.compileVideo(config, vi.fn())).resolves.toMatchObject({ url: 'blob:out' });
+    expect(mocks.keepAwake).toHaveBeenCalledTimes(1);
+    expect(mocks.releaseWakeLock).toHaveBeenCalledTimes(1);
   });
 
   it('hands the engine the self-hosted ffmpeg core and html rasteriser', async () => {
@@ -96,6 +103,7 @@ describe('compileVideo abort signal', () => {
       failure: { kind: 'stopped' },
     });
     expect(mocks.emit).toHaveBeenCalledWith('task-cancelled');
+    expect(mocks.releaseWakeLock).toHaveBeenCalledTimes(1);
   });
 
   it('ignores an abort after the render finished', async () => {
@@ -108,4 +116,10 @@ describe('compileVideo abort signal', () => {
     abort.abort();
     expect(mocks.emit).not.toHaveBeenCalled();
   });
+});
+
+it('releases the screen lock when compilation fails', async () => {
+  mocks.compile.mockRejectedValue(new Error('Render failed'));
+  await expect(coreCompilationService.compileVideo(config, vi.fn())).rejects.toThrow();
+  expect(mocks.releaseWakeLock).toHaveBeenCalledTimes(1);
 });

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { TemplateOrientation } from '@leclap/creative-kit';
+import { useScreenWakeLock } from './useScreenWakeLock';
 import { warmUpVideoEncoder } from '@/lib/video-encoder-warm-up';
 
 export type Mode = 'loading' | 'ready' | 'countdown' | 'recording' | 'preview' | 'error';
@@ -110,6 +111,12 @@ function useRevokeObjectUrl(url: string | null): void {
       if (url) URL.revokeObjectURL(url);
     };
   }, [url]);
+}
+
+function useCaptureActivity(mode: Mode, countdownValue: number | null, previewUrl: string | null, onTick: () => void) {
+  useRecordingTimer(mode === 'recording', onTick);
+  useScreenWakeLock(mode === 'recording' || countdownValue !== null);
+  useRevokeObjectUrl(previewUrl);
 }
 
 // Round down to the nearest even integer. Android hardware video encoders (H.264 via MediaRecorder)
@@ -494,12 +501,10 @@ export function useCameraCapture(
     },
   });
 
-  useRecordingTimer(mode === 'recording', () => {
+  const countdown = usePreRecordCountdown(recorder.startRecording, recorder.stopRecording, options.countdownSeconds);
+  useCaptureActivity(mode, countdown.countdownValue, previewUrl, () => {
     setElapsed((s) => s + 1);
   });
-  useRevokeObjectUrl(previewUrl);
-
-  const countdown = usePreRecordCountdown(recorder.startRecording, recorder.stopRecording, options.countdownSeconds);
 
   const startCamera = () => {
     countdown.cancel();

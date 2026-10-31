@@ -19,6 +19,7 @@ import { analyzeMusicInBrowser } from '@/application/usecases/musicBeats';
 import { materializeTemplatePartials } from '@/services/templatePartialService';
 import { renderQuip } from '@leclap/creative-kit/render-quips';
 import { CompileError, classifyCompileFailure } from './compile-failure';
+import { keepScreenAwake } from '@/lib/screen-wake-lock';
 import { createRenderQueue } from './render-queue';
 
 export type { MediaChoices, VideoConfigOverride };
@@ -80,6 +81,7 @@ class CoreCompilationService {
     signal?: AbortSignal
   ): Promise<CompilationResult> {
     return this.renders.run((isCurrent) => {
+      const releaseWakeLock = keepScreenAwake();
       const current = (): boolean => isCurrent() && !signal?.aborted;
       // Only a render still in flight may tell the engine to stop; once a newer render replaced it, the
       // engine is that render's, and this one already gives up at its next checkpoint.
@@ -89,6 +91,7 @@ class CoreCompilationService {
       signal?.addEventListener('abort', onAbort, { once: true });
 
       return this.render(config, onProgress, current).finally(() => {
+        releaseWakeLock();
         signal?.removeEventListener('abort', onAbort);
       });
     });

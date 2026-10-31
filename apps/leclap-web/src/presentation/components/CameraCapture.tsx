@@ -11,9 +11,7 @@ import {
   Loader2,
   CameraOff,
   TimerReset,
-  SwitchCamera as SwitchCameraIcon,
 } from '@/presentation/components/icons';
-import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { motion, useReducedMotion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
@@ -68,7 +66,7 @@ function CaptureModeBar({
     <div
       role="group"
       aria-label={t('camera.sourceLabel')}
-      className="flex w-full max-w-lg gap-1 rounded-2xl bg-player-ink/90 p-1.5 ring-1 ring-player-fg/20"
+      className="flex w-full max-w-lg gap-1 rounded-2xl bg-player-ink/95 p-1.5 ring-1 ring-player-fg/15"
     >
       {modes.map((mode) => {
         const Icon = CAPTURE_MODE_ICONS[mode];
@@ -83,13 +81,13 @@ function CaptureModeBar({
               if (!selected) onChange(mode);
             }}
             className={clsx(
-              'group flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-xs font-medium leading-snug transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-player-ink motion-reduce:transition-none sm:min-h-12 sm:flex-row sm:gap-2 sm:text-sm',
+              'group flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm font-medium leading-snug transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-player-ink motion-reduce:transition-none sm:min-h-12 sm:flex-row sm:gap-2 sm:text-sm',
               selected
-                ? 'bg-brand-300 font-semibold text-player-ink'
-                : 'text-player-fg/80 hover:bg-player-fg/10 hover:text-player-fg'
+                ? 'border-brand-300/50 bg-brand-500/15 font-semibold text-brand-200'
+                : 'border-transparent text-player-fg/80 hover:bg-player-fg/10 hover:text-player-fg'
             )}
           >
-            <Icon size={18} aria-hidden="true" className="shrink-0" />
+            <Icon size={20} aria-hidden="true" className="shrink-0" />
             <span className="text-center [overflow-wrap:anywhere]">{t(`camera.modes.${mode}`)}</span>
           </button>
         );
@@ -114,21 +112,15 @@ function ScreenPreview({ stream }: { stream: MediaStream | null }) {
 
 interface TopBarProps {
   state: CaptureState;
-  mode: CaptureMode;
   elapsed: number;
   onCancel: () => void;
-  onSwitchCamera: () => void;
 }
 
-const CameraTopBar = ({ state, mode, elapsed, onCancel, onSwitchCamera }: TopBarProps) => {
+const CameraTopBar = ({ state, elapsed, onCancel }: TopBarProps) => {
   const { t } = useTranslation('media');
-  const isCameraMode = mode === 'front' || mode === 'back';
-  const showSwitch = isCameraMode && (state === 'idle' || state === 'loading');
-  const showSpacer = state === 'preview' || state === 'error';
-  const { ref: switchRef, hoverProps: switchHoverProps } = useIconHover();
 
   return (
-    <div className="flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+    <div className="grid grid-cols-[2.75rem_1fr_2.75rem] items-center gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
       <Button
         variant="ghost"
         size="icon"
@@ -140,26 +132,15 @@ const CameraTopBar = ({ state, mode, elapsed, onCancel, onSwitchCamera }: TopBar
       </Button>
 
       {state === 'recording' && (
-        <div className="fade-in flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/70 ring-1 ring-white/20 shadow-lg shadow-black/40">
+        <div className="fade-in mx-auto flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/70 ring-1 ring-white/20 shadow-lg shadow-black/40">
           <span className="w-3 h-3 rounded-full bg-[var(--color-error)] animate-pulse shadow-[0_0_10px_2px_oklch(0.643_0.215_28.8/0.6)]" />
           <span className="text-lg font-bold text-white tabular-nums tracking-tight">{formatElapsed(elapsed)}</span>
         </div>
       )}
 
-      {showSwitch && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onSwitchCamera}
-          className="rounded-full bg-foreground/10 text-foreground hover:bg-foreground/20"
-          aria-label={t('camera.switchAria')}
-          {...switchHoverProps}
-        >
-          <SwitchCameraIcon ref={switchRef} size={16} />
-        </Button>
+      {(state === 'idle' || state === 'loading' || state === 'error') && (
+        <p className="text-center text-sm font-medium text-player-fg/80">{t('camera.sourceLabel')}</p>
       )}
-
-      {showSpacer && <span className="w-10" />}
     </div>
   );
 };
@@ -629,16 +610,7 @@ export const CameraCapture = ({
 
       {/* Top bar */}
       <div className="absolute inset-x-0 top-0 z-20 bg-linear-to-b from-black/55 to-transparent pb-8">
-        <CameraTopBar
-          state={session.state}
-          mode={session.mode}
-          elapsed={session.elapsed}
-          onCancel={onClose}
-          onSwitchCamera={() => {
-            const nextMode = session.mode === 'front' ? 'back' : 'front';
-            session.setMode(nextMode);
-          }}
-        />
+        <CameraTopBar state={session.state} elapsed={session.elapsed} onCancel={onClose} />
 
         {/* Source selector — also available after an error so another source remains reachable. */}
         {(session.state === 'idle' || session.state === 'loading' || session.state === 'error') && (

@@ -18,9 +18,9 @@ export type DocRoute = {
 export const DOC_ROUTES: readonly DocRoute[] = [
   {
     path: '/doc/agents',
-    title: 'Make videos with your AI agent',
+    title: 'AI motion graphics with MCP and JSON',
     description:
-      'Connect through MCP or CLI, compose an editable template, inspect frames, revise and render your first video locally.',
+      'Create motion graphics with an AI agent using MCP and editable JSON. Try a browser sample, then validate, preview and render locally with FFmpeg.',
     priority: '0.8',
     changefreq: 'monthly',
   },

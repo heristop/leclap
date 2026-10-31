@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "Il motore video per gli agenti IA",
     "headlineA": "Il tuo agente IA crea video.",
-    "subtagline": "Componi, valida, visualizza e renderizza modelli JSON modificabili con le tue riprese, testi, animazioni e musica.",
+    "subtagline": "Crea motion graphics e video con agenti IA. Componi, visualizza e perfeziona modelli JSON modificabili con i tuoi filmati, testi e musica.",
     "privacy": "Rendering locale. Modelli modificabili.",
     "tally": "LeClap · Sul dispositivo",
     "scrubAria": "Scorri il film di sfondo",
@@ -11,7 +11,8 @@
     "play": "Riproduci il film dell'hero",
     "pause": "Metti in pausa il film dell'hero",
     "scrubValue": "{{seconds}} di {{total}} secondi",
-    "demoHint": "Senza caricare file né usare la fotocamera. Prova un modello con un video incluso, direttamente nel browser."
+    "demoHint": "Crea un video da un modello. Senza caricare file né usare la fotocamera.",
+    "agentHint": "MCP o CLI. Ogni composizione resta modificabile."
   },
   "showcase": {
     "eyebrow": "Guardalo in azione",

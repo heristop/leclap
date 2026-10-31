@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — The Video Engine for AI Agents",
-    "description": "Give your AI agent tools to compose, validate, preview and render videos from editable JSON templates. Connect through MCP or CLI and render locally."
+    "title": "LeClap — AI Motion Graphics & Video Engine",
+    "description": "Build motion graphics with AI agents, editable JSON and MCP. Render locally with FFmpeg, or try a browser sample now with no upload."
   },
   "studio": {
     "title": "Studio",

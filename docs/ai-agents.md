@@ -1,6 +1,14 @@
-# Make videos with your AI agent
+# AI motion graphics with MCP and JSON
 
-LeClap is the video engine for AI agents. Your agent makes the creative decisions; LeClap provides structured tools to compose, validate, inspect, revise and render an editable JSON template with FFmpeg. Use it for product demos, branded clips and review videos made from your own assets.
+LeClap is an open-source video engine for AI agents and developers building programmatic motion graphics. An agent authors editable JSON for typography, layers, transitions and timing; LeClap validates the template and renders it with FFmpeg. Connect through the Model Context Protocol (MCP), use the CLI, or integrate the TypeScript library.
+
+Use it for animated titles, product demos, branded clips and review videos made from your own assets. The template remains editable after every render.
+
+## Try a sample in your browser — no upload
+
+[Try the browser sample on the homepage](https://leclap.dev/#browser-demo). Select the sample demo to compile a prepared template with its supplied assets using FFmpeg in your browser. You do not need to upload footage or connect an AI agent to try it. The first run downloads the renderer and sample assets before compilation.
+
+For more designs, [explore the motion showcase](https://leclap.dev/showcase). The MCP and CLI sample catalog is separate: it supplies templates and asset requirements, not bundled sample media.
 
 ## Connect through MCP
 
@@ -41,6 +49,14 @@ The agent should follow this loop:
 3. **Inspect:** call `render_frames` at a useful moment. Look at the actual image, not only the JSON.
 4. **Render:** call `compose_video`. Open its returned MP4 resource or local `outputPath`.
 5. **Keep the source:** save the returned or authored template with your agent's file tools. The MCP server does not write a source JSON file for you.
+
+## Direct the motion, then inspect the result
+
+Give your agent a visual brief with an audience, pace and intended emphasis. For example:
+
+> Turn this title card into a restrained product announcement. Animate the title entrance with a short upward move and a gentle ease-out, then hold it still long enough to read. Keep the background quiet. Use native motion primitives from the catalog, inspect frames during the entrance and hold, and render the revised MP4. Save the JSON too.
+
+The agent should use `get_motion_catalog` to discover supported primitives and author their timing explicitly. For finer control, read the [motion and layer reference](https://leclap.dev/doc/motion), [creative-direction guide](https://leclap.dev/doc/creative-direction) and [complete template configuration](https://leclap.dev/doc/reference). Registered React effects use a separately configured trusted Node backend; they are not part of the native browser rendering path.
 
 ## Ask for a revision
 

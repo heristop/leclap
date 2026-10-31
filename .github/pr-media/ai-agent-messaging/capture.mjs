@@ -54,7 +54,7 @@ for (const [version, port] of versions) {
         await page.screenshot({ path: `${out}/features-${width}-${theme}.png` });
         await page.evaluate(() => scrollTo(0, 0));
         await page.getByRole('link', { name: 'Connect your agent', exact: true }).click();
-        await page.getByRole('heading', { name: 'Make videos with your AI agent', exact: true }).waitFor();
+        await page.getByRole('heading', { name: 'AI motion graphics with MCP and JSON', exact: true }).waitFor();
         await page.screenshot({ path: `${out}/guide-${width}-${theme}.png` });
         report.push({
           guide: page.url(),
@@ -78,7 +78,7 @@ for (const [version, port] of versions) {
   await page.waitForTimeout(6000);
   if (version === 'after') {
     await page.getByRole('link', { name: 'Connect your agent', exact: true }).click();
-    await page.getByRole('heading', { name: 'Make videos with your AI agent', exact: true }).waitFor();
+    await page.getByRole('heading', { name: 'AI motion graphics with MCP and JSON', exact: true }).waitFor();
     await page.waitForTimeout(4000);
   }
   await context.close();

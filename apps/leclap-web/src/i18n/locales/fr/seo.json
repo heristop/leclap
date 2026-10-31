@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Le moteur vidéo pour les agents IA",
-    "description": "Composez, validez, prévisualisez et rendez des vidéos avec votre agent IA et des modèles JSON modifiables. Connexion MCP ou CLI, rendu local."
+    "title": "LeClap — Motion design et moteur vidéo pour l’IA",
+    "description": "Créez des animations avec des agents IA, du JSON modifiable et MCP. Rendu local avec FFmpeg, ou testez un exemple dans le navigateur sans envoi de fichiers."
   },
   "studio": {
     "title": "Studio",

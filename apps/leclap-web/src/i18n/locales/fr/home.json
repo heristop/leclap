@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "Le moteur vidéo pour les agents IA",
     "headlineA": "Votre agent IA crée des vidéos.",
-    "subtagline": "Composez, validez, prévisualisez et rendez des modèles JSON modifiables avec vos images, textes, animations et musiques.",
+    "subtagline": "Créez des animations et des vidéos avec vos agents IA. Composez, prévisualisez et ajustez des modèles JSON modifiables avec vos vidéos, textes et musiques.",
     "privacy": "Rendu local. Modèle toujours modifiable.",
     "tally": "LeClap · Sur l'appareil",
     "scrubAria": "Faire défiler le film d'arrière-plan",
@@ -11,7 +11,8 @@
     "play": "Lire le film du hero",
     "pause": "Mettre le film du hero en pause",
     "scrubValue": "{{seconds}} sur {{total}} secondes",
-    "demoHint": "Sans import ni caméra. Testez un modèle avec une vidéo fournie, directement dans votre navigateur."
+    "demoHint": "Compilez un modèle de démonstration. Sans import ni caméra.",
+    "agentHint": "MCP ou CLI. Chaque composition reste modifiable."
   },
   "showcase": {
     "eyebrow": "En action",

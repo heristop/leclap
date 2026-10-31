@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "The video engine for AI agents",
     "headlineA": "Your AI agent can make videos.",
-    "subtagline": "Compose, validate, preview and render editable JSON templates—with your footage, typography, motion and music.",
+    "subtagline": "Create motion graphics and videos with AI agents. Compose, preview and refine editable JSON templates with your footage, typography and music.",
     "privacy": "Render locally. Keep your template editable.",
     "tally": "LeClap · On-device",
     "scrubAria": "Scrub the background film",
@@ -11,7 +11,8 @@
     "play": "Play the hero film",
     "pause": "Pause the hero film",
     "scrubValue": "{{seconds}} of {{total}} seconds",
-    "demoHint": "No upload or camera needed. Try a sample template with included footage, entirely in your browser."
+    "demoHint": "Render a sample template. No upload or camera needed.",
+    "agentHint": "MCP or CLI. Keep every composition editable."
   },
   "showcase": {
     "eyebrow": "See it in action",

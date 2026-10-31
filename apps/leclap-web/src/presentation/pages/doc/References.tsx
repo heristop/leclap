@@ -69,10 +69,10 @@ export const DocCreativeDirection = () => (
 
 export const DocAgents = () => (
   <ReferencePage
-    title="Make videos with your AI agent"
-    seoTitle="Make videos with your AI agent"
+    title="AI motion graphics with MCP and JSON"
+    seoTitle="AI motion graphics with MCP and JSON"
     path="/doc/agents"
-    description="Connect through MCP or CLI, compose an editable template, inspect frames, revise and render your first video locally."
+    description="Create motion graphics with an AI agent using MCP and editable JSON. Try a browser sample, then validate, preview and render locally with FFmpeg."
     source={agentsSource}
   />
 );

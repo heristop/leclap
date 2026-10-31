@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/presentation/components/ui';
-import { SectionHeading } from './section-heading';
+import { ArrowUpRight } from '@/presentation/components/icons';
 
 const steps = ['compose', 'validate', 'revise', 'render'] as const;
 const useCases = [
@@ -15,39 +15,54 @@ export const AgentWorkflow = () => {
 
   return (
     <section id="agent-workflow" className="bg-background py-24 text-foreground sm:py-32">
-      <SectionHeading eyebrow={t('workflow.eyebrow')} title={t('workflow.title')} subtitle={t('workflow.subtitle')} />
-      <div className="mx-auto mt-14 max-w-6xl px-6">
-        <ol className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step, index) => (
-            <li key={step} className="border-t border-divider pt-6">
-              <span className="font-mono text-sm text-brand-600 dark:text-brand-300" aria-hidden="true">
-                0{index + 1}
-              </span>
-              <h3 className="mt-4 font-display text-2xl font-bold">{t(`workflow.steps.${step}.title`)}</h3>
-              <p className="mt-3 leading-relaxed text-muted-foreground">{t(`workflow.steps.${step}.body`)}</p>
-            </li>
-          ))}
-        </ol>
-        <ul className="mt-16 grid gap-8 md:grid-cols-3">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:gap-20">
+          <div>
+            <h2 className="max-w-[12ch] font-display text-[length:var(--text-display-section)] font-bold uppercase leading-[0.95] tracking-[-0.015em] text-balance [&:not(:lang(en))]:leading-[1.16]">
+              {t('workflow.title')}
+            </h2>
+            <p className="mt-6 max-w-md text-lg leading-relaxed text-muted-foreground">{t('workflow.subtitle')}</p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <Link to="/doc/agents">{t('workflow.guide')}</Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/studio">{t('workflow.studio')}</Link>
+              </Button>
+            </div>
+          </div>
+          <ol className="border-t border-divider">
+            {steps.map((step, index) => (
+              <li key={step} className="grid grid-cols-[2rem_1fr] gap-4 border-b border-divider py-6 sm:gap-6">
+                <span className="pt-1 text-sm tabular-nums text-brand-700 dark:text-brand-300" aria-hidden="true">
+                  0{index + 1}
+                </span>
+                <div>
+                  <h3 className="font-display text-2xl font-bold">{t(`workflow.steps.${step}.title`)}</h3>
+                  <p className="mt-2 max-w-lg leading-relaxed text-muted-foreground">
+                    {t(`workflow.steps.${step}.body`)}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <ul className="mt-14 grid gap-8 border-t border-divider pt-8 md:grid-cols-3 lg:mt-20">
           {useCases.map(({ id, to }) => (
-            <li key={id} className="border-t border-divider pt-6">
+            <li key={id} className="group">
               <h3 className="font-display text-xl font-bold">
-                <Link className="underline decoration-primary underline-offset-4 hover:text-primary" to={to}>
+                <Link
+                  className="inline-flex min-h-11 items-center gap-2 underline decoration-primary/40 underline-offset-4 transition-colors hover:text-primary focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-primary"
+                  to={to}
+                >
                   {t(`workflow.cases.${id}.title`)}
+                  <ArrowUpRight size={18} aria-hidden="true" className="shrink-0" />
                 </Link>
               </h3>
               <p className="mt-3 leading-relaxed text-muted-foreground">{t(`workflow.cases.${id}.body`)}</p>
             </li>
           ))}
         </ul>
-        <div className="mt-12 flex flex-wrap justify-center gap-4">
-          <Button asChild size="lg">
-            <Link to="/doc/agents">{t('workflow.guide')}</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/studio">{t('workflow.studio')}</Link>
-          </Button>
-        </div>
       </div>
     </section>
   );

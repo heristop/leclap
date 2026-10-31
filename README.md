@@ -6,9 +6,9 @@
 
 **The video engine for AI agents.**
 
-Give your agent the tools to compose, validate, preview and render videos from editable JSON templates. Bring your footage, typography, motion and music; render locally with FFmpeg.
+Build programmatic motion graphics with your AI agent: compose, validate, preview and render editable JSON templates through MCP or CLI. Bring your footage, typography, motion and music; render locally with FFmpeg.
 
-[Connect your agent](https://leclap.dev/doc/agents) · [Watch a real workflow](https://leclap.dev/#agentic) · [Open the studio](https://leclap.dev/studio)
+[Connect your agent](https://leclap.dev/doc/agents) · [Try a browser sample — no upload](https://leclap.dev/#browser-demo) · [Watch a real workflow](https://leclap.dev/#agentic)
 
 [![CI](https://github.com/heristop/leclap/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/leclap/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/ffmpeg-video-composer.svg?label=ffmpeg-video-composer)](https://www.npmjs.com/package/ffmpeg-video-composer)

@@ -2,7 +2,7 @@
   "hero": {
     "eyebrow": "Die Video-Engine für KI-Agenten",
     "headlineA": "Dein KI-Agent erstellt Videos.",
-    "subtagline": "Komponiere, validiere, prüfe und rendere bearbeitbare JSON-Vorlagen mit deinen Aufnahmen, Texten, Animationen und deiner Musik.",
+    "subtagline": "Erstelle Motion Graphics und Videos mit KI-Agenten. Komponiere, prüfe und verfeinere bearbeitbare JSON-Vorlagen mit deinem Material, Text und Musik.",
     "privacy": "Lokal rendern. Vorlagen weiter bearbeiten.",
     "tally": "LeClap · Auf dem Gerät",
     "scrubAria": "Durch den Hintergrundfilm scrubben",
@@ -11,7 +11,8 @@
     "play": "Hero-Film abspielen",
     "pause": "Hero-Film pausieren",
     "scrubValue": "{{seconds}} von {{total}} Sekunden",
-    "demoHint": "Kein Upload und keine Kamera nötig. Teste eine Vorlage mit mitgeliefertem Video direkt im Browser."
+    "demoHint": "Rendere eine Beispielvorlage. Ohne Upload oder Kamera.",
+    "agentHint": "MCP oder CLI. Jede Komposition bleibt bearbeitbar."
   },
   "showcase": {
     "eyebrow": "In Aktion sehen",

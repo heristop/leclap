@@ -1,10 +1,10 @@
 # LeClap (ffmpeg-video-composer)
 
-> The video engine for AI agents. Compose, validate, preview, revise and render editable JSON templates through MCP or CLI. LeClap composes existing assets with FFmpeg; the connected agent supplies the creative decisions.
+> The video engine for AI agents and programmatic motion graphics. Compose, validate, preview, revise and render editable JSON templates through MCP or CLI. LeClap composes existing assets with FFmpeg; the connected agent supplies the creative decisions.
 
 Render locally on Node, in the browser through WebAssembly, or in React Native on-device. Output is reproducible per platform when the template, assets, configuration and runtime are preserved. Encoders and supported effects vary by platform. Local rendering does not determine an external AI provider's data handling. Registered React effects require a trusted Node backend.
 
-Start with the [AI agent guide](https://leclap.dev/doc/agents): MCP setup, a first prompt, CLI commands, frame inspection, revision and builder handoff.
+Start with the [AI motion graphics guide](https://leclap.dev/doc/agents): MCP setup, a first prompt, motion direction, CLI commands, frame inspection, revision and builder handoff. Visitors can also [try a prepared browser sample without uploading footage](https://leclap.dev/#browser-demo). The browser demo downloads its renderer and supplied assets; MCP and CLI sample catalogs provide templates and requirements rather than bundled media.
 
 ## Documentation
 

@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Die Video-Engine für KI-Agenten",
-    "description": "KI-Agenten komponieren, validieren, prüfen und rendern Videos aus bearbeitbaren JSON-Vorlagen. Über MCP oder CLI verbinden und lokal rendern."
+    "title": "LeClap — Motion Graphics und Video-Engine für KI",
+    "description": "Erstelle Motion Graphics mit KI-Agenten, editierbarem JSON und MCP. Lokal mit FFmpeg rendern oder ein Browser-Beispiel ohne Upload testen."
   },
   "studio": {
     "title": "Studio",

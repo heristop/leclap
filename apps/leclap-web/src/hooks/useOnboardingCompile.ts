@@ -27,8 +27,10 @@ const sampleFormData = (template: Template, name: string): Record<string, string
       .map((field, index) => [field.name, index === 0 ? name.trim() : ''])
   );
 
-async function loadSampleClip(): Promise<File> {
-  const response = await fetch('/videos/drink-and-coffee.mp4');
+async function loadSampleClip(format: TemplateOrientation): Promise<File> {
+  // Feed the template original rushes, never a montage with effects already baked in.
+  const source = format === 'portrait' ? 'video_portrait.mp4' : 'video_1.mp4';
+  const response = await fetch(`/assets/videos/${source}`);
 
   if (!response.ok) throw new Error('Sample clip could not be loaded.');
 
@@ -65,7 +67,7 @@ export function useOnboardingCompile(opts: {
 
       if (!sampleTemplate) throw new Error(`Sample template "${sampleTemplateId}" could not be loaded.`);
 
-      const clip = videoFile === 'sample' ? await loadSampleClip() : videoFile;
+      const clip = videoFile === 'sample' ? await loadSampleClip(sampleFormat) : videoFile;
 
       if (run !== ticket.current) return;
 

@@ -11,18 +11,20 @@ import { FullFieldReference } from './full-field-reference';
 const ReferencePage = ({
   title,
   description,
+  seoTitle = `${title} — LeClap reference`,
   path,
   source,
   fields = false,
 }: {
   title: string;
   description: string;
+  seoTitle?: string;
   path: string;
   source: string;
   fields?: boolean;
 }) => (
   <>
-    <Seo title={`${title} — LeClap reference`} description={description} path={path} />
+    <Seo title={seoTitle} description={description} path={path} />
     <DocPageHeader kicker="Complete reference" title={title}>
       {description}
     </DocPageHeader>
@@ -68,6 +70,7 @@ export const DocCreativeDirection = () => (
 export const DocAgents = () => (
   <ReferencePage
     title="Make videos with your AI agent"
+    seoTitle="Make videos with your AI agent"
     path="/doc/agents"
     description="Connect through MCP or CLI, compose an editable template, inspect frames, revise and render your first video locally."
     source={agentsSource}

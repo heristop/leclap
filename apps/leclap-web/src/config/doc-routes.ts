@@ -18,7 +18,7 @@ export type DocRoute = {
 export const DOC_ROUTES: readonly DocRoute[] = [
   {
     path: '/doc/agents',
-    title: 'Make videos with your AI agent — LeClap reference',
+    title: 'Make videos with your AI agent',
     description:
       'Connect through MCP or CLI, compose an editable template, inspect frames, revise and render your first video locally.',
     priority: '0.8',

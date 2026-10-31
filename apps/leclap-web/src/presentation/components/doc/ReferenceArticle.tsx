@@ -5,6 +5,7 @@ import { Code, JsonBlock, Prose } from './DocBlocks';
 
 const REPO = 'https://github.com/heristop/leclap/blob/main/';
 const DOC_PAGES: Record<string, string> = {
+  'ai-agents.md': '/doc/agents',
   'template-configuration.md': '/doc/reference',
   'engine-configuration.md': '/doc/engine',
   'effects-configuration.md': '/doc/effects',

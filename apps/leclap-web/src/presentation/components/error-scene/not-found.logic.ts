@@ -24,6 +24,7 @@ const DOC_PATHS = [
   '/doc/reference',
   '/doc/engine',
   '/doc/creative-direction',
+  '/doc/agents',
   '/design',
 ];
 

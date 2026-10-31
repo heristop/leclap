@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Compositeur vidéo pour navigateur, mobile et agents IA",
-    "description": "Compose des vidéos depuis un modèle JSON, dans ton navigateur ou sur ton téléphone, sans envoi. En développement agentique, ton agent joint une vidéo avant/après à ses PR."
+    "title": "LeClap — Le moteur vidéo pour les agents IA",
+    "description": "Composez, validez, prévisualisez et rendez des vidéos avec votre agent IA et des modèles JSON modifiables. Connexion MCP ou CLI, rendu local."
   },
   "studio": {
     "title": "Studio",

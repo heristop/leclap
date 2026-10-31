@@ -1,14 +1,13 @@
 {
   "hero": {
-    "eyebrow": "LeClap Studio",
-    "headlineA": "Silence, ça tourne.",
-    "headlineB": "dans ton navigateur.",
-    "subtagline": "Le monteur vidéo cinématique qui tourne entièrement dans ton navigateur.",
-    "privacy": "Tes images ne quittent jamais ton appareil.",
+    "eyebrow": "Le moteur vidéo pour les agents IA",
+    "headlineA": "Votre agent IA crée des vidéos.",
+    "subtagline": "Composez, validez, prévisualisez et rendez des modèles JSON modifiables avec vos images, textes, animations et musiques.",
+    "privacy": "Rendu local. Modèle toujours modifiable.",
     "tally": "LeClap · Sur l'appareil",
     "scrubAria": "Faire défiler le film d'arrière-plan",
-    "startCreating": "Créer ma vidéo",
-    "seeHow": "Voir comment ça marche",
+    "startCreating": "Connecter votre agent",
+    "seeHow": "Voir un exemple",
     "play": "Lire le film du hero",
     "pause": "Mettre le film du hero en pause",
     "scrubValue": "{{seconds}} sur {{total}} secondes"
@@ -16,7 +15,7 @@
   "showcase": {
     "eyebrow": "En action",
     "title": "Chaque effet tient dans un modèle",
-    "subtitle": "Reflets, scintillements, cadres, mouvements de caméra et coupes sur le temps : chacun tient en une ligne de modèle, et rend pareil dans ton navigateur, sur ton ordinateur et sur ton téléphone.",
+    "subtitle": "Fuites de lumière, reflets, cadres, mouvements de caméra et coupes en rythme : explorez des modèles modifiables et leurs rendus.",
     "videoAria": "Une démo des effets de mouvement de LeClap, lue en boucle",
     "play": "Lire le rendu",
     "pause": "Mettre le rendu en pause",
@@ -113,34 +112,73 @@
     "ctaSecondary": "Utiliser la recette MCP"
   },
   "features": {
-    "badge": "Tout, côté client",
-    "title": "Un vrai compositeur vidéo, dans le navigateur",
-    "subtitle": "FFmpeg de qualité pro, de vrais modèles et des formulaires en direct — le tout sur ton appareil.",
+    "badge": "Pensé pour la création",
+    "title": "Des instructions à la vidéo",
+    "subtitle": "Donnez des outils structurés à votre agent, inspectez le résultat et gardez la main.",
     "items": {
       "templates": {
-        "title": "De vrais modèles JSON",
-        "description": "Un seul fichier JSON décrit toute la vidéo : sections, filtres, texte et musique. Ce même fichier se rend en CLI, dans le navigateur et sur le téléphone."
+        "title": "Création structurée",
+        "description": "Un schéma, un catalogue de mouvements et des exemples exécutables guident votre agent."
       },
       "forms": {
-        "title": "Formulaires issus du modèle",
-        "description": "Chaque modèle déclare ses champs. Le studio en tire le formulaire et vérifie chaque saisie avant le rendu."
+        "title": "Vous gardez la main",
+        "description": "Conservez le JSON modifiable et ouvrez-le dans l’éditeur visuel pour ajuster la composition."
       },
       "processing": {
-        "title": "Tout le pipeline FFmpeg",
-        "description": "Filtres vidéo, incrustations de texte, transitions et mixage audio, compilés en véritables commandes FFmpeg."
+        "title": "Révisions précises",
+        "description": "Validez le modèle, inspectez les images rendues et modifiez les scènes concernées."
       },
       "privacy": {
-        "title": "Rien ne quitte l’appareil",
-        "description": "Le rendu se fait dans cet onglet. Tes fichiers ne sont jamais envoyés, il n’y a donc aucun serveur à qui faire confiance."
+        "title": "Rendu local",
+        "description": "FFmpeg effectue le rendu sur votre appareil. Votre fournisseur d’IA applique ses propres règles de traitement des données."
       },
       "wasm": {
-        "title": "FFmpeg en WebAssembly",
-        "description": "Le même FFmpeg que tu ferais tourner sur un serveur, compilé pour le navigateur. Plus lent qu’en natif, et rien à installer."
+        "title": "MCP et CLI",
+        "description": "Connectez un client MCP ou laissez un agent utiliser la ligne de commande pour explorer, prévisualiser et rendre."
       },
       "crossPlatform": {
-        "title": "Ordinateur, tablette, mobile",
-        "description": "Fonctionne dans les navigateurs récents, de l’écran d’ordinateur à celui d’un téléphone."
+        "title": "Un modèle, plusieurs plateformes",
+        "description": "Composez sur Node, dans le navigateur ou dans une application native. Les effets disponibles et les pixels encodés varient selon le moteur."
       }
     }
+  },
+  "workflow": {
+    "eyebrow": "Votre brief, votre prochaine vidéo",
+    "title": "Un processus que vous pouvez inspecter",
+    "subtitle": "Votre agent prend les décisions créatives. LeClap transforme un modèle modifiable et vos médias en vidéo.",
+    "steps": {
+      "compose": {
+        "title": "Composer",
+        "body": "Partez d’un brief et de vos médias. Explorez un exemple et suivez le schéma."
+      },
+      "validate": {
+        "title": "Valider",
+        "body": "Vérifiez le modèle et inspectez les images réelles avant le rendu complet."
+      },
+      "revise": {
+        "title": "Réviser",
+        "body": "Demandez une intro plus courte ou une autre conclusion. Modifiez les scènes concernées."
+      },
+      "render": {
+        "title": "Rendre",
+        "body": "Exportez la vidéo terminée et conservez le modèle pour la prochaine révision."
+      }
+    },
+    "cases": {
+      "product": {
+        "title": "Démos produit",
+        "body": "Transformez des captures réelles en une présentation claire du produit."
+      },
+      "social": {
+        "title": "Vidéos de marque",
+        "body": "Réutilisez vos textes, couleurs et médias dans des compositions modifiables."
+      },
+      "review": {
+        "title": "Preuves pour les PR",
+        "body": "Montrez aux reviewers une vidéo avant/après du changement réel."
+      }
+    },
+    "guide": "Suivre le guide des agents",
+    "studio": "Essayer le studio"
   }
 }

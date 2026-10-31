@@ -10,15 +10,12 @@ import { useInView } from '@/hooks/useInView';
 import { usePointerGlow } from '@/hooks/usePointerGlow';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useSound } from '@/hooks/use-sound';
-import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 import { HeroStage } from './hero-stage';
 import { HeroViewfinder } from './hero-viewfinder';
 import { HeroTimeline } from './hero-timeline';
 import { useHeroPlayhead } from './use-hero-playhead';
 
-// The cinematic pacing of the headline: the set call ("Lights. Camera. Render.") where each word
-// lands as its own cut — a much wider stagger than a flowing sentence — then the gradient rule
-// grows from the center once the last beat settles.
+// Each word lands on a beat; the gradient rule follows the final word.
 const BEAT_STAGGER = 0.3;
 const wordCount = (text: string): number => text.trim().split(/\s+/).length;
 
@@ -131,7 +128,7 @@ export const CinematicHero = () => {
           <p className="fade-in mb-5 text-sm font-bold uppercase tracking-[0.35em] -mr-[0.35em]">
             <span className="text-gradient-animated">{t('hero.eyebrow')}</span>
           </p>
-          {/* The set call — one line, three beats; each word is a cut landing on the stagger. The claim
+          {/* Each word lands on the stagger. The claim
               is real text (sr-only) rather than an aria-label, so translation, reader mode and braille keep it.
               Where the call wraps, the other languages get a row gap on top of the heading's 0.98 leading, so a
               cedilla (ÇA) or an accent (CÁMARA) clears the line beside it (see SectionHeading). */}
@@ -173,7 +170,7 @@ export const CinematicHero = () => {
           style={{ animationDelay: '1.15s' }}
         >
           <Button asChild size="lg" className="group sheen glow-brand rounded-full hover:scale-105">
-            <Link to="/studio" onClick={clap}>
+            <Link to="/doc/agents" onClick={clap}>
               {t('hero.startCreating')}
               <ArrowRight className="transition-transform group-hover:translate-x-1" />
             </Link>
@@ -184,7 +181,7 @@ export const CinematicHero = () => {
             variant="ghost"
             size="lg"
             onClick={() => {
-              globalThis.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
+              document.getElementById('agentic')?.scrollIntoView({ behavior: reduced ? 'instant' : 'smooth' });
             }}
             className="rounded-full"
             {...playHoverProps}

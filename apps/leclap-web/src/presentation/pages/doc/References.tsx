@@ -5,6 +5,7 @@ import templateSource from '../../../../../../docs/template-configuration.md?raw
 import effectsSource from '../../../../../../docs/effects-configuration.md?raw';
 import engineSource from '../../../../../../docs/engine-configuration.md?raw';
 import directionSource from '../../../../../../docs/creative-direction.md?raw';
+import agentsSource from '../../../../../../docs/ai-agents.md?raw';
 import { FullFieldReference } from './full-field-reference';
 
 const ReferencePage = ({
@@ -61,5 +62,14 @@ export const DocCreativeDirection = () => (
     path="/doc/creative-direction"
     description="Turn a visual brief into explicit, validated motion settings; discover samples and inspect the rendered result."
     source={directionSource}
+  />
+);
+
+export const DocAgents = () => (
+  <ReferencePage
+    title="Make videos with your AI agent"
+    path="/doc/agents"
+    description="Connect through MCP or CLI, compose an editable template, inspect frames, revise and render your first video locally."
+    source={agentsSource}
   />
 );

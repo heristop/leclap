@@ -1,5 +1,7 @@
 # @leclap/mcp
 
+**Connect your AI agent to LeClap’s video engine.** Discover samples, author a template, validate it, inspect real frames, revise and render. Start with the [agent guide](../../docs/ai-agents.md).
+
 An [MCP](https://modelcontextprotocol.io) server that exposes the
 [`ffmpeg-video-composer`](../ffmpeg-video-composer) engine as **agent-callable video tools**.
 

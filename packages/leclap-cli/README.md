@@ -1,9 +1,8 @@
 # @leclap/cli
 
-The LeClap command-line tool — the **human-facing** way to scaffold a video project and render it
-locally on the [`ffmpeg-video-composer`](https://github.com/heristop/leclap) engine. You
-write a JSON `template.json`, drop media in `assets/`, and `render` it to an mp4. `init` exists to take a
-new user from nothing to a first render in one command.
+The command-line interface to LeClap, the video engine for AI agents. People and agents can discover samples, validate templates, inspect frames and render locally with FFmpeg. Keep the JSON editable and iterate on individual scenes.
+
+Start with the [agent guide](../../docs/ai-agents.md) for a complete author, preview, revise and render workflow, or scaffold your first project below.
 
 ## Quick start
 

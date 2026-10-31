@@ -2,6 +2,7 @@ import { MotionConfig } from 'motion/react';
 import { FeaturesSection } from '@/presentation/components/FeaturesSection';
 import { HomeShowcase } from '@/presentation/components/HomeShowcase';
 import { Seo } from '@/presentation/components/Seo';
+import { AgentWorkflow } from '@/presentation/components/home/agent-workflow';
 import { AgenticDeepDive } from '@/presentation/components/home/agentic-deep-dive';
 import { CinematicHero } from '@/presentation/components/home/cinematic-hero';
 import { FilmSection } from '@/presentation/components/home/film-section';
@@ -23,11 +24,8 @@ export const Home = () => (
       {/* Hero — the "living program monitor": the product previewing itself, with a scrubbable film. */}
       <CinematicHero />
 
-      {/* The film — the 78-second showcase, localized, click to play. */}
-      <FilmSection />
-
-      {/* Deep dive: the on-device story, chapters scrolling past a pinned phone. */}
-      <MobileDeepDive />
+      <AgentWorkflow />
+      <FeaturesSection />
 
       {/* Deep dive: agentic development, chapters beside a pinned pull request, then its film. */}
       <AgenticDeepDive />
@@ -38,8 +36,8 @@ export const Home = () => (
       {/* Showcase — an actual in-browser render */}
       <HomeShowcase />
 
-      {/* Features Section */}
-      <FeaturesSection />
+      <FilmSection />
+      <MobileDeepDive />
     </div>
   </MotionConfig>
 );

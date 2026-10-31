@@ -4,7 +4,11 @@
 
 # LeClap
 
-**Your video from one JSON template: camera, effects, music, transitions, rendered on the device. No server, no upload.**
+**The video engine for AI agents.**
+
+Give your agent the tools to compose, validate, preview and render videos from editable JSON templates. Bring your footage, typography, motion and music; render locally with FFmpeg.
+
+[Connect your agent](https://leclap.dev/doc/agents) · [Watch a real workflow](https://leclap.dev/#agentic) · [Open the studio](https://leclap.dev/studio)
 
 [![CI](https://github.com/heristop/leclap/actions/workflows/ci.yml/badge.svg)](https://github.com/heristop/leclap/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/ffmpeg-video-composer.svg?label=ffmpeg-video-composer)](https://www.npmjs.com/package/ffmpeg-video-composer)
@@ -14,6 +18,17 @@
 [Try it](#-try-it-in-30-seconds) · [Examples](#-template-in-video-out) · [Comparison](#-why-leclap) · [Docs](https://leclap.dev/doc) · [Showcase](https://leclap.dev/showcase)
 
 </div>
+
+## Built for the agent authoring loop
+
+- **Structured authoring:** discover samples and motion primitives, then write against the template schema.
+- **Precise revisions:** validate, inspect rendered frames, and patch the scenes that need work.
+- **Human control:** keep the editable JSON and open it in the visual builder.
+- **Local rendering:** use the CLI or MCP server on your computer; the same core also runs in browsers and native apps.
+
+Make product demos, branded social clips or before/after review videos. LeClap composes existing assets; your agent supplies the creative decisions. Reproducible renders require the same inputs, configuration and runtime. An external AI provider has its own data handling, separate from local rendering.
+
+Start with the [agent guide](docs/ai-agents.md): MCP setup, a first prompt, a CLI alternative and a revision workflow.
 
 ## 🎥 Demo
 

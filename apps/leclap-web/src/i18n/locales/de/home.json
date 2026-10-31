@@ -1,14 +1,13 @@
 {
   "hero": {
-    "eyebrow": "LeClap Studio",
-    "headlineA": "Licht. Kamera. Rendern.",
-    "headlineB": "direkt im Browser.",
-    "subtagline": "Der cineastische Video-Composer, der komplett in deinem Browser läuft.",
-    "privacy": "Dein Material verlässt nie dein Gerät.",
+    "eyebrow": "Die Video-Engine für KI-Agenten",
+    "headlineA": "Dein KI-Agent erstellt Videos.",
+    "subtagline": "Komponiere, validiere, prüfe und rendere bearbeitbare JSON-Vorlagen mit deinen Aufnahmen, Texten, Animationen und deiner Musik.",
+    "privacy": "Lokal rendern. Vorlagen weiter bearbeiten.",
     "tally": "LeClap · Auf dem Gerät",
     "scrubAria": "Durch den Hintergrundfilm scrubben",
-    "startCreating": "Jetzt loslegen",
-    "seeHow": "So funktioniert's",
+    "startCreating": "Agent verbinden",
+    "seeHow": "Workflow ansehen",
     "play": "Hero-Film abspielen",
     "pause": "Hero-Film pausieren",
     "scrubValue": "{{seconds}} von {{total}} Sekunden"
@@ -16,7 +15,7 @@
   "showcase": {
     "eyebrow": "In Aktion sehen",
     "title": "Jeder Effekt steckt in einer Vorlage",
-    "subtitle": "Lichtlecks, Glanzlichter, Rahmen, Kamerafahrten und Schnitte im Takt: Jeder ist eine Zeile in einer Vorlage und sieht im Browser, auf dem Computer und auf dem Handy gleich aus.",
+    "subtitle": "Lichtlecks, Glanzlichter, Rahmen, Kamerafahrten und Schnitte im Takt: Entdecke bearbeitbare Vorlagen und ihre gerenderten Ergebnisse.",
     "videoAria": "Ein Reel mit LeClap-Bewegungseffekten, läuft in Schleife",
     "play": "Render abspielen",
     "pause": "Render pausieren",
@@ -113,34 +112,73 @@
     "ctaSecondary": "MCP-Rezept verwenden"
   },
   "features": {
-    "badge": "Alles, clientseitig",
-    "title": "Ein echter Video-Composer, im Browser",
-    "subtitle": "FFmpeg in Produktionsqualität, echte Vorlagen und Live-Formulare – komplett auf deinem Gerät.",
+    "badge": "Für den kreativen Workflow",
+    "title": "Von der Anweisung zum Video",
+    "subtitle": "Gib deinem Agenten strukturierte Werkzeuge, prüfe das Ergebnis und behalte die Kontrolle.",
     "items": {
       "templates": {
-        "title": "Echte JSON-Vorlagen",
-        "description": "Eine einzige JSON-Datei beschreibt das ganze Video: Abschnitte, Filter, Text und Musik. Dieselbe Datei wird in der CLI, im Browser und auf dem Handy gerendert."
+        "title": "Strukturierte Erstellung",
+        "description": "Schema, Bewegungskatalog und ausführbare Beispiele geben deinem Agenten konkrete Bausteine."
       },
       "forms": {
-        "title": "Formulare aus der Vorlage",
-        "description": "Jede Vorlage legt ihre Felder fest. Das Studio baut daraus das Formular und prüft jede Eingabe vor dem Rendern."
+        "title": "Du behältst die Kontrolle",
+        "description": "Behalte das bearbeitbare JSON und öffne es im visuellen Editor, um die Komposition anzupassen."
       },
       "processing": {
-        "title": "Die ganze FFmpeg-Pipeline",
-        "description": "Videofilter, Text-Overlays, Übergänge und Audio-Mixing, kompiliert zu echten FFmpeg-Befehlen."
+        "title": "Gezielte Änderungen",
+        "description": "Validiere die Vorlage, prüfe gerenderte Bilder und ändere die betroffenen Szenen."
       },
       "privacy": {
-        "title": "Nichts verlässt das Gerät",
-        "description": "Gerendert wird in diesem Tab. Deine Dateien werden nie hochgeladen, also gibt es keinen Server, dem du vertrauen musst."
+        "title": "Lokales Rendering",
+        "description": "FFmpeg rendert auf deinem Gerät. Dein externer KI-Anbieter hat eigene Regeln zur Datenverarbeitung."
       },
       "wasm": {
-        "title": "FFmpeg in WebAssembly",
-        "description": "Dasselbe FFmpeg, das du auf einem Server laufen lassen würdest, kompiliert für den Browser. Langsamer als nativ, dafür ohne Installation."
+        "title": "MCP und CLI",
+        "description": "Verbinde einen MCP-Client oder lass einen Agenten Vorlagen über die Kommandozeile erkunden, prüfen und rendern."
       },
       "crossPlatform": {
-        "title": "Desktop, Tablet, Handy",
-        "description": "Läuft in aktuellen Browsern, vom Desktop-Monitor bis zum Handybildschirm."
+        "title": "Eine Vorlage, mehrere Plattformen",
+        "description": "Komponiere auf Node, im Browser oder in einer nativen App. Unterstützte Effekte und codierte Pixel variieren je nach Backend."
       }
     }
+  },
+  "workflow": {
+    "eyebrow": "Dein Briefing, dein nächstes Video",
+    "title": "Ein nachvollziehbarer Workflow",
+    "subtitle": "Dein Agent trifft die kreativen Entscheidungen. LeClap macht aus einer bearbeitbaren Vorlage und deinen Medien ein Video.",
+    "steps": {
+      "compose": {
+        "title": "Komponieren",
+        "body": "Starte mit Briefing und Medien. Wähle ein Beispiel und arbeite mit dem Schema."
+      },
+      "validate": {
+        "title": "Validieren",
+        "body": "Prüfe die Vorlage und echte Vorschaubilder vor dem vollständigen Rendering."
+      },
+      "revise": {
+        "title": "Überarbeiten",
+        "body": "Bitte um ein kürzeres Intro oder einen neuen Abschluss. Ändere die betreffenden Szenen."
+      },
+      "render": {
+        "title": "Rendern",
+        "body": "Exportiere das fertige Video und behalte die Vorlage für die nächste Überarbeitung."
+      }
+    },
+    "cases": {
+      "product": {
+        "title": "Produktdemos",
+        "body": "Mache aus echten Bildschirmaufnahmen eine verständliche Produktvorstellung."
+      },
+      "social": {
+        "title": "Social-Media-Clips",
+        "body": "Verwende Texte, Farben und Medien in bearbeitbaren Kompositionen erneut."
+      },
+      "review": {
+        "title": "PR-Nachweise",
+        "body": "Zeige Reviewern die tatsächliche Änderung im Vorher-Nachher-Video."
+      }
+    },
+    "guide": "Zum Agenten-Leitfaden",
+    "studio": "Studio ausprobieren"
   }
 }

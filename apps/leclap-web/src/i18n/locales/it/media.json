@@ -42,6 +42,7 @@
     "switchAria": "Cambia fotocamera",
     "livePreviewAria": "Anteprima dal vivo della fotocamera",
     "recordedPreviewAria": "Anteprima del video registrato",
-    "starting": "Avvio fotocamera…"
+    "starting": "Avvio fotocamera…",
+    "sourceLabel": "Sorgente video"
   }
 }

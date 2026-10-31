@@ -2,6 +2,10 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   X,
+  User,
+  Camera,
+  Monitor,
+  Upload,
   Check,
   RotateCcw,
   Loader2,
@@ -45,6 +49,8 @@ interface CameraCaptureProps {
 
 // ── Mode tab bar ──────────────────────────────────────────────────────────────
 
+const CAPTURE_MODE_ICONS = { front: User, back: Camera, screen: Monitor, upload: Upload } as const;
+
 function CaptureModeBar({
   modes,
   active,
@@ -59,26 +65,35 @@ function CaptureModeBar({
   if (modes.length <= 1) return null;
 
   return (
-    // Scrolls rather than overflowing when four modes and a wordy locale outgrow a phone's width.
-    <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-black/60 p-1 ring-1 ring-white/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {modes.map((m) => (
-        <button
-          key={m}
-          onClick={() => {
-            onChange(m);
-          }}
-          className={clsx(
-            // min-h-11 keeps each mode a 44px touch target — it is the first control a phone user
-            // hits, and py-1.5 alone left it around 30px.
-            'flex min-h-11 shrink-0 min-w-[3.75rem] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all sm:min-h-0 sm:min-w-[4.75rem] sm:px-4 sm:py-1.5',
-            active === m
-              ? 'bg-white font-semibold text-black shadow-sm'
-              : 'text-white/70 hover:bg-white/10 hover:text-white'
-          )}
-        >
-          {t(`camera.modes.${m}`)}
-        </button>
-      ))}
+    <div
+      role="group"
+      aria-label={t('camera.sourceLabel')}
+      className="flex w-full max-w-lg gap-1 rounded-2xl bg-player-ink/90 p-1.5 ring-1 ring-player-fg/20"
+    >
+      {modes.map((mode) => {
+        const Icon = CAPTURE_MODE_ICONS[mode];
+        const selected = active === mode;
+
+        return (
+          <button
+            key={mode}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => {
+              if (!selected) onChange(mode);
+            }}
+            className={clsx(
+              'group flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-xs font-medium leading-snug transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-player-ink motion-reduce:transition-none sm:min-h-12 sm:flex-row sm:gap-2 sm:text-sm',
+              selected
+                ? 'bg-brand-300 font-semibold text-player-ink'
+                : 'text-player-fg/80 hover:bg-player-fg/10 hover:text-player-fg'
+            )}
+          >
+            <Icon size={18} aria-hidden="true" className="shrink-0" />
+            <span className="text-center [overflow-wrap:anywhere]">{t(`camera.modes.${mode}`)}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -625,8 +640,8 @@ export const CameraCapture = ({
           }}
         />
 
-        {/* Mode tab bar — only before capture starts; hidden once recording/countdown/review begins. */}
-        {(session.state === 'idle' || session.state === 'loading') && (
+        {/* Source selector — also available after an error so another source remains reachable. */}
+        {(session.state === 'idle' || session.state === 'loading' || session.state === 'error') && (
           <div className="flex justify-center px-4 pb-2">
             <CaptureModeBar modes={session.allowedModes} active={session.mode} onChange={session.setMode} />
           </div>

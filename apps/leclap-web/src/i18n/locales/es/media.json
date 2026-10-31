@@ -42,6 +42,7 @@
     "switchAria": "Cambiar de cámara",
     "livePreviewAria": "Vista previa en vivo de la cámara",
     "recordedPreviewAria": "Vista previa del vídeo grabado",
-    "starting": "Iniciando la cámara…"
+    "starting": "Iniciando la cámara…",
+    "sourceLabel": "Fuente de vídeo"
   }
 }

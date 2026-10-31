@@ -42,6 +42,7 @@
     "switchAria": "Kamera wechseln",
     "livePreviewAria": "Live-Kameravorschau",
     "recordedPreviewAria": "Vorschau der Aufnahme",
-    "starting": "Kamera wird gestartet …"
+    "starting": "Kamera wird gestartet …",
+    "sourceLabel": "Videoquelle"
   }
 }

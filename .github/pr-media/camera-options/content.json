@@ -1,0 +1,36 @@
+{
+  "ticket": "PR-151",
+  "summary": "Choose a camera source at a glance",
+  "clipSeconds": 2,
+  "intro": {
+    "headline": "CLEARER CAMERA CONTROLS"
+  },
+  "outro": {
+    "headline": "CHOOSE YOUR SOURCE",
+    "subtitle": "Icons, labels and accessible selection"
+  },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "before-1440.webm",
+      "trim": 5.08,
+      "chip": "Camera sources",
+      "pane": {
+        "title": "Text-only choices",
+        "desc": "Browser test camera; no personal footage."
+      }
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "after-1440.webm",
+      "trim": 8.52,
+      "chip": "Camera sources",
+      "pane": {
+        "title": "Icons and clear selection",
+        "desc": "Browser test camera; no personal footage."
+      }
+    }
+  ]
+}

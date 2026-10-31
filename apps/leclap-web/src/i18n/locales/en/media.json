@@ -42,6 +42,7 @@
     "switchAria": "Switch camera",
     "livePreviewAria": "Live camera preview",
     "recordedPreviewAria": "Recorded video preview",
-    "starting": "Starting camera…"
+    "starting": "Starting camera…",
+    "sourceLabel": "Video source"
   }
 }

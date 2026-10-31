@@ -1,0 +1,25 @@
+{
+  "ticket": "PR-151",
+  "summary": "Put AI agent video creation at the front of LeClap",
+  "clipSeconds": 6,
+  "intro": { "headline": "VIDEO TOOLS FOR AI AGENTS" },
+  "outro": { "headline": "CONNECT YOUR AGENT", "subtitle": "An editable template, a preview, a precise revision" },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "before.webm",
+      "trim": 3,
+      "chip": "Browser-first messaging",
+      "pane": { "title": "Browser rendering", "desc": "The homepage leads with browser rendering." }
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "after.webm",
+      "trim": 3,
+      "chip": "Agent-first messaging",
+      "pane": { "title": "Agent video tools", "desc": "The headline leads to a practical agent guide." }
+    }
+  ]
+}

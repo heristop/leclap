@@ -42,6 +42,14 @@
     "switchAria": "Changer de caméra",
     "livePreviewAria": "Aperçu en direct de la caméra",
     "recordedPreviewAria": "Aperçu de la vidéo enregistrée",
-    "starting": "Démarrage de la caméra…"
+    "starting": "Démarrage de la caméra…",
+    "sourceLabel": "Source vidéo",
+    "screenUnavailable": "Capture d’écran indisponible",
+    "uploadTitle": "Choisissez votre vidéo",
+    "uploadHint": "Importez un clip, puis vérifiez-le avant de l’utiliser.",
+    "screenTitle": "Enregistrez votre écran",
+    "screenHint": "Appuyez sur Démarrer l’enregistrement, puis choisissez l’écran, la fenêtre ou l’onglet à partager.",
+    "replaceClip": "Choisir une autre vidéo",
+    "reviewTitle": "Vérifiez votre clip"
   }
 }

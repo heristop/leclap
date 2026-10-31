@@ -5,23 +5,26 @@ import templateSource from '../../../../../../docs/template-configuration.md?raw
 import effectsSource from '../../../../../../docs/effects-configuration.md?raw';
 import engineSource from '../../../../../../docs/engine-configuration.md?raw';
 import directionSource from '../../../../../../docs/creative-direction.md?raw';
+import agentsSource from '../../../../../../docs/ai-agents.md?raw';
 import { FullFieldReference } from './full-field-reference';
 
 const ReferencePage = ({
   title,
   description,
+  seoTitle = `${title} — LeClap reference`,
   path,
   source,
   fields = false,
 }: {
   title: string;
   description: string;
+  seoTitle?: string;
   path: string;
   source: string;
   fields?: boolean;
 }) => (
   <>
-    <Seo title={`${title} — LeClap reference`} description={description} path={path} />
+    <Seo title={seoTitle} description={description} path={path} />
     <DocPageHeader kicker="Complete reference" title={title}>
       {description}
     </DocPageHeader>
@@ -61,5 +64,15 @@ export const DocCreativeDirection = () => (
     path="/doc/creative-direction"
     description="Turn a visual brief into explicit, validated motion settings; discover samples and inspect the rendered result."
     source={directionSource}
+  />
+);
+
+export const DocAgents = () => (
+  <ReferencePage
+    title="AI motion graphics with MCP and JSON"
+    seoTitle="AI motion graphics with MCP and JSON"
+    path="/doc/agents"
+    description="Create motion graphics with an AI agent using MCP and editable JSON. Try a browser sample, then validate, preview and render locally with FFmpeg."
+    source={agentsSource}
   />
 );

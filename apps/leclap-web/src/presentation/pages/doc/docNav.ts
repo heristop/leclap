@@ -43,6 +43,7 @@ export const docNavGroups: readonly DocNavGroup[] = [
   {
     label: 'Tools',
     items: [
+      { to: '/doc/agents', label: 'Start with an AI agent' },
       { to: '/doc/engine', label: 'Engine configuration' },
       { to: '/doc/cli', label: 'Command line' },
       { to: '/doc/mcp', label: 'MCP server' },

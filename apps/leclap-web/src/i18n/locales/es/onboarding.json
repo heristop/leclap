@@ -1,25 +1,24 @@
 {
   "welcome": {
     "title": "Te damos la bienvenida a",
-    "subtitle": "Hagamos tu primer vídeo en menos de un minuto: graba una breve presentación y la convertiremos en un clip pulido.",
+    "subtitle": "Tu nombre abre la escena. Crea una intro cinematográfica en tu navegador, con vídeo incluido.",
     "features": {
-      "record": "Graba una breve presentación con tu cámara",
+      "record": "Usa el vídeo de ejemplo incluido",
       "template": "Aplicamos una plantilla cinematográfica de ejemplo",
       "download": "Descarga tu vídeo terminado"
     },
     "start": "Crear mi presentación",
     "checking": "Comprobando tu navegador…",
-    "unsupported": "El navegador no puede grabar aquí",
-    "unsupportedHint": "Usa Chrome, Edge o Firefox en el escritorio para grabar tu presentación.",
+    "unsupported": "Este navegador no puede renderizar",
+    "unsupportedHint": "Prueba una versión reciente de Chrome, Edge o Firefox en tu ordenador.",
     "skip": "Omitir por ahora"
   },
   "create": {
-    "title": "Preséntate",
-    "subtitle": "Dinos tu nombre y graba un clip corto: eso es todo lo que necesitamos.",
+    "title": "Hazla tuya",
+    "subtitle": "Añade tu nombre y conviértelo en una intro cinematográfica. El vídeo de muestra está listo; tu propio clip es opcional.",
     "nameLabel": "Tu nombre",
     "nameOptional": "opcional",
-    "clipLabel": "Tu clip",
-    "clipRequired": "Graba o importa un clip para continuar",
+    "clipLabel": "Añade tu propio clip",
     "namePlaceholder": "p. ej. {{name}}",
     "recorded": "Presentación grabada",
     "reRecord": "Volver a grabar",
@@ -30,7 +29,8 @@
     "recordAria": "Grabar una presentación con tu cámara",
     "uploadAria": "Subir un vídeo de presentación",
     "uploadInputAria": "Subir vídeo de presentación",
-    "create": "Crear mi vídeo"
+    "create": "Crear mi vídeo",
+    "sampleIncluded": "Vídeo de muestra incluido. Sin subir archivos ni usar la cámara."
   },
   "compiling": {
     "title": "Creando tu vídeo…",

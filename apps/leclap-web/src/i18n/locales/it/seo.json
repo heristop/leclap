@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Compositore video per browser, telefono e agenti IA",
-    "description": "Crea video da un modello JSON nel browser o sul telefono, senza upload. Nello sviluppo agentico, il tuo agente di coding allega ai PR un video prima/dopo."
+    "title": "LeClap — Motion graphics e motore video per l’IA",
+    "description": "Crea animazioni con agenti IA, JSON modificabile e MCP. Rendering locale con FFmpeg, oppure prova un esempio nel browser senza caricare file."
   },
   "studio": {
     "title": "Studio",

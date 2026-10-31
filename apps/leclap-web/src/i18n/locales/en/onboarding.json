@@ -1,25 +1,24 @@
 {
   "welcome": {
     "title": "Welcome to",
-    "subtitle": "Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.",
+    "subtitle": "Make your name the opening scene. Create a cinematic intro in your browser, with footage included.",
     "features": {
-      "record": "Record a short intro with your camera",
+      "record": "Use the included sample footage",
       "template": "We apply a cinematic sample template",
       "download": "Download your finished video"
     },
     "start": "Create my intro",
     "checking": "Checking your browser…",
-    "unsupported": "Browser can't record here",
-    "unsupportedHint": "Use Chrome, Edge, or Firefox on desktop to record your intro.",
+    "unsupported": "Browser cannot render here",
+    "unsupportedHint": "Try a current desktop version of Chrome, Edge, or Firefox.",
     "skip": "Skip for now"
   },
   "create": {
-    "title": "Present yourself",
-    "subtitle": "Tell us your name and record a short clip — that's all we need.",
+    "title": "Make it yours",
+    "subtitle": "Add your name and watch it become a cinematic intro. Sample footage is ready; your own clip is optional.",
     "nameLabel": "Your name",
     "nameOptional": "optional",
-    "clipLabel": "Your clip",
-    "clipRequired": "Record or import a clip to continue",
+    "clipLabel": "Add your own clip",
     "namePlaceholder": "e.g. {{name}}",
     "recorded": "Intro recorded",
     "reRecord": "Re-record",
@@ -30,7 +29,8 @@
     "recordAria": "Record an intro with your camera",
     "uploadAria": "Upload an intro video",
     "uploadInputAria": "Upload intro video",
-    "create": "Create my video"
+    "create": "Create my video",
+    "sampleIncluded": "Included footage is ready. No upload or camera needed."
   },
   "compiling": {
     "title": "Creating your video…",

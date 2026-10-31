@@ -1,13 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, StatusBar, TouchableOpacity, Text, Modal, BackHandler } from 'react-native';
-import {
-  Camera,
-  useCameraDevice,
-  type CameraPosition,
-  type VideoFile,
-  type CameraCaptureError,
-} from 'react-native-vision-camera';
+import { Camera, useCameraDevice, type VideoFile, type CameraCaptureError } from 'react-native-vision-camera';
 import { Icon } from '@/src/components/ui/Icon';
+import { CaptureSourceSelector } from './CaptureSourceSelector';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, typography } from '@/src/styles/theme';
 
 interface CameraModalProps {
   visible: boolean;
@@ -40,6 +38,7 @@ function RecordButton({
   onStart: () => void;
   onStop: () => void;
 }) {
+  const { t } = useTranslation('recording');
   const handlePress = () => {
     if (isRecording) {
       onStop();
@@ -51,9 +50,15 @@ function RecordButton({
 
   return (
     <View style={styles.buttonContainer}>
-      <TouchableOpacity style={[styles.recordButton, isRecording && styles.recordingButton]} onPress={handlePress}>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={t(isRecording ? 'actions.stop' : 'actions.record')}
+        style={[styles.recordButton, isRecording && styles.recordingButton]}
+        onPress={handlePress}
+      >
         {isRecording ? <View style={styles.stopIcon} /> : <View style={styles.recordIcon} />}
       </TouchableOpacity>
+      <Text style={styles.recordLabel}>{t(isRecording ? 'actions.stop' : 'actions.record')}</Text>
     </View>
   );
 }
@@ -63,26 +68,44 @@ function CameraControls({
   isRecording,
   onStart,
   onStop,
-  onFlip,
+  cameraType,
+  onCameraChange,
   onClose,
 }: {
   isRecording: boolean;
   onStart: () => void;
   onStop: () => void;
-  onFlip: () => void;
+  cameraType: 'front' | 'back';
+  onCameraChange: (mode: 'front' | 'back') => void;
   onClose: () => void;
 }) {
+  const { t } = useTranslation('recording');
+  const insets = useSafeAreaInsets();
+
   return (
     <>
       <RecordButton isRecording={isRecording} onStart={onStart} onStop={onStop} />
-      <TouchableOpacity style={styles.flipButton} onPress={onFlip}>
-        <Icon name="switch-camera" size={24} color="white" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+      {!isRecording && (
+        <View style={[styles.sourceSelector, { top: Math.max(insets.top, 16) + 60 }]}>
+          <CaptureSourceSelector
+            modes={['front', 'back']}
+            active={cameraType}
+            onChange={(mode) => {
+              if (mode === 'front' || mode === 'back') onCameraChange(mode);
+            }}
+          />
+        </View>
+      )}
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={t('actions.close')}
+        style={[styles.closeButton, { top: Math.max(insets.top, 16) }]}
+        onPress={onClose}
+      >
         <Icon name="x" size={28} color="white" />
       </TouchableOpacity>
       <View style={styles.instructionContainer}>
-        <Text style={styles.instructionText}>Hold your device vertically for best results</Text>
+        <Text style={styles.instructionText}>{t('instructions.portrait')}</Text>
       </View>
     </>
   );
@@ -121,7 +144,7 @@ function useCameraModalEffects(visible: boolean, onClose: () => void) {
 // A standalone camera component that doesn't use navigation at all
 const CameraModal = ({ visible, onClose, onVideoRecorded }: CameraModalProps) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [cameraType, setCameraType] = useState<CameraPosition>('back');
+  const [cameraType, setCameraType] = useState<'front' | 'back'>('back');
   const device = useCameraDevice(cameraType);
   const cameraRef = useRef<Camera>(null);
 
@@ -158,10 +181,6 @@ const CameraModal = ({ visible, onClose, onVideoRecorded }: CameraModalProps) =>
     });
   };
 
-  const flipCamera = () => {
-    setCameraType((current) => (current === 'back' ? 'front' : 'back'));
-  };
-
   if (!device) {
     return <NoCameraView visible={visible} onClose={onClose} />;
   }
@@ -175,7 +194,8 @@ const CameraModal = ({ visible, onClose, onVideoRecorded }: CameraModalProps) =>
           isRecording={isRecording}
           onStart={startRecording}
           onStop={stopRecording}
-          onFlip={flipCamera}
+          cameraType={cameraType}
+          onCameraChange={setCameraType}
           onClose={onClose}
         />
       </View>
@@ -191,7 +211,9 @@ const styles = StyleSheet.create({
   camera: {
     flex: 1,
   },
+  recordLabel: { ...typography.caption, color: colors.monitorText, marginTop: 8, textAlign: 'center' },
   buttonContainer: {
+    alignItems: 'center',
     position: 'absolute',
     bottom: 40,
     alignSelf: 'center',
@@ -213,25 +235,15 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'red',
+    backgroundColor: colors.error,
   },
   stopIcon: {
     width: 30,
     height: 30,
-    backgroundColor: 'red',
+    backgroundColor: colors.error,
     borderRadius: 3,
   },
-  flipButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  sourceSelector: { position: 'absolute', left: 16, right: 16, alignItems: 'center' },
   closeButton: {
     position: 'absolute',
     top: 40,
@@ -253,6 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   instructionText: {
+    ...typography.body,
     color: 'white',
     textAlign: 'center',
     fontSize: 16,

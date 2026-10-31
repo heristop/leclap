@@ -42,6 +42,14 @@
     "switchAria": "Cambia fotocamera",
     "livePreviewAria": "Anteprima dal vivo della fotocamera",
     "recordedPreviewAria": "Anteprima del video registrato",
-    "starting": "Avvio fotocamera…"
+    "starting": "Avvio fotocamera…",
+    "sourceLabel": "Sorgente video",
+    "screenUnavailable": "Registrazione schermo non disponibile",
+    "uploadTitle": "Scegli il tuo video",
+    "uploadHint": "Scegli un clip e guardalo prima di utilizzarlo.",
+    "screenTitle": "Registra il tuo schermo",
+    "screenHint": "Premi Avvia registrazione, poi scegli lo schermo, la finestra o la scheda da condividere.",
+    "replaceClip": "Scegli un altro video",
+    "reviewTitle": "Controlla il tuo clip"
   }
 }

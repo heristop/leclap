@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Video-Composer für Browser, Handy & KI-Agenten",
-    "description": "Erstelle Videos aus einer JSON-Vorlage im Browser oder auf dem Handy – ohne Upload. In der agentischen Entwicklung hängt dein Coding-Agent Vorher/Nachher-Videos an PRs."
+    "title": "LeClap — Motion Graphics und Video-Engine für KI",
+    "description": "Erstelle Motion Graphics mit KI-Agenten, editierbarem JSON und MCP. Lokal mit FFmpeg rendern oder ein Browser-Beispiel ohne Upload testen."
   },
   "studio": {
     "title": "Studio",

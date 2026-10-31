@@ -16,10 +16,8 @@ import { HeroViewfinder } from './hero-viewfinder';
 import { HeroTimeline } from './hero-timeline';
 import { useHeroPlayhead } from './use-hero-playhead';
 
-// The cinematic pacing of the headline: the set call ("Lights. Camera. Render.") where each word
-// lands as its own cut — a much wider stagger than a flowing sentence — then the gradient rule
-// grows from the center once the last beat settles.
-const BEAT_STAGGER = 0.3;
+// Each word lands on a beat; the gradient rule follows the final word.
+const BEAT_STAGGER = 0.065;
 const wordCount = (text: string): number => text.trim().split(/\s+/).length;
 
 // The homepage hero as LeClap's own program monitor: the film plays behind the glass, framed by
@@ -82,7 +80,7 @@ export const CinematicHero = () => {
   };
 
   const headline = t('hero.headlineA');
-  const ruleDelay = wordCount(headline) * BEAT_STAGGER + 0.35;
+  const ruleDelay = Math.min(wordCount(headline) * BEAT_STAGGER, 0.5) + 0.1;
 
   return (
     <section
@@ -120,7 +118,7 @@ export const CinematicHero = () => {
           chrome: the top padding has to clear the tally and transport row itself (viewfinder top-20 +
           the row's own top-4 + its height), and the bottom padding has to clear the timeline. The
           chrome layers above this box (z-20), so its padding never covers the controls. */}
-      <div className="container relative z-10 mx-auto px-6 pb-24 pt-36 text-center sm:pb-32 sm:pt-24">
+      <div className="container relative z-10 mx-auto px-4 pb-24 pt-40 text-center sm:px-8 sm:pb-32 sm:pt-40">
         {/* The type follows the pointer a touch (opposite the footage) so the stage reads as depth.
             max-w-6xl keeps the longer localized lines (fr/es/it) on one row each at desktop widths. */}
         <div className="hero-parallax mx-auto max-w-6xl [--parallax:0.018]">
@@ -128,10 +126,10 @@ export const CinematicHero = () => {
               animated pan is the old wordmark's treatment at kicker scale; the global reduced-motion
               reset stills it to a static gradient. The entrance lives on the wrapper because both
               `fade-in` and the pan set the `animation` shorthand — stacked on one node, one wins. */}
-          <p className="fade-in mb-5 text-sm font-bold uppercase tracking-[0.35em] -mr-[0.35em]">
+          <p className="fade-in mb-5 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm sm:tracking-[0.35em]">
             <span className="text-gradient-animated">{t('hero.eyebrow')}</span>
           </p>
-          {/* The set call — one line, three beats; each word is a cut landing on the stagger. The claim
+          {/* Each word lands on the stagger. The claim
               is real text (sr-only) rather than an aria-label, so translation, reader mode and braille keep it.
               Where the call wraps, the other languages get a row gap on top of the heading's 0.98 leading, so a
               cedilla (ÇA) or an accent (CÁMARA) clears the line beside it (see SectionHeading). */}
@@ -157,48 +155,63 @@ export const CinematicHero = () => {
             className="brand-gradient mx-auto mt-6 block h-[3px] w-40 rounded-full"
             initial={reduced ? false : { scaleX: 0 }}
             animate={{ scaleX: 1 }}
-            transition={{ duration: reduced ? 0 : 0.6, delay: reduced ? 0 : ruleDelay, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: reduced ? 0 : 0.35, delay: reduced ? 0 : ruleDelay, ease: [0.16, 1, 0.3, 1] }}
           />
 
           <p
-            className="text-shimmer-radial fade-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed sm:text-xl"
-            style={{ animationDelay: '0.9s' }}
+            className="fade-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed sm:text-xl"
+            style={{ animationDelay: '0.25s' }}
           >
             {t('hero.subtagline')}
           </p>
         </div>
 
         <div
-          className="fade-in mt-9 flex flex-col justify-center gap-3 sm:flex-row sm:gap-6"
-          style={{ animationDelay: '1.15s' }}
+          className="fade-in mx-auto mt-8 grid max-w-2xl gap-5 sm:grid-cols-2 sm:gap-8"
+          style={{ animationDelay: '0.35s' }}
         >
-          <Button asChild size="lg" className="group sheen glow-brand rounded-full hover:scale-105">
-            <Link to="/studio" onClick={clap}>
-              {t('hero.startCreating')}
-              <ArrowRight className="transition-transform group-hover:translate-x-1" />
-            </Link>
-          </Button>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="lg"
-            onClick={() => {
-              globalThis.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
-            }}
-            className="rounded-full"
-            {...playHoverProps}
-          >
-            <PlayIcon ref={playRef} size={16} />
-            {t('hero.seeHow')}
-          </Button>
+          <div className="flex flex-col items-center gap-3">
+            <Button
+              asChild
+              size="lg"
+              className="group h-auto min-h-12 w-full whitespace-normal rounded-full py-3 text-balance"
+            >
+              <Link to="/doc/agents" onClick={clap} aria-describedby="agent-path-hint">
+                {t('hero.startCreating')}
+                <ArrowRight className="transition-transform group-hover:translate-x-1 motion-reduce:transform-none" />
+              </Link>
+            </Button>
+            <p id="agent-path-hint" className="text-sm leading-relaxed text-gray-300">
+              {t('hero.agentHint')}
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-3">
+            <Button
+              id="browser-demo"
+              type="button"
+              variant="outline"
+              size="lg"
+              aria-describedby="browser-demo-hint"
+              onClick={() => {
+                globalThis.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
+              }}
+              className="h-auto min-h-12 w-full scroll-mt-32 whitespace-normal rounded-full border-brand-300/40 bg-background/60 py-3 text-balance"
+              {...playHoverProps}
+            >
+              <PlayIcon ref={playRef} size={16} />
+              {t('hero.seeHow')}
+            </Button>
+            <p id="browser-demo-hint" className="max-w-xs text-sm leading-relaxed text-gray-300">
+              {t('hero.demoHint')}
+            </p>
+          </div>
         </div>
 
         <p
           className="fade-in mt-7 flex items-center justify-center gap-2 text-sm text-gray-400"
-          style={{ animationDelay: '1.35s' }}
+          style={{ animationDelay: '0.45s' }}
         >
-          <Shield className="size-4 text-brand-300" aria-hidden="true" />
+          <Shield className="size-4 shrink-0 text-brand-300" aria-hidden="true" />
           {t('hero.privacy')}
         </p>
       </div>

@@ -1,8 +1,10 @@
 # LeClap (ffmpeg-video-composer)
 
-> LeClap renders video from a JSON _template_ — sections, filters, music, and text overlays — on Node.js, in the browser (WebAssembly), and **on-device** on React Native. Native scenes need no generative model or render server. Output is reproducible per platform when the template, inputs, host configuration and runtime versions are preserved. Timing and scene order are shared across platforms, while pixels and supported effects depend on the backend: Node and browser default to software H.264, Android uses `libopenh264`, iOS uses `h264_videotoolbox`, and the LGPL on-device build drops `boxblur` and rewrites `eq` to `lutyuv`. Registered React effects render through a trusted Node backend before FFmpeg composition. An AI agent can record the behaviour before and after a code change and author a review video through MCP.
+> The video engine for AI agents and programmatic motion graphics. Compose, validate, preview, revise and render editable JSON templates through MCP or CLI. LeClap composes existing assets with FFmpeg; the connected agent supplies the creative decisions.
 
-A template is a Zod-validated JSON descriptor: a `global` block plus an ordered list of `sections`, each a clip with its own `inputs → maps → filters` pipeline and `{{ variable }}` placeholders. The engine is a cross-platform TypeScript library with a CLI, published to npm as `ffmpeg-video-composer`. Its corner is **native on-device + reproducible + agent-callable** video: record a clip from the camera, apply effects, mix music, add transitions, and render — all inside your app. Generative video models can't reproduce a result twice — they sample, they don't render; cloud renderers (Shotstack) can't run in a user's pocket; Remotion does render without a server, but it needs a WebCodecs-capable browser engine to do it, where LeClap links FFmpeg into the app itself.
+Render locally on Node, in the browser through WebAssembly, or in React Native on-device. Output is reproducible per platform when the template, assets, configuration and runtime are preserved. Encoders and supported effects vary by platform. Local rendering does not determine an external AI provider's data handling. Registered React effects require a trusted Node backend.
+
+Start with the [AI motion graphics guide](https://leclap.dev/doc/agents): MCP setup, a first prompt, motion direction, CLI commands, frame inspection, revision and builder handoff. Visitors can also [try a prepared browser sample without uploading footage](https://leclap.dev/#browser-demo). The browser demo downloads its renderer and supplied assets; MCP and CLI sample catalogs provide templates and requirements rather than bundled media.
 
 ## Documentation
 
@@ -44,7 +46,7 @@ The descriptor field tables come from the engine's Zod schema. Runtime requireme
 
 - [ffmpeg-video-composer — the library](https://raw.githubusercontent.com/heristop/leclap/main/packages/ffmpeg-video-composer/README.md): install, the `compile()` API, entry points (Node / browser / RN), and FFmpeg detection.
 - [@leclap/cli — command line](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-cli/README.md): scaffold, discover samples, validate, bind media and fields, render and diagnose.
-- [@leclap/mcp — agent-callable MCP server](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-mcp/README.md): the engine as MCP tools (schema / validate / compose / probe) — author & render templates with no LLM in the loop.
+- [@leclap/mcp — agent-callable MCP server](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-mcp/README.md): the engine as MCP tools (schema / validate / compose / probe) — the agent authors and revises JSON; FFmpeg renders the video.
 - [@leclap/creative-kit — templates & assets](https://raw.githubusercontent.com/heristop/leclap/main/packages/leclap-creative-kit/README.md): bundled premium templates, partials, fonts, and media.
 - [ffmpeg-engine — on-device Rust engine](https://raw.githubusercontent.com/heristop/leclap/main/packages/ffmpeg-engine/README.md): the Rust engine embedding FFmpeg fftools for native on-device compiles.
 

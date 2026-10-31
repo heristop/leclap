@@ -2,14 +2,16 @@ import { createPortal } from 'react-dom';
 import { useEffect, useRef, useState } from 'react';
 import {
   X,
+  User,
+  Camera,
+  Monitor,
+  Upload,
   Check,
   RotateCcw,
   Loader2,
   CameraOff,
   TimerReset,
-  SwitchCamera as SwitchCameraIcon,
 } from '@/presentation/components/icons';
-import { useIconHover } from '@/presentation/components/icons/useIconHover';
 import clsx from 'clsx';
 import { motion, useReducedMotion } from 'motion/react';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +47,8 @@ interface CameraCaptureProps {
 
 // ── Mode tab bar ──────────────────────────────────────────────────────────────
 
+const CAPTURE_MODE_ICONS = { front: User, back: Camera, screen: Monitor, upload: Upload } as const;
+
 function CaptureModeBar({
   modes,
   active,
@@ -59,26 +63,35 @@ function CaptureModeBar({
   if (modes.length <= 1) return null;
 
   return (
-    // Scrolls rather than overflowing when four modes and a wordy locale outgrow a phone's width.
-    <div className="flex max-w-full gap-1 overflow-x-auto rounded-full bg-black/60 p-1 ring-1 ring-white/20 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {modes.map((m) => (
-        <button
-          key={m}
-          onClick={() => {
-            onChange(m);
-          }}
-          className={clsx(
-            // min-h-11 keeps each mode a 44px touch target — it is the first control a phone user
-            // hits, and py-1.5 alone left it around 30px.
-            'flex min-h-11 shrink-0 min-w-[3.75rem] items-center justify-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-medium transition-all sm:min-h-0 sm:min-w-[4.75rem] sm:px-4 sm:py-1.5',
-            active === m
-              ? 'bg-white font-semibold text-black shadow-sm'
-              : 'text-white/70 hover:bg-white/10 hover:text-white'
-          )}
-        >
-          {t(`camera.modes.${m}`)}
-        </button>
-      ))}
+    <div
+      role="group"
+      aria-label={t('camera.sourceLabel')}
+      className="flex w-full max-w-lg gap-1 rounded-2xl bg-player-ink/95 p-1.5 ring-1 ring-player-fg/15"
+    >
+      {modes.map((mode) => {
+        const Icon = CAPTURE_MODE_ICONS[mode];
+        const selected = active === mode;
+
+        return (
+          <button
+            key={mode}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => {
+              if (!selected) onChange(mode);
+            }}
+            className={clsx(
+              'group flex min-h-14 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm font-medium leading-snug transition-colors duration-200 ease-[var(--ease-smooth)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2 focus-visible:ring-offset-player-ink motion-reduce:transition-none sm:min-h-12 sm:flex-row sm:gap-2 sm:text-sm',
+              selected
+                ? 'border-brand-300/50 bg-brand-500/15 font-semibold text-brand-200'
+                : 'border-transparent text-player-fg/80 hover:bg-player-fg/10 hover:text-player-fg'
+            )}
+          >
+            <Icon size={20} aria-hidden="true" className="shrink-0" />
+            <span className="text-center [overflow-wrap:anywhere]">{t(`camera.modes.${mode}`)}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -86,11 +99,22 @@ function CaptureModeBar({
 // ── Screen preview helper ─────────────────────────────────────────────────────
 
 function ScreenPreview({ stream }: { stream: MediaStream | null }) {
+  const { t } = useTranslation('media');
   const ref = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (ref.current) ref.current.srcObject = stream;
   }, [stream]);
+
+  if (!stream) {
+    return (
+      <div className="mx-auto flex max-w-sm flex-col items-center gap-4 px-6 text-center">
+        <Monitor size={32} className="text-brand-300" aria-hidden="true" />
+        <h2 className="font-display text-2xl font-semibold text-player-fg">{t('camera.screenTitle')}</h2>
+        <p className="text-sm leading-relaxed text-player-fg/75">{t('camera.screenHint')}</p>
+      </div>
+    );
+  }
 
   return <video ref={ref} autoPlay muted className="w-full h-full object-contain" />;
 }
@@ -99,21 +123,15 @@ function ScreenPreview({ stream }: { stream: MediaStream | null }) {
 
 interface TopBarProps {
   state: CaptureState;
-  mode: CaptureMode;
   elapsed: number;
   onCancel: () => void;
-  onSwitchCamera: () => void;
 }
 
-const CameraTopBar = ({ state, mode, elapsed, onCancel, onSwitchCamera }: TopBarProps) => {
+const CameraTopBar = ({ state, elapsed, onCancel }: TopBarProps) => {
   const { t } = useTranslation('media');
-  const isCameraMode = mode === 'front' || mode === 'back';
-  const showSwitch = isCameraMode && (state === 'idle' || state === 'loading');
-  const showSpacer = state === 'preview' || state === 'error';
-  const { ref: switchRef, hoverProps: switchHoverProps } = useIconHover();
 
   return (
-    <div className="flex items-center justify-between p-4 pt-[max(1rem,env(safe-area-inset-top))]">
+    <div className="grid grid-cols-[2.75rem_1fr_2.75rem] items-center gap-3 p-4 pt-[max(1rem,env(safe-area-inset-top))]">
       <Button
         variant="ghost"
         size="icon"
@@ -125,26 +143,18 @@ const CameraTopBar = ({ state, mode, elapsed, onCancel, onSwitchCamera }: TopBar
       </Button>
 
       {state === 'recording' && (
-        <div className="fade-in flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/70 ring-1 ring-white/20 shadow-lg shadow-black/40">
+        <div className="fade-in mx-auto flex items-center gap-2.5 px-4 py-2 rounded-full bg-black/70 ring-1 ring-white/20 shadow-lg shadow-black/40">
           <span className="w-3 h-3 rounded-full bg-[var(--color-error)] animate-pulse shadow-[0_0_10px_2px_oklch(0.643_0.215_28.8/0.6)]" />
           <span className="text-lg font-bold text-white tabular-nums tracking-tight">{formatElapsed(elapsed)}</span>
         </div>
       )}
 
-      {showSwitch && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onSwitchCamera}
-          className="rounded-full bg-foreground/10 text-foreground hover:bg-foreground/20"
-          aria-label={t('camera.switchAria')}
-          {...switchHoverProps}
-        >
-          <SwitchCameraIcon ref={switchRef} size={16} />
-        </Button>
+      {state === 'preview' && (
+        <p className="text-center text-sm font-medium text-player-fg/80">{t('camera.reviewTitle')}</p>
       )}
-
-      {showSpacer && <span className="w-10" />}
+      {(state === 'idle' || state === 'loading' || state === 'error') && (
+        <p className="text-center text-sm font-medium text-player-fg/80">{t('camera.sourceLabel')}</p>
+      )}
     </div>
   );
 };
@@ -153,10 +163,11 @@ const CameraTopBar = ({ state, mode, elapsed, onCancel, onSwitchCamera }: TopBar
 
 interface ErrorViewProps {
   error: string;
+  mode: CaptureMode;
   onRetry: () => void;
 }
 
-const CameraErrorView = ({ error, onRetry }: ErrorViewProps) => {
+const CameraErrorView = ({ error, mode, onRetry }: ErrorViewProps) => {
   const { t } = useTranslation('media');
 
   return (
@@ -164,7 +175,9 @@ const CameraErrorView = ({ error, onRetry }: ErrorViewProps) => {
       <div className="pop-in inline-flex p-4 rounded-2xl bg-[var(--color-error)]/15 border border-[var(--color-error)]/30 mb-4">
         <CameraOff className="w-8 h-8 text-[var(--color-error)]" />
       </div>
-      <h2 className="text-xl font-bold font-display text-foreground mb-2">{t('camera.unavailable')}</h2>
+      <h2 className="text-xl font-bold font-display text-foreground mb-2">
+        {t(mode === 'screen' ? 'camera.screenUnavailable' : 'camera.unavailable')}
+      </h2>
       <p className="text-foreground/80 mb-6 text-balance">{error}</p>
       <Button onClick={onRetry} size="lg">
         <RotateCcw /> {t('actions.tryAgain', { ns: 'common' })}
@@ -346,7 +359,7 @@ interface ControlsProps {
   onRetake: () => void;
 }
 
-const PreviewControls = ({ onConfirm, onRetake }: Pick<ControlsProps, 'onConfirm' | 'onRetake'>) => {
+const PreviewControls = ({ mode, onConfirm, onRetake }: Pick<ControlsProps, 'mode' | 'onConfirm' | 'onRetake'>) => {
   const { t } = useTranslation('media');
 
   // Stacked on phones with the confirm at the bottom, nearest the thumb; side-by-side from `sm`.
@@ -355,7 +368,7 @@ const PreviewControls = ({ onConfirm, onRetake }: Pick<ControlsProps, 'onConfirm
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-stretch gap-3 sm:max-w-none sm:flex-row sm:items-center sm:justify-center sm:gap-4">
       <Button onClick={onRetake} variant="secondary" size="lg" className="w-full min-w-0 sm:w-auto">
-        <RotateCcw /> <span className="truncate">{t('camera.retake')}</span>
+        <RotateCcw /> <span className="truncate">{t(mode === 'upload' ? 'camera.replaceClip' : 'camera.retake')}</span>
       </Button>
       <Button onClick={onConfirm} size="lg" className="w-full min-w-0 sm:w-auto">
         <Check /> <span className="truncate">{t('camera.useVideo')}</span>
@@ -377,11 +390,12 @@ const RecordControls = ({ state, onStart, onStop }: Pick<ControlsProps, 'state' 
   const active = state === 'recording' || state === 'countdown';
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex flex-col items-center justify-center gap-2">
       <button
         onClick={active ? onStop : onStart}
         disabled={state === 'loading'}
         aria-label={recordButtonLabel(state, t)}
+        aria-busy={state === 'loading'}
         className={clsx(
           'tap relative grid place-items-center w-[4.5rem] h-[4.5rem] rounded-full border-4 border-foreground/80 transition-all duration-300 ease-[var(--ease-spring)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
           state === 'loading'
@@ -396,6 +410,9 @@ const RecordControls = ({ state, onStart, onStop }: Pick<ControlsProps, 'state' 
           )}
         />
       </button>
+      <span aria-hidden="true" className="text-sm font-medium text-player-fg">
+        {state === 'loading' ? t('camera.starting') : recordButtonLabel(state, t)}
+      </span>
     </div>
   );
 };
@@ -404,7 +421,10 @@ const UploadControls = ({ onOpen, fileName }: { onOpen: () => void; fileName?: s
   const { t } = useTranslation('media');
 
   return (
-    <div className="flex items-center justify-center gap-4">
+    <div className="flex max-w-sm flex-col items-center justify-center gap-4 text-center">
+      <Upload size={32} className="text-brand-300" aria-hidden="true" />
+      <h2 className="font-display text-2xl font-semibold text-player-fg">{t('camera.uploadTitle')}</h2>
+      <p className="text-sm leading-relaxed text-player-fg/75">{t('camera.uploadHint')}</p>
       <Button onClick={onOpen} size="lg">
         {t('upload.pickFile')}
       </Button>
@@ -416,7 +436,7 @@ const UploadControls = ({ onOpen, fileName }: { onOpen: () => void; fileName?: s
 const CameraControls = ({ state, mode, onStart, onStop, onConfirm, onRetake }: ControlsProps) => {
   if (state === 'error') return null;
 
-  if (state === 'preview') return <PreviewControls onConfirm={onConfirm} onRetake={onRetake} />;
+  if (state === 'preview') return <PreviewControls mode={mode} onConfirm={onConfirm} onRetake={onRetake} />;
 
   if (mode === 'upload') return null;
 
@@ -461,7 +481,18 @@ function BackgroundStage({
   const { t } = useTranslation('media');
 
   if (state === 'error') {
-    return <CameraErrorView error={error} onRetry={onRetry} />;
+    return <CameraErrorView error={error} mode={mode} onRetry={onRetry} />;
+  }
+
+  // Every source uses the same review player before a clip is accepted.
+  if (state === 'preview' && previewUrl) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center bg-player-ink px-3 pb-[13rem] pt-20 sm:px-4 sm:pb-32 sm:pt-24">
+        <div className="h-full w-full max-w-[min(100%,48rem)]">
+          <VideoPreview url={previewUrl} autoPlay loop muted fill label={t('camera.recordedPreviewAria')} />
+        </div>
+      </div>
+    );
   }
 
   if (mode === 'upload') {
@@ -472,9 +503,7 @@ function BackgroundStage({
     );
   }
 
-  if (mode === 'screen') {
-    return <ScreenPreview stream={previewStream} />;
-  }
+  if (mode === 'screen') return <ScreenPreview stream={previewStream} />;
 
   const facingMode = mode === 'front' ? 'user' : 'environment';
   const frameClass = frameClassFor(orientation);
@@ -495,19 +524,6 @@ function BackgroundStage({
             state === 'preview' ? 'opacity-0 absolute' : 'opacity-100'
           )}
         />
-
-        {/* Review the recorded clip in the app's custom player (not the browser's default controls).
-            The player fills the stage minus the floating chrome (top bar / retake+confirm), so a
-            portrait take is shown as large as the frame allows instead of pillar-boxed in the middle
-            of a mostly-empty black screen. The bottom inset is deeper on phones, where the two
-            actions stack. */}
-        {state === 'preview' && previewUrl && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black px-3 pb-[11.5rem] pt-20 sm:px-4 sm:pb-32 sm:pt-24">
-            <div className="h-full w-full max-w-[min(100%,26rem)]">
-              <VideoPreview url={previewUrl} autoPlay loop muted fill label={null} />
-            </div>
-          </div>
-        )}
 
         <StageOverlays
           state={state}
@@ -614,19 +630,10 @@ export const CameraCapture = ({
 
       {/* Top bar */}
       <div className="absolute inset-x-0 top-0 z-20 bg-linear-to-b from-black/55 to-transparent pb-8">
-        <CameraTopBar
-          state={session.state}
-          mode={session.mode}
-          elapsed={session.elapsed}
-          onCancel={onClose}
-          onSwitchCamera={() => {
-            const nextMode = session.mode === 'front' ? 'back' : 'front';
-            session.setMode(nextMode);
-          }}
-        />
+        <CameraTopBar state={session.state} elapsed={session.elapsed} onCancel={onClose} />
 
-        {/* Mode tab bar — only before capture starts; hidden once recording/countdown/review begins. */}
-        {(session.state === 'idle' || session.state === 'loading') && (
+        {/* Source selector — also available after an error so another source remains reachable. */}
+        {(session.state === 'idle' || session.state === 'loading' || session.state === 'error') && (
           <div className="flex justify-center px-4 pb-2">
             <CaptureModeBar modes={session.allowedModes} active={session.mode} onChange={session.setMode} />
           </div>

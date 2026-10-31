@@ -1,22 +1,23 @@
 {
   "hero": {
-    "eyebrow": "LeClap Studio",
-    "headlineA": "Luces. Cámara. Render.",
-    "headlineB": "en tu navegador.",
-    "subtagline": "El compositor de vídeo cinematográfico que funciona íntegramente en tu navegador.",
-    "privacy": "Tu material nunca sale de tu dispositivo.",
+    "eyebrow": "El motor de vídeo para agentes de IA",
+    "headlineA": "Tu agente de IA crea vídeos.",
+    "subtagline": "Crea gráficos en movimiento y vídeos con agentes de IA. Compón, previsualiza y ajusta plantillas JSON editables con tus vídeos, textos y música.",
+    "privacy": "Renderizado local. Plantillas editables.",
     "tally": "LeClap · En tu dispositivo",
     "scrubAria": "Desplazar la película de fondo",
-    "startCreating": "Empezar a crear",
-    "seeHow": "Mira cómo funciona",
+    "startCreating": "Conecta tu agente",
+    "seeHow": "Pruébalo en tu navegador",
     "play": "Reproducir la película del hero",
     "pause": "Pausar la película del hero",
-    "scrubValue": "{{seconds}} de {{total}} segundos"
+    "scrubValue": "{{seconds}} de {{total}} segundos",
+    "demoHint": "Renderiza una plantilla de ejemplo. Sin subir archivos ni usar cámara.",
+    "agentHint": "MCP o CLI. Cada composición sigue siendo editable."
   },
   "showcase": {
     "eyebrow": "Míralo en acción",
     "title": "Cada efecto cabe en una plantilla",
-    "subtitle": "Destellos de luz, brillos, marcos, movimientos de cámara y cortes al ritmo: cada uno es una línea de plantilla y se ve igual en tu navegador, en tu ordenador y en tu móvil.",
+    "subtitle": "Fugas de luz, destellos, marcos, movimientos de cámara y cortes al ritmo: explora plantillas editables y sus resultados renderizados.",
     "videoAria": "Un reel de efectos de movimiento de LeClap, reproduciéndose en bucle",
     "play": "Reproducir el render",
     "pause": "Pausar el render",
@@ -113,34 +114,73 @@
     "ctaSecondary": "Usar la receta MCP"
   },
   "features": {
-    "badge": "Todo, del lado del cliente",
-    "title": "Un compositor de vídeo de verdad, en el navegador",
-    "subtitle": "FFmpeg de nivel profesional, plantillas reales y formularios en vivo: funcionando enteramente en tu dispositivo.",
+    "badge": "Para el flujo creativo",
+    "title": "De las instrucciones al vídeo",
+    "subtitle": "Dale herramientas estructuradas a tu agente, revisa el resultado y mantén el control.",
     "items": {
       "templates": {
-        "title": "Plantillas JSON reales",
-        "description": "Un único archivo JSON describe todo el vídeo: secciones, filtros, texto y música. El mismo archivo se renderiza en la CLI, en el navegador y en el móvil."
+        "title": "Creación estructurada",
+        "description": "Un esquema, un catálogo de movimiento y ejemplos ejecutables guían a tu agente."
       },
       "forms": {
-        "title": "Formularios de la plantilla",
-        "description": "Cada plantilla declara sus campos. Con ellos, el studio construye el formulario y comprueba cada valor antes de renderizar."
+        "title": "Tú tienes el control",
+        "description": "Conserva el JSON editable y ábrelo en el editor visual para revisar y ajustar la composición."
       },
       "processing": {
-        "title": "Todo el pipeline de FFmpeg",
-        "description": "Filtros de vídeo, superposiciones de texto, transiciones y mezcla de audio, compilados a comandos reales de FFmpeg."
+        "title": "Revisiones precisas",
+        "description": "Valida la plantilla, inspecciona los fotogramas y cambia las escenas necesarias."
       },
       "privacy": {
-        "title": "Nada sale del dispositivo",
-        "description": "El renderizado se hace en esta pestaña. Tus archivos nunca se suben, así que no tienes que confiar en ningún servidor."
+        "title": "Renderizado local",
+        "description": "FFmpeg renderiza en tu dispositivo. Tu proveedor externo de IA tiene sus propias prácticas de tratamiento de datos."
       },
       "wasm": {
-        "title": "FFmpeg en WebAssembly",
-        "description": "El mismo FFmpeg que ejecutarías en un servidor, compilado para el navegador. Más lento que en nativo, y sin nada que instalar."
+        "title": "MCP y CLI",
+        "description": "Conecta un cliente MCP o deja que un agente use la línea de comandos para explorar, previsualizar y renderizar."
       },
       "crossPlatform": {
-        "title": "Escritorio, tablet, móvil",
-        "description": "Funciona en los navegadores actuales, desde un monitor de escritorio hasta la pantalla de un móvil."
+        "title": "Una plantilla, varias plataformas",
+        "description": "Compón en Node, en el navegador o en una app nativa. Los efectos disponibles y los píxeles codificados varían según el motor."
       }
     }
+  },
+  "workflow": {
+    "eyebrow": "Tu idea, tu próximo vídeo",
+    "title": "Un proceso que puedes revisar",
+    "subtitle": "Tu agente toma las decisiones creativas. LeClap convierte una plantilla editable y tus archivos en un vídeo.",
+    "steps": {
+      "compose": {
+        "title": "Componer",
+        "body": "Empieza con una idea y tus archivos. Busca un ejemplo y sigue el esquema."
+      },
+      "validate": {
+        "title": "Validar",
+        "body": "Comprueba la plantilla e inspecciona fotogramas reales antes del renderizado completo."
+      },
+      "revise": {
+        "title": "Revisar",
+        "body": "Pide una introducción más corta o un nuevo cierre. Actualiza las escenas correspondientes."
+      },
+      "render": {
+        "title": "Renderizar",
+        "body": "Exporta el vídeo terminado y conserva la plantilla para la próxima revisión."
+      }
+    },
+    "cases": {
+      "product": {
+        "title": "Demos de producto",
+        "body": "Convierte grabaciones reales de pantalla en una presentación clara del producto."
+      },
+      "social": {
+        "title": "Clips de marca",
+        "body": "Reutiliza tus textos, colores y archivos en composiciones editables."
+      },
+      "review": {
+        "title": "Evidencia para PR",
+        "body": "Muestra a los revisores un vídeo del antes y el después del cambio real."
+      }
+    },
+    "guide": "Leer la guía para agentes",
+    "studio": "Probar el estudio"
   }
 }

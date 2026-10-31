@@ -27,6 +27,14 @@ const sampleFormData = (template: Template, name: string): Record<string, string
       .map((field, index) => [field.name, index === 0 ? name.trim() : ''])
   );
 
+async function loadSampleClip(): Promise<File> {
+  const response = await fetch('/videos/drink-and-coffee.mp4');
+
+  if (!response.ok) throw new Error('Sample clip could not be loaded.');
+
+  return new File([await response.blob()], 'sample.mp4', { type: 'video/mp4' });
+}
+
 // The onboarding compile flow: step state + a start/stop pair around the in-browser compile. `stop`
 // cancels an in-flight compile (the engine halts at the next segment boundary) and closes via onClose.
 // Each start gets a ticket that `stop` voids, so a stopped compile's late progress, result or failure
@@ -44,7 +52,7 @@ export function useOnboardingCompile(opts: {
   const [failure, setFailure] = useState<CompileFailure | null>(null);
   const ticket = useRef(0);
 
-  const start = async (name: string, videoFile: File | null) => {
+  const start = async (name: string, videoFile: File | 'sample' | null) => {
     if (!videoFile) return;
 
     setStep('compiling');
@@ -57,8 +65,12 @@ export function useOnboardingCompile(opts: {
 
       if (!sampleTemplate) throw new Error(`Sample template "${sampleTemplateId}" could not be loaded.`);
 
+      const clip = videoFile === 'sample' ? await loadSampleClip() : videoFile;
+
+      if (run !== ticket.current) return;
+
       const compiled = await coreCompilationService.compileVideo(
-        { template: sampleTemplate, formData: sampleFormData(sampleTemplate, name), files: [videoFile] },
+        { template: sampleTemplate, formData: sampleFormData(sampleTemplate, name), files: [clip] },
         (update) => {
           if (run === ticket.current) setProgress(update);
         }

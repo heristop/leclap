@@ -1,6 +1,8 @@
 # ffmpeg-video-composer
 
-**One JSON spec renders on Node, in the browser via WebAssembly, and fully on-device on React Native — no upload, no server required.**
+**The composition engine behind LeClap: editable JSON in, finished video out. Built for apps and AI agent workflows.**
+
+Agents can author, validate and revise templates through [MCP](../leclap-mcp) or the [CLI](../leclap-cli); application developers can use the API below. [Connect your agent](../../docs/ai-agents.md).
 
 Template-driven video composition over FFmpeg. A single JSON _template_ describes a video's structure — sections, filters, music, text overlays — and the library renders it into a finished video. The same engine runs in Node.js, in the browser (WebAssembly), and in React Native.
 

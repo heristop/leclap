@@ -1,22 +1,23 @@
 {
   "hero": {
-    "eyebrow": "LeClap Studio",
-    "headlineA": "Luci. Camera. Render.",
-    "headlineB": "nel tuo browser.",
-    "subtagline": "Il compositore video cinematografico che gira interamente nel tuo browser.",
-    "privacy": "Il tuo girato non lascia mai il tuo dispositivo.",
+    "eyebrow": "Il motore video per gli agenti IA",
+    "headlineA": "Il tuo agente IA crea video.",
+    "subtagline": "Crea motion graphics e video con agenti IA. Componi, visualizza e perfeziona modelli JSON modificabili con i tuoi filmati, testi e musica.",
+    "privacy": "Rendering locale. Modelli modificabili.",
     "tally": "LeClap · Sul dispositivo",
     "scrubAria": "Scorri il film di sfondo",
-    "startCreating": "Inizia a creare",
-    "seeHow": "Scopri come funziona",
+    "startCreating": "Collega il tuo agente",
+    "seeHow": "Provalo nel browser",
     "play": "Riproduci il film dell'hero",
     "pause": "Metti in pausa il film dell'hero",
-    "scrubValue": "{{seconds}} di {{total}} secondi"
+    "scrubValue": "{{seconds}} di {{total}} secondi",
+    "demoHint": "Crea un video da un modello. Senza caricare file né usare la fotocamera.",
+    "agentHint": "MCP o CLI. Ogni composizione resta modificabile."
   },
   "showcase": {
     "eyebrow": "Guardalo in azione",
     "title": "Ogni effetto sta in un modello",
-    "subtitle": "Bagliori, scintille, cornici, movimenti di camera e tagli a tempo: ognuno è una riga di modello, e appare uguale nel browser, sul computer e sul telefono.",
+    "subtitle": "Infiltrazioni di luce, riflessi, cornici, movimenti di camera e tagli a ritmo: esplora modelli modificabili e i risultati renderizzati.",
     "videoAria": "Un reel degli effetti di movimento di LeClap, riprodotto in loop",
     "play": "Riproduci il render",
     "pause": "Metti in pausa il render",
@@ -113,34 +114,73 @@
     "ctaSecondary": "Usa la ricetta MCP"
   },
   "features": {
-    "badge": "Tutto, lato client",
-    "title": "Un vero compositore di video, nel browser",
-    "subtitle": "FFmpeg di livello professionale, modelli reali e form dal vivo — tutto in esecuzione sul tuo dispositivo.",
+    "badge": "Per il flusso creativo",
+    "title": "Dalle istruzioni al video",
+    "subtitle": "Dai strumenti strutturati al tuo agente, controlla il risultato e mantieni il controllo.",
     "items": {
       "templates": {
-        "title": "Modelli JSON reali",
-        "description": "Un solo file JSON descrive l’intero video: sezioni, filtri, testo e musica. Lo stesso file viene renderizzato nella CLI, nel browser e sul telefono."
+        "title": "Creazione strutturata",
+        "description": "Uno schema, un catalogo di movimenti ed esempi eseguibili guidano il tuo agente."
       },
       "forms": {
-        "title": "Form dal modello",
-        "description": "Ogni modello dichiara i propri campi. Lo studio ne ricava il form e controlla ogni valore prima del rendering."
+        "title": "Il controllo resta a te",
+        "description": "Conserva il JSON modificabile e aprilo nell’editor visivo per rivedere e adattare la composizione."
       },
       "processing": {
-        "title": "Tutta la pipeline FFmpeg",
-        "description": "Filtri video, overlay di testo, transizioni e mixaggio audio, compilati in veri comandi FFmpeg."
+        "title": "Revisioni precise",
+        "description": "Valida il modello, controlla i fotogrammi renderizzati e modifica le scene interessate."
       },
       "privacy": {
-        "title": "Niente lascia il dispositivo",
-        "description": "Il rendering avviene in questa scheda. I tuoi file non vengono mai caricati, quindi non devi fidarti di nessun server."
+        "title": "Rendering locale",
+        "description": "FFmpeg esegue il rendering sul tuo dispositivo. Il fornitore IA esterno ha proprie regole di trattamento dei dati."
       },
       "wasm": {
-        "title": "FFmpeg in WebAssembly",
-        "description": "Lo stesso FFmpeg che useresti su un server, compilato per il browser. Più lento del nativo, e niente da installare."
+        "title": "MCP e CLI",
+        "description": "Collega un client MCP o lascia che un agente usi la riga di comando per esplorare, visualizzare e renderizzare."
       },
       "crossPlatform": {
-        "title": "Desktop, tablet, telefono",
-        "description": "Funziona nei browser recenti, dal monitor di un desktop fino allo schermo di un telefono."
+        "title": "Un modello, più piattaforme",
+        "description": "Componi su Node, nel browser o in un’app nativa. Gli effetti supportati e i pixel codificati variano secondo il motore."
       }
     }
+  },
+  "workflow": {
+    "eyebrow": "La tua idea, il tuo prossimo video",
+    "title": "Un processo che puoi controllare",
+    "subtitle": "Il tuo agente prende le decisioni creative. LeClap trasforma un modello modificabile e i tuoi contenuti in un video.",
+    "steps": {
+      "compose": {
+        "title": "Componi",
+        "body": "Parti da un brief e dai tuoi contenuti. Cerca un esempio e segui lo schema."
+      },
+      "validate": {
+        "title": "Valida",
+        "body": "Controlla il modello e i fotogrammi reali prima del rendering completo."
+      },
+      "revise": {
+        "title": "Rivedi",
+        "body": "Chiedi un’introduzione più breve o una nuova chiusura. Aggiorna le scene interessate."
+      },
+      "render": {
+        "title": "Renderizza",
+        "body": "Esporta il video finito e conserva il modello per la prossima revisione."
+      }
+    },
+    "cases": {
+      "product": {
+        "title": "Demo di prodotto",
+        "body": "Trasforma registrazioni reali dello schermo in una presentazione chiara del prodotto."
+      },
+      "social": {
+        "title": "Clip per il brand",
+        "body": "Riutilizza testi, colori e contenuti in composizioni modificabili."
+      },
+      "review": {
+        "title": "Prove per le PR",
+        "body": "Mostra ai revisori un video prima e dopo della modifica reale."
+      }
+    },
+    "guide": "Leggi la guida per gli agenti",
+    "studio": "Prova lo studio"
   }
 }

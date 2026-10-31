@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Video Composer for Browser, Phone & AI Agents",
-    "description": "Compose videos from one JSON template in your browser or on your phone — no uploads. For agentic development, coding agents attach before/after videos to PRs."
+    "title": "LeClap — AI Motion Graphics & Video Engine",
+    "description": "Build motion graphics with AI agents, editable JSON and MCP. Render locally with FFmpeg, or try a browser sample now with no upload."
   },
   "studio": {
     "title": "Studio",

@@ -31,5 +31,20 @@
     }
   },
   "loadingError": "Errore nel caricamento della schermata di registrazione.",
-  "processing": "Elaborazione…"
+  "processing": "Elaborazione…",
+  "sources": {
+    "title": "Sorgente video",
+    "front": "Anteriore",
+    "back": "Posteriore",
+    "upload": "Importa",
+    "screen": "Schermo",
+    "uploadTitle": "Scegli il tuo video",
+    "uploadHint": "Scegli un clip dalla galleria e guardalo prima di utilizzarlo.",
+    "chooseVideo": "Scegli video"
+  },
+  "actions": {
+    "record": "Avvia registrazione",
+    "stop": "Ferma registrazione",
+    "close": "Chiudi fotocamera"
+  }
 }

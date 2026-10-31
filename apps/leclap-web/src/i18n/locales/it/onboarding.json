@@ -1,25 +1,24 @@
 {
   "welcome": {
     "title": "Benvenuto su",
-    "subtitle": "Creiamo il tuo primo video in meno di un minuto — registra una breve intro e la trasformeremo in una clip curata.",
+    "subtitle": "Il tuo nome apre la scena. Crea una intro cinematografica nel browser, con un video incluso.",
     "features": {
-      "record": "Registra una breve intro con la fotocamera",
+      "record": "Usa il video di esempio incluso",
       "template": "Applichiamo un modello di esempio cinematografico",
       "download": "Scarica il tuo video finito"
     },
     "start": "Crea la mia intro",
     "checking": "Controllo il tuo browser…",
-    "unsupported": "Qui il browser non può registrare",
-    "unsupportedHint": "Usa Chrome, Edge o Firefox su desktop per registrare la tua intro.",
+    "unsupported": "Rendering non disponibile qui",
+    "unsupportedHint": "Prova una versione recente di Chrome, Edge o Firefox su computer.",
     "skip": "Salta per ora"
   },
   "create": {
-    "title": "Presentati",
-    "subtitle": "Dicci il tuo nome e registra una breve clip — è tutto ciò che serve.",
+    "title": "Rendila tua",
+    "subtitle": "Aggiungi il tuo nome e trasformalo in una intro cinematografica. Il video di esempio è pronto; il tuo clip è facoltativo.",
     "nameLabel": "Il tuo nome",
     "nameOptional": "facoltativo",
-    "clipLabel": "Il tuo clip",
-    "clipRequired": "Registra o importa un clip per continuare",
+    "clipLabel": "Aggiungi il tuo clip",
     "namePlaceholder": "es. {{name}}",
     "recorded": "Intro registrata",
     "reRecord": "Registra di nuovo",
@@ -30,7 +29,8 @@
     "recordAria": "Registra un’intro con la fotocamera",
     "uploadAria": "Carica un video di intro",
     "uploadInputAria": "Carica il video di intro",
-    "create": "Crea il mio video"
+    "create": "Crea il mio video",
+    "sampleIncluded": "Video di esempio incluso. Nessun caricamento o videocamera necessari."
   },
   "compiling": {
     "title": "Sto creando il tuo video…",

@@ -1,7 +1,7 @@
 {
   "default": {
-    "title": "LeClap — Compositor de vídeo para navegador, móvil y agentes IA",
-    "description": "Crea vídeos a partir de una plantilla JSON en tu navegador o en tu móvil, sin subir nada. En el desarrollo agéntico, tu agente adjunta vídeos de antes/después a sus PR."
+    "title": "LeClap — Motion graphics y motor de vídeo para IA",
+    "description": "Crea animaciones con agentes de IA, JSON editable y MCP. Renderiza localmente con FFmpeg o prueba un ejemplo en el navegador sin subir archivos."
   },
   "studio": {
     "title": "Studio",

@@ -1,25 +1,24 @@
 {
   "welcome": {
     "title": "Willkommen bei",
-    "subtitle": "Lass uns dein erstes Video in unter einer Minute machen – nimm ein kurzes Intro auf und wir machen einen polierten Clip daraus.",
+    "subtitle": "Dein Name eröffnet die Szene. Erstelle ein filmisches Intro im Browser, mit enthaltenem Videomaterial.",
     "features": {
-      "record": "Nimm ein kurzes Intro mit deiner Kamera auf",
+      "record": "Mitgeliefertes Beispielvideo verwenden",
       "template": "Wir wenden eine cinematische Beispielvorlage an",
       "download": "Lade dein fertiges Video herunter"
     },
     "start": "Mein Intro erstellen",
     "checking": "Browser wird geprüft …",
-    "unsupported": "Browser kann hier nicht aufnehmen",
-    "unsupportedHint": "Nutze Chrome, Edge oder Firefox am Desktop, um dein Intro aufzunehmen.",
+    "unsupported": "Rendering hier nicht verfügbar",
+    "unsupportedHint": "Nutze eine aktuelle Desktop-Version von Chrome, Edge oder Firefox.",
     "skip": "Vorerst überspringen"
   },
   "create": {
-    "title": "Stell dich vor",
-    "subtitle": "Sag uns deinen Namen und nimm einen kurzen Clip auf – mehr brauchen wir nicht.",
+    "title": "Mach es zu deinem Intro",
+    "subtitle": "Gib deinen Namen ein und erstelle ein filmisches Intro. Beispielmaterial ist bereit; dein eigener Clip ist optional.",
     "nameLabel": "Dein Name",
     "nameOptional": "optional",
-    "clipLabel": "Dein Clip",
-    "clipRequired": "Nimm einen Clip auf oder importiere einen, um fortzufahren",
+    "clipLabel": "Eigenen Clip hinzufügen",
     "namePlaceholder": "z. B. {{name}}",
     "recorded": "Intro aufgenommen",
     "reRecord": "Neu aufnehmen",
@@ -30,7 +29,8 @@
     "recordAria": "Ein Intro mit deiner Kamera aufnehmen",
     "uploadAria": "Ein Intro-Video hochladen",
     "uploadInputAria": "Intro-Video hochladen",
-    "create": "Mein Video erstellen"
+    "create": "Mein Video erstellen",
+    "sampleIncluded": "Beispielmaterial ist bereit. Kein Upload und keine Kamera nötig."
   },
   "compiling": {
     "title": "Dein Video wird erstellt …",

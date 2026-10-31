@@ -31,5 +31,20 @@
     }
   },
   "loadingError": "Error al cargar la pantalla de grabación.",
-  "processing": "Procesando…"
+  "processing": "Procesando…",
+  "sources": {
+    "title": "Fuente de vídeo",
+    "front": "Frontal",
+    "back": "Trasera",
+    "upload": "Importar",
+    "screen": "Pantalla",
+    "uploadTitle": "Elige tu vídeo",
+    "uploadHint": "Elige un clip de tu galería y revísalo antes de usarlo.",
+    "chooseVideo": "Elegir vídeo"
+  },
+  "actions": {
+    "record": "Iniciar grabación",
+    "stop": "Detener grabación",
+    "close": "Cerrar cámara"
+  }
 }

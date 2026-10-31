@@ -157,7 +157,6 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
 
   // Typed name, or the placeholder sample if left blank — so a recorded clip is always enough to create.
   const effectiveName = name.trim() || placeholderName;
-  const canCreate = videoFile !== null;
 
   // Close when the click lands on the backdrop itself, not on the modal panel or its children, and only
   // while nothing is at stake (onboarding.logic.ts).
@@ -202,7 +201,6 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           sampleName={placeholderName}
           videoFile={videoFile}
           clipSource={clipSource}
-          canCreate={canCreate}
           fileInputRef={fileInputRef}
           createRef={createRef}
           onOpenCamera={() => {
@@ -211,7 +209,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           }}
           onFilePicked={onFilePicked}
           onCreate={() => {
-            Promise.resolve(start(effectiveName, videoFile)).catch(() => {});
+            Promise.resolve(start(effectiveName, videoFile ?? 'sample')).catch(() => {});
           }}
         />
       );

@@ -50,14 +50,14 @@ const PROSE_SPELLING = 'LeClap';
 //
 // This table is what makes the spelling assertions real. A bare negative regex over a description
 // passes for free whenever the description never mentions the brand at all — true for
-// `ffmpeg-video-composer` (deliberately unbranded, it is the generic engine package) and for
-// `@leclap/mcp` (its description leads with the MCP protocol, not the brand). Pinning the expected
+// `ffmpeg-video-composer` (deliberately unbranded, it is the generic engine package). The MCP
+// description now names LeClap as the engine agents connect to. Pinning the expected
 // count first means an absent brand is asserted, not assumed, and a newly introduced mention has to
 // be spelled correctly and recorded here before the suite goes green again.
 const BRAND_MENTIONS: Record<string, { name: number; keywords: number; description: number }> = {
   'packages/ffmpeg-video-composer': { name: 0, keywords: 0, description: 0 },
   'packages/leclap-cli': { name: 1, keywords: 1, description: 1 },
-  'packages/leclap-mcp': { name: 1, keywords: 1, description: 0 },
+  'packages/leclap-mcp': { name: 1, keywords: 1, description: 1 },
 };
 
 const majorOf = (range: string) => range.replace(/^[\^~]/, '').split('.')[0];

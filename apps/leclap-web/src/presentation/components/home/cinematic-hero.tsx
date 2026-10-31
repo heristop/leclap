@@ -118,7 +118,7 @@ export const CinematicHero = () => {
           chrome: the top padding has to clear the tally and transport row itself (viewfinder top-20 +
           the row's own top-4 + its height), and the bottom padding has to clear the timeline. The
           chrome layers above this box (z-20), so its padding never covers the controls. */}
-      <div className="container relative z-10 mx-auto px-6 pb-24 pt-36 text-center sm:pb-32 sm:pt-24">
+      <div className="container relative z-10 mx-auto px-4 pb-24 pt-40 text-center sm:px-8 sm:pb-32 sm:pt-40">
         {/* The type follows the pointer a touch (opposite the footage) so the stage reads as depth.
             max-w-6xl keeps the longer localized lines (fr/es/it) on one row each at desktop widths. */}
         <div className="hero-parallax mx-auto max-w-6xl [--parallax:0.018]">
@@ -126,7 +126,7 @@ export const CinematicHero = () => {
               animated pan is the old wordmark's treatment at kicker scale; the global reduced-motion
               reset stills it to a static gradient. The entrance lives on the wrapper because both
               `fade-in` and the pan set the `animation` shorthand — stacked on one node, one wins. */}
-          <p className="fade-in mb-5 text-sm font-bold uppercase tracking-[0.35em] -mr-[0.35em]">
+          <p className="fade-in mb-5 text-xs font-bold uppercase tracking-[0.2em] sm:text-sm sm:tracking-[0.35em]">
             <span className="text-gradient-animated">{t('hero.eyebrow')}</span>
           </p>
           {/* Each word lands on the stagger. The claim
@@ -171,7 +171,11 @@ export const CinematicHero = () => {
           style={{ animationDelay: '0.35s' }}
         >
           <div className="flex flex-col items-center gap-3">
-            <Button asChild size="lg" className="group w-full rounded-full">
+            <Button
+              asChild
+              size="lg"
+              className="group h-auto min-h-12 w-full whitespace-normal rounded-full py-3 text-balance"
+            >
               <Link to="/doc/agents" onClick={clap} aria-describedby="agent-path-hint">
                 {t('hero.startCreating')}
                 <ArrowRight className="transition-transform group-hover:translate-x-1 motion-reduce:transform-none" />
@@ -191,7 +195,7 @@ export const CinematicHero = () => {
               onClick={() => {
                 globalThis.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
               }}
-              className="w-full scroll-mt-32 rounded-full border-brand-300/40 bg-background/60"
+              className="h-auto min-h-12 w-full scroll-mt-32 whitespace-normal rounded-full border-brand-300/40 bg-background/60 py-3 text-balance"
               {...playHoverProps}
             >
               <PlayIcon ref={playRef} size={16} />
@@ -207,7 +211,7 @@ export const CinematicHero = () => {
           className="fade-in mt-7 flex items-center justify-center gap-2 text-sm text-gray-400"
           style={{ animationDelay: '0.45s' }}
         >
-          <Shield className="size-4 text-brand-300" aria-hidden="true" />
+          <Shield className="size-4 shrink-0 text-brand-300" aria-hidden="true" />
           {t('hero.privacy')}
         </p>
       </div>

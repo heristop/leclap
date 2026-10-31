@@ -45,8 +45,11 @@ for (const [version, port] of versions) {
       if (version === 'after') {
         await page.getByRole('button', { name: 'Try it in your browser', exact: true }).click();
         await page.getByRole('dialog').waitFor();
-        await page.getByRole('button', { name: 'Render a sample now', exact: true }).waitFor();
+        await page.getByRole('button', { name: 'Create my intro', exact: true }).waitFor();
         await page.screenshot({ path: `${out}/browser-demo-${width}-${theme}.png` });
+        await page.getByRole('button', { name: 'Create my intro', exact: true }).click();
+        await page.getByLabel('Your name').fill('Alex');
+        await page.screenshot({ path: `${out}/personalize-${width}-${theme}.png` });
         await page.getByRole('button', { name: 'Skip onboarding', exact: true }).click();
         await page.locator('#agent-workflow').scrollIntoViewIfNeeded();
         await page.screenshot({ path: `${out}/workflow-${width}-${theme}.png` });

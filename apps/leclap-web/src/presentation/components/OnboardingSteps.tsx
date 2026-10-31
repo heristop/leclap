@@ -38,17 +38,16 @@ interface WelcomeStepProps {
   /** The id of this step's heading, which names the dialog. */
   titleId: string;
   onStart: () => void;
-  onSample: () => void;
   onDone: () => void;
 }
 
 const canRenderSample = (checks: BrowserSupportCheck[] | null): boolean =>
   checks?.filter((check) => check.id !== 'camera').every((check) => check.ok) ?? false;
 
-export const WelcomeStep = ({ titleId, onStart, onSample, onDone }: WelcomeStepProps) => {
+export const WelcomeStep = ({ titleId, onStart, onDone }: WelcomeStepProps) => {
   const { t } = useTranslation('onboarding');
-  const { checks, checking, ready } = useBrowserSupport();
-  const sampleReady = canRenderSample(checks);
+  const { checks, checking } = useBrowserSupport();
+  const ready = canRenderSample(checks);
   let startLabel = t('welcome.unsupported');
 
   if (checking) {
@@ -97,7 +96,7 @@ export const WelcomeStep = ({ titleId, onStart, onSample, onDone }: WelcomeStepP
       </div>
 
       {/* Discreet browser readiness check — gates "Create my intro" so newcomers on an
-          unsupported browser don't hit a mid-flow failure when recording or compiling. */}
+          unsupported browser don't hit a mid-flow failure when compiling. */}
       {checks && (
         <ul
           className="fade-in mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5"
@@ -121,16 +120,7 @@ export const WelcomeStep = ({ titleId, onStart, onSample, onDone }: WelcomeStepP
       )}
 
       <div className="fade-in" style={{ animationDelay: '560ms' }}>
-        <Button onClick={onSample} size="lg" disabled={checking || !sampleReady} className="mb-3 w-full glow-brand">
-          {t('welcome.trySample')}
-        </Button>
-        <Button
-          onClick={onStart}
-          variant="outline"
-          size="lg"
-          disabled={checking || !ready}
-          className="group w-full text-base glow-brand"
-        >
+        <Button onClick={onStart} size="lg" disabled={checking || !ready} className="group w-full text-base glow-brand">
           {startLabel}
           {ready && <ArrowRight className="transition-transform group-hover:translate-x-1" />}
         </Button>
@@ -152,7 +142,6 @@ interface CreateStepProps {
   videoFile: File | null;
   /** Where the clip came from: its row says so, and replacing it goes back the same way. */
   clipSource: ClipSource;
-  canCreate: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
   /** Create, which focus moves to once a clip is ready. */
   createRef: RefObject<HTMLButtonElement | null>;
@@ -168,7 +157,6 @@ export const CreateStep = ({
   sampleName,
   videoFile,
   clipSource,
-  canCreate,
   fileInputRef,
   createRef,
   onOpenCamera,
@@ -194,7 +182,7 @@ export const CreateStep = ({
       <p className="mb-5 text-sm text-gray-300 sm:mb-6">{t('create.subtitle')}</p>
 
       {/* Both inputs carry a label so their weight is legible: the name is optional — a sample stands
-          in when it's blank — and the clip is what gates Create. */}
+          in when it's blank — and included footage makes a personal clip optional. */}
       <label
         className="mb-2 flex items-baseline gap-2 text-xs font-semibold uppercase tracking-widest text-gray-400"
         htmlFor="ob-name"
@@ -217,9 +205,7 @@ export const CreateStep = ({
         className="mb-2 flex items-baseline gap-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400"
       >
         {t('create.clipLabel')}
-        <span aria-hidden="true" className="text-brand-500">
-          *
-        </span>
+        <span className="font-medium normal-case tracking-normal text-gray-500">{t('create.nameOptional')}</span>
       </p>
       {/* A clip that is ready says where it came from, and replacing it goes back the same way: an imported
           clip is not "recorded", and its replacement is another file, not the camera. */}
@@ -280,19 +266,16 @@ export const CreateStep = ({
       <Button
         ref={createRef}
         onClick={onCreate}
-        disabled={!canCreate}
         variant="primary"
         size="lg"
         className="w-full text-base"
-        aria-describedby={canCreate ? 'ob-clip-ready' : 'ob-create-hint'}
+        aria-describedby={videoFile ? 'ob-clip-ready' : 'ob-create-hint'}
       >
         <SparklesIcon size={16} /> {t('create.create')}
       </Button>
-      {/* The disabled button says "not yet"; this says why. It's gone once a clip exists, and
-          `role="status"` re-announces it if a take is discarded and the gate closes again. */}
-      {!canCreate && (
+      {!videoFile && (
         <p id="ob-create-hint" role="status" className="mt-2 text-center text-xs text-gray-400">
-          {t('create.clipRequired')}
+          {t('create.sampleIncluded')}
         </p>
       )}
     </div>

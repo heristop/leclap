@@ -51,7 +51,6 @@ export function useOnboardingCompile(opts: {
   const [result, setResult] = useState<CompilationResult | null>(null);
   const [failure, setFailure] = useState<CompileFailure | null>(null);
   const ticket = useRef(0);
-  const sampleDemo = useRef(false);
 
   const start = async (name: string, videoFile: File | 'sample' | null) => {
     if (!videoFile) return;
@@ -100,19 +99,5 @@ export function useOnboardingCompile(opts: {
     onClose();
   };
 
-  const startSample = () => {
-    sampleDemo.current = true;
-
-    return start('LeClap', 'sample');
-  };
-  const retry = async () => {
-    if (sampleDemo.current) {
-      await startSample();
-
-      return;
-    }
-    setStep('create');
-  };
-
-  return { step, setStep, progress, result, failure, start, startSample, retry, stop };
+  return { step, setStep, progress, result, failure, start, stop };
 }

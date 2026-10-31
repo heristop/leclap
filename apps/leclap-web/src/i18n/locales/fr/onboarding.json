@@ -1,7 +1,7 @@
 {
   "welcome": {
     "title": "Bienvenue sur",
-    "subtitle": "Sans import ni caméra. Testez un modèle avec une vidéo fournie, directement dans votre navigateur.",
+    "subtitle": "Votre nom entre en scène. Créez une intro cinématique dans votre navigateur, avec une vidéo incluse.",
     "features": {
       "record": "Utilisez la vidéo fournie",
       "template": "On applique un modèle d’exemple cinématographique",
@@ -9,18 +9,16 @@
     },
     "start": "Créer mon intro",
     "checking": "Vérification de ton navigateur…",
-    "unsupported": "Impossible de filmer ici",
-    "unsupportedHint": "Utilise Chrome, Edge ou Firefox sur ordinateur pour filmer ton intro.",
-    "skip": "Plus tard",
-    "trySample": "Compiler un exemple maintenant"
+    "unsupported": "Rendu indisponible ici",
+    "unsupportedHint": "Essayez une version récente de Chrome, Edge ou Firefox sur ordinateur.",
+    "skip": "Plus tard"
   },
   "create": {
-    "title": "Présente-toi",
-    "subtitle": "Donne-nous ton nom et filme un court clip — c’est tout ce qu’il faut.",
+    "title": "À vous de jouer",
+    "subtitle": "Ajoutez votre nom pour créer une intro cinématique. Une vidéo est incluse ; votre propre clip est facultatif.",
     "nameLabel": "Ton nom",
     "nameOptional": "facultatif",
-    "clipLabel": "Ton clip",
-    "clipRequired": "Filme ou importe un clip pour continuer",
+    "clipLabel": "Ajouter votre clip",
     "namePlaceholder": "ex. {{name}}",
     "recorded": "Intro filmée",
     "reRecord": "Refilmer",
@@ -31,7 +29,8 @@
     "recordAria": "Filmer une intro avec ta caméra",
     "uploadAria": "Importer une vidéo d’intro",
     "uploadInputAria": "Importer la vidéo d’intro",
-    "create": "Créer ma vidéo"
+    "create": "Créer ma vidéo",
+    "sampleIncluded": "Une vidéo est incluse. Aucun import ni caméra nécessaire."
   },
   "compiling": {
     "title": "Création de ta vidéo…",

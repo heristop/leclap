@@ -134,7 +134,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   // The compile flow (step state + start/stop around the in-browser compile) lives in its own hook;
   // `stop` cancels an in-flight compile and closes the dialog.
-  const { step, setStep, progress, result, failure, start, startSample, retry, stop } = useOnboardingCompile({
+  const { step, setStep, progress, result, failure, start, stop } = useOnboardingCompile({
     sampleTemplateId: SAMPLE_TEMPLATE_ID,
     sampleFormat,
     template,
@@ -157,7 +157,6 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
 
   // Typed name, or the placeholder sample if left blank — so a recorded clip is always enough to create.
   const effectiveName = name.trim() || placeholderName;
-  const canCreate = videoFile !== null;
 
   // Close when the click lands on the backdrop itself, not on the modal panel or its children, and only
   // while nothing is at stake (onboarding.logic.ts).
@@ -188,9 +187,6 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           onStart={() => {
             setStep('create');
           }}
-          onSample={() => {
-            Promise.resolve(startSample()).catch(() => {});
-          }}
           onDone={onDone}
         />
       );
@@ -205,7 +201,6 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           sampleName={placeholderName}
           videoFile={videoFile}
           clipSource={clipSource}
-          canCreate={canCreate}
           fileInputRef={fileInputRef}
           createRef={createRef}
           onOpenCamera={() => {
@@ -214,7 +209,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           }}
           onFilePicked={onFilePicked}
           onCreate={() => {
-            Promise.resolve(start(effectiveName, videoFile)).catch(() => {});
+            Promise.resolve(start(effectiveName, videoFile ?? 'sample')).catch(() => {});
           }}
         />
       );
@@ -232,7 +227,7 @@ export const Onboarding = ({ onDone }: OnboardingProps) => {
           titleId={titleId}
           failure={failure}
           onRetry={() => {
-            Promise.resolve(retry()).catch(() => {});
+            setStep('create');
           }}
           onContinue={startCreating}
         />

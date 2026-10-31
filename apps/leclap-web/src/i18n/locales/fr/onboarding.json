@@ -1,9 +1,9 @@
 {
   "welcome": {
     "title": "Bienvenue sur",
-    "subtitle": "Réalisons ta première vidéo en moins d’une minute — filme une courte intro et on en fait un clip soigné.",
+    "subtitle": "Sans import ni caméra. Testez un modèle avec une vidéo fournie, directement dans votre navigateur.",
     "features": {
-      "record": "Filme une courte intro avec ta caméra",
+      "record": "Utilisez la vidéo fournie",
       "template": "On applique un modèle d’exemple cinématographique",
       "download": "Télécharge ta vidéo finie"
     },
@@ -11,7 +11,8 @@
     "checking": "Vérification de ton navigateur…",
     "unsupported": "Impossible de filmer ici",
     "unsupportedHint": "Utilise Chrome, Edge ou Firefox sur ordinateur pour filmer ton intro.",
-    "skip": "Plus tard"
+    "skip": "Plus tard",
+    "trySample": "Compiler un exemple maintenant"
   },
   "create": {
     "title": "Présente-toi",

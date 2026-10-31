@@ -18,7 +18,7 @@ out = Path('.github/pr-media/ai-agent-messaging')
 for width in [1440, 390]:
     for theme in ['light', 'dark']:
         subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', str(work / f'before-{width}-{theme}.png'), '-i', str(work / f'after-{width}-{theme}.png'), '-filter_complex', '[0:v]scale=720:-2[a];[1:v]scale=720:-2[b];[a][b]hstack', '-c:v', 'libwebp', '-quality', '82', str(out / f'home-{width}-{theme}.webp')], check=True)
-for name in ['guide-1440-light', 'guide-390-dark', 'workflow-1440-light', 'features-1440-dark']:
+for name in ['guide-1440-light', 'guide-390-dark', 'workflow-1440-light', 'features-1440-dark', 'browser-demo-1440-light', 'browser-demo-390-dark']:
     subprocess.run(['ffmpeg', '-y', '-v', 'error', '-i', str(work / f'{name}.png'), '-vf', 'scale=1280:-2', '-c:v', 'libwebp', '-quality', '82', str(out / f'{name}.webp')], check=True)
 for extension in ['mp4', 'webp']:
     name = f'leclap-pr-151-evidence.{extension}'

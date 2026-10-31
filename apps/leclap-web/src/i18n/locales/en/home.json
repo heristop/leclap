@@ -7,10 +7,11 @@
     "tally": "LeClap · On-device",
     "scrubAria": "Scrub the background film",
     "startCreating": "Connect your agent",
-    "seeHow": "Watch it work",
+    "seeHow": "Try it in your browser",
     "play": "Play the hero film",
     "pause": "Pause the hero film",
-    "scrubValue": "{{seconds}} of {{total}} seconds"
+    "scrubValue": "{{seconds}} of {{total}} seconds",
+    "demoHint": "No upload or camera needed. Try a sample template with included footage, entirely in your browser."
   },
   "showcase": {
     "eyebrow": "See it in action",

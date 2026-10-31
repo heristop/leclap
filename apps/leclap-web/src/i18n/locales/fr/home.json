@@ -7,10 +7,11 @@
     "tally": "LeClap · Sur l'appareil",
     "scrubAria": "Faire défiler le film d'arrière-plan",
     "startCreating": "Connecter votre agent",
-    "seeHow": "Voir un exemple",
+    "seeHow": "Essayer dans votre navigateur",
     "play": "Lire le film du hero",
     "pause": "Mettre le film du hero en pause",
-    "scrubValue": "{{seconds}} sur {{total}} secondes"
+    "scrubValue": "{{seconds}} sur {{total}} secondes",
+    "demoHint": "Sans import ni caméra. Testez un modèle avec une vidéo fournie, directement dans votre navigateur."
   },
   "showcase": {
     "eyebrow": "En action",

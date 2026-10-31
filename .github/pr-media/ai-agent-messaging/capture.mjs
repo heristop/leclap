@@ -8,10 +8,13 @@ const out = path.join(root, 'build/pr/ai-messaging');
 await mkdir(out, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const report = [];
-for (const [version, port] of [
-  ['before', 5411],
-  ['after', 5412],
-]) {
+const versions = process.env.AFTER_ONLY
+  ? [['after', 5412]]
+  : [
+      ['before', 5411],
+      ['after', 5412],
+    ];
+for (const [version, port] of versions) {
   for (const width of [1440, 390]) {
     for (const theme of ['light', 'dark']) {
       const context = await browser.newContext({
@@ -40,6 +43,11 @@ for (const [version, port] of [
         overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth),
       });
       if (version === 'after') {
+        await page.getByRole('button', { name: 'Try it in your browser', exact: true }).click();
+        await page.getByRole('dialog').waitFor();
+        await page.getByRole('button', { name: 'Render a sample now', exact: true }).waitFor();
+        await page.screenshot({ path: `${out}/browser-demo-${width}-${theme}.png` });
+        await page.getByRole('button', { name: 'Skip onboarding', exact: true }).click();
         await page.locator('#agent-workflow').scrollIntoViewIfNeeded();
         await page.screenshot({ path: `${out}/workflow-${width}-${theme}.png` });
         await page.locator('#features').scrollIntoViewIfNeeded();

@@ -7,10 +7,11 @@
     "tally": "LeClap · Auf dem Gerät",
     "scrubAria": "Durch den Hintergrundfilm scrubben",
     "startCreating": "Agent verbinden",
-    "seeHow": "Workflow ansehen",
+    "seeHow": "Im Browser ausprobieren",
     "play": "Hero-Film abspielen",
     "pause": "Hero-Film pausieren",
-    "scrubValue": "{{seconds}} von {{total}} Sekunden"
+    "scrubValue": "{{seconds}} von {{total}} Sekunden",
+    "demoHint": "Kein Upload und keine Kamera nötig. Teste eine Vorlage mit mitgeliefertem Video direkt im Browser."
   },
   "showcase": {
     "eyebrow": "In Aktion sehen",

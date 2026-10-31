@@ -1,9 +1,9 @@
 {
   "welcome": {
     "title": "Te damos la bienvenida a",
-    "subtitle": "Hagamos tu primer vídeo en menos de un minuto: graba una breve presentación y la convertiremos en un clip pulido.",
+    "subtitle": "Sin subir archivos ni usar la cámara. Prueba una plantilla con un vídeo incluido, directamente en tu navegador.",
     "features": {
-      "record": "Graba una breve presentación con tu cámara",
+      "record": "Usa el vídeo de ejemplo incluido",
       "template": "Aplicamos una plantilla cinematográfica de ejemplo",
       "download": "Descarga tu vídeo terminado"
     },
@@ -11,7 +11,8 @@
     "checking": "Comprobando tu navegador…",
     "unsupported": "El navegador no puede grabar aquí",
     "unsupportedHint": "Usa Chrome, Edge o Firefox en el escritorio para grabar tu presentación.",
-    "skip": "Omitir por ahora"
+    "skip": "Omitir por ahora",
+    "trySample": "Renderiza un ejemplo ahora"
   },
   "create": {
     "title": "Preséntate",

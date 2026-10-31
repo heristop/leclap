@@ -1,9 +1,9 @@
 {
   "welcome": {
     "title": "Willkommen bei",
-    "subtitle": "Lass uns dein erstes Video in unter einer Minute machen – nimm ein kurzes Intro auf und wir machen einen polierten Clip daraus.",
+    "subtitle": "Kein Upload und keine Kamera nötig. Teste eine Vorlage mit mitgeliefertem Video direkt im Browser.",
     "features": {
-      "record": "Nimm ein kurzes Intro mit deiner Kamera auf",
+      "record": "Mitgeliefertes Beispielvideo verwenden",
       "template": "Wir wenden eine cinematische Beispielvorlage an",
       "download": "Lade dein fertiges Video herunter"
     },
@@ -11,7 +11,8 @@
     "checking": "Browser wird geprüft …",
     "unsupported": "Browser kann hier nicht aufnehmen",
     "unsupportedHint": "Nutze Chrome, Edge oder Firefox am Desktop, um dein Intro aufzunehmen.",
-    "skip": "Vorerst überspringen"
+    "skip": "Vorerst überspringen",
+    "trySample": "Beispiel jetzt rendern"
   },
   "create": {
     "title": "Stell dich vor",

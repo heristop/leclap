@@ -1,9 +1,9 @@
 {
   "welcome": {
     "title": "Benvenuto su",
-    "subtitle": "Creiamo il tuo primo video in meno di un minuto — registra una breve intro e la trasformeremo in una clip curata.",
+    "subtitle": "Senza caricare file né usare la fotocamera. Prova un modello con un video incluso, direttamente nel browser.",
     "features": {
-      "record": "Registra una breve intro con la fotocamera",
+      "record": "Usa il video di esempio incluso",
       "template": "Applichiamo un modello di esempio cinematografico",
       "download": "Scarica il tuo video finito"
     },
@@ -11,7 +11,8 @@
     "checking": "Controllo il tuo browser…",
     "unsupported": "Qui il browser non può registrare",
     "unsupportedHint": "Usa Chrome, Edge o Firefox su desktop per registrare la tua intro.",
-    "skip": "Salta per ora"
+    "skip": "Salta per ora",
+    "trySample": "Crea un video di esempio ora"
   },
   "create": {
     "title": "Presentati",

@@ -1,9 +1,9 @@
 {
   "welcome": {
     "title": "Welcome to",
-    "subtitle": "Let's make your first video in under a minute — record a quick intro and we'll turn it into a polished clip.",
+    "subtitle": "No upload or camera needed. Try a sample template with included footage, entirely in your browser.",
     "features": {
-      "record": "Record a short intro with your camera",
+      "record": "Use the included sample footage",
       "template": "We apply a cinematic sample template",
       "download": "Download your finished video"
     },
@@ -11,7 +11,8 @@
     "checking": "Checking your browser…",
     "unsupported": "Browser can't record here",
     "unsupportedHint": "Use Chrome, Edge, or Firefox on desktop to record your intro.",
-    "skip": "Skip for now"
+    "skip": "Skip for now",
+    "trySample": "Render a sample now"
   },
   "create": {
     "title": "Present yourself",

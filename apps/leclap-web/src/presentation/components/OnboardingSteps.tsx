@@ -17,7 +17,7 @@ import { ClappyCheer, ClappyReaction } from '@/presentation/components/clappy';
 import { VideoPreview } from '@/presentation/components/VideoPreview';
 import { StopButton } from '@/presentation/components/StopButton';
 import { Button, Input } from '@/presentation/components/ui';
-import { useBrowserSupport } from '@/hooks/useBrowserSupport';
+import { useBrowserSupport, type BrowserSupportCheck } from '@/hooks/useBrowserSupport';
 import type { CompilationProgress, CompilationResult } from '@/application/usecases/coreCompilationService';
 import type { CompileFailure } from '@/application/usecases/compile-failure';
 import { CompileFailureText } from '@/presentation/components/compile-failure-text';
@@ -38,12 +38,17 @@ interface WelcomeStepProps {
   /** The id of this step's heading, which names the dialog. */
   titleId: string;
   onStart: () => void;
+  onSample: () => void;
   onDone: () => void;
 }
 
-export const WelcomeStep = ({ titleId, onStart, onDone }: WelcomeStepProps) => {
+const canRenderSample = (checks: BrowserSupportCheck[] | null): boolean =>
+  checks?.filter((check) => check.id !== 'camera').every((check) => check.ok) ?? false;
+
+export const WelcomeStep = ({ titleId, onStart, onSample, onDone }: WelcomeStepProps) => {
   const { t } = useTranslation('onboarding');
   const { checks, checking, ready } = useBrowserSupport();
+  const sampleReady = canRenderSample(checks);
   let startLabel = t('welcome.unsupported');
 
   if (checking) {
@@ -98,25 +103,30 @@ export const WelcomeStep = ({ titleId, onStart, onDone }: WelcomeStepProps) => {
           className="fade-in mb-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5"
           style={{ animationDelay: '520ms' }}
         >
-          {checks.map((check) => (
-            <li
-              key={check.id}
-              className={clsx(
-                'flex items-center gap-1.5 text-xs',
-                check.ok ? 'text-gray-400' : 'font-medium text-[var(--color-error)]'
-              )}
-            >
-              {check.ok ? <Check className="w-3.5 h-3.5 text-success-foreground" /> : <X className="w-3.5 h-3.5" />}
-              {t(check.labelKey)}
-            </li>
-          ))}
+          {checks
+            .filter((check) => check.id !== 'camera')
+            .map((check) => (
+              <li
+                key={check.id}
+                className={clsx(
+                  'flex items-center gap-1.5 text-xs',
+                  check.ok ? 'text-gray-400' : 'font-medium text-[var(--color-error)]'
+                )}
+              >
+                {check.ok ? <Check className="w-3.5 h-3.5 text-success-foreground" /> : <X className="w-3.5 h-3.5" />}
+                {t(check.labelKey)}
+              </li>
+            ))}
         </ul>
       )}
 
       <div className="fade-in" style={{ animationDelay: '560ms' }}>
+        <Button onClick={onSample} size="lg" disabled={checking || !sampleReady} className="mb-3 w-full glow-brand">
+          {t('welcome.trySample')}
+        </Button>
         <Button
           onClick={onStart}
-          variant="primary"
+          variant="outline"
           size="lg"
           disabled={checking || !ready}
           className="group w-full text-base glow-brand"

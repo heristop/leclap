@@ -7,10 +7,11 @@
     "tally": "LeClap · Sul dispositivo",
     "scrubAria": "Scorri il film di sfondo",
     "startCreating": "Collega il tuo agente",
-    "seeHow": "Guarda come funziona",
+    "seeHow": "Provalo nel browser",
     "play": "Riproduci il film dell'hero",
     "pause": "Metti in pausa il film dell'hero",
-    "scrubValue": "{{seconds}} di {{total}} secondi"
+    "scrubValue": "{{seconds}} di {{total}} secondi",
+    "demoHint": "Senza caricare file né usare la fotocamera. Prova un modello con un video incluso, direttamente nel browser."
   },
   "showcase": {
     "eyebrow": "Guardalo in azione",

@@ -10,6 +10,7 @@ import { useInView } from '@/hooks/useInView';
 import { usePointerGlow } from '@/hooks/usePointerGlow';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useSound } from '@/hooks/use-sound';
+import { OPEN_ONBOARDING_EVENT } from '@/hooks/useOnboarding';
 import { HeroStage } from './hero-stage';
 import { HeroViewfinder } from './hero-viewfinder';
 import { HeroTimeline } from './hero-timeline';
@@ -181,7 +182,7 @@ export const CinematicHero = () => {
             variant="ghost"
             size="lg"
             onClick={() => {
-              document.getElementById('agentic')?.scrollIntoView({ behavior: reduced ? 'instant' : 'smooth' });
+              globalThis.dispatchEvent(new Event(OPEN_ONBOARDING_EVENT));
             }}
             className="rounded-full"
             {...playHoverProps}
@@ -190,6 +191,10 @@ export const CinematicHero = () => {
             {t('hero.seeHow')}
           </Button>
         </div>
+
+        <p className="fade-in mx-auto mt-4 max-w-xl text-sm text-gray-300" style={{ animationDelay: '1.2s' }}>
+          {t('hero.demoHint')}
+        </p>
 
         <p
           className="fade-in mt-7 flex items-center justify-center gap-2 text-sm text-gray-400"

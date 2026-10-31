@@ -43,6 +43,13 @@
     "livePreviewAria": "Vista previa en vivo de la cámara",
     "recordedPreviewAria": "Vista previa del vídeo grabado",
     "starting": "Iniciando la cámara…",
-    "sourceLabel": "Fuente de vídeo"
+    "sourceLabel": "Fuente de vídeo",
+    "screenUnavailable": "Captura de pantalla no disponible",
+    "uploadTitle": "Elige tu vídeo",
+    "uploadHint": "Elige un clip y revísalo antes de usarlo.",
+    "screenTitle": "Graba tu pantalla",
+    "screenHint": "Pulsa Iniciar grabación y elige la pantalla, ventana o pestaña que quieres compartir.",
+    "replaceClip": "Elegir otro vídeo",
+    "reviewTitle": "Revisa tu clip"
   }
 }

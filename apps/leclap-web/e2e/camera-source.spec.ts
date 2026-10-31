@@ -19,4 +19,11 @@ test('camera failure keeps source options available for switching to upload', as
   await expect(sources.getByRole('button', { name: 'Upload', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('heading', { name: 'Camera unavailable', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Choose a video', exact: true })).toBeVisible();
+  const fileChooser = page.waitForEvent('filechooser');
+  await page.getByRole('button', { name: 'Choose a video', exact: true }).click();
+  await (await fileChooser).setFiles('public/videos/drink-and-coffee.mp4');
+  await expect(page.locator('video[src^="blob:"]')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Use Video', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Choose another video', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Choose a video to use', exact: true })).toBeVisible();
 });

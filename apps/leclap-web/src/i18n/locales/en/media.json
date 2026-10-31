@@ -43,6 +43,13 @@
     "livePreviewAria": "Live camera preview",
     "recordedPreviewAria": "Recorded video preview",
     "starting": "Starting camera…",
-    "sourceLabel": "Video source"
+    "sourceLabel": "Video source",
+    "screenUnavailable": "Screen capture unavailable",
+    "uploadTitle": "Choose a video to use",
+    "uploadHint": "Pick an existing clip, then preview it before using it.",
+    "screenTitle": "Record your screen",
+    "screenHint": "Press Start recording, then choose the screen, window or tab to share.",
+    "replaceClip": "Choose another video",
+    "reviewTitle": "Review your clip"
   }
 }

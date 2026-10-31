@@ -43,6 +43,13 @@
     "livePreviewAria": "Live-Kameravorschau",
     "recordedPreviewAria": "Vorschau der Aufnahme",
     "starting": "Kamera wird gestartet …",
-    "sourceLabel": "Videoquelle"
+    "sourceLabel": "Videoquelle",
+    "screenUnavailable": "Bildschirmaufnahme nicht verfügbar",
+    "uploadTitle": "Wähle dein Video",
+    "uploadHint": "Wähle einen Clip und sieh ihn dir an, bevor du ihn verwendest.",
+    "screenTitle": "Nimm deinen Bildschirm auf",
+    "screenHint": "Drücke Aufnahme starten und wähle dann den Bildschirm, das Fenster oder den Tab aus.",
+    "replaceClip": "Anderes Video wählen",
+    "reviewTitle": "Clip überprüfen"
   }
 }

@@ -31,5 +31,20 @@
     }
   },
   "loadingError": "Fehler beim Laden des Aufnahmebildschirms.",
-  "processing": "Wird verarbeitet…"
+  "processing": "Wird verarbeitet…",
+  "sources": {
+    "title": "Videoquelle",
+    "front": "Vorne",
+    "back": "Hinten",
+    "upload": "Import",
+    "screen": "Bildschirm",
+    "uploadTitle": "Wähle dein Video",
+    "uploadHint": "Wähle einen Clip aus deiner Galerie und überprüfe ihn vor der Verwendung.",
+    "chooseVideo": "Video wählen"
+  },
+  "actions": {
+    "record": "Aufnahme starten",
+    "stop": "Aufnahme stoppen",
+    "close": "Kamera schließen"
+  }
 }

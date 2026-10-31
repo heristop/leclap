@@ -31,5 +31,20 @@
     }
   },
   "loadingError": "Error loading recording screen.",
-  "processing": "Processing…"
+  "processing": "Processing…",
+  "sources": {
+    "title": "Video source",
+    "front": "Front",
+    "back": "Back",
+    "upload": "Upload",
+    "screen": "Screen",
+    "uploadTitle": "Choose a video to use",
+    "uploadHint": "Pick a clip from your gallery, then review it before using it.",
+    "chooseVideo": "Choose a video"
+  },
+  "actions": {
+    "record": "Start recording",
+    "stop": "Stop recording",
+    "close": "Close camera"
+  }
 }

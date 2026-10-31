@@ -31,5 +31,20 @@
     }
   },
   "loadingError": "Erreur lors du chargement de l’écran d’enregistrement.",
-  "processing": "Traitement…"
+  "processing": "Traitement…",
+  "sources": {
+    "title": "Source vidéo",
+    "front": "Avant",
+    "back": "Arrière",
+    "upload": "Importer",
+    "screen": "Écran",
+    "uploadTitle": "Choisissez votre vidéo",
+    "uploadHint": "Choisissez un clip dans votre galerie, puis vérifiez-le avant de l’utiliser.",
+    "chooseVideo": "Choisir une vidéo"
+  },
+  "actions": {
+    "record": "Démarrer l’enregistrement",
+    "stop": "Arrêter l’enregistrement",
+    "close": "Fermer la caméra"
+  }
 }

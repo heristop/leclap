@@ -29,6 +29,7 @@ import type { FramingGuide, Orientation } from '@/src/types';
 import { ASPECT_RATIO } from '@/src/features/templates/orientationMeta';
 import type { CaptureMode } from '@leclap/creative-kit';
 import { fitFrame } from '@/src/styles/adaptive-layout';
+import { CaptureSourceSelector } from '@/src/components/CaptureSourceSelector';
 import { uploadFallback } from './recorder-modes';
 
 interface VideoRecorderProps {
@@ -67,13 +68,6 @@ const DEFAULT_MODES: CaptureMode[] = ['front', 'back'];
 const TOP_SCRIM_COLORS = ['rgba(11,11,15,0.65)', 'rgba(11,11,15,0)'] as const;
 const BOTTOM_SCRIM_COLORS = ['rgba(11,11,15,0)', 'rgba(11,11,15,0.7)'] as const;
 
-const MODE_LABELS: Record<CaptureMode, string> = {
-  front: 'Front',
-  back: 'Back',
-  upload: 'Upload',
-  screen: 'Screen',
-};
-
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -87,10 +81,6 @@ function getInstructionText(orientation: Orientation, t: TFunction<'recording'>)
   if (orientation === 'square') return t('instructions.square');
 
   return t('instructions.portrait');
-}
-
-function getNextCameraType(current: 'front' | 'back'): 'front' | 'back' {
-  return current === 'back' ? 'front' : 'back';
 }
 
 interface TimerOverlayProps {
@@ -168,26 +158,23 @@ function FinalizingOverlay({ visible, t }: { visible: boolean; t: TFunction<'rec
   );
 }
 
-// Renders either the mode-switch pill bar (when multiple modes are allowed) or the legacy
-// flip-camera button (single-mode / no bar). Extracted to keep VideoRecorder lean.
-interface ModeBarOrFlipProps {
+// One source selector; a single allowed source must not expose a camera flip shortcut.
+interface CaptureModeControlsProps {
   showModeBar: boolean;
   allowedModes: CaptureMode[];
   activeMode: CaptureMode;
   onModeChange: (m: CaptureMode) => void;
   isPortrait: boolean;
   isBusy: boolean;
-  onFlip: () => void;
 }
-function ModeBarOrFlip({
+function CaptureModeControls({
   showModeBar,
   allowedModes,
   activeMode,
   onModeChange,
   isPortrait,
   isBusy,
-  onFlip,
-}: ModeBarOrFlipProps) {
+}: CaptureModeControlsProps) {
   if (showModeBar) {
     // Hide the mode toggle entirely while recording/finalizing — switching cameras mid-take isn't
     // possible, and it keeps the frame clean around the record button.
@@ -204,7 +191,7 @@ function ModeBarOrFlip({
     );
   }
 
-  return <FlipButton isPortrait={isPortrait} isRecording={isBusy} onPress={onFlip} />;
+  return null;
 }
 
 // Fit the template viewfinder inside the available recording window, including short windows.
@@ -298,23 +285,6 @@ function CaptureOverlays({
   );
 }
 
-interface FlipButtonProps {
-  isPortrait: boolean;
-  isRecording: boolean;
-  onPress: () => void;
-}
-function FlipButton({ isPortrait, isRecording, onPress }: FlipButtonProps) {
-  return (
-    <TouchableOpacity
-      style={[styles.flipCameraButton, isPortrait ? styles.portraitFlipButton : styles.landscapeFlipButton]}
-      onPress={onPress}
-      disabled={isRecording}
-    >
-      <Icon name="switch-camera" size={24} color={isRecording ? 'rgba(255,255,255,0.5)' : 'white'} />
-    </TouchableOpacity>
-  );
-}
-
 interface RNCaptureModeBarProps {
   isPortrait: boolean;
   modes: CaptureMode[];
@@ -329,31 +299,7 @@ function RNCaptureModeBar({ modes, active, onChange, disabled, isPortrait }: RNC
       style={[styles.captureModeBar, !isPortrait && styles.landscapeModeBar]}
       pointerEvents={disabled ? 'none' : 'auto'}
     >
-      {/* One translucent track holding equal-width segments — the active segment is the only filled
-          one, so it reads as a single segmented control rather than two floating pills. */}
-      <View style={styles.captureModeTrack}>
-        {modes.map((mode) => {
-          const isActive = active === mode;
-
-          return (
-            <TouchableOpacity
-              key={mode}
-              style={[styles.captureModeSegment, isActive && styles.captureModeSegmentActive]}
-              onPress={() => {
-                onChange(mode);
-              }}
-              disabled={disabled}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isActive }}
-              accessibilityLabel={MODE_LABELS[mode]}
-            >
-              <Text style={[styles.captureModeSegmentText, isActive && styles.captureModeSegmentTextActive]}>
-                {MODE_LABELS[mode]}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <CaptureSourceSelector modes={modes} active={active} onChange={onChange} compact={!isPortrait} />
     </View>
   );
 }
@@ -363,6 +309,7 @@ interface UploadPlaceholderProps {
 }
 
 function UploadPlaceholder({ onPick }: UploadPlaceholderProps) {
+  const { t } = useTranslation('recording');
   const handlePress = () => {
     onPick().catch((error: unknown) => {
       console.error('pickVideo failed:', error);
@@ -371,10 +318,11 @@ function UploadPlaceholder({ onPick }: UploadPlaceholderProps) {
 
   return (
     <View style={styles.uploadPlaceholder}>
-      <Icon name="cloud-upload" size={64} color="rgba(255,255,255,0.7)" />
-      <Text style={styles.uploadLabel}>Pick a video from your gallery</Text>
-      <TouchableOpacity style={styles.uploadButton} onPress={handlePress}>
-        <Text style={styles.uploadButtonText}>Choose Video</Text>
+      <Icon name="upload" size={32} color={colors.primaryLight} />
+      <Text style={styles.uploadLabel}>{t('sources.uploadTitle')}</Text>
+      <Text style={styles.uploadHint}>{t('sources.uploadHint')}</Text>
+      <TouchableOpacity accessibilityRole="button" style={styles.uploadButton} onPress={handlePress}>
+        <Text style={styles.uploadButtonText}>{t('sources.chooseVideo')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -633,9 +581,6 @@ function useCaptureMode({ allowedModes, initialMode, onVideoRecorded, orientatio
     cameraType,
     handleModeChange,
     pickVideo,
-    flipCamera: () => {
-      setCameraType(getNextCameraType);
-    },
     showModeBar: allowedModes.length > 1,
     isUploadMode: activeMode === 'upload',
   };
@@ -951,7 +896,6 @@ interface RecorderScreenParams {
     showModeBar: boolean;
     handleModeChange: (mode: CaptureMode) => void;
     isPortrait: boolean;
-    flipCamera: () => void;
     pickVideo: () => Promise<void>;
   };
   gate: PermissionGateProps;
@@ -970,14 +914,13 @@ const recorderScreen = ({ upload, gate, frame }: RecorderScreenParams): React.Re
       <View style={frame.containerStyle} onLayout={frame.onLayout}>
         <StatusBar hidden backgroundColor="transparent" translucent />
         <UploadPlaceholder onPick={upload.pickVideo} />
-        <ModeBarOrFlip
+        <CaptureModeControls
           showModeBar={upload.showModeBar}
           allowedModes={upload.allowedModes}
           activeMode={galleryOnly ? 'upload' : upload.activeMode}
           onModeChange={upload.handleModeChange}
           isPortrait={upload.isPortrait}
           isBusy={false}
-          onFlip={upload.flipCamera}
         />
       </View>
     );
@@ -1025,11 +968,15 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
   const { t } = useTranslation('recording');
   const { viewport, onLayout, isPortrait, containerStyle } = useRecorderViewport(fullscreen);
   const [isRecording, setIsRecording] = useState(false);
+  const recordLabel = t(isRecording ? 'actions.stop' : 'actions.record');
   const { isFinalizing, setIsFinalizing } = useFinalizingSync(onFinalizingChange);
   const { showDescription, dismiss: dismissDescription } = useDescriptionOverlay();
-  const { activeMode, cameraType, handleModeChange, pickVideo, flipCamera, showModeBar, isUploadMode } = useCaptureMode(
-    { allowedModes, initialMode, onVideoRecorded, orientation }
-  );
+  const { activeMode, cameraType, handleModeChange, pickVideo, showModeBar, isUploadMode } = useCaptureMode({
+    allowedModes,
+    initialMode,
+    onVideoRecorded,
+    orientation,
+  });
   const cameraRef = useRef<Camera | null>(null);
   const device = useCameraDevice(cameraType);
   const { hasPermission, isCheckingPermissions, blocked, requestAccess } = useCameraPermissions();
@@ -1059,7 +1006,6 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
       showModeBar,
       handleModeChange,
       isPortrait,
-      flipCamera,
       pickVideo,
     },
     gate: { isCheckingPermissions, hasPermission, blocked, requestAccess, device, t },
@@ -1095,14 +1041,13 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
         countdown={countdown}
         t={t}
       />
-      <ModeBarOrFlip
+      <CaptureModeControls
         showModeBar={showModeBar}
         allowedModes={allowedModes}
         activeMode={activeMode}
         onModeChange={handleModeChange}
         isPortrait={isPortrait}
-        isBusy={isRecording || isFinalizing}
-        onFlip={flipCamera}
+        isBusy={isRecording || isFinalizing || countdown.isCounting}
       />
       <View style={[styles.controls, isPortrait ? styles.portraitControls : styles.landscapeControls]}>
         <TouchableOpacity
@@ -1110,6 +1055,8 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
           onPress={onRecordButtonPress}
           disabled={isFinalizing}
           accessibilityRole="button"
+          accessibilityLabel={recordLabel}
+          accessibilityState={{ disabled: isFinalizing, busy: isFinalizing }}
         >
           {/* Signature lavender→pink ring; the core morphs from a red disc to a stop square while recording. */}
           <LinearGradient colors={[...gradients.brand]} {...gradientDir.diagonal} style={styles.recordRing} />
@@ -1119,6 +1066,7 @@ const VideoRecorder: React.FC<VideoRecorderProps> = ({
             />
           </View>
         </TouchableOpacity>
+        <Text style={styles.recordLabel}>{recordLabel}</Text>
       </View>
       <RecorderFooter
         isPortrait={isPortrait}
@@ -1230,7 +1178,15 @@ const styles = StyleSheet.create({
   endWarningText: { color: 'white', fontSize: 15, fontWeight: '700' },
   timerText: { color: 'white', fontSize: 16, marginRight: spacing.s, fontVariant: ['tabular-nums'] },
   recordingIndicator: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.error },
-  controls: { position: 'absolute', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', zIndex: 5 },
+  recordLabel: { ...typography.caption, color: colors.monitorText, textAlign: 'center', maxWidth: 96 },
+  controls: {
+    position: 'absolute',
+    flexDirection: 'column',
+    gap: spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 5,
+  },
   portraitControls: { bottom: 24, left: 0, right: 0 },
   landscapeControls: { bottom: 0, top: 0, right: 24, justifyContent: 'center' },
   recordButton: {
@@ -1257,23 +1213,6 @@ const styles = StyleSheet.create({
   bracketTR: { top: 0, right: 0, borderTopWidth: 2, borderRightWidth: 2, borderTopRightRadius: 8 },
   bracketBL: { bottom: 0, left: 0, borderBottomWidth: 2, borderLeftWidth: 2, borderBottomLeftRadius: 8 },
   bracketBR: { bottom: 0, right: 0, borderBottomWidth: 2, borderRightWidth: 2, borderBottomRightRadius: 8 },
-  flipCameraButton: {
-    position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  portraitFlipButton: { bottom: 40, right: 24 },
-  landscapeFlipButton: { bottom: 24, left: 24 },
   topScrim: { position: 'absolute', top: 0, left: 0, right: 0, height: 220, zIndex: 1 },
   bottomScrim: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 280, zIndex: 1 },
   descriptionOverlay: {
@@ -1327,7 +1266,7 @@ const styles = StyleSheet.create({
   // Keep instructions above the recording controls.
   portraitInstructions: { bottom: 124 },
   // Reserve extra clearance when the capture mode toggle is present.
-  portraitInstructionsWithBar: { bottom: 184 },
+  portraitInstructionsWithBar: { bottom: 272 },
   landscapeInstructions: { bottom: 20 },
   errorText: { ...typography.body, color: colors.error, textAlign: 'center' },
   permissionContainer: {
@@ -1345,46 +1284,13 @@ const styles = StyleSheet.create({
   // bottom 50–130), with the hint chip lifted above it (portraitInstructionsWithBar).
   captureModeBar: {
     position: 'absolute',
-    bottom: 120,
-    left: 0,
-    right: 0,
+    bottom: 160,
+    left: spacing.m,
+    right: spacing.m,
     alignItems: 'center',
     zIndex: 10,
   },
   landscapeModeBar: { bottom: 16, left: 88, right: 128 },
-  captureModeTrack: {
-    flexDirection: 'row',
-    padding: 4,
-    borderRadius: 999,
-    backgroundColor: 'rgba(11,11,15,0.6)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(255,255,255,0.14)',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  captureModeSegment: {
-    minWidth: 88,
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  captureModeSegmentActive: {
-    backgroundColor: 'white',
-  },
-  captureModeSegmentText: {
-    ...typography.button,
-    color: 'rgba(255,255,255,0.72)',
-    fontSize: 14,
-  },
-  captureModeSegmentTextActive: {
-    color: colors.text,
-    fontWeight: '700',
-  },
   uploadPlaceholder: {
     flex: 1,
     alignItems: 'center',
@@ -1392,6 +1298,7 @@ const styles = StyleSheet.create({
     gap: spacing.l,
     paddingHorizontal: spacing.xl,
   },
+  uploadHint: { ...typography.body, color: colors.monitorSecondary, textAlign: 'center', maxWidth: 340 },
   uploadLabel: {
     ...typography.body,
     color: 'rgba(255,255,255,0.8)',

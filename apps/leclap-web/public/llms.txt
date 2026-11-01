@@ -42,6 +42,14 @@ The descriptor field tables come from the engine's Zod schema. Runtime requireme
 - [Examples](https://leclap.dev/doc/examples): copy-paste descriptors that render with `leclap render`.
 - [JSON Schema](https://leclap.dev/doc/schema): the full machine-readable schema for tooling and validation.
 
+## Watch and customize examples
+
+Each page includes a rendered video, downloadable JSON, customization guidance and runtime requirements. The templates compose supplied assets; they do not generate footage from a prompt.
+
+- [Animated titles with JSON and FFmpeg](https://leclap.dev/showcase/type-impact): kinetic typography without source footage; requires the referenced fonts and FFmpeg drawtext support.
+- [HTML motion graphics](https://leclap.dev/showcase/html-motion): animated listing cards and stat tiles; requires HTML-layer rendering and the declared assets.
+- [AI-agent PR evidence](https://leclap.dev/showcase/pr-evidence): compose a review video through MCP or CLI using your own screen recording.
+
 ## Packages
 
 - [ffmpeg-video-composer — the library](https://raw.githubusercontent.com/heristop/leclap/main/packages/ffmpeg-video-composer/README.md): install, the `compile()` API, entry points (Node / browser / RN), and FFmpeg detection.

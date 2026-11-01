@@ -2151,7 +2151,8 @@ html.theme-vt::view-transition-new(root) {
   --logo-ring-start: #fff0a0;
   --logo-ring-middle: #ffe45e;
   --logo-ring-end: #efc23c;
-  --logo-ring-width: 28;
+  /* Clapper outline: 24 units × its 0.68 group scale. */
+  --logo-ring-width: 16.32;
   --logo-hinge: #fff6d0;
 }
 
@@ -2166,6 +2167,5 @@ html.theme-vt::view-transition-new(root) {
   --logo-ring-start: #c9b87c;
   --logo-ring-middle: #b9a568;
   --logo-ring-end: #a48d52;
-  --logo-ring-width: 28;
   --logo-hinge: #e8ddba;
 }

@@ -38,6 +38,7 @@ import {
   type LocalizedRoute,
 } from '../src/config/site.ts';
 import { writeHostingFiles } from './seo-hosting.ts';
+import { socialImage } from '../src/config/social-image.ts';
 import { SAMPLE_PAGES } from '../src/config/sample-pages.ts';
 import { DOC_ROUTES } from '../src/config/doc-routes.ts';
 
@@ -141,11 +142,19 @@ function patchHead(html: string, spec: HeadSpec) {
   const desc = escapeAttr(spec.description);
   const url = escapeAttr(spec.canonical);
 
+  const image = socialImage(spec.routePath);
   const metas: Array<['name' | 'property', string, string]> = [
     ['name', 'description', desc],
     ['property', 'og:title', title],
     ['property', 'og:description', desc],
     ['property', 'og:url', url],
+    ['property', 'og:image', escapeAttr(image.url)],
+    ['property', 'og:image:alt', escapeAttr(image.alt)],
+    ['property', 'og:image:type', image.type],
+    ['property', 'og:image:width', image.width],
+    ['property', 'og:image:height', image.height],
+    ['name', 'twitter:image', escapeAttr(image.url)],
+    ['name', 'twitter:image:alt', escapeAttr(image.alt)],
     ['property', 'og:locale', OG_LOCALE[spec.lang]],
     ['name', 'twitter:title', title],
     ['name', 'twitter:description', desc],
@@ -214,19 +223,26 @@ function buildSitemap() {
     )
   );
 
-  const docs = [
-    ...DOC_ROUTES,
-    ...SAMPLE_PAGES.map((page) => ({ ...page, changefreq: 'monthly', priority: '0.7' })),
-  ].map(
+  const docs = DOC_ROUTES.map(
     (r) =>
       `  <url>\n    <loc>${SITE_URL}${r.path}</loc>\n` +
       `    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
   );
+  const videos = SAMPLE_PAGES.map(
+    (page) =>
+      `  <url>\n    <loc>${SITE_URL}${page.path}</loc>\n` +
+      `    <video:video>\n` +
+      `      <video:thumbnail_loc>${SITE_URL}/videos/showcase/${page.id}.webp</video:thumbnail_loc>\n` +
+      `      <video:title>${escapeAttr(page.title)}</video:title>\n` +
+      `      <video:description>${escapeAttr(page.description)}</video:description>\n` +
+      `      <video:content_loc>${SITE_URL}/videos/showcase/${page.id}.mp4</video:content_loc>\n` +
+      `    </video:video>\n  </url>`
+  );
 
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
-    `${[...marketing, ...docs].join('\n')}\n</urlset>\n`
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n` +
+    `${[...marketing, ...docs, ...videos].join('\n')}\n</urlset>\n`
   );
 }
 

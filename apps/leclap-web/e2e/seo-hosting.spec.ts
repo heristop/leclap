@@ -21,8 +21,16 @@ test.describe('Cloudflare Pages SEO responses', () => {
       expect(response.headers()['cross-origin-embedder-policy']).toBe('require-corp');
       expect(await response.text()).toContain('content="noindex, follow"');
     }
+    const sampleHtml = await (await request.get('/showcase/type-impact')).text();
+    expect(sampleHtml).toContain('property="og:image" content="https://leclap.dev/videos/showcase/type-impact.webp"');
+    expect(sampleHtml).toContain('property="og:image:width" content="720"');
     const sitemap = await (await request.get('/sitemap.xml')).text();
     expect(sitemap).not.toContain('<lastmod>');
+    expect(sitemap.match(/<video:video>/g)).toHaveLength(3);
+    expect(sitemap).toContain(
+      '<video:content_loc>https://leclap.dev/videos/showcase/type-impact.mp4</video:content_loc>'
+    );
+    expect(sitemap).toContain('xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"');
     expect(sitemap).toContain('<loc>https://leclap.dev/showcase/type-impact</loc>');
     expect(sitemap).not.toContain('<loc>https://leclap.dev/templates');
     const range = await request.get('/videos/showcase/type-impact.mp4', { headers: { Range: 'bytes=0-99' } });
@@ -69,5 +77,15 @@ test.describe('Cloudflare Pages SEO responses', () => {
     await page.getByRole('link', { name: 'JSON motion graphics with animated HTML cards', exact: true }).click();
     await expect(page).toHaveURL(/\/showcase\/html-motion$/);
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      'https://leclap.dev/videos/showcase/html-motion.webp'
+    );
+    await page.getByRole('link', { name: 'Connect your agent with MCP', exact: true }).click();
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      'https://leclap.dev/og-image.jpg'
+    );
+    await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute('content', 'en_US');
   });
 });

@@ -77,7 +77,7 @@ export function Showcase() {
   };
 
   return (
-    <div className="showcase-page mx-auto w-full max-w-[1440px] px-5 pb-20 pt-28 sm:px-8 lg:px-12">
+    <div className="showcase-page mx-auto w-full max-w-[1440px] overflow-x-clip px-5 pb-20 pt-28 sm:px-8 lg:px-12">
       <Seo path="/showcase" title={seo('showcase.title')} description={seo('showcase.description')} />
       <nav
         aria-label="Video example guides"

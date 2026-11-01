@@ -1,0 +1,54 @@
+{
+  "ticket": "PR-154",
+  "summary": "Bring the video and editable template into view",
+  "clipSeconds": 3,
+  "freeze": {
+    "at": 1.2,
+    "hold": 3
+  },
+  "intro": {
+    "headline": "WATCH. CUSTOMIZE. RENDER."
+  },
+  "outro": {
+    "headline": "REVIEW THE WATCH PAGES",
+    "subtitle": "Desktop layout, mobile flow and render instructions"
+  },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "raw/before.webm",
+      "trim": 4.717,
+      "chip": "Actions below the fold",
+      "pane": {
+        "title": "Initial watch page",
+        "desc": "The large player pushes template actions below the first viewport."
+      },
+      "highlight": {
+        "x": 108,
+        "y": 390,
+        "w": 1220,
+        "h": 500
+      },
+      "callout": "Actions are further down"
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "raw/after.webm",
+      "trim": 5.235,
+      "chip": "Video and actions together",
+      "pane": {
+        "title": "Polished watch page",
+        "desc": "The video and template actions share the first viewport."
+      },
+      "highlight": {
+        "x": 36,
+        "y": 290,
+        "w": 1368,
+        "h": 500
+      },
+      "callout": "Watch and customize here"
+    }
+  ]
+}

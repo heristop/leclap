@@ -2138,3 +2138,34 @@ html.theme-vt::view-transition-new(root) {
 .slide-up {
   animation: slide-up 0.45s var(--ease-out-expo) both;
 }
+
+/* Preserve the light mark; dark mode uses the approved quieter disc and gold rim. */
+.logo-mark {
+  --logo-disc-start: #c3c7ff;
+  --logo-disc-end: #ffcfde;
+  --logo-outline: #5e51ac;
+  --logo-sheen: 0.34;
+  --logo-shadow: 0.32;
+  --logo-stripe-light: #fef0a6;
+  --logo-stripe-dark: #8c80d8;
+  --logo-ring-start: #fff0a0;
+  --logo-ring-middle: #ffe45e;
+  --logo-ring-end: #efc23c;
+  --logo-ring-width: 28;
+  --logo-hinge: #fff6d0;
+}
+
+.dark .logo-mark {
+  --logo-disc-start: #201d29;
+  --logo-disc-end: #141218;
+  --logo-outline: #66558f;
+  --logo-sheen: 0.025;
+  --logo-shadow: 0.12;
+  --logo-stripe-light: #ded1a0;
+  --logo-stripe-dark: #77649c;
+  --logo-ring-start: #c9b87c;
+  --logo-ring-middle: #b9a568;
+  --logo-ring-end: #a48d52;
+  --logo-ring-width: 14;
+  --logo-hinge: #e8ddba;
+}

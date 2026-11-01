@@ -11,6 +11,7 @@ import { Resvg } from '@resvg/resvg-js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const disc = readFileSync(resolve(root, 'apps/leclap-web/public/favicon.svg'), 'utf8');
+const darkDisc = readFileSync(resolve(root, 'apps/leclap-web/public/logo-dark.svg'), 'utf8');
 const launcher = readFileSync(resolve(root, 'apps/leclap-expo/assets/icon-source.svg'), 'utf8');
 // Separate Android layers preserve launcher masking, motion, and themed tinting.
 const adaptive = readFileSync(resolve(root, 'apps/leclap-expo/assets/adaptive-foreground.svg'), 'utf8');
@@ -28,6 +29,7 @@ const targets: [number, string, string][] = [
   [1024, 'apps/leclap-expo/assets/adaptive-icon.png', adaptive],
   // Expo in-app logo + splash + web favicon → disc.
   [600, 'apps/leclap-expo/assets/images/logo.png', disc],
+  [600, 'apps/leclap-expo/assets/images/logo-dark.png', darkDisc],
   [600, 'apps/leclap-expo/assets/images/splash-icon.png', disc],
   [48, 'apps/leclap-expo/assets/images/favicon.png', disc],
   [48, 'apps/leclap-expo/assets/favicon.png', disc],

@@ -2156,8 +2156,8 @@ html.theme-vt::view-transition-new(root) {
 }
 
 .dark .logo-mark {
-  --logo-disc-start: #201d29;
-  --logo-disc-end: #141218;
+  --logo-disc-start: #343151;
+  --logo-disc-end: #442b3a;
   --logo-outline: #66558f;
   --logo-sheen: 0.025;
   --logo-shadow: 0.12;

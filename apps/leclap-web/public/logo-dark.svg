@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="LeClap">
   <defs>
     <linearGradient id="lcg" x1="110" y1="90" x2="490" y2="510" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#201D29"/>
-      <stop offset="1" stop-color="#141218"/>
+      <stop stop-color="#343151"/>
+      <stop offset="1" stop-color="#442B3A"/>
     </linearGradient>
     <pattern id="lcs" width="96" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(-26)">
       <rect width="96" height="96" fill="#DED1A0"/>

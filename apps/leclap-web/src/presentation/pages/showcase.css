@@ -111,3 +111,29 @@
 .showcase-dialog-overlay[data-state='closed'] {
   animation: sheet-fade-out 0.18s var(--ease-smooth) forwards;
 }
+
+.sample-text-link {
+  color: var(--color-foreground);
+  text-underline-offset: 0.25em;
+}
+.sample-text-link:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-brand-500);
+}
+.sample-text-link:focus-visible,
+.sample-related:focus-visible {
+  outline: 3px solid var(--color-brand-500);
+  outline-offset: 4px;
+  border-radius: var(--radius-md);
+}
+.sample-watch-screen {
+  animation: sample-watch-arrive 450ms var(--ease-out-expo) both;
+}
+@keyframes sample-watch-arrive {
+  from {
+    transform: translateY(8px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

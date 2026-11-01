@@ -27,6 +27,7 @@ allowBuilds:
   ffmpeg-static: true
   msgpackr-extract: true
   unrs-resolver: true
+  workerd: true
 
 minimumReleaseAgeExclude:
   - '@expo/cli@56.1.14'

@@ -1,3 +1,4 @@
+import { SAMPLE_PAGES } from '@/config/sample-pages';
 import { Link } from 'react-router-dom';
 import { Seo } from '@/presentation/components/Seo';
 import { Code, DocSection, DocSubsection, JsonBlock } from '@/presentation/components/doc/DocBlocks';
@@ -18,6 +19,14 @@ export const DocExamples = () => (
       <Code>get_samples</Code>; <Link to="/showcase">watch the showcase</Link> and inspect required media before
       rendering. Registered samples need the <Link to="/doc/effects">configured effect backend</Link>.
     </DocPageHeader>
+
+    <nav aria-label="Rendered video examples" className="mb-10 space-y-3">
+      {SAMPLE_PAGES.map((page) => (
+        <a key={page.id} href={page.path} className="block min-h-11 text-primary underline underline-offset-4">
+          {page.title}
+        </a>
+      ))}
+    </nav>
 
     <DocSection id="examples" title="Examples" kicker={`${examples.length} templates`}>
       <div className="space-y-12">

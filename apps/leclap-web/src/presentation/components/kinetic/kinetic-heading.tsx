@@ -62,7 +62,9 @@ export function KineticHeading({
   className,
 }: KineticHeadingProps) {
   const words = splitWords(text);
-  const reduced = useReducedMotion() ?? false;
+  const prefersReducedMotion = useReducedMotion();
+  // Static guide HTML must remain readable before JavaScript starts.
+  const reduced = typeof window === 'undefined' || Boolean(prefersReducedMotion);
   // Reduced motion renders settled; otherwise reveal either on mount (`animate`) or once the heading
   // scrolls into view (`whileInView`) for below-the-fold section titles.
   const revealProps = headingReveal(reduced, revealOnView);

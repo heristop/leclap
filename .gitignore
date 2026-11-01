@@ -81,3 +81,6 @@ __pycache__/
 
 # Local generated images and UI evidence.
 /output/
+
+# Local Cloudflare Pages runtime state.
+/apps/leclap-web/.wrangler/

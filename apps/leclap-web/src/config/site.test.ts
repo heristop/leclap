@@ -1,6 +1,6 @@
-// Drift guard for the route manifests. Three tables describe the site's URLs — LOCALIZED_ROUTES
+// Drift guard for the route manifests. Four tables describe the site's URLs — LOCALIZED_ROUTES
 // (translated, hreflang'd, one file per language), DOC_ROUTES (English-only reference pages) and
-// UNINDEXED_PATHS (deliberately never crawled) — and none of them is derived from the router. So a
+// SAMPLE_PAGES (curated watch pages) and UNINDEXED_PATHS (deliberately never indexed) — and none of them is derived from the router. So a
 // new <Route> can silently ship with no prerendered <head>, no sitemap entry and no noindex, and a
 // manifest entry can outlive the route it names, leaving a prerendered page that 404s on hydration.
 //
@@ -11,6 +11,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SAMPLE_PAGES } from './sample-pages';
 import { describe, expect, it } from 'vitest';
 import { LOCALE_CODES, LOCALIZED_ROUTES, UNINDEXED_PATHS } from './site';
 import { DOC_ROUTES } from './doc-routes';
@@ -172,6 +173,7 @@ describe('site route manifests', () => {
     const classified = new Set<string>([
       ...LOCALIZED_ROUTES.map((r) => r.path),
       ...DOC_ROUTES.map((r) => r.path),
+      ...SAMPLE_PAGES.map((r) => r.path),
       ...UNINDEXED_PATHS,
     ]);
 
@@ -179,24 +181,37 @@ describe('site route manifests', () => {
   });
 
   it('serves every path the manifests claim', () => {
-    const claimed = [...LOCALIZED_ROUTES.map((r) => r.path), ...DOC_ROUTES.map((r) => r.path), ...UNINDEXED_PATHS];
+    const claimed = [
+      ...LOCALIZED_ROUTES.map((r) => r.path),
+      ...DOC_ROUTES.map((r) => r.path),
+      ...SAMPLE_PAGES.map((r) => r.path),
+      ...UNINDEXED_PATHS,
+    ];
 
     expect(claimed.filter((p) => !served.has(p))).toEqual([]);
   });
 
-  it('never lists a path twice across the three tables', () => {
-    const all = [...LOCALIZED_ROUTES.map((r) => r.path), ...DOC_ROUTES.map((r) => r.path), ...UNINDEXED_PATHS];
+  it('never lists a path twice across the route tables', () => {
+    const all = [
+      ...LOCALIZED_ROUTES.map((r) => r.path),
+      ...DOC_ROUTES.map((r) => r.path),
+      ...SAMPLE_PAGES.map((r) => r.path),
+      ...UNINDEXED_PATHS,
+    ];
 
     expect(all.length).toBe(new Set(all).size);
   });
 });
 
-// scripts/seo-prerender.ts writes the sitemap and the prerendered pages from exactly two tables,
-// LOCALIZED_ROUTES and DOC_ROUTES — so a path in neither, and classified as unindexed, is out of both.
+// scripts/seo-prerender.ts publishes LOCALIZED_ROUTES, DOC_ROUTES and SAMPLE_PAGES — so a path in neither, and classified as unindexed, is out of both.
 describe('routes kept out of search', () => {
   // /projects lists only what this browser saved, so it is empty for anyone arriving from a search.
   it('keeps /projects out of the sitemap and the prerender', () => {
-    const published = [...LOCALIZED_ROUTES.map((r) => r.path), ...DOC_ROUTES.map((r) => r.path)];
+    const published = [
+      ...LOCALIZED_ROUTES.map((r) => r.path),
+      ...DOC_ROUTES.map((r) => r.path),
+      ...SAMPLE_PAGES.map((r) => r.path),
+    ];
 
     expect(published).not.toContain('/projects');
     expect(UNINDEXED_PATHS).toContain('/projects');
@@ -204,7 +219,11 @@ describe('routes kept out of search', () => {
 
   // The retired use-case page only redirects to the home page's agentic section now.
   it('keeps the retired /use-cases/agentic-development out of the sitemap and the prerender', () => {
-    const published = [...LOCALIZED_ROUTES.map((r) => r.path), ...DOC_ROUTES.map((r) => r.path)];
+    const published = [
+      ...LOCALIZED_ROUTES.map((r) => r.path),
+      ...DOC_ROUTES.map((r) => r.path),
+      ...SAMPLE_PAGES.map((r) => r.path),
+    ];
 
     expect(published).not.toContain('/use-cases/agentic-development');
     expect(UNINDEXED_PATHS).toContain('/use-cases/agentic-development');

@@ -15,7 +15,8 @@
 //   3. generates dist/sitemap.xml from the same manifests, with xhtml:link alternates on the
 //      localized URLs — so the sitemap can never drift from the routes, and noindex pages are absent.
 //
-// The body still hydrates via React; only the <head> is pre-baked.
+// Developer guides also include their rendered React content and navigation in the initial HTML.
+// The client mounts over this static shell; this is not React hydration.
 //
 // The domain, the language list and both route tables come from src/config/site.ts — the same module
 // src/presentation/components/Seo.tsx reads — so the prerendered <head> and the runtime one cannot
@@ -25,6 +26,7 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createServer } from 'vite';
 import { fileURLToPath } from 'node:url';
 import {
   LOCALE_CODES,
@@ -35,6 +37,9 @@ import {
   type Language,
   type LocalizedRoute,
 } from '../src/config/site.ts';
+import { writeHostingFiles } from './seo-hosting.ts';
+import { socialImage } from '../src/config/social-image.ts';
+import { SAMPLE_PAGES } from '../src/config/sample-pages.ts';
 import { DOC_ROUTES } from '../src/config/doc-routes.ts';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -137,11 +142,19 @@ function patchHead(html: string, spec: HeadSpec) {
   const desc = escapeAttr(spec.description);
   const url = escapeAttr(spec.canonical);
 
+  const image = socialImage(spec.routePath);
   const metas: Array<['name' | 'property', string, string]> = [
     ['name', 'description', desc],
     ['property', 'og:title', title],
     ['property', 'og:description', desc],
     ['property', 'og:url', url],
+    ['property', 'og:image', escapeAttr(image.url)],
+    ['property', 'og:image:alt', escapeAttr(image.alt)],
+    ['property', 'og:image:type', image.type],
+    ['property', 'og:image:width', image.width],
+    ['property', 'og:image:height', image.height],
+    ['name', 'twitter:image', escapeAttr(image.url)],
+    ['name', 'twitter:image:alt', escapeAttr(image.alt)],
     ['property', 'og:locale', OG_LOCALE[spec.lang]],
     ['name', 'twitter:title', title],
     ['name', 'twitter:description', desc],
@@ -193,7 +206,7 @@ const fileFor = (routePath: string, lng: Locale) => {
   return rel === '' ? path.join(distDir, 'index.html') : path.join(distDir, `${rel}.html`);
 };
 
-function buildSitemap(lastmod: string) {
+function buildSitemap() {
   const xhtml = (routePath: string) =>
     [
       ...LOCALES.map((lng) => ({ hreflang: lng as string, href: localeUrl(lng, routePath) })),
@@ -205,21 +218,31 @@ function buildSitemap(lastmod: string) {
   const marketing = MARKETING_ROUTES.flatMap((r) =>
     LOCALES.map(
       (lng) =>
-        `  <url>\n    <loc>${localeUrl(lng, r.path)}</loc>\n    <lastmod>${lastmod}</lastmod>\n` +
+        `  <url>\n    <loc>${localeUrl(lng, r.path)}</loc>\n` +
         `    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n${xhtml(r.path)}\n  </url>`
     )
   );
 
   const docs = DOC_ROUTES.map(
     (r) =>
-      `  <url>\n    <loc>${SITE_URL}${r.path}</loc>\n    <lastmod>${lastmod}</lastmod>\n` +
+      `  <url>\n    <loc>${SITE_URL}${r.path}</loc>\n` +
       `    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
+  );
+  const videos = SAMPLE_PAGES.map(
+    (page) =>
+      `  <url>\n    <loc>${SITE_URL}${page.path}</loc>\n` +
+      `    <video:video>\n` +
+      `      <video:thumbnail_loc>${SITE_URL}/videos/showcase/${page.id}.webp</video:thumbnail_loc>\n` +
+      `      <video:title>${escapeAttr(page.title)}</video:title>\n` +
+      `      <video:description>${escapeAttr(page.description)}</video:description>\n` +
+      `      <video:content_loc>${SITE_URL}/videos/showcase/${page.id}.mp4</video:content_loc>\n` +
+      `    </video:video>\n  </url>`
   );
 
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
-    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n` +
-    `${[...marketing, ...docs].join('\n')}\n</urlset>\n`
+    `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">\n` +
+    `${[...marketing, ...docs, ...videos].join('\n')}\n</urlset>\n`
   );
 }
 
@@ -286,10 +309,36 @@ async function readLocaleChunks(): Promise<Partial<Record<Locale, string>>> {
 
 const localeChunks = await readLocaleChunks();
 
+// Vite resolves TSX, raw Markdown and app aliases at build time. No browser or network
+// rendering is required, and failures must fail the build rather than publish empty guides.
+const renderer = await createServer({
+  configFile: false,
+  root: appDir,
+  server: { middlewareMode: true },
+  appType: 'custom',
+  resolve: { alias: { '@': path.join(appDir, 'src') } },
+});
+let docBodies: Record<string, string>;
+
+try {
+  const { renderDocs, renderSamplePages } = await renderer.ssrLoadModule('/scripts/render-docs.tsx');
+  docBodies = { ...(await renderDocs()), ...(await renderSamplePages()) };
+
+  for (const route of DOC_ROUTES.filter((route) => route.path === '/doc' || route.path.startsWith('/doc/'))) {
+    if (!docBodies[route.path]?.includes('<h1')) throw new Error(`Missing prerendered guide: ${route.path}`);
+  }
+} finally {
+  await renderer.close();
+}
+
 async function writeFileFor(routePath: string, lng: Locale, spec: HeadSpec) {
   const file = fileFor(routePath, lng);
   await mkdir(path.dirname(file), { recursive: true });
-  await writeFile(file, patchHead(template, spec));
+  const html = patchHead(template, spec);
+  const body = docBodies[routePath];
+
+  if (body && !html.includes('<div id="root"></div>')) throw new Error('Prerender root placeholder is missing');
+  await writeFile(file, body ? html.replace('<div id="root"></div>', () => `<div id="root">${body}</div>`) : html);
 }
 
 const jobs: Promise<void>[] = [];
@@ -309,7 +358,7 @@ for (const route of MARKETING_ROUTES) {
   }
 }
 
-for (const route of DOC_ROUTES) {
+for (const route of [...DOC_ROUTES, ...SAMPLE_PAGES]) {
   jobs.push(
     writeFileFor(route.path, 'en', {
       lang: 'en',
@@ -322,13 +371,15 @@ for (const route of DOC_ROUTES) {
   );
 }
 
-const lastmod = new Date().toISOString().slice(0, 10);
-jobs.push(writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap(lastmod)));
+// Omit optional lastmod until per-page significant content dates are available.
+// A deployment date falsely marks unchanged pages as updated.
+jobs.push(writeFile(path.join(distDir, 'sitemap.xml'), buildSitemap()));
+jobs.push(writeHostingFiles(template, appDir, distDir));
 await Promise.all(jobs);
 
 const localizedFiles = MARKETING_ROUTES.length * LOCALES.length;
-const sitemapUrls = MARKETING_ROUTES.length * LOCALES.length + DOC_ROUTES.length;
+const sitemapUrls = MARKETING_ROUTES.length * LOCALES.length + DOC_ROUTES.length + SAMPLE_PAGES.length;
 console.log(
-  `seo-prerender: ${localizedFiles} localized + ${DOC_ROUTES.length} doc pages written, ` +
+  `seo-prerender: ${localizedFiles} localized + ${DOC_ROUTES.length} doc + ${SAMPLE_PAGES.length} sample pages written, ` +
     `sitemap.xml (${sitemapUrls} urls with hreflang alternates).`
 );

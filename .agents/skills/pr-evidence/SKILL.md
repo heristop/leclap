@@ -55,7 +55,7 @@ Work from two worktrees, one on the merge base and one on the branch, so both si
 
 ## 4. The video, made by LeClap
 
-Render it with the house before/after workflow in `examples/agentic-pr-video/evidence-skill/`. Read that skill's `SKILL.md` before the first render. The video is a LeClap slate, the two runs side by side and in step (with an optional freeze and highlights), and a closing card.
+Render it with the house before/after workflow in `examples/agentic-pr-video/evidence-skill/`. This repository owns the evidence template: use its `build.py` and adjacent `template.json` together. Do not substitute a personal skill template, a ChaTodo wrapper, or a separately recreated LeClap design. A personal evidence skill must delegate here, not override this workflow. Read that skill's `SKILL.md` before the first render. The video is a LeClap slate, the two runs side by side and in step (with an optional freeze and highlights), and a closing card.
 
 ```bash
 pnpm --filter ffmpeg-video-composer build && pnpm --filter @leclap/cli build   # render with the working copy

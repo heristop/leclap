@@ -1,3 +1,4 @@
+import { SAMPLE_PAGES } from '@/config/sample-pages';
 import { useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +79,21 @@ export function Showcase() {
   return (
     <div className="showcase-page mx-auto w-full max-w-[1440px] px-5 pb-20 pt-28 sm:px-8 lg:px-12">
       <Seo path="/showcase" title={seo('showcase.title')} description={seo('showcase.description')} />
+      <nav
+        aria-label="Video example guides"
+        lang="en"
+        className="mb-8 flex flex-wrap gap-x-6 gap-y-3 border-b border-divider pb-5"
+      >
+        {SAMPLE_PAGES.map((page) => (
+          <a
+            key={page.id}
+            href={page.path}
+            className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+          >
+            {page.title}
+          </a>
+        ))}
+      </nav>
       <Reveal className="mb-9 ease-[var(--ease-out-expo)]">
         <header className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <h1 className="max-w-[12ch] text-balance text-5xl font-semibold leading-[1.04] tracking-tight sm:text-6xl lg:text-7xl">

@@ -89,8 +89,8 @@ export const TITLE_VERBATIM_PATHS: ReadonlySet<string> = new Set(
 );
 
 /**
- * Router paths that are deliberately never indexed: no prerendered file, no sitemap entry, and
- * `noindex` at runtime. Listed here only so the drift test in site.test.ts can prove that every route
+ * Router paths that are deliberately never indexed: no sitemap entry, and `noindex` at runtime.
+ * The Pages handler serves a shared noindex shell for utility/editor URLs. Listed here only so the drift test in site.test.ts can prove that every route
  * the router serves was classified as one of localized / doc / unindexed — a new route that nobody
  * thought about fails the test instead of silently never being crawled.
  */

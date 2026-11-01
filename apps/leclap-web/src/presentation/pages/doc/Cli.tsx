@@ -114,6 +114,14 @@ export const DocCli = () => (
       command.
     </DocPageHeader>
 
+    <Prose className="mb-10">
+      <p>
+        Working with an AI agent? Follow the <Link to="/doc/agents">AI motion graphics walkthrough</Link> and{' '}
+        <Link to="/doc/mcp">configure the MCP video tools</Link>. For a starting template, explore the{' '}
+        <Link to="/doc/examples">JSON video examples</Link>.
+      </p>
+    </Prose>
+
     <DocSection id="quick-start" title="Quick start" kicker="One command to a first render">
       <CliGetStarted />
     </DocSection>

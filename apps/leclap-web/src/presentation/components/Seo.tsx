@@ -1,3 +1,4 @@
+import { socialImage } from '@/config/social-image';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LOCALIZED_PATHS, localeUrl, OG_LOCALE, SITE_URL } from '@/config/site';
@@ -52,6 +53,17 @@ function upsertLink(rel: string, href: string, hreflang?: string): void {
   el.setAttribute('href', href);
 }
 
+function updateSocialImage(routePath: string): void {
+  const image = socialImage(routePath);
+  upsertMeta('property', 'og:image', image.url);
+  upsertMeta('property', 'og:image:alt', image.alt);
+  upsertMeta('property', 'og:image:type', image.type);
+  upsertMeta('property', 'og:image:width', image.width);
+  upsertMeta('property', 'og:image:height', image.height);
+  upsertMeta('name', 'twitter:image', image.url);
+  upsertMeta('name', 'twitter:image:alt', image.alt);
+}
+
 /** Append a fresh meta element (for repeatable properties like og:locale:alternate). */
 function appendMeta(property: string, content: string): void {
   const el = document.createElement('meta');
@@ -104,7 +116,8 @@ export function Seo({ title, description, path, noindex = false }: SeoProps): nu
     upsertMeta('property', 'og:title', fullTitle);
     upsertMeta('property', 'og:description', desc);
     upsertMeta('property', 'og:url', canonical);
-    upsertMeta('property', 'og:locale', OG_LOCALE[lng]);
+    upsertMeta('property', 'og:locale', OG_LOCALE[localized ? lng : 'en']);
+    updateSocialImage(routePath);
     upsertMeta('name', 'twitter:title', fullTitle);
     upsertMeta('name', 'twitter:description', desc);
     upsertLink('canonical', canonical);

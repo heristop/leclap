@@ -18,6 +18,13 @@ export const DocOverview = () => (
       Registered effects require a configured backend to resolve them into clips before composition.
     </DocPageHeader>
 
+    <Prose className="mb-10">
+      <p>
+        New to the workflow? Start with the <Link to="/doc/agents">AI motion graphics guide</Link>, then connect the{' '}
+        <Link to="/doc/mcp">MCP video tools</Link> or <Link to="/doc/cli">render JSON templates with the CLI</Link>.
+      </p>
+    </Prose>
+
     <DocSection id="shape" title="The two keys" kicker="Structure">
       <Prose>
         <p>

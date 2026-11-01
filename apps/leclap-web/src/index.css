@@ -2166,6 +2166,6 @@ html.theme-vt::view-transition-new(root) {
   --logo-ring-start: #c9b87c;
   --logo-ring-middle: #b9a568;
   --logo-ring-end: #a48d52;
-  --logo-ring-width: 14;
+  --logo-ring-width: 28;
   --logo-hinge: #e8ddba;
 }

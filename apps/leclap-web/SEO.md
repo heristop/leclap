@@ -1,6 +1,10 @@
 # Search-facing build and routing
 
-`pnpm --filter @leclap/web build` emits per-route metadata, full HTML for developer guides and the curated sample watch pages, and a canonical sitemap. The sitemap omits optional `lastmod` until reliable per-page content-change dates are available.
+`pnpm --filter @leclap/web build` emits per-route metadata, full HTML for all 35 localized marketing routes, developer guides and curated sample watch pages, and a canonical sitemap. The sitemap omits optional `lastmod` until reliable per-page content-change dates are available.
+
+`scripts/render-marketing.tsx` renders the existing React pages, header and footer with an isolated i18next instance per language. Localized links use the same router basename as the browser. The studio initially renders its public shell; saved projects, compatibility checks and template loading remain client-side. No browser storage is read during prerendering. Builds fail if a declared marketing route has no heading. `/design` remains client-rendered.
+
+Static reveal wrappers and kinetic headings are visible without JavaScript. The client replaces the static root using its existing mount flow, retaining normal scroll-reveal animations and reduced-motion behavior; this is not React hydration. Keep both the no-JavaScript reading experience and the interactive client covered when changing motion components.
 
 Production uses Cloudflare Pages. The build also emits:
 

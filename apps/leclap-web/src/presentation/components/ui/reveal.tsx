@@ -108,7 +108,7 @@ export const Reveal = ({
   return (
     <div
       ref={ref}
-      className={revealClassName(from, inView, landed, scale, className)}
+      className={revealClassName(from, typeof window === 'undefined' || inView, landed, scale, className)}
       style={{ transitionDelay: inView && !landed ? `${delay + staggerDelay}ms` : '0ms', ...style }}
       {...props}
     >

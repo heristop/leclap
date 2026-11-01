@@ -1,0 +1,36 @@
+{
+  "ticket": "PR #155",
+  "summary": "Marketing content arrives in HTML, in all five languages.",
+  "clipSeconds": 4,
+  "intro": {
+    "headline": "READ BEFORE JAVASCRIPT"
+  },
+  "outro": {
+    "headline": "CONTENT READY ON ARRIVAL",
+    "subtitle": "Check translated content, links and mobile layout."
+  },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "raw/before.webm",
+      "trim": 0.913,
+      "chip": "Empty app root",
+      "pane": {
+        "title": "JavaScript required",
+        "desc": "The French About page has metadata but no page content."
+      }
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "raw/after.webm",
+      "trim": 0.655,
+      "chip": "Full translated page",
+      "pane": {
+        "title": "Readable static HTML",
+        "desc": "The same page shows its content and navigation without JavaScript."
+      }
+    }
+  ]
+}

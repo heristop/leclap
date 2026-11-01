@@ -15,7 +15,8 @@
 //   3. generates dist/sitemap.xml from the same manifests, with xhtml:link alternates on the
 //      localized URLs — so the sitemap can never drift from the routes, and noindex pages are absent.
 //
-// Developer guides also include their rendered React content and navigation in the initial HTML.
+// Marketing pages, developer guides and sample pages include their rendered React content and
+// navigation in the initial HTML. Marketing bodies are rendered separately for every locale.
 // The client mounts over this static shell; this is not React hydration.
 //
 // The domain, the language list and both route tables come from src/config/site.ts — the same module
@@ -124,6 +125,10 @@ function alternateLines(spec: HeadSpec) {
 function headExtras(spec: HeadSpec) {
   const lines: string[] = [];
   const localeChunk = localeChunks[spec.lang];
+
+  if (spec.routePath === '/showcase' || spec.routePath.startsWith('/showcase/')) {
+    for (const file of showcaseStyles) lines.push(`    <link rel="stylesheet" href="/${escapeAttr(file)}">`);
+  }
 
   if (localeChunk) {
     lines.push(`    <link rel="modulepreload" crossorigin href="${localeChunk}">`);
@@ -309,6 +314,33 @@ async function readLocaleChunks(): Promise<Partial<Record<Locale, string>>> {
 
 const localeChunks = await readLocaleChunks();
 
+// Lazy route CSS must also load when JavaScript is disabled. Follow the showcase entry's
+// static imports in Vite's manifest rather than guessing a hashed chunk filename.
+async function readShowcaseStyles(): Promise<string[]> {
+  const manifest = JSON.parse(await readFile(MANIFEST_FILE, 'utf8')) as Record<
+    string,
+    { imports?: string[]; css?: string[] } | undefined
+  >;
+  const visited = new Set<string>();
+  const styles = new Set<string>();
+  const visit = (key: string) => {
+    if (visited.has(key)) return;
+    visited.add(key);
+    const chunk = manifest[key];
+
+    if (!chunk) throw new Error(`Missing showcase manifest entry: ${key}`);
+
+    for (const css of chunk.css ?? []) styles.add(css);
+
+    for (const imported of chunk.imports ?? []) visit(imported);
+  };
+  visit('src/presentation/pages/Showcase.tsx');
+
+  return [...styles];
+}
+
+const showcaseStyles = await readShowcaseStyles();
+
 // Vite resolves TSX, raw Markdown and app aliases at build time. No browser or network
 // rendering is required, and failures must fail the build rather than publish empty guides.
 const renderer = await createServer({
@@ -316,13 +348,29 @@ const renderer = await createServer({
   root: appDir,
   server: { middlewareMode: true },
   appType: 'custom',
-  resolve: { alias: { '@': path.join(appDir, 'src') } },
+  resolve: {
+    alias: [
+      { find: '@/core', replacement: path.resolve(appDir, '../../packages/ffmpeg-video-composer/src/core') },
+      { find: '@', replacement: path.join(appDir, 'src') },
+    ],
+  },
 });
 let docBodies: Record<string, string>;
+let marketingBodies: Record<Locale, Record<string, string>>;
 
 try {
   const { renderDocs, renderSamplePages } = await renderer.ssrLoadModule('/scripts/render-docs.tsx');
   docBodies = { ...(await renderDocs()), ...(await renderSamplePages()) };
+  const { renderMarketing } = await renderer.ssrLoadModule('/scripts/render-marketing.tsx');
+  marketingBodies = await renderMarketing();
+
+  for (const language of LOCALES) {
+    for (const route of MARKETING_ROUTES) {
+      if (!marketingBodies[language][route.path]?.includes('<h1')) {
+        throw new Error(`Missing prerendered marketing page: ${language} ${route.path}`);
+      }
+    }
+  }
 
   for (const route of DOC_ROUTES.filter((route) => route.path === '/doc' || route.path.startsWith('/doc/'))) {
     if (!docBodies[route.path]?.includes('<h1')) throw new Error(`Missing prerendered guide: ${route.path}`);
@@ -335,7 +383,7 @@ async function writeFileFor(routePath: string, lng: Locale, spec: HeadSpec) {
   const file = fileFor(routePath, lng);
   await mkdir(path.dirname(file), { recursive: true });
   const html = patchHead(template, spec);
-  const body = docBodies[routePath];
+  const body = marketingBodies[lng][routePath] ?? docBodies[routePath];
 
   if (body && !html.includes('<div id="root"></div>')) throw new Error('Prerender root placeholder is missing');
   await writeFile(file, body ? html.replace('<div id="root"></div>', () => `<div id="root">${body}</div>`) : html);

@@ -1,9 +1,9 @@
 import { motion } from 'motion/react';
-import { useState } from 'react';
 import { ArrowUpRight as ArrowUpRightIcon } from '@/presentation/components/icons';
 import { useTranslation } from 'react-i18next';
 import { GLYPHS } from '@leclap/creative-kit/icons';
 import { useInView } from '@/hooks/useInView';
+import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
 // The set's own heart (@leclap/creative-kit/icons), drawn large so its outline can draw itself.
 const [[, { d: HEART }]] = GLYPHS.heart.parts;
@@ -15,7 +15,8 @@ export const AboutThanks = () => {
   const { t } = useTranslation('about');
   // Reduced-motion viewers see the heart fully drawn at once (the stroke draw is JS-driven, so the
   // global CSS reset can't neutralise it — guard it explicitly).
-  const [reduced] = useState(() => globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const prefersReducedMotion = useReducedMotion();
+  const reduced = typeof window === 'undefined' || prefersReducedMotion;
   // One-shot: the outline "draws" itself the first time the section scrolls into view.
   const [heartRef, heartInView] = useInView<SVGSVGElement>();
   const drawn = reduced || heartInView;

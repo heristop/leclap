@@ -1,10 +1,11 @@
-import { View, Text, StyleSheet, Image, StatusBar, type ImageSourcePropType } from 'react-native';
+import { View, Text, StyleSheet, Image, useColorScheme, StatusBar, type ImageSourcePropType } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, type IconName } from '@/src/components/ui/Icon';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { colors, typography, spacing } from '@/src/styles/theme';
 import logoImage from '@/assets/images/logo.png';
+import darkLogoImage from '@/assets/images/logo-dark.png';
 import { PressableScale } from '@/src/components/kinetic/pressable-scale';
 import { CONTENT_MAX_WIDTH } from '@/src/styles/adaptive-layout';
 
@@ -54,6 +55,8 @@ function HeaderLeft({
   onBack: () => void;
   backLabel: string;
 }) {
+  const isDark = useColorScheme() === 'dark';
+
   return (
     <View style={styles.left}>
       {showBackButton ? (
@@ -68,7 +71,12 @@ function HeaderLeft({
         </PressableScale>
       ) : null}
       {showLogo ? (
-        <Image source={logoImage as ImageSourcePropType} style={styles.logo} resizeMode="contain" accessible={false} />
+        <Image
+          source={(isDark ? darkLogoImage : logoImage) as ImageSourcePropType}
+          style={styles.logo}
+          resizeMode="contain"
+          accessible={false}
+        />
       ) : null}
       <HeaderIdentity title={title} slogan={slogan} textColor={textColor} transparent={transparent} />
     </View>

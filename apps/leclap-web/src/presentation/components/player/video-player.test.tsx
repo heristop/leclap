@@ -89,7 +89,7 @@ describe('VideoPlayer', () => {
     const html = render({ cardTitle: 'Summer launch' });
 
     expect(html).toContain('Summer launch');
-    expect(html).toContain('/favicon.svg');
+    expect(html).toContain('logo-mark');
   });
 
   it('waits on its poster with the play button', () => {

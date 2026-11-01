@@ -10,6 +10,7 @@ for (const [side, port] of [
   ['before', 5186],
   ['after', 5187],
 ]) {
+  if (process.env.CAPTURE_SIDE && process.env.CAPTURE_SIDE !== side) continue;
   for (const [width, height] of [
     [1440, 900],
     [390, 844],
@@ -33,7 +34,17 @@ for (const [side, port] of [
         .locator('.logo-mark')
         .first()
         .evaluate((e) => getComputedStyle(e).getPropertyValue('--logo-disc-start').trim());
-      if (paint !== '#201d29') throw Error(`Unexpected dark paint: ${paint}`);
+      if (paint !== '#343151') throw Error(`Unexpected dark paint: ${paint}`);
+      const end = await page
+        .locator('.logo-mark')
+        .first()
+        .evaluate((e) => getComputedStyle(e).getPropertyValue('--logo-disc-end').trim());
+      if (end !== '#442b3a') throw Error(`Unexpected gradient end: ${end}`);
+      const ring = await page
+        .locator('.logo-mark > circle')
+        .first()
+        .evaluate((e) => getComputedStyle(e).strokeWidth);
+      if (ring !== '28px') throw Error(`Unexpected ring width: ${ring}`);
     }
     await page.waitForTimeout(4500);
     await context.close();

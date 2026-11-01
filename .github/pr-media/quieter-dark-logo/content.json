@@ -1,13 +1,13 @@
 {
   "ticket": "DARK-LOGO",
-  "summary": "Use the approved quieter logo when dark mode is active",
+  "summary": "Match the brand gradient and ring width across themes",
   "clipSeconds": 3,
   "freeze": {
     "at": 1.5,
     "hold": 3
   },
   "intro": {
-    "headline": "A QUIETER DARK LOGO"
+    "headline": "A GRADIENT FOR DARK MODE"
   },
   "outro": {
     "headline": "FOLLOW THE ACTIVE THEME",
@@ -18,7 +18,7 @@
       "side": "before",
       "badge": "BEFORE",
       "capture": "raw/before-1440.webm",
-      "trim": 6.68,
+      "trim": 14.0,
       "chip": "Light mark in dark mode",
       "pane": {
         "title": "Same mark in both themes",
@@ -36,11 +36,11 @@
       "side": "after",
       "badge": "AFTER",
       "capture": "raw/after-1440.webm",
-      "trim": 7.48,
-      "chip": "Quieter dark mark",
+      "trim": 3.28,
+      "chip": "Lavender to plum",
       "pane": {
         "title": "Approved dark palette",
-        "desc": "Near-black disc, muted gold ring and deeper purple outlines."
+        "desc": "Deep lavender to plum, with matching ring width and muted gold."
       },
       "highlight": {
         "x": 6,
@@ -48,7 +48,7 @@
         "w": 105,
         "h": 48
       },
-      "callout": "Quieter disc and ring"
+      "callout": "Matching gradient"
     }
   ]
 }

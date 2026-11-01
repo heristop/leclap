@@ -8,6 +8,10 @@ for (const javaScriptEnabled of [false, true]) {
     const context = await browser.newContext({ baseURL, javaScriptEnabled, reducedMotion: 'no-preference' });
     const page = await context.newPage();
     await page.goto('/es/showcase');
+    if (javaScriptEnabled) {
+      // The client replaces the static HTML; wait before scrolling its DOM.
+      await expect(page.locator('.showcase-page .will-change-\\[transform\\,opacity\\]').first()).toHaveCount(1);
+    }
     await page.evaluate(() => document.fonts.ready);
     const glow = page.locator('.showcase-feature .animate-aurora');
     await page.locator('.showcase-feature').scrollIntoViewIfNeeded();

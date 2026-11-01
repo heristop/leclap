@@ -5,7 +5,8 @@ export type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'leclap-theme';
 
 /** Current theme, derived from the `.dark` class set on <html> (see index.html). */
-export const getTheme = (): Theme => (document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+export const getTheme = (): Theme =>
+  typeof document !== 'undefined' && document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 
 /** Apply a theme to <html> and persist the choice. */
 export const setTheme = (theme: Theme): void => {

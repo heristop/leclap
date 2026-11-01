@@ -19,7 +19,7 @@ import { useIconHover } from './icons/useIconHover';
 import { isNavActive, navigationItems, type NavItem } from './header-nav.logic';
 import { useDarkSurface } from '@/hooks/use-dark-surface';
 import { getTheme, toggleTheme, watchSystemTheme, type Theme, type ToggleOrigin } from '../../lib/theme';
-import { getLanguage, localePath, setStoredLanguage, LANGUAGES, type Language } from '../../lib/language';
+import { localePath, setStoredLanguage, LANGUAGES, type Language } from '../../lib/language';
 
 type ThemeToggleProps = {
   theme: Theme;
@@ -366,14 +366,14 @@ const MobileMenu = ({ isOpen, currentPath, items, onClose }: MobileMenuProps) =>
 };
 
 export const Header = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [pastHero, setPastHero] = useState(false);
   const [theme, setThemeState] = useState<Theme>(() => getTheme());
   // Language is fixed for the lifetime of the page — switching it is a full navigation to the
   // locale-prefixed URL, which reloads with the new language resolved from the path.
-  const language = getLanguage();
+  const language = (i18n.resolvedLanguage ?? 'en') as Language;
   const location = useLocation();
   const navItems = navigationItems;
   // Drive the GitHub mark's animation from the whole button's hover (group hover), not just the

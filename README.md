@@ -32,9 +32,9 @@ Start with the [agent guide](docs/ai-agents.md): MCP setup, a first prompt, a CL
 
 ## 🎥 Demo
 
-<a href="https://leclap.dev/#film"><img src="apps/leclap-web/public/videos/films/leclap-showcase.en.webp" alt="The LeClap showcase film: play it on leclap.dev" width="800" /></a>
+https://github.com/user-attachments/assets/eaaf6266-7549-41ba-ae27-bf08becc6637
 
-Click the frame: the film plays on [leclap.dev](https://leclap.dev/#film), with captions.
+Watch the LeClap showcase above, or [watch with captions on leclap.dev](https://leclap.dev/#film).
 
 ## ⏱ Try it in 30 seconds
 
@@ -68,6 +68,11 @@ Three templates from this repo and what they render to. Click a frame to play th
 
 All 59 samples, with their templates, are on the [showcase](https://leclap.dev/showcase). Each effect, one frame at a
 time, in the [gallery](docs/gallery.md).
+
+For a video, editable JSON and step-by-step rendering instructions, start with
+[animated titles](https://leclap.dev/showcase/type-impact),
+[HTML motion graphics](https://leclap.dev/showcase/html-motion), or
+[AI-agent PR evidence](https://leclap.dev/showcase/pr-evidence).
 
 ## 🤔 Why LeClap?
 

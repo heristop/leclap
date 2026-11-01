@@ -11,7 +11,8 @@
     "test": "vp test run",
     "test:watch": "vp test watch",
     "test:coverage": "vp test run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "preview:pages": "wrangler pages dev dist --port 5413"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "4.0.65",
@@ -71,6 +72,7 @@
     "typescript": "^7.0.2",
     "util": "^0.12.5",
     "vite": "^8.2.1",
-    "vite-plugin-node-polyfills": "^0.28.0"
+    "vite-plugin-node-polyfills": "^0.28.0",
+    "wrangler": "4.156.0"
   }
 }

@@ -4,14 +4,12 @@
   // leclap.pages.dev and ships via `wrangler pages deploy apps/leclap-web/dist` (see README) — and
   // Pages ignores this `assets` block entirely. Nothing in package.json or CI reads this file.
   //
-  // What that means for anything you might be tempted to "fix" here:
-  //   • SPA fallback on production does not come from `not_found_handling` below. Pages serves
-  //     index.html for unmatched paths on its own; every app route, prerendered or not, answers 200.
-  //   • `public/_headers` (COOP/COEP, required for the FFmpeg WASM cross-origin isolation) is copied
-  //     into dist by Vite and honoured by Pages. There is no _redirects file and none is needed.
-  //   • Trailing slashes are not configurable on Pages. scripts/seo-prerender.ts is what makes the
-  //     slash-less canonicals resolve: it emits sibling `<route>.html` files rather than
-  //     `<route>/index.html`. Adding `html_handling` here looks like it addresses that and cannot.
+  // Production Pages routing is emitted by scripts/seo-prerender.ts:
+  //   • _worker.js consolidates the production hostname and legacy routes, and serves noindex
+  //     shells for utility/editor routes. Preview hostnames stay on the preview deployment.
+  //   • 404.html disables the implicit SPA fallback, so unknown URLs return real 404 responses.
+  //   • _headers remains the source of COOP/COEP for static assets (required by FFmpeg WASM).
+  //   • Sibling <route>.html files keep canonical URLs free of trailing-slash redirects.
   "name": "leclap",
   "compatibility_date": "2026-06-16",
   "assets": {

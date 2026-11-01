@@ -1,3 +1,4 @@
+import { samplePage } from '@/config/sample-pages';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowUpRight } from '@/presentation/components/icons';
@@ -8,6 +9,7 @@ import { isNative, sampleShape, type ShowcaseSample } from './catalog';
 // JSON source, and a way into the studio for the app templates.
 export function SampleFacts({ sample }: { sample: ShowcaseSample }) {
   const { t } = useTranslation('showcase');
+  const detail = samplePage(sample.id);
 
   return (
     <>
@@ -18,6 +20,11 @@ export function SampleFacts({ sample }: { sample: ShowcaseSample }) {
         <span aria-hidden="true">/</span>
         <span>{t(`shapes.${sampleShape(sample)}`)}</span>
       </div>
+      {detail ? (
+        <a href={detail.path} className="inline-flex min-h-11 items-center text-primary underline underline-offset-4">
+          {detail.title}
+        </a>
+      ) : null}
       <SampleSource key={sample.id} sample={sample} />
       {sample.source.startsWith('packages/leclap-creative-kit/') && (
         <Link

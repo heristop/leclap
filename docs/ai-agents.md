@@ -112,3 +112,7 @@ The builder also exposes tools through WebMCP in compatible browsers. This is se
 LeClap composes supplied assets; it does not generate footage from a prompt. Local rendering keeps the render on your machine, but an external AI provider has its own data handling. Check what your agent sends to its provider.
 
 For reproducible results, preserve the template, assets, fonts, configuration and runtime versions. Supported effects and encoded pixels differ across Node, browser and native backends. Registered React effects need the separately configured trusted Node backend.
+
+## Continue building
+
+Use the [CLI reference](https://leclap.dev/doc/cli) for rendering flags and validation commands, or explore [JSON video examples](https://leclap.dev/doc/examples) for a starting composition. The [motion and layers guide](https://leclap.dev/doc/motion) explains how to animate supplied footage; the [creative direction guide](creative-direction.md) helps turn a brief into explicit motion settings.

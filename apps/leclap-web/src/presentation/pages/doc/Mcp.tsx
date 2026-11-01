@@ -49,6 +49,13 @@ export const DocMcp = () => (
       author a descriptor from the schema, then validates and renders it deterministically to an mp4.
     </DocPageHeader>
 
+    <Prose className="mb-10">
+      <p>
+        For a first project, follow the <Link to="/doc/agents">AI motion graphics walkthrough</Link>. Use the{' '}
+        <Link to="/doc/cli">CLI rendering guide</Link> to validate and render the same template from your terminal.
+      </p>
+    </Prose>
+
     <DocSection id="what" title="What it is" kicker="Authoring, not generating">
       <Prose>
         <p>

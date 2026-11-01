@@ -12,7 +12,7 @@ The LeClap visual language: a bold, juicy, lavender-to-pink identity on near-bla
 
 ## Logo
 
-The clapperboard mark — a rounded square with a lavender→pink gradient and a play glyph. Files: `apps/leclap-web/public/pwa-512x512.png` and `favicon.svg`. Don't recolor it; it carries the brand gradient.
+The clapperboard mark sits inside a yellow-rimmed disc. Light mode uses a lavender→pink disc; dark mode uses a near-black disc, deeper purple outlines, muted cream stripes and a thinner muted-gold ring, retaining the original pink board. Web `LogoMark` follows the app’s `.dark` class; Expo’s header follows the system color scheme. The dark vector source is `apps/leclap-web/public/logo-dark.svg`; `pnpm gen:icons` rasterizes it into Expo’s `logo-dark.png`.
 
 ## Colors
 

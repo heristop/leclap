@@ -38,7 +38,7 @@ function SlateChips({ media, meta }: { media: MediaState; meta?: CardMeta }) {
 
   return (
     <span className="inline-flex items-center gap-2 rounded-full bg-player-ink/60 py-1 pl-1 pr-2.5 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-player-fg/90 ring-1 ring-player-fg/15 backdrop-blur-sm">
-      <img src="/favicon.svg" alt="" width={18} height={18} className="size-[1.125rem] rounded-[0.3rem]" />
+      <LogoMark className="size-[1.125rem] rounded-[0.3rem]" />
       <span className="text-player-fg">LeClap</span>
       {shape && <span className="text-brand-200">{shape}</span>}
       {duration > 0 && <span className="tabular-nums text-player-fg/70">{formatClock(duration)}</span>}

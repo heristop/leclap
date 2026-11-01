@@ -1,4 +1,4 @@
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useId, useImperativeHandle, useRef } from 'react';
 
 export interface LogoMarkHandle {
   clap: () => void;
@@ -8,6 +8,7 @@ export interface LogoMarkHandle {
 // hovering the disc fires the SMIL `animateTransform` (open → slam shut → settle open).
 // Exposes `clap()` imperatively so a parent (e.g. the header link) can trigger it from its own hover.
 export const LogoMark = forwardRef<LogoMarkHandle, { className?: string }>(({ className }, ref) => {
+  const id = useId();
   const animRef = useRef<SVGAnimateTransformElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -18,47 +19,54 @@ export const LogoMark = forwardRef<LogoMarkHandle, { className?: string }>(({ cl
     <svg
       viewBox="0 0 600 600"
       aria-hidden="true"
-      className={className}
+      className={`logo-mark ${className ?? ''}`}
       onMouseEnter={() => animRef.current?.beginElement()}
     >
       <defs>
-        <linearGradient id="lcg" x1="110" y1="90" x2="490" y2="510" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#C3C7FF" />
-          <stop offset="1" stopColor="#FFCFDE" />
+        <linearGradient id={`${id}-lcg`} x1="110" y1="90" x2="490" y2="510" gradientUnits="userSpaceOnUse">
+          <stop stopColor="var(--logo-disc-start)" />
+          <stop offset="1" stopColor="var(--logo-disc-end)" />
         </linearGradient>
-        <pattern id="lcs" width="96" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(-26)">
-          <rect width="96" height="96" fill="#FEF0A6" />
-          <rect x="48" width="48" height="96" fill="#8C80D8" />
+        <pattern id={`${id}-lcs`} width="96" height="96" patternUnits="userSpaceOnUse" patternTransform="rotate(-26)">
+          <rect width="96" height="96" fill="var(--logo-stripe-light)" />
+          <rect x="48" width="48" height="96" fill="var(--logo-stripe-dark)" />
         </pattern>
-        <linearGradient id="lcBoard" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`${id}-lcBoard`} x1="0" y1="0" x2="0" y2="1">
           <stop stopColor="#FFA0B7" />
           <stop offset="1" stopColor="#EE6184" />
         </linearGradient>
-        <linearGradient id="lcRing" x1="0" y1="0" x2="0" y2="1">
-          <stop stopColor="#FFF0A0" />
-          <stop offset="0.55" stopColor="#FFE45E" />
-          <stop offset="1" stopColor="#EFC23C" />
+        <linearGradient id={`${id}-lcRing`} x1="0" y1="0" x2="0" y2="1">
+          <stop stopColor="var(--logo-ring-start)" />
+          <stop offset="0.55" stopColor="var(--logo-ring-middle)" />
+          <stop offset="1" stopColor="var(--logo-ring-end)" />
         </linearGradient>
-        <radialGradient id="lcSheen" cx="0.5" cy="0.14" r="0.64">
-          <stop stopColor="#FFFFFF" stopOpacity="0.34" />
+        <radialGradient id={`${id}-lcSheen`} cx="0.5" cy="0.14" r="0.64">
+          <stop stopColor="#FFFFFF" stopOpacity="var(--logo-sheen)" />
           <stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
         </radialGradient>
-        <filter id="lsh" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="0" dy="0" stdDeviation="10" floodColor="#1C1540" floodOpacity="0.32" />
+        <filter id={`${id}-lsh`} x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="10" floodColor="#1C1540" floodOpacity="var(--logo-shadow)" />
         </filter>
       </defs>
-      <circle cx="300" cy="300" r="278" fill="url(#lcg)" stroke="url(#lcRing)" strokeWidth="28" />
-      <circle cx="300" cy="300" r="264" fill="url(#lcSheen)" />
+      <circle
+        cx="300"
+        cy="300"
+        r="278"
+        fill={`url(#${id}-lcg)`}
+        stroke={`url(#${id}-lcRing)`}
+        strokeWidth="var(--logo-ring-width)"
+      />
+      <circle cx="300" cy="300" r="264" fill={`url(#${id}-lcSheen)`} />
       <circle cx="300" cy="300" r="263" fill="none" stroke="#5A4E9A" strokeOpacity="0.12" strokeWidth="3" />
-      <g transform="translate(300 300) scale(0.68) translate(-298 -304)" filter="url(#lsh)">
+      <g transform="translate(300 300) scale(0.68) translate(-298 -304)" filter={`url(#${id}-lsh)`}>
         <rect
           x="96"
           y="302"
           width="408"
           height="194"
           rx="40"
-          fill="url(#lcBoard)"
-          stroke="#5E51AC"
+          fill={`url(#${id}-lcBoard)`}
+          stroke="var(--logo-outline)"
           strokeWidth="24"
           strokeLinejoin="round"
         />
@@ -68,8 +76,8 @@ export const LogoMark = forwardRef<LogoMarkHandle, { className?: string }>(({ cl
           width="372"
           height="58"
           rx="18"
-          fill="url(#lcs)"
-          stroke="#5E51AC"
+          fill={`url(#${id}-lcs)`}
+          stroke="var(--logo-outline)"
           strokeWidth="24"
           strokeLinejoin="round"
         />
@@ -92,8 +100,8 @@ export const LogoMark = forwardRef<LogoMarkHandle, { className?: string }>(({ cl
             width="372"
             height="58"
             rx="18"
-            fill="url(#lcs)"
-            stroke="#5E51AC"
+            fill={`url(#${id}-lcs)`}
+            stroke="var(--logo-outline)"
             strokeWidth="24"
             strokeLinejoin="round"
           />
@@ -104,12 +112,12 @@ export const LogoMark = forwardRef<LogoMarkHandle, { className?: string }>(({ cl
           width="80"
           height="96"
           rx="24"
-          fill="url(#lcBoard)"
-          stroke="#5E51AC"
+          fill={`url(#${id}-lcBoard)`}
+          stroke="var(--logo-outline)"
           strokeWidth="24"
           strokeLinejoin="round"
         />
-        <circle cx="130" cy="264" r="17" fill="#FFF6D0" stroke="#5E51AC" strokeWidth="6" />
+        <circle cx="130" cy="264" r="17" fill="var(--logo-hinge)" stroke="var(--logo-outline)" strokeWidth="6" />
       </g>
     </svg>
   );

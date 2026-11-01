@@ -78,3 +78,6 @@ docs/superpowers/
 # Python bytecode and vitest JSON reports.
 __pycache__/
 .vitest/
+
+# Local generated images and UI evidence.
+/output/

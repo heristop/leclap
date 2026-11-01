@@ -1,0 +1,54 @@
+{
+  "ticket": "DARK-LOGO",
+  "summary": "Use the approved quieter logo when dark mode is active",
+  "clipSeconds": 3,
+  "freeze": {
+    "at": 1.5,
+    "hold": 3
+  },
+  "intro": {
+    "headline": "A QUIETER DARK LOGO"
+  },
+  "outro": {
+    "headline": "FOLLOW THE ACTIVE THEME",
+    "subtitle": "Web captured at desktop and mobile sizes. Native UI not recorded."
+  },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "raw/before-1440.webm",
+      "trim": 6.68,
+      "chip": "Light mark in dark mode",
+      "pane": {
+        "title": "Same mark in both themes",
+        "desc": "The base app keeps the pastel disc on dark surfaces."
+      },
+      "highlight": {
+        "x": 6,
+        "y": 6,
+        "w": 105,
+        "h": 48
+      },
+      "callout": "Pastel disc"
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "raw/after-1440.webm",
+      "trim": 7.48,
+      "chip": "Quieter dark mark",
+      "pane": {
+        "title": "Approved dark palette",
+        "desc": "Near-black disc, muted gold ring and deeper purple outlines."
+      },
+      "highlight": {
+        "x": 6,
+        "y": 6,
+        "w": 105,
+        "h": 48
+      },
+      "callout": "Quieter disc and ring"
+    }
+  ]
+}

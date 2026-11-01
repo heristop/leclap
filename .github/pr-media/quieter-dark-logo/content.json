@@ -1,13 +1,13 @@
 {
   "ticket": "DARK-LOGO",
-  "summary": "Match the brand gradient and ring width across themes",
+  "summary": "Match each outer ring to the visible clapperboard outline",
   "clipSeconds": 3,
   "freeze": {
     "at": 1.5,
     "hold": 3
   },
   "intro": {
-    "headline": "A GRADIENT FOR DARK MODE"
+    "headline": "CONSISTENT LOGO OUTLINES"
   },
   "outro": {
     "headline": "FOLLOW THE ACTIVE THEME",
@@ -18,7 +18,7 @@
       "side": "before",
       "badge": "BEFORE",
       "capture": "raw/before-1440.webm",
-      "trim": 14.0,
+      "trim": 7.2,
       "chip": "Light mark in dark mode",
       "pane": {
         "title": "Same mark in both themes",
@@ -36,11 +36,11 @@
       "side": "after",
       "badge": "AFTER",
       "capture": "raw/after-1440.webm",
-      "trim": 3.28,
-      "chip": "Lavender to plum",
+      "trim": 5.68,
+      "chip": "Matched outline thickness",
       "pane": {
         "title": "Approved dark palette",
-        "desc": "Deep lavender to plum, with matching ring width and muted gold."
+        "desc": "Both rings match the scaled clapper outline. Dark mode keeps its gradient."
       },
       "highlight": {
         "x": 6,
@@ -48,7 +48,7 @@
         "w": 105,
         "h": 48
       },
-      "callout": "Matching gradient"
+      "callout": "Matched outlines"
     }
   ]
 }

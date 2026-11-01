@@ -1,6 +1,6 @@
 # Quieter dark logo evidence
 
-Before: `a0e2872c` (the PR base). After: `e9ef4ee6` (the logo change).
+Before: `a0e2872c` (the PR base). After: `228e03fa` (the logo change).
 Both captures run the real web app on `/about`, at 1440×900 and 390×844,
 with device scale 2, in light and dark mode. Native UI was not recorded.
 

@@ -25,6 +25,14 @@ for (const [side, port] of [
     const page = await context.newPage();
     await page.goto(`http://127.0.0.1:${port}/about`, { waitUntil: 'networkidle' });
     await page.getByRole('heading', { name: 'About LeClap', exact: true }).waitFor();
+    if (side === 'after') {
+      const lightRing = await page
+        .locator('.logo-mark > circle')
+        .first()
+        .evaluate((e) => getComputedStyle(e).strokeWidth);
+      if (Math.abs(Number.parseFloat(lightRing) - 16.32) > 0.001)
+        throw Error(`Unexpected light ring width: ${lightRing}`);
+    }
     await page.screenshot({ path: resolve(out, `${side}-${width}-light.png`) });
     await page.getByRole('button', { name: /switch to dark/i }).click();
     await page.waitForTimeout(600);
@@ -44,7 +52,7 @@ for (const [side, port] of [
         .locator('.logo-mark > circle')
         .first()
         .evaluate((e) => getComputedStyle(e).strokeWidth);
-      if (ring !== '28px') throw Error(`Unexpected ring width: ${ring}`);
+      if (Math.abs(Number.parseFloat(ring) - 16.32) > 0.001) throw Error(`Unexpected ring width: ${ring}`);
     }
     await page.waitForTimeout(4500);
     await context.close();

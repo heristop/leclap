@@ -1,0 +1,36 @@
+{
+  "ticket": "PR #156",
+  "summary": "The same mobile scroll gesture: drifting before, stable after.",
+  "clipSeconds": 8,
+  "intro": {
+    "headline": "GLOW WITHOUT OVERFLOW"
+  },
+  "outro": {
+    "headline": "MOTION STAYS IN FRAME",
+    "subtitle": "The page stays 390 px wide. The glow keeps moving."
+  },
+  "sides": [
+    {
+      "badge": "BEFORE",
+      "capture": "raw/before-closeup.mp4",
+      "trim": 3.44,
+      "chip": "Page drifts wider",
+      "pane": {
+        "title": "423px page / 390px screen",
+        "desc": "The page slides sideways when the glow expands."
+      },
+      "side": "before"
+    },
+    {
+      "badge": "AFTER",
+      "capture": "raw/after-closeup.mp4",
+      "trim": 3.425,
+      "chip": "Stable mobile width",
+      "pane": {
+        "title": "390px page / 390px screen",
+        "desc": "The same scroll attempt cannot move the page sideways."
+      },
+      "side": "after"
+    }
+  ]
+}

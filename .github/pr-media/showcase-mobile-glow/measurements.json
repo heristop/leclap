@@ -1,0 +1,10 @@
+{
+  "before": {
+    "maxWidth": 423,
+    "maxScroll": 33
+  },
+  "after": {
+    "maxWidth": 390,
+    "maxScroll": 0
+  }
+}

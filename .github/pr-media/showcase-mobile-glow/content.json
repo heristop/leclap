@@ -1,0 +1,36 @@
+{
+  "ticket": "PR #156",
+  "summary": "Keep the glow moving without widening the mobile page.",
+  "clipSeconds": 10,
+  "intro": {
+    "headline": "GLOW WITHOUT OVERFLOW"
+  },
+  "outro": {
+    "headline": "MOTION STAYS IN FRAME",
+    "subtitle": "Check mobile width, glow and player controls."
+  },
+  "sides": [
+    {
+      "badge": "BEFORE",
+      "capture": "raw/before.webm",
+      "trim": 5.515,
+      "chip": "Page drifts wider",
+      "pane": {
+        "title": "Horizontal overflow",
+        "desc": "The animated glow expands the page beyond the viewport."
+      },
+      "side": "before"
+    },
+    {
+      "badge": "AFTER",
+      "capture": "raw/after.webm",
+      "trim": 4.14,
+      "chip": "Stable mobile width",
+      "pane": {
+        "title": "Glow stays animated",
+        "desc": "Horizontal clipping keeps the page within its viewport."
+      },
+      "side": "after"
+    }
+  ]
+}

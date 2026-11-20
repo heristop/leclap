@@ -41,7 +41,11 @@ describe('escapeDrawtextText', () => {
   });
 
   it('escapes counter prefix/suffix the same way, keeping their backslashes', () => {
-    const text = counterText({ from: 0, to: 1, prefix: '\\$', suffix: '%:' }, { delay: 0, duration: 1 }, 'linear');
+    const text = counterText(
+      { from: 0, to: 1, prefix: String.raw`\$`, suffix: '%:' },
+      { delay: 0, duration: 1 },
+      'linear'
+    );
 
     expect(text.startsWith(String.raw`\\\\$%{eif`)).toBe(true);
     expect(text.endsWith(String.raw`\\\%\:`)).toBe(true);

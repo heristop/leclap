@@ -46,7 +46,7 @@ describe('whisperFilterGraph', () => {
 
   it('keeps separators in paths inert at both the option and the graph level', () => {
     const graph = whisperFilterGraph({
-      model: "C:\\models\\a,b;c[d]e'f.bin",
+      model: String.raw`C:\models\a,b;c[d]e'f.bin`,
       language: 'en',
       destination: '/tmp/out:1.jsonl',
     });

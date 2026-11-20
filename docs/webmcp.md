@@ -30,7 +30,7 @@ A 70-second walkthrough of a real session is in [`.github/pr-media/webmcp/`](../
   build.
 - **Development polyfill.** In a dev build (or a build with `VITE_WEBMCP_POLYFILL=1`), add
   `?webmcp=polyfill` to load `@mcp-b/webmcp-polyfill`. With `window.__webMCPPolyfillOptions =
-{ installTestingShim: true }` it also adds `navigator.modelContextTesting`. Production never loads it.
+  { installTestingShim: true }` it also adds `navigator.modelContextTesting`. Production never loads it.
 
 ## Try it
 

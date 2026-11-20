@@ -387,7 +387,7 @@ Upgrading from v2? See the [migration guide](MIGRATION.md#upgrading-from-v2-to-v
   `sound_harsh`, `sound_muddy`, `sound_long`, `sound_repeated` and `sound_overlap`;
   `motionCatalog().audio.compose`; `renderSound`, `analyzeChannels`, `soundSpec` and `SoundSchema` exports.
 - Typed template fields: `global.fields` declares a template's inputs (map or list of `{ name, type, default?,
-required?, maxLength?, min?, max?, options?, label?, description? }`, types text, color, url, media, number,
+  required?, maxLength?, min?, max?, options?, label?, description? }`, types text, color, url, media, number,
   enum and time). Values come from `ProjectConfig.fields`, then `default`; each is coerced by its type and
   filled into `{{ name }}` after partial expansion — a whole-string placeholder takes the typed value, so
   `"duration": "{{ HOLD }}"` lands as a number — then the slot's own schema judges it. A render fails before
@@ -686,7 +686,7 @@ required?, maxLength?, min?, max?, options?, label?, description? }`, types text
   0.12.10, still comes from unpkg.
 - **Any Google Fonts family, by name.** A text `font` now also accepts
   `{ family, weight?, style? }` (e.g. `{ "family": "Playfair Display", "weight": 700,
-"style": "italic" }`), resolved from Google Fonts at render time. `weight` is 100..900 in steps
+  "style": "italic" }`), resolved from Google Fonts at render time. `weight` is 100..900 in steps
   of 100 (default 400), `style` is `normal` or `italic`. Registry ids and `.ttf` filenames keep
   working unchanged, and a typo in a registry id is still a validation error rather than a network
   lookup. A family that does not exist fails the render with an error naming it — a missing font is

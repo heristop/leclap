@@ -16,7 +16,7 @@ describe('findNondeterministicExpressions', () => {
   it('finds wall-clock expansions in drawtext text and clock/random calls in expressions', () => {
     const findings = findNondeterministicExpressions(
       card([
-        { type: 'drawtext', values: { text: { en: 'Today %{localtime\\:%Y}' }, x: '10', y: '10' } },
+        { type: 'drawtext', values: { text: { en: String.raw`Today %{localtime\:%Y}` }, x: '10', y: '10' } },
         { type: 'drawbox', values: { x: 'mod(time(0),100)', y: 0, w: 10, h: 10 } },
         { type: 'drawtext', values: { text: { en: 'x' }, x: '100*random(0)', y: '0' } },
         { type: 'drawtext', values: { text: { en: '%{gmtime}' }, x: '0', y: '0' } },

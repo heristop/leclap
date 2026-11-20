@@ -55,7 +55,7 @@ describe('zoomFilter', () => {
 describe('sheet', () => {
   const inputs = [
     { path: '/f/1.png', label: '1.50s hook' },
-    { path: '/f/2.png', label: "it's 2:00 \\ ok" },
+    { path: '/f/2.png', label: String.raw`it's 2:00 \ ok` },
   ];
 
   it('scales, labels, concatenates and tiles the frames', () => {

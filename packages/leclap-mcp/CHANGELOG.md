@@ -90,7 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `get_samples` replaces `list_samples` and `get_sample`: without `id` it lists (it accepts `category:
-"effects"`; 51 packaged samples), with `id` it returns the sample and its template, plus a
+  "effects"`; 51 packaged samples), with `id` it returns the sample and its template, plus a
   `partialCatalog` summary.
 - `validate_template` takes `include: ["resolved" | "timeline"]`, plus `fields` and `format` for them:
   `resolved` is `{ descriptor, values }`, the descriptor `compose_video` would render for the given
@@ -164,7 +164,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   layouts, right-to-left text and emoji.
 - `get_motion_catalog` lists the `type: "fx"` primitives (parameters, defaults, design intent, reduced
   motion) under `fx`, and the library APNGs under `samples` with the primitives that replace them; `kind:
-"fx"` searches them. `get_template_schema` and the `compose-video` prompt steer agents to compose motion
+  "fx"` searches them. `get_template_schema` and the `compose-video` prompt steer agents to compose motion
   from these primitives, tuned to the brief, and `validate_template` returns the sameness lint
   (`fx_untuned`, `effect_repeated`, `library_animation_sample`, `effect_off_theme`, `decor_overload`).
 

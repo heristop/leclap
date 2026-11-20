@@ -76,7 +76,7 @@ Copy is a string, or `{ "en": "…", "fr": "…" }`; `--locale` picks one and is
 
 > **`Overflow` is the guard working, not an obstacle.** `build.py` measures every string on the
 > font's real glyph advances and stops rather than render off-frame (`Overflow: before desc: 3 lines >
-2 allowed`). It then runs `leclap validate` on the resolved template, where the engine lays out the
+> 2 allowed`). It then runs `leclap validate` on the resolved template, where the engine lays out the
 > slate's HTML layers itself and stops on `html_overflow` or a field longer than its `maxLength`.
 > Shorten the copy. Never widen the box or bypass the check.
 

@@ -48,7 +48,7 @@ function transcriptionSource(
   from: string | undefined
 ): { name: string | null; index: number } {
   const sourceIndex = sourceIndexOf(sections, index, from);
-  const source = sourceIndex < 0 ? undefined : sections[sourceIndex];
+  const source = sections[sourceIndex];
 
   if (!source || !CLIP_SECTION_TYPES.has(String(source.type))) return { name: null, index: -1 };
 

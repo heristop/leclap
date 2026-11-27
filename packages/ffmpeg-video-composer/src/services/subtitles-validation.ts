@@ -19,7 +19,7 @@ function wordErrors(words: readonly WordTimingInput[] | undefined, path: string)
   const errors: ValidationError[] = [];
 
   for (const [index, word] of (words ?? []).entries()) {
-    const previous = index > 0 ? (words as WordTimingInput[])[index - 1] : undefined;
+    const previous = (words as WordTimingInput[])[index - 1] as WordTimingInput | undefined;
     const at = `${path}[${index}]`;
 
     if (word.end < word.start) {

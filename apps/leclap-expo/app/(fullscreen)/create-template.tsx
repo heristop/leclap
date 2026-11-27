@@ -363,14 +363,14 @@ export default function CreateTemplateScreen() {
             setOverlayIndex(null);
           }}
           onChange={(next) => {
-            if (overlayIndex === null || !overlaySection || overlaySection.kind !== 'video') return;
+            if (overlayIndex === null || overlaySection?.kind !== 'video') return;
 
             patchSection(overlayIndex, {
               overlays: overlaySection.overlays.map((o, idx) => (idx === overlayLayer ? next : o)),
             });
           }}
           onRemove={() => {
-            if (overlayIndex === null || !overlaySection || overlaySection.kind !== 'video') return;
+            if (overlayIndex === null || overlaySection?.kind !== 'video') return;
 
             patchSection(overlayIndex, { overlays: overlaySection.overlays.filter((_, idx) => idx !== overlayLayer) });
             setOverlayIndex(null);

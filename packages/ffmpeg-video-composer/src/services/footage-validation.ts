@@ -87,7 +87,7 @@ function freezeErrors(options: Bag, path: string, fps: number): ValidationError[
 
   return freezes.flatMap((freeze, index): ValidationError[] => {
     const at = freeze.at;
-    const previous = index > 0 ? freezes[index - 1] : undefined;
+    const previous = freezes[index - 1] as Bag | undefined;
 
     if (typeof at !== 'number') return [];
 

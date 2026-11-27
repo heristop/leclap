@@ -4,7 +4,7 @@
 // The key travels only in the Authorization header. Browser (CORS) support for this API is not
 // confirmed; a blocked call surfaces as a 'network' ProviderError the UI explains.
 import { createTypeSafeAi } from '@ai-sdk/typesafe-ai';
-import { experimental_evaluate as evaluate, type Experimental_EvaluationAnswer as EvaluationAnswer } from 'ai';
+import { experimental_decide as decide, type Experimental_DecisionAnswer as DecisionAnswer } from 'ai';
 import type { JevAnswer, JevAsk, JevQuestion } from '@/application/usecases/ai-template/brief-router';
 import { browserFetch } from './browser-fetch';
 import { toProviderError } from './provider-errors';
@@ -23,7 +23,7 @@ export interface JevRequest {
   fetch?: typeof globalThis.fetch;
 }
 
-type SdkAnswer = EvaluationAnswer<JevQuestion>;
+type SdkAnswer = DecisionAnswer<JevQuestion>;
 
 function readConfidence(metadata: unknown): Record<string, number> {
   const confidence = (metadata as { typesafe?: { confidence?: unknown } } | undefined)?.typesafe?.confidence;
@@ -47,8 +47,8 @@ export async function askJev(request: JevRequest): Promise<Record<string, JevAns
   const typesafe = createTypeSafeAi({ apiKey: request.apiKey, fetch: browserFetch(request.fetch) });
 
   try {
-    const result = await evaluate({
-      model: typesafe.evaluationModel(request.model ?? JEV_MODEL),
+    const result = await decide({
+      model: typesafe.decisionModel(request.model ?? JEV_MODEL),
       state: request.state,
       questions: request.questions,
       abortSignal: request.signal,

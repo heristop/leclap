@@ -7,12 +7,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "remotion": "4.0.509",
-    "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.547"
   },
   "devDependencies": {
-    "@types/react": "19.2.2",
+    "@types/react": "19.3.1",
     "typescript": "7.0.2"
   }
 }

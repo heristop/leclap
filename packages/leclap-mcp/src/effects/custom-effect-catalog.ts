@@ -147,6 +147,9 @@ function jsonSnapshot(input: unknown) {
   return { value: JSON.parse(json) as unknown, nodes: usage.nodes, bytes: Buffer.byteLength(json) };
 }
 function freeze<T>(value: T): T {
+  // Zod 4.6 installs a schema's members lazily on first use, so a frozen schema throws on `.parse`.
+  if (value instanceof z.ZodType) return value;
+
   if (value && typeof value === 'object') {
     for (const child of Object.values(value)) freeze(child);
     Object.freeze(value);

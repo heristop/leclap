@@ -43,7 +43,6 @@ i18n
     ns: Object.keys(en),
     interpolation: { escapeValue: false },
     returnNull: false,
-    compatibilityJSON: 'v4',
   })
   .catch(() => {});
 

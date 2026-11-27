@@ -108,7 +108,7 @@ function untangle(words: TranscriptWord[]): TranscriptWord[] {
   const sorted = [...words].sort((a, b) => a.start - b.start);
 
   return sorted.map((word, index) => {
-    const previous = index > 0 ? sorted[index - 1] : undefined;
+    const previous = sorted[index - 1] as TranscriptWord | undefined;
     const start = previous && word.start < previous.end ? previous.end : word.start;
 
     return { ...word, start, end: Math.max(start, word.end) };

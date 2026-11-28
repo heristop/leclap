@@ -1,0 +1,106 @@
+{
+  "processor": {
+    "status": {
+      "processingTitle": "Processando vídeo...",
+      "processingDescription": "Aguarde enquanto processamos seu vídeo",
+      "readyTitle": "Pronto para processar",
+      "readyDescription": "Todos os requisitos foram atendidos. Você pode começar o processamento.",
+      "setupTitle": "Configuração necessária",
+      "setupDescription": "Selecione um modelo e envie os arquivos de vídeo"
+    },
+    "error": {
+      "title": "Erro de processamento"
+    },
+    "action": {
+      "start": "Iniciar processamento",
+      "processing": "Processando...",
+      "stop": "Parar"
+    },
+    "template": {
+      "selected": "Modelo selecionado: {{name}}",
+      "complexity": "Complexidade",
+      "orientation": "Orientação",
+      "sections": "Seções",
+      "music": "Música",
+      "musicEnabled": "Ativada",
+      "musicDisabled": "Desativada",
+      "formData": "Suas respostas"
+    },
+    "requirements": {
+      "title": "Antes de começar o processamento:",
+      "engineReady": "Motor de processamento de vídeo pronto",
+      "selectTemplate": "Selecione um modelo",
+      "fillForm": "Preencha o formulário do modelo",
+      "uploadFile": "Envie pelo menos um arquivo de vídeo"
+    },
+    "tips": {
+      "title": "Dicas de processamento",
+      "keepTabActive": "Mantenha esta aba ativa durante o processamento",
+      "largerFiles": "Arquivos maiores levam mais tempo para processar",
+      "monitorProgress": "Você pode acompanhar o progresso em tempo real",
+      "inBrowser": "O processamento acontece inteiramente no seu navegador"
+    }
+  },
+  "progress": {
+    "header": {
+      "title": "Renderizando seu vídeo"
+    },
+    "stage": {
+      "initializing": "Iniciando o motor",
+      "editing": "Cortando seus clipes",
+      "preparing": "Carregando seus clipes",
+      "configuring": "Configurando o projeto",
+      "processing": "Lendo o modelo",
+      "compiling": "Renderizando as cenas",
+      "finalizing": "Finalizando",
+      "complete": "Concluído",
+      "error": "Falha na renderização"
+    },
+    "quip": {
+      "projector": "Aquecendo o projetor…",
+      "reels": "Carregando os rolos…",
+      "pixels": "Colocando os pixels no lugar…",
+      "soundtrack": "Sincronizando a trilha sonora…",
+      "dance": "Ensinando seus quadros a dançar…",
+      "splice": "Emendando as melhores partes…",
+      "colors": "Ajustando as cores…",
+      "magic": "Polvilhando um pouco de magia cinematográfica…",
+      "transitions": "Suavizando cada transição…",
+      "frames": "Polindo até o último quadro…",
+      "mix": "Mixando o corte final…",
+      "finish": "Preparando o grande final…",
+      "carpet": "Estendendo o tapete vermelho…",
+      "showtime": "Quase na hora do show…"
+    },
+    "metrics": {
+      "private": "Privado",
+      "onDevice": "No dispositivo",
+      "elapsed": "Decorrido",
+      "left": "Restante",
+      "estimating": "Estimando…",
+      "about": "~{{time}}"
+    },
+    "bar": {
+      "ariaLabel": "Progresso do processamento do vídeo"
+    },
+    "complete": {
+      "title": "Seu vídeo está pronto"
+    }
+  },
+  "export": {
+    "preview": {
+      "videoAriaLabel": "Vídeo renderizado",
+      "label": "Vídeo renderizado"
+    },
+    "actions": {
+      "download": "Baixar vídeo",
+      "saving": "Salvando…",
+      "saved": "Salvo",
+      "started": "Download iniciado"
+    },
+    "fileType": "Vídeo MP4",
+    "share": {
+      "text": "Feito com LeClap — renderizado direto no meu navegador."
+    }
+  }
+}

@@ -11,6 +11,7 @@ import adminDe from '@/i18n/locales/de/admin.json';
 import adminEs from '@/i18n/locales/es/admin.json';
 import adminFr from '@/i18n/locales/fr/admin.json';
 import adminIt from '@/i18n/locales/it/admin.json';
+import adminPt from '@/i18n/locales/pt/admin.json';
 import { TemplateLinkNotice } from './template-link-notice';
 
 beforeAll(async () => {
@@ -67,11 +68,11 @@ describe('TemplateLinkNotice', () => {
     }
   });
 
-  it('is translated with the same keys in all five languages', () => {
+  it('is translated with the same keys in all six languages', () => {
     const keys = (bundle: typeof admin.link): string[] =>
       [...Object.keys(bundle), ...Object.keys(bundle.errors).map((code) => `errors.${code}`)].sort();
 
-    for (const bundle of [adminFr, adminDe, adminEs, adminIt]) {
+    for (const bundle of [adminFr, adminDe, adminEs, adminIt, adminPt]) {
       expect(keys(bundle.link)).toEqual(keys(admin.link));
       expect(bundle.link.rebindScene).toContain('{{section}}');
     }

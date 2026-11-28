@@ -1,0 +1,51 @@
+{
+  "hero": {
+    "eyebrow": "Composição, não geração",
+    "title": "Sobre o LeClap",
+    "tagline": "O LeClap transforma um modelo JSON e suas próprias gravações em um vídeo pronto. O FFmpeg o renderiza em um terminal, em uma aba do navegador ou em um celular: nenhum modelo de IA gera um único quadro, e suas gravações nunca são enviadas."
+  },
+  "cta": {
+    "prompt": "Pronto para compor seu primeiro vídeo?",
+    "start": "Começar a criar",
+    "compare": "Como o LeClap se compara ao Remotion"
+  },
+  "story": {
+    "eyebrow": "A história até aqui",
+    "title": "De uma biblioteca Node para todas as telas",
+    "lead": "O LeClap começou como um pacote npm que compila um modelo JSON em comandos FFmpeg. Ele ainda faz exatamente isso; tudo o que veio depois foi para rodar essa mesma etapa em mais lugares.",
+    "today": "Hoje",
+    "chapters": {
+      "origin": {
+        "title": "Entra um modelo, sai um vídeo",
+        "body": "A primeira versão do ffmpeg-video-composer: uma biblioteca Node que lê um modelo JSON, o compila em comandos FFmpeg e os executa."
+      },
+      "everywhere": {
+        "title": "O mesmo modelo em todas as telas",
+        "body": "O motor ganha uma entrada para navegador, com o FFmpeg compilado para WebAssembly, e uma para React Native, com o FFmpeg compilado dentro do app. A CLI e o servidor MCP são lançados no mesmo dia, como pacotes próprios."
+      },
+      "now": {
+        "title": "Um nome para tudo",
+        "body": "O LeClap é o Studio neste navegador, o app React Native, a CLI e o servidor MCP. O motor continua no npm com seu primeiro nome, admiravelmente literal: ffmpeg-video-composer."
+      }
+    }
+  },
+  "author": {
+    "eyebrow": "Feito por",
+    "name": "Alexandre Mogère",
+    "handle": "@heristop",
+    "bio": "Engenheiro de software baseado em Paris, cria ferramentas que dão autonomia a criadores e escreve sobre programação e IA no Zazen Code.",
+    "avatarAlt": "Alexandre Mogère",
+    "social": {
+      "website": "Site",
+      "github": "GitHub",
+      "twitter": "Twitter",
+      "coffee": "Me pague um café"
+    }
+  },
+  "thanks": {
+    "kicker": "Com gratidão",
+    "lead": "Nada disso renderiza sem o FFmpeg.",
+    "body": "Cada clipe, filtro e transição que o LeClap produz roda no FFmpeg — décadas de engenharia multimídia de código aberto mantidas vivas por uma comunidade mundial de voluntários.",
+    "link": "Apoie o projeto FFmpeg"
+  }
+}

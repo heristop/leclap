@@ -1,0 +1,55 @@
+{
+  "upload": {
+    "dropActive": "Solte os arquivos aqui",
+    "dropIdle": "Arraste e solte arquivos de vídeo aqui",
+    "pickFile": "Escolher um vídeo",
+    "browse": "ou clique para procurar arquivos ({{count}} restantes)",
+    "formats": "Aceita MP4, AVI, MOV, MKV, WebM • Máx. {{size}}MB por arquivo",
+    "filesBadge": "{{count}}/{{max}} arquivos",
+    "uploadAria": "Enviar arquivos de vídeo",
+    "removeAria": "Remover {{name}}",
+    "errorsTitle": "Erros de envio:",
+    "errorTooLarge": "{{name}} é grande demais (máx. {{size}}MB) — corte-o ou escolha um arquivo menor",
+    "errorInvalidType": "{{name}} não é um vídeo que conseguimos ler — tente MP4, MOV ou WebM",
+    "errorTooMany": "Arquivos demais. Máximo de {{max}} — remova um para adicionar outro",
+    "or": "ou",
+    "recordWithCamera": "Gravar com a câmera",
+    "uploadedFiles": "Arquivos enviados:"
+  },
+  "camera": {
+    "modes": {
+      "front": "Frontal",
+      "back": "Traseira",
+      "screen": "Tela",
+      "upload": "Enviar"
+    },
+    "errors": {
+      "screenDenied": "O compartilhamento de tela foi negado ou cancelado.",
+      "screenFailed": "Não foi possível iniciar a gravação de tela neste dispositivo."
+    },
+    "getReady": "Prepare-se…",
+    "action": "Ação!",
+    "recordingIn": "Gravando em {{value}}",
+    "wrapUp": "Finalizando — faltam {{remaining}}s",
+    "timesUp": "Acabou o tempo",
+    "unavailable": "Câmera indisponível",
+    "startRecording": "Iniciar gravação",
+    "stopRecording": "Parar gravação",
+    "cancelCountdown": "Cancelar contagem regressiva",
+    "retake": "Gravar de novo",
+    "useVideo": "Usar vídeo",
+    "closeAria": "Fechar câmera",
+    "switchAria": "Trocar câmera",
+    "livePreviewAria": "Pré-visualização ao vivo da câmera",
+    "recordedPreviewAria": "Pré-visualização do vídeo gravado",
+    "starting": "Iniciando a câmera…",
+    "sourceLabel": "Fonte de vídeo",
+    "screenUnavailable": "Captura de tela indisponível",
+    "uploadTitle": "Escolha um vídeo para usar",
+    "uploadHint": "Escolha um clipe existente e pré-visualize-o antes de usar.",
+    "screenTitle": "Grave sua tela",
+    "screenHint": "Toque em Iniciar gravação e escolha a tela, a janela ou a aba para compartilhar.",
+    "replaceClip": "Escolher outro vídeo",
+    "reviewTitle": "Revise seu clipe"
+  }
+}

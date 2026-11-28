@@ -13,6 +13,7 @@ import fr from '@/i18n/locales/fr/admin.json';
 import de from '@/i18n/locales/de/admin.json';
 import es from '@/i18n/locales/es/admin.json';
 import it_ from '@/i18n/locales/it/admin.json';
+import pt from '@/i18n/locales/pt/admin.json';
 import { SfxCuesPanel, SfxLibrary } from './sfx-cues-panel';
 import { SECTION_SFX_MAX, type SfxCue } from './sfx-cues.logic';
 
@@ -118,6 +119,7 @@ describe('sfx locale keys', () => {
     ['de', de],
     ['es', es],
     ['it', it_],
+    ['pt', pt],
   ])('%s carries the same sfx keys as English', (_lng, bundle) => {
     expect(keysOf(bundle.sfx).sort()).toEqual(keysOf(en.sfx).sort());
     expect(bundle.disclosure.sfx).toBeTruthy();

@@ -1,5 +1,5 @@
 // @vitest-environment node
-// Static-markup tests for the LeClap player: every control carries its translated name in all five languages,
+// Static-markup tests for the LeClap player: every control carries its translated name in all six languages,
 // the speed chip reads the current speed, the poster wears the LeClap title card, and the picture-in-picture
 // button names what it will do.
 import { beforeAll, describe, expect, it } from 'vitest';
@@ -11,10 +11,11 @@ import { fr } from '@/i18n/locales/fr';
 import { de } from '@/i18n/locales/de';
 import { es } from '@/i18n/locales/es';
 import { it as itLocale } from '@/i18n/locales/it';
+import { pt } from '@/i18n/locales/pt';
 import { PlayerPipButton } from './player-pip';
 import { VideoPlayer, type VideoPlayerProps } from './video-player';
 
-const LOCALES = { en, fr, de, es, it: itLocale } as const;
+const LOCALES = { en, fr, de, es, it: itLocale, pt } as const;
 
 beforeAll(async () => {
   await i18n.init({

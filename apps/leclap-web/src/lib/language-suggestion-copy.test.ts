@@ -22,6 +22,7 @@ import { fr } from '@/i18n/locales/fr';
 import { de } from '@/i18n/locales/de';
 import { es } from '@/i18n/locales/es';
 import { it as itLocale } from '@/i18n/locales/it';
+import { pt } from '@/i18n/locales/pt';
 
 /** Narrow to the runs that are a language name, so `lang` is a Language rather than possibly null. */
 const isNamed = (run: SentenceRun): run is SentenceRun & { lang: Language } => run.lang !== null;
@@ -116,7 +117,7 @@ describe('resolveOfferCopy', () => {
   const read = (lng: Language, key: string, options?: { language: string }) =>
     i18n.getFixedT(lng, 'common')(key, options);
 
-  const bundles = { en, fr, de, es, it: itLocale } as const;
+  const bundles = { en, fr, de, es, it: itLocale, pt } as const;
 
   const copyFor = async (from: Language, to: Language, loaded: boolean) => {
     await i18nReady;

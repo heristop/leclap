@@ -26,6 +26,7 @@ export const LOCALES = [
   { code: 'de', nativeName: 'Deutsch', ogLocale: 'de_DE' },
   { code: 'es', nativeName: 'Español', ogLocale: 'es_ES' },
   { code: 'it', nativeName: 'Italiano', ogLocale: 'it_IT' },
+  { code: 'pt', nativeName: 'Português', ogLocale: 'pt_BR' },
 ] as const;
 
 export type Language = (typeof LOCALES)[number]['code'];

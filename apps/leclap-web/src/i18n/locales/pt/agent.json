@@ -1,0 +1,122 @@
+{
+  "pill": {
+    "label": "Agente",
+    "aria": "Agente do navegador: {{state}}",
+    "states": {
+      "off": "desligado",
+      "idle": "pronto",
+      "working": "trabalhando"
+    }
+  },
+  "popover": {
+    "title": "Agente do navegador",
+    "intro": "Um agente de IA integrado ao seu navegador pode ler este modelo, conferi-lo e fazer alterações que você pode desfazer. Ele usa o agente do próprio navegador: esta página não guarda nenhuma chave de API.",
+    "polyfill": "Modo de desenvolvimento: as ferramentas vêm do polyfill WebMCP.",
+    "close": "Fechar"
+  },
+  "settings": {
+    "enabled": "Permitir que agentes do navegador usem este editor",
+    "enabledHelp": "Desative para remover todas as ferramentas de uma vez.",
+    "askBeforeEdit": "Perguntar antes de cada edição",
+    "askBeforeEditHelp": "Cada alteração do agente espera pelo seu OK.",
+    "problem": "Algumas ferramentas não puderam ser registradas: {{detail}}"
+  },
+  "log": {
+    "title": "Atividade recente",
+    "emptyTitle": "Nenhuma atividade ainda",
+    "empty": "Nada ainda. Peça ao agente do seu navegador para trabalhar neste modelo, e cada passo aparece aqui.",
+    "undo": "Desfazer",
+    "undoLabel": "Desfazer: {{action}}",
+    "note": "Nota do agente: {{note}}",
+    "status": {
+      "ok": "Concluído",
+      "error": "Falhou",
+      "declined": "Recusado"
+    },
+    "changed_one": "{{count}} cena alterada",
+    "changed_other": "{{count}} cenas alteradas"
+  },
+  "tools": {
+    "get_template": "Leu o modelo",
+    "list_sections": "Listou as cenas",
+    "get_template_schema": "Leu o esquema do modelo",
+    "get_motion_catalog": "Consultou as predefinições de movimento",
+    "list_samples": "Navegou pelos exemplos",
+    "get_sample": "Leu um exemplo",
+    "validate_template": "Conferiu o modelo",
+    "get_timeline": "Leu a linha do tempo",
+    "select_section": "Selecionou uma cena",
+    "edit_template": "Editou o modelo",
+    "add_section": "Adicionou uma cena",
+    "remove_section": "Removeu uma cena",
+    "move_section": "Moveu uma cena",
+    "set_texts": "Alterou o texto na tela",
+    "undo": "Desfez seu último passo",
+    "set_theme": "Alterou o tema",
+    "set_format": "Alterou o formato",
+    "set_music": "Alterou a música",
+    "replace_template": "Substituiu o modelo",
+    "load_sample": "Abriu um exemplo",
+    "render_preview": "Renderizou uma pré-visualização",
+    "render_frames": "Capturou quadros da pré-visualização",
+    "save_template": "Salvou o modelo"
+  },
+  "actions": {
+    "edit_template": "editar o modelo",
+    "add_section": "adicionar uma cena",
+    "remove_section": "remover uma cena",
+    "move_section": "mover uma cena",
+    "set_texts": "alterar o texto na tela",
+    "undo": "desfazer seu último passo",
+    "set_theme": "alterar o tema",
+    "set_format": "alterar o formato",
+    "set_music": "alterar a música",
+    "replace_template": "substituir este modelo",
+    "load_sample": "abrir um exemplo no lugar deste modelo",
+    "render_preview": "renderizar uma pré-visualização",
+    "render_frames": "capturar quadros da pré-visualização",
+    "save_template": "salvar este modelo"
+  },
+  "errors": {
+    "invalid_input": "pedido inválido",
+    "too_large": "pedido grande demais",
+    "revision_conflict": "o modelo mudou nesse meio-tempo",
+    "invalid_template": "quebraria o modelo",
+    "builder_unsupported_section": "não suportado pelo editor",
+    "no_effect": "nada que o editor pudesse manter",
+    "not_found": "não encontrado",
+    "user_declined": "recusado por você",
+    "needs_user_attention": "aba em segundo plano",
+    "rate_limited": "pedidos demais",
+    "busy": "outro passo estava em andamento",
+    "disabled": "as ferramentas do agente estão desligadas",
+    "aborted": "cancelado",
+    "unavailable": "indisponível",
+    "render_failed": "a renderização falhou",
+    "save_blocked": "ainda não pode ser salvo"
+  },
+  "confirm": {
+    "title": "Permitir esta ação do agente do navegador?",
+    "description": "O agente do seu navegador quer {{action}}.",
+    "undoable": "Você pode desfazer depois.",
+    "allow": "Permitir",
+    "deny": "Não permitir",
+    "allowSession": "Permitir pré-visualizações pelo resto desta sessão",
+    "details": {
+      "replace_template": "Abre como um novo rascunho chamado “{{name}}” com {{sections}} cenas; Desfazer traz seu rascunho atual de volta.",
+      "load_sample": "O exemplo “{{title}}” abre como um novo rascunho; Desfazer traz seu rascunho atual de volta.",
+      "render_preview": "Renderiza cerca de {{duration}} s de vídeo no seu navegador com mídia provisória, em torno de {{seconds}} s de trabalho, e abre a pré-visualização aqui.",
+      "save_template": "Salva “{{name}}” na sua biblioteca de modelos neste dispositivo; o editor continua aberto."
+    }
+  },
+  "live": {
+    "changed_one": "O agente do navegador alterou {{count}} cena",
+    "changed_other": "O agente do navegador alterou {{count}} cenas",
+    "settings_one": "O agente do navegador alterou as configurações do modelo",
+    "settings_other": "O agente do navegador alterou as configurações do modelo",
+    "declined_one": "Você recusou uma ação do agente do navegador",
+    "declined_other": "Você recusou {{count}} ações do agente do navegador",
+    "failed_one": "Uma ação do agente do navegador falhou",
+    "failed_other": "{{count}} ações do agente do navegador falharam"
+  }
+}

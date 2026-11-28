@@ -1,0 +1,30 @@
+{
+  "default": {
+    "title": "LeClap — Motor de vídeo e motion graphics com IA",
+    "description": "Crie motion graphics com agentes de IA, JSON editável e MCP. Renderize localmente com FFmpeg ou experimente um exemplo no navegador, sem envio."
+  },
+  "studio": {
+    "title": "Studio",
+    "description": "Escolha um modelo e componha seu vídeo direto no navegador — corte, recorte, adicione música e exporte com FFmpeg no dispositivo. Sem envios, sem servidores."
+  },
+  "about": {
+    "title": "Sobre",
+    "description": "O LeClap renderiza um modelo JSON e suas próprias gravações em um vídeo pronto com FFmpeg — em um terminal, em um navegador ou em um celular. Sua história e quem o faz."
+  },
+  "compareRemotion": {
+    "title": "LeClap vs Remotion — renderização de vídeo no dispositivo",
+    "description": "Ambos renderizam vídeo de forma determinística a partir de código. O Remotion compõe em React e precisa de um motor de navegador; o LeClap renderiza um modelo JSON nativamente no dispositivo. Uma comparação honesta."
+  },
+  "legal": {
+    "title": "Aviso legal",
+    "description": "Quem publica e hospeda o LeClap — o compositor de vídeo cinematográfico aberto, que roda no navegador."
+  },
+  "privacy": {
+    "title": "Política de privacidade",
+    "description": "O LeClap processa sua mídia no seu dispositivo. Sem envios, sem contas, sem rastreamento — veja exatamente como sua privacidade é tratada."
+  },
+  "showcase": {
+    "title": "Vitrine de movimento",
+    "description": "Assista a todos os exemplos do LeClap, explore o movimento nativo e com Remotion, leia a direção criativa e baixe modelos JSON editáveis."
+  }
+}

@@ -1,0 +1,189 @@
+{
+  "srHeading": "Modelos — crie seu vídeo a partir de um modelo cinematográfico",
+  "project": {
+    "loading": "Carregando seu projeto…"
+  },
+  "chip": {
+    "template": "Modelo"
+  },
+  "steps": {
+    "template": "Modelo",
+    "details": "Detalhes",
+    "clip": "Clipe {{number}}",
+    "yourClip": "Seu clipe",
+    "music": "Música",
+    "create": "Criar",
+    "done": "Concluído"
+  },
+  "modeToggle": {
+    "ariaLabel": "Layout do editor",
+    "linear": "Passo a passo",
+    "hub": "Tudo de uma vez"
+  },
+  "stepTemplate": {
+    "title": "Escolha seu estilo",
+    "subtitle": "Selecione um modelo cinematográfico para começar a criar"
+  },
+  "studio": {
+    "home": {
+      "kicker": "Studio",
+      "title": "Escolha seu estilo",
+      "subtitle": "Escolha um modelo cinematográfico para começar a criar"
+    }
+  },
+  "stepMedia": {
+    "title": "Música e fundo",
+    "subtitle": "Escolha a trilha sonora e o cenário do seu vídeo",
+    "music": "Música",
+    "background": "Imagem de fundo",
+    "formatTitle": "Formato",
+    "formatNote": "Definido pelo modelo",
+    "aspect": {
+      "portrait": "Vertical 9:16",
+      "landscape": "Horizontal 16:9",
+      "square": "Quadrado 1:1"
+    }
+  },
+  "editor": {
+    "content": "Conteúdo",
+    "media": "Mídia",
+    "format": "Formato",
+    "record": "Gravar",
+    "details": "Detalhes",
+    "tools": "Ferramentas do editor",
+    "mobileView": "Pré-visualizar ou editar",
+    "program": "Programa",
+    "viewMode": "Visualização do monitor",
+    "preview": "Pré-visualização",
+    "approx": "Aproximado",
+    "timeline": "Cenas",
+    "ready": "{{done}} de {{total}} prontas",
+    "emptyClipTitle": "Nenhum clipe ainda",
+    "emptyClipHint": "Grave ou envie no painel Conteúdo para ver aqui.",
+    "emptyFormTitle": "Nada para pré-visualizar ainda",
+    "emptyFormHint": "Suas respostas aparecem nas cenas que as usam.",
+    "save": {
+      "saving": "Salvando…",
+      "saved": "Salvo",
+      "savedAgo": "Salvo {{time}}",
+      "failed": "Falha ao salvar",
+      "time": {
+        "justNow": "agora mesmo",
+        "minutes": "há {{count}} min",
+        "hours": "há {{count}} h",
+        "days": "há {{count}} d",
+        "weeks": "há {{count}} sem",
+        "months": "há {{count}} mês"
+      }
+    },
+    "answersTitle": "Suas respostas",
+    "answersLead": "O formulário fica fora da tela; elas preenchem as cenas que as usam.",
+    "answersEmpty": "Ainda não preenchido",
+    "answersShown": "Na tela",
+    "answersNotShown": "Fora da tela"
+  },
+  "stepProcess": {
+    "title": "Criar vídeo",
+    "subtitle": "Estamos prontos para construir sua obra-prima",
+    "summary": "Resumo do projeto",
+    "template": "Modelo",
+    "clips": "Clipes",
+    "videoCount": "{{count}} vídeo(s)",
+    "engineStatus": "Status do motor",
+    "ready": "Pronto",
+    "initializing": "Inicializando...",
+    "progress": "Progresso do processamento"
+  },
+  "compile": {
+    "stop": "Parar renderização",
+    "finishing": "Finalizando…",
+    "errorTitle": "A renderização falhou",
+    "errorHint": "Suas cenas estão seguras. Tente novamente ou volte e confira seus clipes.",
+    "backToEdit": "Voltar à edição",
+    "clips": "Clipes",
+    "clipCount_one": "{{count}} clipe",
+    "clipCount_other": "{{count}} clipes",
+    "project": "Projeto"
+  },
+  "stepResult": {
+    "title": "Está no capricho",
+    "subtitle": "Renderizado no seu navegador — seus clipes nunca saíram deste dispositivo.",
+    "editProject": "Continuar editando",
+    "createAnother": "Novo vídeo"
+  },
+  "stepForm": {
+    "defaultTitle": "Seus detalhes",
+    "subtitle": "Preencha os detalhes desta parte"
+  },
+  "stepClip": {
+    "clipOf": "Clipe {{number}} de {{total}}",
+    "editorLabel": "Cortar e recortar"
+  },
+  "rush": {
+    "gallery": "Suas tomadas",
+    "take": "Tomada {{number}}",
+    "use": "Usar tomada {{number}}",
+    "remove": "Remover tomada {{number}}",
+    "addAnother": "Gravar outra tomada",
+    "addTake": "Adicionar uma tomada",
+    "confirmRemove": "Remover a tomada {{number}}? A gravação será descartada.",
+    "keep": "Manter",
+    "confirm": "Remover"
+  },
+  "edit": {
+    "trim": "Cortar",
+    "crop": "Recortar",
+    "videoAriaLabel": "Vídeo em edição",
+    "resetTrim": "Redefinir corte",
+    "resetCrop": "Redefinir recorte",
+    "cropHint": "Arraste o quadro ou seus cantos para recortar.",
+    "trimHint": "Arraste as bordas de um clipe para cortá-lo · Dividir corta na posição atual · ⋮ define a velocidade",
+    "play": "Reproduzir",
+    "pause": "Pausar",
+    "undo": "Desfazer",
+    "redo": "Refazer",
+    "split": "Dividir",
+    "splitHere": "Dividir aqui",
+    "deleteSegment": "Excluir segmento",
+    "segmentOptions": "Opções do segmento",
+    "speed": "Velocidade",
+    "invert": "Inverter",
+    "trimStart": "Cortar início",
+    "trimEnd": "Cortar fim",
+    "segment": "Segmento {{number}}, de {{start}} a {{end}}"
+  },
+  "hub": {
+    "subtitle": "Preencha cada parte e depois crie seu vídeo",
+    "next": "A seguir",
+    "changeTemplate": "Trocar modelo",
+    "prevSection": "Seção anterior",
+    "nextSection": "Próxima seção",
+    "completed_one": "{{done}} de {{count}} seção concluída",
+    "completed_other": "{{done}} de {{count}} seções concluídas",
+    "createCta": "Criar meu vídeo",
+    "ready": "Tudo pronto — hora de renderizar",
+    "remaining_one": "Conclua mais {{count}} seção para continuar",
+    "remaining_other": "Conclua mais {{count}} seções para continuar",
+    "yourDetails": "Seus detalhes",
+    "recordClip": "Grave seu clipe",
+    "section": "Seção",
+    "mediaHeading": "Música e fundo",
+    "mediaSubtitle": "Escolha a trilha sonora e o cenário",
+    "mediaSubtitleShort": "Escolha trilha sonora e cenário",
+    "selectionSaved": "Seleção salva",
+    "clipOf": "Clipe {{number}} de {{total}}",
+    "recordOrUpload": "Grave ou envie seu clipe",
+    "quality": {
+      "label": "Qualidade",
+      "draft": "Rascunho",
+      "standard": "Padrão",
+      "high": "Alta",
+      "hint": {
+        "draft": "Renderização mais rápida e arquivo mais leve — para conferir o tempo.",
+        "standard": "Equilíbrio entre imagem e tempo de renderização.",
+        "high": "Imagem mais nítida; renderização mais lenta, arquivo maior."
+      }
+    },
+    "createBlocked": "Preencha todas as cenas primeiro ({{done}} de {{total}} prontas)"
+  }
+}

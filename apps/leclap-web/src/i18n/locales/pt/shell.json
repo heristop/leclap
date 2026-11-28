@@ -1,0 +1,15 @@
+{
+  "notFound": {
+    "seoTitle": "Página não encontrada",
+    "slate": "Cena 404",
+    "eyebrow": "Erro 404 · Página não encontrada",
+    "title": "Esta cena não passou na edição.",
+    "message": "Não há nada em <path/>. O link é antigo ou tem um erro de digitação.",
+    "suggestion": "Você quis dizer <path/>?",
+    "home": "Voltar à página inicial",
+    "studio": "Abrir o Studio",
+    "elsewhere": "Mais no LeClap"
+  },
+  "stepperProgress": "Progresso",
+  "stepperStep": "Etapa {{current}} de {{total}}"
+}

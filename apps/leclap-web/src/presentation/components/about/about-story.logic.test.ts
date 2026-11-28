@@ -8,6 +8,7 @@ describe('storyMonth', () => {
     ['de', 'Mai 2024'],
     ['es', 'mayo de 2024'],
     ['it', 'maggio 2024'],
+    ['pt', 'maio de 2024'],
   ])('writes the release month the way %s readers write it', (lang, expected) => {
     expect(storyMonth('2024-05-01', lang)).toBe(expected);
   });

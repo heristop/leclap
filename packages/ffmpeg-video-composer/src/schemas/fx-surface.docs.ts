@@ -1,6 +1,6 @@
-// The prose of the glass and resolve rows (fx-surface.schemas.ts): a row of FX_DOCS each (fx-docs.ts).
+// The prose of the glass, resolve and mirror rows (fx-surface.schemas.ts): a row of FX_DOCS each (fx-docs.ts).
 import type { FxDoc } from './fx-primitives.schemas';
-import type { glass, resolve } from './fx-surface.schemas';
+import type { glass, mirror, resolve } from './fx-surface.schemas';
 
 export const glassDoc = {
   params: {
@@ -38,3 +38,21 @@ export const resolveDoc = {
     reduced: 'a plain cross-fade from the glow into the sharp element (no defocus steps, no scale)',
   },
 } satisfies FxDoc<(typeof resolve)['params']>;
+
+export const mirrorDoc = {
+  params: {
+    mode: 'horizontal: one side reflected across a vertical seam; vertical: top or bottom reflected across a horizontal seam; quad: both, a four-way kaleidoscope. Default horizontal on a wide target, vertical on a tall one.',
+    side: 'Which side is the source: start = left (or top), end = right (or bottom). Default start.',
+    seam: "Where the mirror axis sits, as a share of the target's width (or height) (default 0.5). Off-centre, the reflection reaches as far as the kept side and the rest stays as it was.",
+  },
+  intent: {
+    summary:
+      'A mirror: one side of the target reflected onto the other across a seam, or across both axes as a kaleidoscope, held for the duration. Symmetry out of any shot, with no new footage.',
+    useWhen:
+      'a dance, a skate trick or a crowd shot needs a punchy, symmetric beat; a transition beat between two cuts',
+    avoidWhen:
+      'faces or text (a mirrored word is unreadable, a mirrored face looks wrong); long holds on talking heads',
+    vary: 'mode sets the symmetry (horizontal, vertical, quad); side picks which half survives; seam moves the axis off-centre; duration sets how long it holds; repeat + every flicker it on beats; target a layer or a rectangle to mirror only part of the frame.',
+    reduced: 'unchanged (it does not move)',
+  },
+} satisfies FxDoc<(typeof mirror)['params']>;

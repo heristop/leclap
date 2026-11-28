@@ -12,6 +12,7 @@ import { paintEdgeGlow, paintLeak, paintSheen, paintVignette } from './paint-lig
 import { paintConfetti, paintGlint, paintRipple } from './paint-marks';
 import { paintBurst } from './paint-burst';
 import { paintGoo } from './paint-goo';
+import { paintMirror } from './paint-mirror';
 import { bloomSurface, glassSurface, paintBokeh, paintDust, paintGrain, resolveSurface } from './paint-texture';
 import { strokePainter, type StrokeGraphic } from './paint-stroke';
 import type { Box, FxPainter } from './painter';
@@ -33,6 +34,7 @@ const FX_PARTS: Record<FxEffectName, (fx: never) => Parts | null> = {
   grain: (fx) => ({ paint: paintGrain(fx) }),
   glass: (fx) => ({ surface: glassSurface(fx) }),
   resolve: (fx) => ({ surface: resolveSurface(fx) }),
+  mirror: (fx) => ({ paint: paintMirror(fx) }),
   bloom: (fx) => ({ surface: bloomSurface(fx) }),
   goo: (fx) => ({ paint: paintGoo(fx) }),
 };

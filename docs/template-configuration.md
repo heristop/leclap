@@ -1942,15 +1942,15 @@ More in the [gallery](./gallery.md#light-and-effects).
 ]
 ```
 
-There are 15 primitives in five families:
+There are 16 primitives in five families:
 
-| Family   | Primitives                                   | Character                                                                                                  |
-| -------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Light    | `sheen`, `leak`, `edge-glow`, `bloom`        | Adds luminance and never greys: a highlight stays inside its target (an edge-glow blooms just outside it). |
-| Marks    | `ripple`, `glint`, `confetti`, `burst`       | Start from a point of the target and may leave it: a tap, a sparkle, a confetti pop, impact lines.         |
-| Ambient  | `bokeh`, `dust`, `vignette-breathe`, `grain` | Faint textures (≤ 0.12) that last the section. They are absent at `global.motion.energy: 0`.               |
-| Surfaces | `glass`, `resolve`                           | Rework the pixels inside the target: a frosted plate under text, a title that lands in focus.              |
-| Liquid   | `goo`                                        | A solid shape: blobs that stretch, split into droplets and merge back with gooey necks.                    |
+| Family   | Primitives                                   | Character                                                                                                   |
+| -------- | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Light    | `sheen`, `leak`, `edge-glow`, `bloom`        | Adds luminance and never greys: a highlight stays inside its target (an edge-glow blooms just outside it).  |
+| Marks    | `ripple`, `glint`, `confetti`, `burst`       | Start from a point of the target and may leave it: a tap, a sparkle, a confetti pop, impact lines.          |
+| Ambient  | `bokeh`, `dust`, `vignette-breathe`, `grain` | Faint textures (≤ 0.12) that last the section. They are absent at `global.motion.energy: 0`.                |
+| Surfaces | `glass`, `resolve`, `chromatic`              | Rework the pixels inside the target: a frosted plate under text, a title that lands in focus, an RGB split. |
+| Liquid   | `goo`                                        | A solid shape: blobs that stretch, split into droplets and merge back with gooey necks.                     |
 
 ### Targets
 
@@ -2248,6 +2248,25 @@ A logo or title resolves into place: the target region starts defocused, slightl
 | `fade`  | 0.1–1 | Share of the duration the element takes to become opaque (default 0.55).                                                                    |
 
 Use when: an intro logo, a brand lock-up or a one-word title lands on a calm card. Avoid: text that already has a kinetic entrance (pick one); over moving footage (the region is processed as a rectangle with a feathered edge).
+
+#### `chromatic` (surfaces)
+
+A chromatic aberration hit: the red and blue planes of the target split apart at the start of each pass and snap back to the clean picture, the classic RGB-split accent on a cut, a drop or a word. The split is `rgbashift` on a copy of the target region, stepped frame by frame in whole pixels (at least 1 px at the hit), with edges smeared rather than wrapped. Defaults: 0.35 s on `cubic-bezier(0.16, 1, 0.3, 1)`, ceiling 0.35 (intensity scales the split), intensity 1. Reduced motion: absent.
+
+| Field    | Range      | What it does                                                                                                                                                     |
+| -------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `shift`  | 0.001–0.03 | Red/blue offset at the hit as a share of the target's short side (default ~0.008–0.014, e.g. 7 px on 720p), each plane pushed the opposite way; it settles to 0. |
+| `angle`  | −180–180   | Direction of the split in degrees (0 = horizontal, red left and blue right; 90 = vertical; default a seeded tilt within ±15° of horizontal).                     |
+| `jitter` | 0–1        | Frame-by-frame wobble of the split direction, seeded (0 = a clean straight split, default; 1 = up to ±60° per frame, a glitchy hit).                             |
+
+```jsonc
+"graphics": [
+  { "type": "fx", "effect": "chromatic", "at": "beat:1", "repeat": 8, "every": 0.5, "shift": 0.012 },
+  { "type": "fx", "effect": "chromatic", "target": "text:0", "at": 1.2, "shift": 0.02, "angle": 90, "jitter": 0.6 }
+]
+```
+
+Use when: a beat drop, a hard cut or a title slam needs a jolt; `repeat` + `every` rides the beat. Avoid: calm or elegant pieces; faces in close-up for long passes; stacking it with a glitch look on the same beat.
 
 #### `goo` (liquid)
 

@@ -1,8 +1,8 @@
 import { z } from 'zod';
 
-// ── fx primitives "glass" and "resolve": they reshape the target's own pixels (rows of FX_PRIMITIVES) ──
+// ── fx primitives "glass", "resolve" and "chromatic": they reshape the target's own pixels (rows of FX_PRIMITIVES) ──
 //
-// Lowered by editor/presets/fx-glass.ts and fx-resolve.ts, from a copy of the target region the fx kit
+// Lowered by editor/presets/fx-glass.ts, fx-resolve.ts and fx-chromatic.ts, from a copy of the target region the fx kit
 // hands them.
 
 export const glass = {
@@ -26,4 +26,14 @@ export const resolve = {
   },
   // Not a light: intensity scales how far out of focus and how large it starts (the ceiling only bounds the row).
   defaults: { duration: 0.7, ease: 'cubic-bezier(0.16, 1, 0.3, 1)', ceiling: 0.35, intensity: 1 },
+};
+
+export const chromatic = {
+  params: {
+    shift: z.number().min(0.001).max(0.03).optional(),
+    angle: z.number().min(-180).max(180).optional(),
+    jitter: z.number().min(0).max(1).optional(),
+  },
+  // Not a light: intensity scales the split at the hit (the ceiling only bounds the row). A hit, then a fast settle.
+  defaults: { duration: 0.35, ease: 'cubic-bezier(0.16, 1, 0.3, 1)', ceiling: 0.35, intensity: 1, period: 0.25 },
 };

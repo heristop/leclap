@@ -1,6 +1,6 @@
-// The prose of the glass and resolve rows (fx-surface.schemas.ts): a row of FX_DOCS each (fx-docs.ts).
+// The prose of the glass, resolve and chromatic rows (fx-surface.schemas.ts): a row of FX_DOCS each (fx-docs.ts).
 import type { FxDoc } from './fx-primitives.schemas';
-import type { glass, resolve } from './fx-surface.schemas';
+import type { chromatic, glass, resolve } from './fx-surface.schemas';
 
 export const glassDoc = {
   params: {
@@ -38,3 +38,23 @@ export const resolveDoc = {
     reduced: 'a plain cross-fade from the glow into the sharp element (no defocus steps, no scale)',
   },
 } satisfies FxDoc<(typeof resolve)['params']>;
+
+export const chromaticDoc = {
+  params: {
+    shift:
+      "Red/blue offset at the hit as a share of the target's short side (default ~0.008–0.014, e.g. 7 px on 720p), each plane pushed the opposite way; it settles to 0 over the pass on the ease.",
+    angle:
+      'Direction of the split in degrees (0 = horizontal, red left and blue right; 90 = vertical; default a seeded tilt within ±15 of horizontal).',
+    jitter:
+      'Frame-by-frame wobble of the split direction, seeded (0 = a clean straight split, default; 1 = up to ±60° per frame, a glitchy, nervous hit).',
+  },
+  intent: {
+    summary:
+      'A chromatic aberration hit: the red and blue planes of the target split apart at the start of each pass and snap back to the clean picture, the classic RGB-split accent on a cut, a drop or a word.',
+    useWhen: 'a beat drop, a hard cut or a title slam needs a jolt; repeat + every rides the beat',
+    avoidWhen:
+      'calm or elegant pieces; faces in close-up for long passes; stacking it with a glitch look on the same beat',
+    vary: 'shift sets how violent the hit is (0.005 subtle, 0.02+ loud); angle sets the direction; jitter turns a clean split into a glitchy one; duration and ease set how fast it settles; repeat + every pulse it on beats; target a layer or a rectangle to split only part of the frame.',
+    reduced: 'absent (a flashing distortion; reduced motion drops it)',
+  },
+} satisfies FxDoc<(typeof chromatic)['params']>;

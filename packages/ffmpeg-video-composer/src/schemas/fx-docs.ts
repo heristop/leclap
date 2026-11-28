@@ -10,7 +10,7 @@ import { FX_PRIMITIVES, type FxDoc, type FxEffectName } from './fx-primitives.sc
 import { FxGraphicSchema } from './fx.schemas';
 import { burstDoc, confettiDoc, glintDoc, rippleDoc } from './fx-celebrate.docs';
 import { bokehDoc, dustDoc } from './fx-particles.docs';
-import { glassDoc, resolveDoc } from './fx-surface.docs';
+import { chromaticDoc, glassDoc, resolveDoc } from './fx-surface.docs';
 import { edgeGlowDoc, leakDoc } from './fx-light.docs';
 import { bloomDoc, grainDoc, vignetteBreatheDoc } from './fx-ambient.docs';
 import { gooDoc } from './fx-liquid.docs';
@@ -56,6 +56,7 @@ export const FX_DOCS: { [N in FxEffectName]: FxDoc<(typeof FX_PRIMITIVES)[N]['pa
   dust: dustDoc,
   glass: glassDoc,
   resolve: resolveDoc,
+  chromatic: chromaticDoc,
   leak: leakDoc,
   'edge-glow': edgeGlowDoc,
   bloom: bloomDoc,

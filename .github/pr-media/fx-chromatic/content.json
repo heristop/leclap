@@ -1,0 +1,36 @@
+{
+  "ticket": "PR #171",
+  "summary": "A chromatic fx primitive: an RGB split hit, previewed live in the builder",
+  "clipSeconds": 4,
+  "freeze": { "at": 1.3, "hold": 3 },
+  "intro": { "headline": "THE RGB SPLIT HIT" },
+  "outro": { "headline": "REVIEW THE FRINGES", "subtitle": "Offset, thickness and timing of each hit" },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "before.webm",
+      "trim": 4,
+      "highlight": { "x": 260, "y": 447, "w": 504, "h": 294 },
+      "callout": "The link is refused",
+      "chip": "Chromatic is unknown",
+      "pane": {
+        "title": "No such effect",
+        "desc": "The builder refuses a template that uses chromatic: the effect is not in its list."
+      }
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "after.webm",
+      "trim": 5,
+      "highlight": { "x": 560, "y": 245, "w": 315, "h": 175 },
+      "callout": "Red and blue split",
+      "chip": "Fringes on every hit",
+      "pane": {
+        "title": "Fringes on each hit",
+        "desc": "The selected effect loops on the canvas: red and blue fringes split around the target, then settle."
+      }
+    }
+  ]
+}

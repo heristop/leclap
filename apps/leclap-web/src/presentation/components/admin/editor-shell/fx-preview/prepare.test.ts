@@ -9,12 +9,14 @@ import { bandOf } from 'ffmpeg-video-composer/src/editor/presets/fx-sheen.ts';
 import { planOf as ripplePlan, ringWindow } from 'ffmpeg-video-composer/src/editor/presets/fx-ripple.ts';
 import { planOf as glintPlan } from 'ffmpeg-video-composer/src/editor/presets/fx-glint.ts';
 import { bokehField } from 'ffmpeg-video-composer/src/editor/presets/fx-particles.ts';
+import { chromaticRuns } from 'ffmpeg-video-composer/src/editor/presets/fx-chromatic.ts';
 import { newSection, type EditorSection } from '../../templateEditorModel';
 import { previewFxContext, type PreviewEnv } from './fx-context';
 import { preparePainter } from './prepare';
 import { sheenAlong } from './paint-light';
 import { passStarts, ringAt, starScale } from './paint-marks';
 import { particleAt } from './paint-texture';
+import { splitAt } from './paint-chromatic';
 import { outlineBox, sampleAt, strokeRequest, type StrokeGraphic } from './paint-stroke';
 
 function section(): EditorSection {
@@ -174,5 +176,23 @@ describe('strokes', () => {
     expect(sampleAt(samples, 0.5)).toBe(samples[0]);
     expect(sampleAt(samples, 9)).toBe(samples[1]);
     expect(sampleAt(samples, -1)).toBeNull();
+  });
+
+  it('fringes a chromatic hit with the offsets the render uses, then nothing once it settles', () => {
+    const fx = context<'chromatic'>({ effect: 'chromatic', target: 'layer:1', at: 1, shift: 0.02, angle: 0 });
+    const runs = chromaticRuns(fx);
+    const painter = preparePainter(
+      { type: 'fx', effect: 'chromatic', target: 'layer:1', at: 1, shift: 0.02, angle: 0 } as Graphic,
+      0,
+      env()
+    );
+
+    expect(painter?.paint).toBeTypeOf('function');
+    expect(splitAt(runs, 1.01)).toEqual({ dx: runs[0].dx, dy: 0 });
+    expect(runs[0].dx).toBe(9);
+    expect(splitAt(runs, 3)).toBeNull();
+    expect(preparePainter({ type: 'fx', effect: 'chromatic' } as Graphic, 0, env({ reduced: true }))?.absent).toBe(
+      true
+    );
   });
 });

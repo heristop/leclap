@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { burst, confetti, glint, ripple } from './fx-celebrate.schemas';
 import { bokeh, dust } from './fx-particles.schemas';
-import { glass, resolve } from './fx-surface.schemas';
+import { glass, mirror, resolve } from './fx-surface.schemas';
 import { BLOOM, GRAIN, VIGNETTE_BREATHE } from './fx-ambient.schemas';
 import { EDGE_GLOW, LEAK } from './fx-light.schemas';
 import { goo } from './fx-liquid.schemas';
@@ -95,6 +95,7 @@ export const FX_PRIMITIVES = {
   dust,
   glass,
   resolve,
+  mirror,
   leak: LEAK,
   'edge-glow': EDGE_GLOW,
   bloom: BLOOM,

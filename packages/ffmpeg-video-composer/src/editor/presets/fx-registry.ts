@@ -11,6 +11,7 @@ import { BURST } from './fx-burst';
 import { BOKEH, DUST } from './fx-particles';
 import { GLASS } from './fx-glass';
 import { RESOLVE } from './fx-resolve';
+import { MIRROR } from './fx-mirror';
 import { LEAK } from './fx-leak';
 import { EDGE_GLOW } from './fx-edge-glow';
 import { BLOOM } from './fx-bloom';
@@ -29,6 +30,7 @@ export const FX_EFFECTS: { readonly [N in FxEffectName]?: FxEffect<N> } = {
   dust: DUST,
   glass: GLASS,
   resolve: RESOLVE,
+  mirror: MIRROR,
   leak: LEAK,
   'edge-glow': EDGE_GLOW,
   bloom: BLOOM,

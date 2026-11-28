@@ -9,12 +9,14 @@ import { bandOf } from 'ffmpeg-video-composer/src/editor/presets/fx-sheen.ts';
 import { planOf as ripplePlan, ringWindow } from 'ffmpeg-video-composer/src/editor/presets/fx-ripple.ts';
 import { planOf as glintPlan } from 'ffmpeg-video-composer/src/editor/presets/fx-glint.ts';
 import { bokehField } from 'ffmpeg-video-composer/src/editor/presets/fx-particles.ts';
+import { mirrorPlan } from 'ffmpeg-video-composer/src/editor/presets/fx-mirror.ts';
 import { newSection, type EditorSection } from '../../templateEditorModel';
 import { previewFxContext, type PreviewEnv } from './fx-context';
 import { preparePainter } from './prepare';
 import { sheenAlong } from './paint-light';
 import { passStarts, ringAt, starScale } from './paint-marks';
 import { particleAt } from './paint-texture';
+import { reflectedBoxes } from './paint-mirror';
 import { outlineBox, sampleAt, strokeRequest, type StrokeGraphic } from './paint-stroke';
 
 function section(): EditorSection {
@@ -174,5 +176,20 @@ describe('strokes', () => {
     expect(sampleAt(samples, 0.5)).toBe(samples[0]);
     expect(sampleAt(samples, 9)).toBe(samples[1]);
     expect(sampleAt(samples, -1)).toBeNull();
+  });
+
+  it('shades where the mirror lands, from the engine plan, and keeps it under reduced motion', () => {
+    const fx = context<'mirror'>({ effect: 'mirror', target: 'layer:1', at: 1, mode: 'quad' });
+    const painter = preparePainter({ type: 'fx', effect: 'mirror', target: 'layer:1', at: 1 } as Graphic, 0, env());
+
+    expect(painter?.paint).toBeTypeOf('function');
+    // layer:1 is 640×432 at (320, 144): the right half, then the bottom half.
+    expect(reflectedBoxes(fx.target, mirrorPlan(fx))).toEqual([
+      { x: 640, y: 144, w: 320, h: 432 },
+      { x: 320, y: 360, w: 640, h: 216 },
+    ]);
+    expect(
+      preparePainter({ type: 'fx', effect: 'mirror' } as Graphic, 0, env({ reduced: true }))?.absent
+    ).toBeUndefined();
   });
 });

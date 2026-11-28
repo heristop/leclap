@@ -1942,14 +1942,14 @@ More in the [gallery](./gallery.md#light-and-effects).
 ]
 ```
 
-There are 15 primitives in five families:
+There are 16 primitives in five families:
 
 | Family   | Primitives                                   | Character                                                                                                  |
 | -------- | -------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | Light    | `sheen`, `leak`, `edge-glow`, `bloom`        | Adds luminance and never greys: a highlight stays inside its target (an edge-glow blooms just outside it). |
 | Marks    | `ripple`, `glint`, `confetti`, `burst`       | Start from a point of the target and may leave it: a tap, a sparkle, a confetti pop, impact lines.         |
 | Ambient  | `bokeh`, `dust`, `vignette-breathe`, `grain` | Faint textures (≤ 0.12) that last the section. They are absent at `global.motion.energy: 0`.               |
-| Surfaces | `glass`, `resolve`                           | Rework the pixels inside the target: a frosted plate under text, a title that lands in focus.              |
+| Surfaces | `glass`, `resolve`, `mirror`                 | Rework the pixels inside the target: a frosted plate under text, a title that lands in focus, a mirror.    |
 | Liquid   | `goo`                                        | A solid shape: blobs that stretch, split into droplets and merge back with gooey necks.                    |
 
 ### Targets
@@ -2248,6 +2248,25 @@ A logo or title resolves into place: the target region starts defocused, slightl
 | `fade`  | 0.1–1 | Share of the duration the element takes to become opaque (default 0.55).                                                                    |
 
 Use when: an intro logo, a brand lock-up or a one-word title lands on a calm card. Avoid: text that already has a kinetic entrance (pick one); over moving footage (the region is processed as a rectangle with a feathered edge).
+
+#### `mirror` (surfaces)
+
+A mirror: one side of the target reflected onto the other across a seam, or across both axes as a kaleidoscope, held for the duration. The target region is split, the kept strip next to the seam is cropped, flipped (`hflip` or `vflip`) and laid on the far side; `quad` runs the vertical step on the horizontal result. Off-centre, the reflection reaches as far as the kept side and the rest stays as it was. Defaults: 2 s, ceiling 0.35 (unused), intensity 1. Reduced motion: unchanged (it does not move).
+
+| Field  | Range                            | What it does                                                                                                                               |
+| ------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `mode` | `horizontal`, `vertical`, `quad` | Across a vertical seam, a horizontal seam, or both (a four-way kaleidoscope). Default horizontal on a wide target, vertical on a tall one. |
+| `side` | `start`, `end`                   | Which side is the source: start = left (or top), end = right (or bottom). Default start.                                                   |
+| `seam` | 0.2–0.8                          | Where the axis sits, as a share of the target's width (or height). Default 0.5.                                                            |
+
+```jsonc
+"graphics": [
+  { "type": "fx", "effect": "mirror", "at": 2, "duration": 1.5 },
+  { "type": "fx", "effect": "mirror", "mode": "quad", "at": "beat:5", "duration": 0.5, "repeat": 4, "every": 1 }
+]
+```
+
+Use when: a dance, a skate trick or a crowd shot needs a punchy, symmetric beat. Avoid: faces or text (a mirrored word is unreadable); long holds on talking heads.
 
 #### `goo` (liquid)
 

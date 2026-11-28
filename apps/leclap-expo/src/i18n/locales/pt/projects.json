@@ -1,0 +1,20 @@
+{
+  "kicker": "Seu trabalho",
+  "title": "Meus vídeos",
+  "createNew": "Criar novo vídeo",
+  "empty": {
+    "title": "Nenhum vídeo ainda",
+    "subtitle": "Comece criando um novo vídeo na aba Roteiros"
+  },
+  "deleteAll": {
+    "title": "Excluir todos os projetos",
+    "message": "Tem certeza de que quer excluir todos os seus vídeos? Esta ação não pode ser desfeita.",
+    "confirm": "Excluir tudo"
+  },
+  "alerts": {
+    "deleteAllError": {
+      "title": "Erro",
+      "message": "Falha ao excluir todos os projetos. Tente novamente."
+    }
+  }
+}

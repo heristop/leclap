@@ -1,7 +1,7 @@
 // App-UI internationalization. Separate from the core `Translation` type, which carries per-template
 // content. Importing this module initializes i18next; it's imported once from app/_layout.tsx.
 //
-// Ships English, French, German, Spanish and Italian. The active language follows the device locale
+// Ships English, French, German, Spanish, Italian and Portuguese. The active language follows the device locale
 // (expo-localization), falling back to English when the device language isn't one we translate.
 //
 // Usage:  const { t } = useTranslation('editor'); t('section.duration')
@@ -14,10 +14,11 @@ import { fr } from './locales/fr';
 import { de } from './locales/de';
 import { es } from './locales/es';
 import { it } from './locales/it';
+import { pt } from './locales/pt';
 
 export const defaultNS = 'common';
 
-const SUPPORTED = ['en', 'fr', 'de', 'es', 'it'] as const;
+const SUPPORTED = ['en', 'fr', 'de', 'es', 'it', 'pt'] as const;
 type Supported = (typeof SUPPORTED)[number];
 
 // The device language narrowed to a language we ship, else English. `getLocales()` is a native call —
@@ -35,7 +36,7 @@ function deviceLanguage(): Supported {
 i18n
   .use(initReactI18next)
   .init({
-    resources: { en, fr, de, es, it },
+    resources: { en, fr, de, es, it, pt },
     lng: deviceLanguage(),
     fallbackLng: 'en',
     supportedLngs: SUPPORTED,

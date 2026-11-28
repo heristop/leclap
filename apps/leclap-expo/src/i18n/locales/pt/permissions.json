@@ -1,0 +1,15 @@
+{
+  "camera": {
+    "title": "Permissão de câmera necessária",
+    "message": "Precisamos acessar a câmera para gravar vídeos. Conceda a permissão nas configurações do dispositivo."
+  },
+  "microphone": {
+    "title": "Permissão de microfone necessária",
+    "message": "Precisamos acessar o microfone para gravar o áudio dos seus vídeos. Conceda a permissão nas configurações do dispositivo."
+  },
+  "mediaLibrary": {
+    "title": "Permissão da biblioteca de mídia necessária",
+    "message": "Precisamos acessar sua biblioteca de mídia para salvar vídeos. Conceda a permissão nas configurações do dispositivo."
+  },
+  "openSettings": "Abrir Configurações"
+}

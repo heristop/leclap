@@ -1,0 +1,72 @@
+{
+  "error": {
+    "title": "Falha ao carregar os modelos",
+    "message": "Falha ao carregar os modelos. Tente novamente."
+  },
+  "orientation": {
+    "portrait": "Vertical 9:16",
+    "landscape": "Horizontal 16:9",
+    "square": "Quadrado 1:1"
+  },
+  "fields_one": "{{count}} campo",
+  "fields_other": "{{count}} campos",
+  "autoProcess": "Processamento automático",
+  "sections_one": "{{count}} seção",
+  "sections_other": "{{count}} seções",
+  "music": "Música",
+  "useTemplate": "Usar modelo",
+  "custom": "Personalizado",
+  "sections": {
+    "myTemplates": "Meus modelos",
+    "sampleTemplates": "Biblioteca de modelos"
+  },
+  "buildFromScratch": {
+    "label": "Criar do zero",
+    "description": "Crie seu próprio modelo — escolha seções, música e efeitos."
+  },
+  "complexity": {
+    "simple": "simples",
+    "intermediate": "intermediário",
+    "advanced": "avançado"
+  },
+  "search": {
+    "placeholder": "Buscar modelos…",
+    "all": "Todos",
+    "portrait": "Vertical",
+    "landscape": "Horizontal",
+    "square": "Quadrado",
+    "orientationLabel": "Filtrar por orientação",
+    "complexityLabel": "Filtrar por complexidade"
+  },
+  "empty": {
+    "title": "Nenhum modelo corresponde",
+    "hint": "Tente outra busca ou limpe os filtros.",
+    "clear": "Limpar filtros"
+  },
+  "form": {
+    "header": {
+      "title": "Configuração do modelo",
+      "subtitle": "Preencha as informações necessárias para personalizar seu vídeo"
+    },
+    "status": {
+      "completed": "Campo preenchido",
+      "maxChars": "Máximo de {{count}} caracteres permitidos",
+      "counter": "{{count}}/{{max}}",
+      "requiredMark": "obrigatório",
+      "fieldRequired": "Este campo é obrigatório",
+      "invalidValue": "Não serve: {{reason}}"
+    },
+    "placeholder": {
+      "firstName": "Digite seu nome",
+      "lastName": "Digite seu sobrenome",
+      "job": "Seu cargo",
+      "keyword": "Digite uma palavra-chave",
+      "description": "Digite a descrição...",
+      "generic": "Digite {{label}}"
+    },
+    "noForm": {
+      "title": "Nenhum formulário necessário",
+      "message": "Este modelo não exige nenhuma informação personalizada. Você pode seguir direto para o processamento."
+    }
+  }
+}

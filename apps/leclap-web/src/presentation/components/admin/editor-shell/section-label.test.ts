@@ -5,6 +5,7 @@ import fr from '@/i18n/locales/fr/admin.json';
 import de from '@/i18n/locales/de/admin.json';
 import es from '@/i18n/locales/es/admin.json';
 import itLocale from '@/i18n/locales/it/admin.json';
+import pt from '@/i18n/locales/pt/admin.json';
 import { newOverlay, newSection, SECTION_KINDS, SECTION_LABELS, type EditorSection } from '../templateEditorModel';
 import { sectionLabelKey, sectionTitle } from './section-label';
 
@@ -14,7 +15,7 @@ const lookup = (bundle: unknown, key: string): unknown =>
 
 describe('sectionLabelKey', () => {
   it.each(SECTION_KINDS)('names the %s kind in every locale', (kind) => {
-    for (const bundle of [en, fr, de, es, itLocale]) {
+    for (const bundle of [en, fr, de, es, itLocale, pt]) {
       expect(lookup(bundle, sectionLabelKey(kind))).toEqual(expect.stringMatching(/\S/));
     }
   });

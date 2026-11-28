@@ -1,0 +1,51 @@
+{
+  "welcome": {
+    "title": "Boas-vindas ao",
+    "subtitle": "Faça do seu nome a cena de abertura. Crie uma introdução cinematográfica no navegador, com gravações incluídas.",
+    "features": {
+      "record": "Use as gravações de exemplo incluídas",
+      "template": "Aplicamos um modelo de exemplo cinematográfico",
+      "download": "Baixe seu vídeo pronto"
+    },
+    "start": "Criar minha introdução",
+    "checking": "Verificando seu navegador…",
+    "unsupported": "O navegador não consegue renderizar aqui",
+    "unsupportedHint": "Tente uma versão atual do Chrome, Edge ou Firefox para desktop.",
+    "skip": "Pular por enquanto"
+  },
+  "create": {
+    "title": "Deixe com a sua cara",
+    "subtitle": "Adicione seu nome e veja-o virar uma introdução cinematográfica. As gravações de exemplo estão prontas; seu próprio clipe é opcional.",
+    "nameLabel": "Seu nome",
+    "nameOptional": "opcional",
+    "clipLabel": "Adicione seu próprio clipe",
+    "namePlaceholder": "ex.: {{name}}",
+    "recorded": "Introdução gravada",
+    "reRecord": "Gravar de novo",
+    "imported": "Clipe importado",
+    "changeClip": "Trocar clipe",
+    "record": "Gravar",
+    "upload": "Enviar",
+    "recordAria": "Gravar uma introdução com sua câmera",
+    "uploadAria": "Enviar um vídeo de introdução",
+    "uploadInputAria": "Enviar vídeo de introdução",
+    "create": "Criar meu vídeo",
+    "sampleIncluded": "As gravações incluídas estão prontas. Sem envio nem câmera."
+  },
+  "compiling": {
+    "title": "Criando seu vídeo…",
+    "subtitle": "Tudo roda no seu navegador — aguente firme.",
+    "stop": "Parar",
+    "stopAria": "Parar e fechar"
+  },
+  "done": {
+    "title": "Seu primeiro vídeo está pronto!",
+    "videoAria": "Seu vídeo criado",
+    "startCreating": "Começar a criar"
+  },
+  "error": {
+    "title": "Não funcionou",
+    "continueInStudio": "Continuar no Studio"
+  },
+  "skipAria": "Pular a introdução"
+}

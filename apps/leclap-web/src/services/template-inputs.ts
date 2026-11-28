@@ -14,6 +14,7 @@ export const TEMPLATE_INPUTS_TITLE: Record<string, string> = {
   de: 'Vorlagenfelder',
   es: 'Campos de la plantilla',
   it: 'Campi del modello',
+  pt: 'Campos do modelo',
 };
 
 export interface TemplateInputField {

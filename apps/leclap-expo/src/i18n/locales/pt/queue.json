@@ -1,0 +1,133 @@
+{
+  "status": {
+    "waiting": "Aguardando",
+    "rendering": "Renderizando",
+    "failed": "Falhou",
+    "ready": "Pronto"
+  },
+  "relativeTime": {
+    "justNow": "agora mesmo",
+    "minAgo_one": "há {{count}} min",
+    "minAgo_other": "há {{count}} min",
+    "hourAgo_one": "há {{count}} h",
+    "hourAgo_other": "há {{count}} h"
+  },
+  "screen": {
+    "title": "Compilações",
+    "selectAll": "Selecionar tudo",
+    "deselectAll": "Desmarcar tudo",
+    "videoAccessibility": "Vídeo, {{status}}, adicionado {{time}}",
+    "yourVideo": "Seu vídeo",
+    "retried": "Tentou novamente {{count}}×"
+  },
+  "filters": {
+    "all": "Todos",
+    "pending": "Pendentes",
+    "processing": "Em processamento",
+    "failed": "Com falha",
+    "completed": "Concluídos"
+  },
+  "actionBar": {
+    "processAll": "Processar tudo",
+    "processing": "Processando...",
+    "cleanup": "Limpar",
+    "cleaning": "Limpando..."
+  },
+  "processingBanner": {
+    "rendering_one": "1 vídeo renderizando",
+    "rendering_other": "{{count}} vídeos renderizando",
+    "waiting": " · {{count}} aguardando"
+  },
+  "empty": {
+    "title": "Nenhum vídeo ainda",
+    "text": "Grave alguns clipes e eles aparecerão aqui conforme forem montados.",
+    "cta": "Criar um vídeo",
+    "filteredTitle": "Nada {{status}}",
+    "filteredText": "Nenhum vídeo corresponde a este filtro no momento.",
+    "showAll": "Mostrar tudo"
+  },
+  "batchModal": {
+    "selected_one": "{{count}} item selecionado",
+    "selected_other": "{{count}} itens selecionados",
+    "retry": "Tentar novamente",
+    "remove": "Remover"
+  },
+  "offline": {
+    "title": "Você está offline",
+    "retryMessage": "Conecte-se à internet para tentar novamente estes vídeos.",
+    "compileMessage": "Conecte-se à internet para iniciar a compilação."
+  },
+  "couldntCompile": {
+    "title": "Não foi possível compilar",
+    "fallback": "Algo deu errado. Tente novamente."
+  },
+  "alerts": {
+    "retry": {
+      "title": "Tentar vídeos novamente",
+      "message_one": "Tentar compilar novamente {{count}} vídeo selecionado?",
+      "message_other": "Tentar compilar novamente {{count}} vídeos selecionados?",
+      "confirm": "Tentar tudo novamente"
+    },
+    "remove": {
+      "title": "Remover vídeos",
+      "message_one": "Remover {{count}} vídeo da fila?",
+      "message_other": "Remover {{count}} vídeos da fila?",
+      "confirm": "Remover tudo"
+    },
+    "cleanup": {
+      "title": "Limpar concluídos",
+      "message": "Remover vídeos concluídos há mais de 7 dias?",
+      "confirm": "Limpar"
+    }
+  },
+  "header": {
+    "empty": "Nenhum vídeo na fila",
+    "queued_one": "{{count}} vídeo na fila",
+    "queued_other": "{{count}} vídeos na fila",
+    "willProcessOnline": "📴 Será processado quando estiver online",
+    "processingWhenPossible": "🌐 Processando assim que possível",
+    "offlineBadge": "Offline"
+  },
+  "card": {
+    "project": "Projeto: {{id}}...",
+    "added": "Adicionado {{time}}"
+  },
+  "itemStatus": {
+    "failed_one": "❌ Falhou ({{count}} nova tentativa)",
+    "failed_other": "❌ Falhou ({{count}} novas tentativas)",
+    "processing": "⚙️ Processando...",
+    "pending": "⏳ Pendente"
+  },
+  "actions": {
+    "retry": "Tentar novamente",
+    "remove": "Remover"
+  },
+  "showMore_one": "👆 Toque para ver mais {{count}} item",
+  "showMore_other": "👆 Toque para ver mais {{count}} itens",
+  "footer": {
+    "offline": "📱 Offline: os vídeos serão processados automaticamente quando houver conexão",
+    "online": "🌐 Online: processando a fila em segundo plano"
+  },
+  "itemAlerts": {
+    "noInternet": {
+      "title": "🌐 Sem conexão com a internet",
+      "message": "Conecte-se à internet para tentar compilar o vídeo novamente."
+    },
+    "retryFailed": {
+      "title": "❌ Nova tentativa falhou",
+      "fallback": "A compilação falhou novamente."
+    },
+    "success": {
+      "title": "✅ Sucesso!",
+      "message": "Vídeo compilado com sucesso!",
+      "confirm": "Ótimo!"
+    },
+    "retryError": {
+      "title": "⚠️ Erro na nova tentativa"
+    },
+    "remove": {
+      "title": "🗑️ Remover da fila",
+      "message": "Tem certeza de que quer remover esta compilação da fila?"
+    }
+  }
+}

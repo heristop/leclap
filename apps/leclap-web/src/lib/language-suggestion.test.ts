@@ -12,7 +12,7 @@ describe('pickSuggestedLanguage', () => {
   });
 
   it('honours the visitor preference order, not our locale order', () => {
-    expect(pickSuggestedLanguage(['ja', 'pt-BR', 'de-AT', 'fr'], 'en', false, null)).toBe('de');
+    expect(pickSuggestedLanguage(['ja', 'nl-BE', 'pt-BR', 'de-AT', 'fr'], 'en', false, null)).toBe('pt');
   });
 
   it('ignores languages we do not ship', () => {
@@ -53,6 +53,7 @@ describe('nativeName', () => {
     expect(nativeName('de')).toBe('Deutsch');
     expect(nativeName('es')).toBe('Español');
     expect(nativeName('it')).toBe('Italiano');
+    expect(nativeName('pt')).toBe('Português');
   });
 });
 

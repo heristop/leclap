@@ -1,0 +1,94 @@
+{
+  "button": {
+    "create": "Criar meu vídeo",
+    "addingToQueue": "Adicionando à fila...",
+    "creating": "Criando vídeo..."
+  },
+  "preview": "Pré-visualizar",
+  "media": {
+    "title": "Música e fundo",
+    "description": "Escolha a trilha sonora e o fundo",
+    "saved": "Seleção salva",
+    "accessibilityLabel": "Seleção de música e fundo"
+  },
+  "music": {
+    "comingSoon": "Seleção de música em breve",
+    "useDefault": "Usar música padrão",
+    "pick": "Escolha uma faixa para esta seção.",
+    "defaultOption": "Trilha sonora padrão",
+    "done": "Concluído"
+  },
+  "loading": "Carregando modelo...",
+  "notFound": "Modelo ou projeto não encontrado",
+  "backToTemplates": "Voltar aos modelos",
+  "orientation": {
+    "portrait": "Orientação vertical",
+    "landscape": "Orientação horizontal",
+    "square": "Orientação quadrada"
+  },
+  "defaultDescription": "Crie um vídeo com este modelo",
+  "sectionsTitle": "Seções",
+  "progress": "{{done}} de {{total}} seções concluídas",
+  "shotsLeft_one": "falta {{count}} plano",
+  "shotsLeft_other": "faltam {{count}} planos",
+  "quality": {
+    "label": "Qualidade",
+    "draft": "Rascunho",
+    "standard": "Padrão",
+    "high": "Alta"
+  },
+  "mode": {
+    "linear": "Passo a passo",
+    "hub": "Tudo de uma vez"
+  },
+  "step": {
+    "indicator": "Seção {{index}} de {{total}}",
+    "completed": "Concluída",
+    "notCompleted": "Ainda não concluída",
+    "edit": "Editar — {{cta}}",
+    "back": "Voltar",
+    "next": "Avançar",
+    "previousAccessibility": "Seção anterior",
+    "nextAccessibility": "Próxima seção"
+  },
+  "linearCopy": {
+    "mediaTitle": "Música e fundo",
+    "mediaDescription": "Escolha a trilha sonora e o fundo do seu vídeo.",
+    "mediaCta": "Escolher música e fundo",
+    "sectionFallbackDescription": "Conclua esta seção para continuar.",
+    "recordCta": "Gravar clipe",
+    "formCta": "Preencher detalhes",
+    "openCta": "Abrir seção"
+  },
+  "alerts": {
+    "incompleteForm": {
+      "title": "Formulário incompleto",
+      "message": "Preencha todos os campos obrigatórios"
+    },
+    "error": {
+      "title": "Erro",
+      "message": "Não foi possível pré-visualizar o vídeo."
+    },
+    "unsupported": {
+      "title": "Não compatível",
+      "message": "Este tipo de seção ainda não é editável."
+    },
+    "addedToQueue": {
+      "title": "Adicionado à fila",
+      "message": "O servidor está inacessível no momento — seu vídeo será renderizado automaticamente assim que ele voltar."
+    },
+    "compilationFailed": {
+      "title": "Falha na compilação",
+      "fallback": "Ocorreu um erro durante a compilação do vídeo."
+    },
+    "compilationError": {
+      "title": "Erro de compilação",
+      "message": "Ocorreu um erro inesperado: {{error}}",
+      "unknownError": "Erro desconhecido"
+    },
+    "captionsPending": {
+      "title": "Legendas para revisar",
+      "message": "Este modelo legenda o que você diz. Abra {{steps}}, ative as legendas e confira as palavras; depois, crie o vídeo."
+    }
+  }
+}

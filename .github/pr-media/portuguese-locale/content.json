@@ -1,0 +1,41 @@
+{
+  "ticket": "PR #170",
+  "summary": "LeClap speaks Brazilian Portuguese, on the web and on the phone.",
+  "clipSeconds": 8,
+  "freeze": { "at": 2.2, "hold": 2.4 },
+  "intro": {
+    "headline": "OLÁ, PORTUGUÊS"
+  },
+  "outro": {
+    "headline": "SIX LANGUAGES, ONE ENGINE",
+    "subtitle": "Check /pt pages, the picker and the sitemap."
+  },
+  "sides": [
+    {
+      "side": "before",
+      "badge": "BEFORE",
+      "capture": "raw/before.webm",
+      "trim": 2.0,
+      "highlight": { "x": 612, "y": 76, "w": 204, "h": 216 },
+      "callout": "Five languages",
+      "chip": "No Portuguese, /pt is a 404",
+      "pane": {
+        "title": "English for pt-BR",
+        "desc": "The picker stops at Italiano and /pt lands on the not-found page."
+      }
+    },
+    {
+      "side": "after",
+      "badge": "AFTER",
+      "capture": "raw/after.webm",
+      "trim": 2.0,
+      "highlight": { "x": 612, "y": 76, "w": 204, "h": 258 },
+      "callout": "Português",
+      "chip": "Português, then /pt",
+      "pane": {
+        "title": "A Portuguese site",
+        "desc": "Português joins the picker and opens a translated home at /pt."
+      }
+    }
+  ]
+}

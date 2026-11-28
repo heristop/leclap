@@ -1,4 +1,4 @@
-// Guards the lazy locale backend in ./index.ts. The four non-English barrels are reached only
+// Guards the lazy locale backend in ./index.ts. The five non-English barrels are reached only
 // through a dynamic import whose result is cast to a plain record, so there is no longer a
 // compile-time link between i18n and them: rename or delete `locales/de/index.ts` and the import
 // rejects, the rejection lands in the `.catch(() => {})` on init, and German visitors are quietly
@@ -14,22 +14,25 @@ import { fr } from './locales/fr';
 import { de } from './locales/de';
 import { es } from './locales/es';
 import { it as itLocale } from './locales/it';
+import { pt } from './locales/pt';
 
-// `common.actions.back` is translated differently in all five languages, so an English fallback
+// `common.actions.back` is translated differently in all six languages, so an English fallback
 // leaking through is always visible here.
 const LAZY_LOCALES = [
   ['fr', fr.common.actions.back],
   ['de', de.common.actions.back],
   ['es', es.common.actions.back],
   ['it', itLocale.common.actions.back],
+  ['pt', pt.common.actions.back],
 ] as const;
 
-// Same four barrels, kept whole so the assertions can compare against the real sub-namespace set.
+// Same five barrels, kept whole so the assertions can compare against the real sub-namespace set.
 const SEO_LOCALES = [
   ['fr', fr],
   ['de', de],
   ['es', es],
   ['it', itLocale],
+  ['pt', pt],
 ] as const;
 
 describe('i18n lazy locale backend', () => {

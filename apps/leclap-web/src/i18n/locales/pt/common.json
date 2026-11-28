@@ -1,0 +1,113 @@
+{
+  "brand": "LeClap",
+  "actions": {
+    "back": "Voltar",
+    "next": "Avançar",
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "retry": "Tentar novamente",
+    "tryAgain": "Tentar de novo",
+    "download": "Baixar",
+    "share": "Compartilhar",
+    "done": "Concluído",
+    "close": "Fechar",
+    "reset": "Redefinir",
+    "remove": "Remover",
+    "edit": "Editar",
+    "stop": "Parar"
+  },
+  "status": {
+    "ready": "Pronto",
+    "loading": "Carregando",
+    "processing": "Processando",
+    "idle": "Inativo",
+    "active": "Ativo"
+  },
+  "nav": {
+    "home": "Início",
+    "studio": "Studio",
+    "templates": "Modelos",
+    "docs": "Docs",
+    "about": "Sobre",
+    "primaryLabel": "Principal",
+    "showcase": "Vitrine"
+  },
+  "header": {
+    "switchToLight": "Mudar para o tema claro",
+    "switchToDark": "Mudar para o tema escuro",
+    "toggleTheme": "Alternar claro / escuro",
+    "changeLanguage": "Mudar idioma",
+    "viewSource": "Ver o código-fonte no GitHub",
+    "github": "GitHub",
+    "toggleMenu": "Abrir ou fechar o menu"
+  },
+  "skipToContent": "Pular para o conteúdo principal",
+  "languageSuggestion": {
+    "region": "Idioma",
+    "title": "Escolha seu idioma",
+    "body": "Você está lendo este site em <from/>. Prefere lê-lo em <to/>?",
+    "accept": "Mudar para {{language}}",
+    "dismiss": "Dispensar"
+  },
+  "footer": "Todo o processamento acontece localmente no seu navegador — seus arquivos nunca saem do seu dispositivo",
+  "footerNav": {
+    "label": "Links legais",
+    "legal": "Aviso legal",
+    "privacy": "Privacidade",
+    "license": "Licença MIT"
+  },
+  "routeError": {
+    "seoTitle": {
+      "notFound": "Página não encontrada",
+      "badRequest": "Requisição inválida",
+      "update": "Atualização disponível",
+      "offline": "Offline",
+      "crash": "Algo deu errado"
+    },
+    "reload": "Recarregar",
+    "home": "Voltar à página inicial",
+    "back": "Voltar",
+    "details": "Detalhes técnicos",
+    "copy": "Copiar detalhes",
+    "copied": "Copiado",
+    "report": "Relatar no GitHub",
+    "badRequest": {
+      "slate": "Cena {{status}}",
+      "eyebrow": "Erro {{status}} · Requisição inválida",
+      "title": "Esta requisição não faz sentido.",
+      "message": "O LeClap não conseguiu entendê-la: o link pode estar cortado ou ter sido editado à mão. Volte e tente de novo a partir da própria página."
+    },
+    "update": {
+      "slate": "Nova tomada",
+      "eyebrow": "Atualização disponível",
+      "title": "O LeClap foi atualizado enquanto esta aba estava aberta.",
+      "message": "Esta página pertence à versão que você abriu antes. Recarregue para mudar para a nova; os projetos que você salvou continuam neste navegador."
+    },
+    "offline": {
+      "slate": "Sem sinal",
+      "eyebrow": "Offline",
+      "title": "Você está offline.",
+      "message": "Esta página ainda não foi salva neste dispositivo. Reconecte-se e recarregue.",
+      "backTitle": "Você está online de novo.",
+      "backMessage": "Recarregue para continuar de onde parou."
+    },
+    "crash": {
+      "slate": "Corta",
+      "eyebrow": "Erro inesperado",
+      "eyebrowStatus": "Erro {{status}}",
+      "title": "Corta! Algo quebrou do nosso lado.",
+      "message": "O LeClap encontrou um erro que não esperava. Os projetos que você salvou continuam neste navegador, então recarregar não vai afetá-los."
+    }
+  },
+  "compileError": {
+    "missingClip": "Este modelo precisa de pelo menos um clipe.",
+    "unreadableClip": "Um dos seus clipes não pôde ser lido: ele pode estar danificado ou em um formato que este navegador não consegue abrir.",
+    "assemblyFailed": "Não foi possível juntar as cenas em um único vídeo.",
+    "engineUnavailable": "Não foi possível baixar o motor de vídeo. Reconecte-se e tente de novo.",
+    "appUpdated": "O LeClap foi atualizado desde que esta página foi aberta. Salve seu trabalho, recarregue a página e renderize de novo.",
+    "reload": "Recarregar",
+    "stopped": "A renderização foi interrompida.",
+    "unknown": "O motor de renderização relatou um erro."
+  }
+}

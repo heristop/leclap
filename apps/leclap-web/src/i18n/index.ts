@@ -1,4 +1,4 @@
-// App-UI internationalization. English + French + German + Spanish + Italian; the key
+// App-UI internationalization. English + French + German + Spanish + Italian + Portuguese; the key
 // system makes adding more languages a drop-in (add a locale bundle + the switcher picks
 // it up). This is separate from the core `Translation` type, which carries per-template content.
 //
@@ -32,7 +32,7 @@ const applyDocumentLang = (lng: string): void => {
 };
 
 // English stays in the entry chunk: it is the fallback and the language served at the root URL, so
-// a lazy `en` would just be a guaranteed extra round-trip. The other four are one dynamic chunk
+// a lazy `en` would just be a guaranteed extra round-trip. The other five are one dynamic chunk
 // each — the barrel, not the raw JSON, so `satisfies LocaleShape<Resources>` still gates parity.
 //
 // Only ever one of them loads per session: the language comes from the URL path prefix, and the

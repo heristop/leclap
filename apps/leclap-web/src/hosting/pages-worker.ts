@@ -1,6 +1,6 @@
 // Standalone Pages advanced-mode handler. The build strips types into dist/_worker.js.
 // Keep locale prefixes in sync with config/site.ts (covered by the hosting tests).
-export const localePrefixes = ['fr', 'de', 'es', 'it'];
+export const localePrefixes = ['fr', 'de', 'es', 'it', 'pt'];
 export const utilityPaths = ['/studio/new', '/studio/builder', '/templates', '/templates/new', '/partials'];
 
 type Assets = { fetch(request: Request): Promise<Response> };

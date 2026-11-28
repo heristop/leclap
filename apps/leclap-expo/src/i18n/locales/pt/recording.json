@@ -1,0 +1,50 @@
+{
+  "instructions": {
+    "portrait": "Segure o dispositivo na vertical para um resultado melhor",
+    "landscape": "Segure o dispositivo na horizontal para um resultado melhor",
+    "square": "Segure o dispositivo na vertical — vamos enquadrar um quadrado 1:1"
+  },
+  "countdown": {
+    "getReady": "Prepare-se…",
+    "accessibility": "Gravando em {{value}}"
+  },
+  "endWarning": {
+    "wrapUp": "Finalize — faltam {{remaining}}s",
+    "timesUp": "Tempo esgotado"
+  },
+  "permissions": {
+    "checking": "Verificando permissões de gravação...",
+    "title": "Permissões de gravação necessárias",
+    "message": "Conceda as permissões de câmera e microfone para gravar vídeo.",
+    "allow": "Permitir câmera e microfone",
+    "settings": "Abrir Configurações"
+  },
+  "noDevice": "Nenhuma câmera disponível",
+  "alerts": {
+    "loadError": {
+      "title": "Erro",
+      "message": "Não foi possível carregar a tela de gravação. Dados ausentes."
+    },
+    "saveError": {
+      "title": "Erro",
+      "message": "Falha ao salvar o vídeo gravado. Tente novamente."
+    }
+  },
+  "loadingError": "Erro ao carregar a tela de gravação.",
+  "processing": "Processando…",
+  "sources": {
+    "title": "Fonte do vídeo",
+    "front": "Frontal",
+    "back": "Traseira",
+    "upload": "Envio",
+    "screen": "Tela",
+    "uploadTitle": "Escolha um vídeo para usar",
+    "uploadHint": "Escolha um clipe da sua galeria e revise-o antes de usar.",
+    "chooseVideo": "Escolher um vídeo"
+  },
+  "actions": {
+    "record": "Iniciar gravação",
+    "stop": "Parar gravação",
+    "close": "Fechar câmera"
+  }
+}

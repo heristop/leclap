@@ -1,0 +1,205 @@
+{
+  "open": "Gerar com IA",
+  "fromPresets": "Ou descreva e gere com IA",
+  "title": "Gerar com IA",
+  "subtitle": "Descreva o vídeo. Seu provedor de IA escreve o modelo; o LeClap confere antes de abrir no editor.",
+  "brief": {
+    "label": "Como deve ser o vídeo?",
+    "placeholder": "Um lançamento de 30 segundos para um app de anotações. Tipografia cinética ousada e marcante, terminando no link de download.",
+    "examples": "Experimente um exemplo",
+    "tooShort": "Acrescente mais algumas palavras para o modelo saber o que criar.",
+    "hint": "Diga para quem é, o tom e como termina. De uma a três frases bastam.",
+    "count_one": "{{count}} caractere",
+    "count_other": "{{count}} caracteres"
+  },
+  "examples": {
+    "launch": "Lançamento de produto de 30 s para um app de anotações, tipografia cinética ousada e marcante",
+    "tutorial": "Abertura de tutorial calma, 3 passos",
+    "hook": "Gancho de TikTok para uma cafeteria, cortes rápidos, divertido",
+    "cinematic": "Filme de marca cinematográfico para uma empresa de equipamentos de trilha, sombrio, lento",
+    "recap": "Retrospectiva do ano para um estúdio de design, 5 destaques",
+    "event": "Divulgação quadrada para um encontro de design no fim de semana, data e local no final"
+  },
+  "hints": {
+    "orientation": "Formato",
+    "duration": "Duração",
+    "auto": "Auto",
+    "landscape": "Horizontal",
+    "portrait": "Vertical",
+    "square": "Quadrado",
+    "seconds": "{{count}} s"
+  },
+  "provider": {
+    "section": "Provedor e chave",
+    "summary": "{{provider}} · {{model}}",
+    "label": "Provedor",
+    "model": "Modelo",
+    "modelFree": "Qualquer ID de modelo da sua conta funciona.",
+    "keySet": "Chave definida",
+    "keyMissing": "Adicione uma chave"
+  },
+  "key": {
+    "label": "Chave de API do {{provider}}",
+    "show": "Mostrar chave",
+    "hide": "Ocultar chave",
+    "persistFailed": "Este navegador bloqueou o armazenamento, então a chave dura só esta sessão.",
+    "forget": "Esquecer chave",
+    "forgetAll": "Esquecer todas as chaves",
+    "forgotten": "Chave esquecida.",
+    "format": "Isto não parece uma chave do {{provider}} (esperado {{placeholder}}). Você ainda pode tentar.",
+    "getKey": "Obter uma chave",
+    "privacy": "Guardada apenas neste navegador; enviada só ao {{provider}} junto com seu pedido — nunca ao LeClap, nunca em uma URL, nunca registrada em log. O uso é cobrado na sua conta."
+  },
+  "jev": {
+    "section": "Roteamento inteligente com Jev (opcional)",
+    "about": "O Jev escolhe, não escreve. Com uma chave do Jev, seu briefing é classificado primeiro (gênero, formato, energia, melhor modelo inicial) para que o prompt fique menor e mais certeiro.",
+    "provider": "Jev",
+    "decisions": "A leitura do Jev sobre seu briefing",
+    "suggestion": "Sugerido · {{confidence}}",
+    "applied": "{{label}} · {{confidence}}",
+    "route": "Analisar briefing",
+    "routing": "O Jev está lendo seu briefing…",
+    "bestMatch": "Começar pela melhor correspondência",
+    "bestMatchHint": "Abre o modelo pronto mais próximo ({{title}}). O Jev escolhe; você escreve o texto.",
+    "bestMatchNone": "Analise o briefing para encontrar o modelo pronto mais próximo.",
+    "genre": {
+      "product-launch": "Lançamento de produto",
+      "explainer": "Explicativo",
+      "social-hook": "Gancho para redes sociais",
+      "cinematic-trailer": "Trailer cinematográfico",
+      "calm-tutorial": "Tutorial calmo",
+      "other": "Outro"
+    },
+    "platform": {
+      "tiktok": "TikTok",
+      "reels": "Reels",
+      "shorts": "Shorts",
+      "youtube": "YouTube",
+      "x": "X",
+      "linkedin": "LinkedIn",
+      "facebook": "Facebook",
+      "square-feed": "Feed quadrado",
+      "none": "Sem plataforma"
+    },
+    "energy": {
+      "0": "Calma",
+      "1": "Relaxada",
+      "2": "Equilibrada",
+      "3": "Marcante",
+      "4": "Explosiva"
+    },
+    "theme": "Tema: {{name}}",
+    "seed": "Começa como “{{title}}”"
+  },
+  "footer": {
+    "needKey": "Para gerar, é preciso a sua chave de API do {{provider}}.",
+    "needBrief": "Descreva o vídeo para gerar.",
+    "addKey": "Adicionar chave",
+    "ctrlKey": "Ctrl"
+  },
+  "actions": {
+    "generate": "Gerar",
+    "cancel": "Cancelar",
+    "retry": "Tentar novamente",
+    "open": "Abrir no editor",
+    "replace": "Substituir rascunho",
+    "keep": "Continuar editando",
+    "regenerate": "Gerar outro",
+    "details": "Detalhes técnicos",
+    "writeTemplate": "Escrever modelo",
+    "startOver": "Recomeçar"
+  },
+  "steps": {
+    "thinking": "Pensando",
+    "validating": "Validando",
+    "repairing": "Reparando",
+    "ready": "Pronto",
+    "planning": "Planejando",
+    "polishing": "Refinando"
+  },
+  "status": {
+    "thinking": "Pensando…",
+    "writing": "Escrevendo o modelo… {{count}} caracteres",
+    "validating": "Validando…",
+    "repairing": "Reparando (rodada {{round}}): corrigindo {{count}} problema(s)…",
+    "ready": "Pronto",
+    "cancelled": "Cancelado. Nada foi alterado.",
+    "planning": "Planejando conceitos e tempos…",
+    "planReady": "Plano pronto. Ajuste se quiser e depois escreva o modelo.",
+    "polishing": "Refinando {{count}} nota(s) de direção de arte…"
+  },
+  "result": {
+    "scenes_one": "{{count}} cena",
+    "scenes_other": "{{count}} cenas",
+    "footage_one": "{{count}} clipe para gravar",
+    "footage_other": "{{count}} clipes para gravar",
+    "duration": "{{seconds}} s",
+    "durationEstimate": "~{{seconds}} s + clipes",
+    "effects": "Efeitos",
+    "noEffects": "Sem efeitos — cortes secos.",
+    "replaceWarning": "Isto substitui o rascunho atual. Seus modelos salvos não são afetados, e Desfazer traz o rascunho de volta.",
+    "advisories_one": "{{count}} nota de direção de arte",
+    "advisories_other": "{{count}} notas de direção de arte",
+    "noAdvisories": "Nenhuma nota de direção de arte do motor."
+  },
+  "errors": {
+    "auth": "O {{provider}} rejeitou a chave. Confira se foi copiada por inteiro e ainda está ativa.",
+    "rate-limit": "O {{provider}} está limitando esta chave. Aguarde um minuto ou confira os limites do seu plano.",
+    "overloaded": "O {{provider}} está sobrecarregado agora. Tente novamente em instantes.",
+    "network": "Não foi possível alcançar o {{provider}}. Verifique sua conexão ou se uma extensão ou política de rede bloqueia o pedido.",
+    "network-jev": "Não foi possível alcançar o Jev. A API do Jev pode ainda não aceitar chamadas de navegador desta origem — a geração continua funcionando sem ele.",
+    "refused": "O modelo recusou este briefing. Tente reformulá-lo.",
+    "truncated": "A resposta foi cortada antes de o modelo ficar completo. Tente um briefing mais curto ou menos cenas.",
+    "bad-request": "O {{provider}} recusou o pedido. Confira se o ID do modelo está disponível na sua conta.",
+    "bad-response": "O {{provider}} enviou uma resposta que o LeClap não conseguiu ler. Tente novamente.",
+    "http": "O {{provider}} retornou um erro. Tente novamente.",
+    "invalid": "O modelo não conseguiu produzir um modelo válido após {{rounds}} tentativas. Tente um briefing mais simples ou mais específico.",
+    "unknown": "Algo deu errado. Tente novamente."
+  },
+  "plan": {
+    "planFirst": "Planejar primeiro",
+    "planFirstHint": "Propõe três conceitos e um roteiro de tempos antes de escrever. Uma chamada extra, rápida.",
+    "review": "Revisar o plano",
+    "reviewHint": "Pausa no plano para você poder editá-lo. Desligado: segue direto.",
+    "title": "Plano",
+    "intro": "Edite o texto, os verbos ou o tempo, ou escolha outro conceito. O modelo segue este plano.",
+    "strategy": "Estratégia",
+    "concepts": "Conceito",
+    "typicality": {
+      "expected": "Esperado",
+      "fresh": "Novo",
+      "unusual": "Incomum"
+    },
+    "beats": "Tempos",
+    "role": "Papel",
+    "verb": "Verbo",
+    "onScreen": "Na tela",
+    "seconds": "Duração",
+    "verbLabel": "Verbo do tempo {{row}}",
+    "onScreenLabel": "Texto na tela do tempo {{row}}",
+    "secondsLabel": "Duração do tempo {{row}} em segundos",
+    "footage": "Gravações, sem texto",
+    "facts": "Detalhes do plano",
+    "transitions": "Transições: {{primary}}",
+    "transitionsWithAccents": "Transições: {{primary}} + {{accents}}",
+    "section": "Antes de escrever"
+  },
+  "reference": {
+    "label": "Seguir uma referência",
+    "hint": "Opcional: anexe um visual de referência. A geração passa a seguir sua paleta e seu ritmo como regras obrigatórias.",
+    "use": "Usar como guia de estilo",
+    "attached": "Guia de estilo anexado: o modelo gerado segue esta paleta e este ritmo.",
+    "detach": "Remover guia de estilo",
+    "summaryNone": "Opcional",
+    "summaryAttached": "Anexado"
+  },
+  "brand": {
+    "label": "Sua marca",
+    "hint": "Importe um brand-kit.json de `leclap brand <seu site>`: o vídeo usa suas cores, fontes e nome. Adicione seu logo com o envio da marca d'água.",
+    "attached": "Marca: {{name}}",
+    "detach": "Remover marca",
+    "summaryNone": "Opcional",
+    "summaryAttached": "Anexada",
+    "tooLarge": "Este arquivo é grande demais para ser um brand-kit.json."
+  }
+}

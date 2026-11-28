@@ -23,5 +23,6 @@ describe('localePath', () => {
 
   it('does not leave a trailing slash on a prefixed root', () => {
     expect(localePath('it', '/')).toBe('/it');
+    expect(localePath('pt', '/')).toBe('/pt');
   });
 });

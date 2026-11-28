@@ -10,6 +10,7 @@ import de from '@/i18n/locales/de/ai.json';
 import es from '@/i18n/locales/es/ai.json';
 import fr from '@/i18n/locales/fr/ai.json';
 import itLocale from '@/i18n/locales/it/ai.json';
+import pt from '@/i18n/locales/pt/ai.json';
 import { BrandKitSection } from './BrandKitSection';
 
 beforeAll(async () => {
@@ -48,7 +49,7 @@ describe('BrandKitSection', () => {
   });
 
   it('is translated in every locale', () => {
-    for (const locale of [de, es, fr, itLocale]) {
+    for (const locale of [de, es, fr, itLocale, pt]) {
       expect(Object.keys(locale.brand).sort()).toEqual(Object.keys(ai.brand).sort());
     }
   });

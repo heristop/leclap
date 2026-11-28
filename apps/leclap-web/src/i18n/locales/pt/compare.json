@@ -1,0 +1,119 @@
+{
+  "remotion": {
+    "badge": "Comparação honesta",
+    "title": "LeClap vs Remotion",
+    "tagline": "Duas formas de transformar código em vídeo, de modo determinístico. Veja onde cada uma leva a melhor — inclusive onde é o Remotion.",
+    "table": {
+      "heading": "Lado a lado",
+      "lead": "O Remotion compõe com componentes React e renderiza no Node ou no navegador. O LeClap compõe a partir de um modelo JSON e embute o FFmpeg no próprio app, então o mesmo modelo também renderiza nativamente em um celular.",
+      "criterion": "Critério",
+      "leclap": "LeClap",
+      "remotion": "Remotion",
+      "yes": "Sim",
+      "no": "Não",
+      "partial": "Em parte",
+      "native": {
+        "label": "Renderiza em um app nativo, sem motor de navegador",
+        "leclap": "React Native, com FFmpeg embutido no app",
+        "remotion": "Exige um motor de navegador compatível com WebCodecs"
+      },
+      "server": {
+        "label": "Roda sem servidor",
+        "leclap": "Node, navegador (WebAssembly) e no dispositivo",
+        "remotion": "No navegador, estável desde a 4.0.491"
+      },
+      "deterministic": {
+        "label": "Mesma entrada, mesma saída",
+        "leclap": "Por plataforma — o codificador muda, veja as ressalvas",
+        "remotion": "Por design, se a composição evita aleatoriedade"
+      },
+      "agent": {
+        "label": "Criado por um agente de IA",
+        "leclap": "Ferramentas MCP, sem nenhum LLM no caminho da saída",
+        "remotion": "Um prompt de sistema ensina um LLM a escrever React"
+      },
+      "model": {
+        "label": "Modelo de composição",
+        "leclap": "Modelo JSON validado por Zod",
+        "remotion": "Componentes React"
+      }
+    },
+    "caveats": {
+      "title": "As ressalvas honestas",
+      "leclap": {
+        "lead": "O determinismo do LeClap vale por plataforma, não entre plataformas.",
+        "web": {
+          "target": "Node e o navegador",
+          "encoder": "O caminho por software no estilo libx264."
+        },
+        "android": {
+          "target": "Android",
+          "encoder": "libopenh264, guiado por uma taxa de bits alvo."
+        },
+        "ios": {
+          "target": "iOS",
+          "encoder": "h264_videotoolbox da Apple, guiado por uma taxa de bits alvo."
+        },
+        "filters": "A build no dispositivo é LGPL, e é por isso que os celulares usam esses dois codificadores e que o conjunto de filtros é mais enxuto: boxblur é removido e eq é reescrito como lutyuv.",
+        "close": "Mesmo modelo, mesmos cortes, mesmos tempos — pixels diferentes em cada alvo."
+      },
+      "remotion": "O renderizador de navegador do Remotion tem a ressalva espelhada: ele emula o layout em um canvas em vez de capturar uma página, então não bate pixel a pixel com a própria saída no servidor."
+    },
+    "chooseRemotion": {
+      "title": "Escolha o Remotion quando…",
+      "lead": "Ele é a melhor ferramenta com mais frequência do que uma página de comparação costuma admitir.",
+      "composition": {
+        "title": "Sua composição é, na verdade, uma árvore de componentes",
+        "body": "Hooks, spring(), interpolação, reúso de componentes, uma pré-visualização ao vivo na página — coisas expressivas que um descritor JSON é deliberadamente estreito demais para dizer. Se você já pensa em React, o Remotion deixa você continuar pensando em React."
+      },
+      "scale": {
+        "title": "Você renderiza em servidores, em escala",
+        "body": "O Remotion tem um caminho documentado e maduro para renderização distribuída e serverless — uma render farm que você pode apontar para uma fila. O LeClap não tem equivalente e não está tentando construir um."
+      },
+      "ecosystem": {
+        "title": "Você quer um ecossistema maduro",
+        "body": "Anos de versões, uma comunidade grande, modelos, um player incorporável, pacotes de editor e respostas para perguntas que ninguém pensou em fazer ao LeClap ainda."
+      },
+      "web": {
+        "title": "Seu público está na web",
+        "body": "Se seus usuários usam um navegador compatível com WebCodecs, o renderizador do Remotion no lado do cliente já entrega uma renderização serverless. A linha do app nativo na tabela simplesmente não se aplica a você."
+      }
+    },
+    "chooseLeClap": {
+      "title": "Escolha o LeClap quando…",
+      "lead": "O canto em que o motor de navegador é o problema, não a plataforma.",
+      "native": {
+        "title": "O vídeo é composto dentro de um app nativo",
+        "body": "Capture da câmera, aplique efeitos, mixe música, adicione transições, renderize — o ciclo inteiro roda no seu app iOS ou Android, com o FFmpeg embutido e nenhum motor de navegador no caminho."
+      },
+      "privacy": {
+        "title": "A mídia nunca pode sair do dispositivo",
+        "body": "Não há etapa de envio para desativar, porque não há etapa de envio. Suas gravações nunca saem do dispositivo — a renderização acontece onde está a câmera."
+      },
+      "agent": {
+        "title": "Um agente cria o vídeo",
+        "body": "O servidor MCP expõe schema, validate e compose como ferramentas, então um modelo escreve um modelo JSON e o motor o renderiza. Nenhum LLM fica no caminho da saída: o resultado é renderizado, não amostrado."
+      },
+      "data": {
+        "title": "A composição é gerada por um programa",
+        "body": "Um descritor JSON validado é muito mais fácil de emitir, comparar, armazenar e revisar do que um componente React que você primeiro precisa compilar."
+      }
+    },
+    "sources": {
+      "title": "Fontes",
+      "lead": "Toda afirmação sobre o Remotion acima foi conferida na própria documentação do Remotion em 14 de agosto de 2026. Algo desatualizado ou injusto? Abra uma issue e corrigiremos a tabela.",
+      "clientSide": "Remotion — renderização no lado do cliente",
+      "limitations": "Remotion — limitações da renderização no lado do cliente",
+      "randomness": "Remotion — cintilação e aleatoriedade",
+      "systemPrompt": "Remotion — o prompt de sistema para IA",
+      "player": "Remotion — o Player incorporável",
+      "lambda": "Remotion — renderização no AWS Lambda",
+      "readme": "LeClap — a mesma tabela, no README"
+    },
+    "cta": {
+      "prompt": "Curioso para ver como é um modelo JSON de verdade?",
+      "example": "Ver um modelo real",
+      "start": "Abrir o Studio"
+    }
+  }
+}

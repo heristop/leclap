@@ -1,0 +1,37 @@
+{
+  "shelf": {
+    "title": "Seus projetos",
+    "hint": "Salvos automaticamente neste navegador.",
+    "showAll": "Mostrar todos os {{count}}",
+    "showFewer": "Mostrar menos"
+  },
+  "status": {
+    "draft": "Rascunho",
+    "completed": "Concluído"
+  },
+  "clips_one": "{{count}} clipe",
+  "clips_other": "{{count}} clipes",
+  "time": {
+    "justNow": "agora mesmo",
+    "minutes": "há {{count}} min",
+    "hours": "há {{count}} h",
+    "days": "há {{count}} d",
+    "weeks": "há {{count}} sem",
+    "months": "há {{count}} meses"
+  },
+  "actions": {
+    "open": "Abrir {{name}}",
+    "resume": "Retomar",
+    "view": "Ver",
+    "edit": "Editar montagem",
+    "rename": "Renomear projeto",
+    "duplicate": "Duplicar projeto",
+    "delete": "Excluir projeto"
+  },
+  "delete": {
+    "title": "Excluir este projeto?",
+    "message": "“{{name}}” e seus clipes salvos serão removidos permanentemente. Isso não pode ser desfeito.",
+    "cancel": "Cancelar",
+    "confirm": "Excluir"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "badge": "Privacidade em primeiro lugar",
+  "title": "Política de privacidade",
+  "intro": "O LeClap roda inteiramente no seu navegador. As fotos e os vídeos que você escolhe ou grava são processados no seu dispositivo e nunca são enviados a um servidor.",
+  "sections": {
+    "local": {
+      "heading": "Processamento no dispositivo",
+      "body": "Cada etapa — corte, efeitos, música e a renderização final — roda localmente com WebAssembly e FFmpeg. Sua mídia permanece no seu dispositivo e nunca é enviada a lugar nenhum."
+    },
+    "data": {
+      "heading": "Dados que coletamos",
+      "body": "Nenhuma conta, nenhum servidor de backend, nenhuma informação pessoal. A única coisa medida é uma contagem anônima de visitas às páginas, sem cookies."
+    },
+    "storage": {
+      "heading": "Armazenamento do navegador",
+      "body": "O LeClap usa o armazenamento local do seu navegador apenas para lembrar preferências, como tema e idioma, e para manter seus projetos em andamento no seu dispositivo. Você pode limpá-lo a qualquer momento nas configurações do navegador."
+    },
+    "analytics": {
+      "heading": "Visitas às páginas",
+      "body": "Este site não carrega nenhum script de análise próprio, então não há nada a pedir a você nem banner para dispensar. A contagem de visitas vem de uma medição feita pelo nosso provedor de hospedagem, que não define nenhum cookie e não armazena nada no seu dispositivo."
+    },
+    "thirdParty": {
+      "heading": "Recursos de terceiros",
+      "body": "Alguns recursos — fontes, o núcleo do FFmpeg e mídias de exemplo — são carregados de CDNs públicas e do GitHub. Essas requisições chegam diretamente aos provedores e seguem as políticas deles; nenhum dado pessoal é anexado a elas."
+    },
+    "contact": {
+      "heading": "Dúvidas",
+      "body": "Para qualquer dúvida sobre esta política, entre em contato pelo projeto no GitHub, em github.com/heristop/leclap."
+    }
+  },
+  "updated": "Última atualização: agosto de 2026"
+}

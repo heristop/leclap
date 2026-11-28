@@ -60,7 +60,7 @@ interface TranscribeArgs {
   now?: () => Date;
 }
 
-const REGION: Record<string, string> = { en: 'en-US', fr: 'fr-FR', de: 'de-DE', es: 'es-ES', it: 'it-IT' };
+const REGION: Record<string, string> = { en: 'en-US', fr: 'fr-FR', de: 'de-DE', es: 'es-ES', it: 'it-IT', pt: 'pt-BR' };
 
 /** A recogniser locale for an app language ("fr" → "fr-FR"); full tags pass through. */
 export function speechLocale(language: string | undefined): string {

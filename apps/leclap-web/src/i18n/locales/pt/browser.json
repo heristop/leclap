@@ -1,0 +1,45 @@
+{
+  "title": "Compatibilidade do navegador",
+  "checks": {
+    "wasm": {
+      "name": "WebAssembly",
+      "description": "Necessário para o processamento com FFmpeg"
+    },
+    "sab": {
+      "name": "SharedArrayBuffer",
+      "description": "Necessário para o processamento multithread"
+    },
+    "coi": {
+      "name": "Isolamento Cross-Origin",
+      "description": "Necessário para o suporte a SharedArrayBuffer"
+    },
+    "fileApi": {
+      "name": "File API",
+      "description": "Necessário para o envio de arquivos"
+    },
+    "workers": {
+      "name": "Web Workers",
+      "description": "Permite o processamento em segundo plano"
+    },
+    "camera": {
+      "name": "Acesso à câmera"
+    },
+    "engine": {
+      "name": "Motor de vídeo no navegador"
+    },
+    "fileHandling": {
+      "name": "Manipulação de arquivos"
+    }
+  },
+  "required": "Obrigatório",
+  "statusOk": "Tudo pronto — pronto para renderizar localmente",
+  "statusLimited": "Alguns recursos podem ser limitados",
+  "ready": "Pronto para renderizar localmente",
+  "checking": "Verificando este navegador…",
+  "recommendations": "Recomendações",
+  "updateBrowser": "Atualize para {{browser}} {{version}}+ para um desempenho ideal",
+  "recommendBrowsers": "Para o melhor desempenho, use Chrome 88+, Firefox 79+ ou Safari 14+",
+  "recommendFeatures": "Verifique se o seu navegador suporta WebAssembly e SharedArrayBuffer",
+  "recommendHttps": "Alguns recursos exigem HTTPS ou localhost por motivos de segurança",
+  "featuresSupported": "{{count}}/{{total}} recursos suportados"
+}

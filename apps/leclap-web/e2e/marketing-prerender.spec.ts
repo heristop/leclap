@@ -26,7 +26,16 @@ test.describe('marketing prerender', () => {
       viewport: { width: 390, height: 844 },
     });
     const page = await context.newPage();
-    for (const path of ['/', '/fr/about', '/de/compare/remotion', '/es/showcase', '/it/privacy', '/legal', '/studio']) {
+    for (const path of [
+      '/',
+      '/fr/about',
+      '/de/compare/remotion',
+      '/es/showcase',
+      '/it/privacy',
+      '/pt/legal',
+      '/legal',
+      '/studio',
+    ]) {
       await page.goto(path);
       await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), path).toBe(true);

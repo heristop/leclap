@@ -1,0 +1,186 @@
+{
+  "hero": {
+    "eyebrow": "O motor de vídeo para agentes de IA",
+    "headlineA": "Seu agente de IA sabe fazer vídeos.",
+    "subtagline": "Crie motion graphics e vídeos com agentes de IA. Componha, pré-visualize e refine modelos JSON editáveis com suas gravações, sua tipografia e sua música.",
+    "privacy": "Renderize localmente. Mantenha seu modelo editável.",
+    "tally": "LeClap · No dispositivo",
+    "scrubAria": "Navegar pelo filme de fundo",
+    "startCreating": "Conecte seu agente",
+    "seeHow": "Experimente no navegador",
+    "play": "Reproduzir o filme de abertura",
+    "pause": "Pausar o filme de abertura",
+    "scrubValue": "{{seconds}} de {{total}} segundos",
+    "demoHint": "Renderize um modelo de exemplo. Sem envio nem câmera.",
+    "agentHint": "MCP ou CLI. Mantenha cada composição editável."
+  },
+  "showcase": {
+    "eyebrow": "Veja em ação",
+    "title": "Cada efeito, a um modelo de distância",
+    "subtitle": "Vazamentos de luz, brilhos, molduras, movimentos de câmera e cortes no ritmo: explore modelos editáveis e inspecione seus resultados renderizados.",
+    "videoAria": "Uma sequência de efeitos de movimento do LeClap, em loop",
+    "play": "Reproduzir a renderização",
+    "pause": "Pausar a renderização",
+    "cta": "Crie o seu",
+    "viewShowcase": "Ver a vitrine",
+    "browseTemplates": "Explorar modelos",
+    "readDocs": "Ler a documentação"
+  },
+  "sound": {
+    "on": "Som ligado",
+    "off": "Silenciar"
+  },
+  "film": {
+    "eyebrow": "O filme",
+    "title": "Um modelo. Todas as telas.",
+    "subtitle": "78 segundos, cada plano renderizado ou gravado de verdade: o modelo, o motor, o navegador, o celular e o agente.",
+    "name": "LeClap — o filme",
+    "badge": "O trailer · 1:18",
+    "play": "Reproduzir o filme",
+    "pause": "Pausar o filme",
+    "captions": "Legendas em inglês",
+    "captionsToggle": "Legendas"
+  },
+  "mobile": {
+    "eyebrow": "No seu celular",
+    "title": "Grave e renderize, direto no celular.",
+    "subtitle": "Os mesmos modelos rodam no celular: o FFmpeg é compilado dentro do app, então suas gravações nunca saem das suas mãos.",
+    "chapters": {
+      "pick": {
+        "title": "Escolha um modelo",
+        "body": "Explore visuais prontos e escolha o que combina com a sua história."
+      },
+      "shoot": {
+        "title": "Grave seu clipe",
+        "body": "Filme direto do app, com contagem regressiva e guia de enquadramento."
+      },
+      "render": {
+        "title": "Renderize no celular",
+        "body": "O FFmpeg compõe o vídeo final no dispositivo. Sem servidor, sem envio."
+      },
+      "result": {
+        "title": "Seu vídeo, pronto",
+        "body": "Títulos, correção de cor e terço inferior aplicados, pronto para postar e ainda no seu celular."
+      }
+    },
+    "badge": "No dispositivo · sem envio",
+    "phoneAria": "Um celular rodando o app LeClap",
+    "cta": "Experimente os modelos no navegador",
+    "screen": {
+      "title": "Criando seu vídeo",
+      "preparing": "Preparando suas cenas…",
+      "private": "Renderizando com privacidade no seu dispositivo",
+      "cancel": "Cancelar renderização",
+      "readyTitle": "Seu vídeo está pronto",
+      "readyBody": "Guarde uma cópia ou compartilhe sua história.",
+      "share": "Compartilhar"
+    }
+  },
+  "agentic": {
+    "eyebrow": "Para desenvolvimento com agentes",
+    "title": "Não descreva a mudança. Mostre.",
+    "subtitle": "Seu agente de programação grava a mudança, o LeClap renderiza um vídeo curto de antes/depois e seu fluxo de trabalho o anexa ao pull request.",
+    "chapters": {
+      "implement": {
+        "title": "O agente implementa",
+        "body": "Ele altera o produto e indica o que o revisor deve olhar."
+      },
+      "record": {
+        "title": "Ele grava o antes e o depois",
+        "body": "Gravações de tela reais da branch base e da mudança, não imagens geradas."
+      },
+      "render": {
+        "title": "O LeClap valida e renderiza",
+        "body": "O modelo é validado primeiro e depois composto em um vídeo determinístico."
+      },
+      "attach": {
+        "title": "Seu fluxo de trabalho o anexa",
+        "body": "O revisor aperta o play no pull request em vez de imaginar a mudança."
+      }
+    },
+    "steps": {
+      "implement": "Implementar",
+      "record": "Gravar",
+      "render": "Renderizar",
+      "attach": "Anexar"
+    },
+    "cardAria": "Um pull request com um vídeo de antes/depois renderizado em anexo",
+    "evidencePlay": "Reproduzir o vídeo de antes/depois",
+    "evidencePause": "Pausar o vídeo de antes/depois",
+    "filmTitle": "Da história de usuário à pré-visualização",
+    "filmName": "LeClap para desenvolvimento com agentes — o filme",
+    "filmBadge": "Desenvolvimento com agentes · 0:50",
+    "cta": "Abrir o exemplo executável",
+    "ctaSecondary": "Usar a receita MCP"
+  },
+  "features": {
+    "badge": "Feito para o ciclo de criação",
+    "title": "Das instruções a um vídeo pronto",
+    "subtitle": "Dê ao seu agente ferramentas estruturadas, inspecione o resultado e mantenha o controle.",
+    "items": {
+      "templates": {
+        "title": "Criação estruturada",
+        "description": "Um schema, um catálogo de movimentos e exemplos executáveis dão ao seu agente blocos de construção concretos."
+      },
+      "forms": {
+        "title": "Controle humano",
+        "description": "Mantenha o JSON editável e abra-o no editor visual para revisar e ajustar a composição."
+      },
+      "processing": {
+        "title": "Revisões precisas",
+        "description": "Valide o modelo, inspecione quadros renderizados e altere as cenas que precisam de ajustes."
+      },
+      "privacy": {
+        "title": "Renderização local",
+        "description": "O FFmpeg renderiza no seu dispositivo. Seu provedor de IA externo tem seu próprio tratamento de dados."
+      },
+      "wasm": {
+        "title": "MCP e CLI",
+        "description": "Conecte um cliente MCP ou deixe um agente usar a linha de comando para descobrir, pré-visualizar e renderizar."
+      },
+      "crossPlatform": {
+        "title": "Um modelo, várias plataformas",
+        "description": "Componha no Node, no navegador ou em um app nativo. Os efeitos suportados e os pixels codificados variam conforme o backend."
+      }
+    }
+  },
+  "workflow": {
+    "eyebrow": "Seu briefing, seu próximo vídeo",
+    "title": "Um fluxo de trabalho que você pode inspecionar",
+    "subtitle": "Seu agente toma as decisões criativas. O LeClap transforma um modelo editável e seus arquivos em um vídeo.",
+    "steps": {
+      "compose": {
+        "title": "Compor",
+        "body": "Comece com um briefing e seus arquivos. Descubra um exemplo e escreva seguindo o schema."
+      },
+      "validate": {
+        "title": "Validar",
+        "body": "Verifique o modelo e inspecione quadros reais antes de renderizar o vídeo completo."
+      },
+      "revise": {
+        "title": "Revisar",
+        "body": "Peça uma introdução mais curta ou uma nova frase de encerramento. Atualize as cenas em questão."
+      },
+      "render": {
+        "title": "Renderizar",
+        "body": "Exporte o vídeo final e guarde o modelo para a próxima revisão."
+      }
+    },
+    "cases": {
+      "product": {
+        "title": "Demos de produto",
+        "body": "Transforme gravações de tela reais em uma apresentação clara do produto."
+      },
+      "social": {
+        "title": "Clipes de marca para redes sociais",
+        "body": "Reutilize seus textos, cores e arquivos em composições editáveis."
+      },
+      "review": {
+        "title": "Evidência para PR",
+        "body": "Dê aos revisores um vídeo de antes/depois da mudança real."
+      }
+    },
+    "guide": "Seguir o guia do agente",
+    "studio": "Experimentar o Studio"
+  }
+}

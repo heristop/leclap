@@ -10,6 +10,7 @@ import fr from '@/i18n/locales/fr/admin.json';
 import de from '@/i18n/locales/de/admin.json';
 import es from '@/i18n/locales/es/admin.json';
 import itLocale from '@/i18n/locales/it/admin.json';
+import pt from '@/i18n/locales/pt/admin.json';
 import { newHtmlLayer } from '../../templateEditorModel';
 import { HtmlLayerInspector } from './html-layer-inspector';
 import { boxFromScale } from './html-layer-canvas-item';
@@ -69,6 +70,7 @@ describe('HtmlLayerInspector', () => {
     ['de', de],
     ['es', es],
     ['it', itLocale],
+    ['pt', pt],
   ])('is translated in %s, with every advisory', (_lng, bundle) => {
     expect(Object.keys(bundle.htmlLayer).toSorted()).toEqual(Object.keys(admin.htmlLayer).toSorted());
     expect(Object.keys(bundle.htmlLayer.advisory).toSorted()).toEqual(Object.keys(admin.htmlLayer.advisory).toSorted());

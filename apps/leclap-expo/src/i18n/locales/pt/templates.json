@@ -1,0 +1,27 @@
+{
+  "kicker": "Criar",
+  "screenTitle": "Roteiros",
+  "orientation": {
+    "portrait": "Vídeo vertical",
+    "landscape": "Vídeo horizontal",
+    "square": "Vídeo quadrado"
+  },
+  "subtitle": "Escolha um roteiro para criar seu vídeo",
+  "loadError": "Falha ao carregar os modelos",
+  "loadErrorHint": "Puxe para atualizar e tente novamente.",
+  "createTemplate": "Criar um modelo",
+  "cardDefaultDescription": "Crie um vídeo com este modelo",
+  "custom": "Personalizado",
+  "search": {
+    "placeholder": "Buscar modelos...",
+    "clear": "Limpar busca",
+    "count_one": "{{count}} modelo",
+    "count_other": "{{count}} modelos",
+    "emptyTitle": "Nenhum modelo encontrado",
+    "emptyBody": "Tente outro nome ou limpe a busca."
+  },
+  "refresh": {
+    "syncWhenOnline": "Puxe para sincronizar quando estiver online",
+    "pullToRefresh": "Puxe para atualizar"
+  }
+}

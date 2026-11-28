@@ -38,7 +38,7 @@ The finished-video preview opens Export from its toolbar; recorded-section previ
 
 Export offers Save and Share first; uploading to a URL is disclosed on demand. The sheet preserves the bottom safe area, scrolls with the keyboard and exposes expanded, busy and disabled states. Media-library permission and asset modules load when Save is requested. Permission failures return the action to a recoverable state.
 
-New UI copy is supplied in English, French, German, Spanish and Italian. The refined controls use at least 48-point/dp targets. Primary actions use deeper lavender with white labels; ordinary lavender remains the brand accent.
+New UI copy is supplied in English, French, German, Spanish, Italian and Portuguese. The refined controls use at least 48-point/dp targets. Primary actions use deeper lavender with white labels; ordinary lavender remains the brand accent.
 
 ## Verification
 

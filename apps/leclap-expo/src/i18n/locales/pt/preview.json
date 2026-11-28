@@ -1,0 +1,72 @@
+{
+  "loading": "Carregando pré-visualização...",
+  "notAvailable": "Vídeo indisponível para pré-visualização.",
+  "toolbar": {
+    "saveAndClose": "Salvar e fechar a pré-visualização",
+    "trim": "Cortar",
+    "crop": "Recortar",
+    "retake": "Regravar",
+    "captions": "Legendas"
+  },
+  "trim": {
+    "title": "Cortar clipe"
+  },
+  "crop": {
+    "title": "Arraste o quadro para recortar"
+  },
+  "compile": {
+    "title": "Criando seu vídeo",
+    "progress": "Progresso da renderização do vídeo",
+    "preparing": "Preparando suas cenas…",
+    "private": "Renderizando em privado no seu dispositivo",
+    "cancel": "Cancelar renderização",
+    "cancelling": "Cancelando…"
+  },
+  "export": {
+    "title": "Exportar vídeo",
+    "readyTitle": "Seu vídeo está pronto",
+    "readyBody": "Guarde uma cópia ou compartilhe sua história.",
+    "saveBody": "Salve uma cópia na sua biblioteca de fotos",
+    "share": "Compartilhar",
+    "shareBody": "Abrir a folha de compartilhamento do sistema",
+    "shareTitle": "Meu vídeo LeClap",
+    "uploadTitle": "Enviar para uma URL",
+    "saveErrorTitle": "Falha ao salvar",
+    "saveErrorBody": "Não foi possível salvar o vídeo. Tente novamente.",
+    "missingUrlTitle": "URL ausente",
+    "missingUrlBody": "Informe primeiro uma URL de envio.",
+    "uploadErrorTitle": "Falha no envio",
+    "save": {
+      "idle": "Salvar na galeria",
+      "saving": "Salvando…",
+      "saved": "Salvo na galeria",
+      "error": "Falha ao salvar — toque para tentar novamente"
+    },
+    "upload": {
+      "idle": "Enviar",
+      "uploading": "Enviando… {{percent}}%",
+      "done": "Envio concluído",
+      "error": "Falha no envio — toque para tentar novamente"
+    },
+    "shareErrorTitle": "Compartilhamento indisponível",
+    "shareErrorBody": "Não foi possível compartilhar o vídeo. Tente novamente."
+  },
+  "sheet": {
+    "close": "Fechar",
+    "dismiss": "Dispensar"
+  },
+  "captions": {
+    "title": "Legendas",
+    "toggle": "Legendas a partir da sua voz",
+    "privacy": "Ative para legendar este clipe a partir do que você diz. Tudo roda neste celular: o áudio nunca sai dele.",
+    "working": "Ouvindo seu clipe neste celular…",
+    "tapToFix": "Toque em uma palavra para corrigi-la.",
+    "coarse": "Este celular forneceu apenas o tempo das frases: as legendas destacam por frase. Toque em uma palavra para corrigi-la.",
+    "retry": "Tentar novamente",
+    "errors": {
+      "unavailable": "O reconhecimento de fala no dispositivo não está disponível para o seu idioma neste celular.",
+      "permission": "Permita o reconhecimento de fala em Configurações para legendar seus clipes.",
+      "empty": "Nenhuma fala foi reconhecida neste clipe."
+    }
+  }
+}

@@ -1,0 +1,476 @@
+{
+  "header": {
+    "create": "Criar um modelo",
+    "edit": "Editar modelo",
+    "close": "Fechar",
+    "back": "Voltar",
+    "undo": "Desfazer",
+    "redo": "Refazer",
+    "import": "Importar JSON do modelo",
+    "export": "Exportar JSON do modelo"
+  },
+  "importError": {
+    "title": "Não foi possível importar",
+    "description": "Esse arquivo não é um descritor de modelo válido."
+  },
+  "name": {
+    "label": "Nome",
+    "placeholder": "Meu modelo"
+  },
+  "description": {
+    "label": "Descrição (opcional)",
+    "placeholder": "Um breve resumo"
+  },
+  "variables": {
+    "label": "Variáveis globais",
+    "hint": "Valores reutilizáveis — insira um com {{ name }} em qualquer campo de texto.",
+    "name": "nome",
+    "value": "valor",
+    "add": "Adicionar variável",
+    "remove": "Remover variável {{n}}"
+  },
+  "orientation": {
+    "label": "Orientação",
+    "landscape": "Horizontal 16:9",
+    "portrait": "Vertical 9:16",
+    "square": "Quadrado 1:1"
+  },
+  "sections": {
+    "label": "Seções — ordem de cima para baixo",
+    "add": "Adicionar uma seção"
+  },
+  "scenes": {
+    "add": "Adicionar uma cena"
+  },
+  "scene": {
+    "collapse": "Recolher cena",
+    "expand": "Expandir cena"
+  },
+  "timeline": {
+    "label": "Visão geral das cenas",
+    "goTo": "Ir para a cena {{n}}"
+  },
+  "wizard": {
+    "continue": "Continuar",
+    "info": {
+      "title": "Dê um nome ao modelo",
+      "subtitle": "Um nome claro e o formato da tela."
+    },
+    "scenes": {
+      "title": "Monte as cenas",
+      "subtitle": "Adicione cenas, defina transições e ajuste cada uma."
+    },
+    "style": {
+      "title": "Estilo e áudio",
+      "subtitle": "Uma transição padrão e como o áudio é mixado."
+    }
+  },
+  "section": {
+    "duration": "Duração (s)",
+    "mute": "Silenciar áudio",
+    "overlayText": "Texto sobreposto (opcional)",
+    "overlayPlaceholder": "aceita {{token}}",
+    "countdownToggle": "Contagem regressiva antes de gravar",
+    "countdown": "Contagem regressiva (s)",
+    "whatToFilm": "O que filmar (opcional)",
+    "whatToFilmPlaceholder": "ex.: Fique centralizado, olhe para a câmera",
+    "textOverlays": "Textos sobrepostos",
+    "addText": "Adicionar texto",
+    "addTitle": "Adicionar texto de título",
+    "editTitle": "Editar título sobreposto"
+  },
+  "color": {
+    "label": "Cor (hex)",
+    "placeholder": "#7C83FD"
+  },
+  "field": {
+    "label": "Rótulo do campo {{n}}",
+    "placeholder": "Seu nome",
+    "add": "Adicionar campo"
+  },
+  "enterField": "Digite {{label}}",
+  "music": {
+    "pick": "Escolha as faixas que os espectadores podem selecionar.",
+    "allowUpload": "Permitir que os espectadores enviem a própria faixa"
+  },
+  "image": {
+    "pick": "Escolha as imagens que os espectadores podem selecionar.",
+    "allowUpload": "Permitir que os espectadores enviem a própria imagem",
+    "label": "Imagem",
+    "none": "Nenhuma",
+    "position": "Posição (px)",
+    "scale": "Escala (px, -1 = auto)",
+    "rotation": "Rotação (°)",
+    "add": "Adicionar uma imagem",
+    "layer": "Imagem {{number}}",
+    "remove": "Remover imagem"
+  },
+  "advanced": {
+    "look": "Visual",
+    "fineTune": "Ajuste fino",
+    "caption": "Legenda",
+    "audio": "Áudio",
+    "cameraGuide": "Guia da câmera",
+    "layers": "Camadas",
+    "motion": "Movimento",
+    "chromaKey": "Remoção de fundo",
+    "titleCard": "Cartela de título",
+    "lowerThird": "Terço inferior",
+    "capture": "Fontes de captura",
+    "letterbox": "Letterbox"
+  },
+  "speed": {
+    "label": "Velocidade de reprodução",
+    "hint": "Uma reprodução mais lenta ou mais rápida também alonga ou encurta esta cena no vídeo final."
+  },
+  "capture": {
+    "hint": "Quais entradas quem está filmando pode usar — câmera frontal ou traseira, gravação de tela ou envio de arquivo. Nunca é renderizado no vídeo.",
+    "allowedLabel": "Fontes permitidas",
+    "defaultLabel": "Abre com",
+    "lockedNote": "Uma única fonte permitida trava o gravador nela.",
+    "mode": {
+      "front": "Câmera frontal",
+      "back": "Câmera traseira",
+      "screen": "Tela",
+      "upload": "Envio"
+    }
+  },
+  "grade": {
+    "brightness": "Brilho",
+    "contrast": "Contraste",
+    "saturation": "Saturação",
+    "gamma": "Gama",
+    "hue": "Matiz",
+    "blur": "Desfoque",
+    "grain": "Grão de filme"
+  },
+  "letterbox": {
+    "hint": "Barras estilo Cinemascope sobrepostas em cima e embaixo para simular uma proporção mais larga.",
+    "enable": "Letterbox Cinemascope",
+    "aspect": "Proporção",
+    "color": "Cor da barra"
+  },
+  "caption": {
+    "placeholder": "Título na tela (opcional)",
+    "hint": "Um título curto gravado no vídeo.",
+    "positionLabel": "Posição",
+    "styleLabel": "Estilo",
+    "position": {
+      "top": "Topo",
+      "center": "Centro",
+      "bottom": "Base",
+      "lower-third": "Terço inferior"
+    },
+    "style": {
+      "bar": "Barra",
+      "subtle": "Sutil",
+      "bold": "Negrito"
+    }
+  },
+  "chromaKey": {
+    "hint": "Remove uma cor de tela sólida (tela verde/azul) e compõe o clipe sobre uma cor lisa.",
+    "enable": "Remover fundo",
+    "keyColor": "Cor da tela",
+    "background": "Cor do fundo",
+    "similarity": "Intensidade"
+  },
+  "titleCard": {
+    "stagger": "Atraso entre linhas",
+    "hint": "Uma cartela limpa com antetítulo / título / subtítulo — dimensionada conforme a orientação.",
+    "kicker": "Antetítulo",
+    "kickerPlaceholder": "ex.: APRESENTANDO",
+    "headline": "Título",
+    "headlinePlaceholder": "ex.: #form_1_name",
+    "subtitle": "Subtítulo",
+    "subtitlePlaceholder": "ex.: #form_1_tagline",
+    "align": "Alinhamento",
+    "alignLeft": "Esquerda",
+    "alignCenter": "Centro",
+    "background": "Fundo da cartela",
+    "fadeIn": "Aparecer gradualmente",
+    "fadeOut": "Desaparecer gradualmente"
+  },
+  "lowerThird": {
+    "hint": "Uma faixa de título / subtítulo sobre o clipe, com um selo opcional.",
+    "title": "Título",
+    "titlePlaceholder": "ex.: #form_1_name",
+    "subtitle": "Subtítulo",
+    "subtitlePlaceholder": "ex.: pitch em uma linha",
+    "badge": "Selo",
+    "badgePlaceholder": "ex.: #form_1_price",
+    "position": "Posição",
+    "bottom": "Base",
+    "top": "Topo",
+    "bandColor": "Cor da faixa",
+    "band": "Opacidade da faixa"
+  },
+  "accent": {
+    "label": "Destaque",
+    "enable": "Barra de destaque",
+    "color": "Cor de destaque",
+    "hint": "Desenha uma pequena barra de sublinhado na cor de destaque abaixo do texto.",
+    "hintTitleCard": "Desenha a barra de sublinhado e colore o antetítulo.",
+    "hintLowerThird": "Colore a barra de destaque da faixa e o selo."
+  },
+  "partial": {
+    "pick": "Escolha um partial",
+    "variables": "Variáveis"
+  },
+  "transition": {
+    "title": "Transição",
+    "help": "Como esta cena se funde com a próxima.",
+    "cut": "Corte",
+    "cutOption": "Corte — troca seca",
+    "duration": "Duração"
+  },
+  "look": {
+    "label": "Visual",
+    "none": "Nenhum",
+    "presets": {
+      "duotone": "Duotone",
+      "posterize": "Posterizar",
+      "sketch": "Esboço",
+      "glitch": "Glitch",
+      "soft-vignette": "Vinheta suave"
+    }
+  },
+  "overlay": {
+    "title": "Posicionar texto",
+    "hint": "Arraste o texto para posicioná-lo.",
+    "placeholder": "aceita {{token}}",
+    "sample": "Seu texto",
+    "remove": "Remover sobreposição",
+    "size": "Tamanho",
+    "font": "Fonte",
+    "insertVariable": "Inserir variável",
+    "colour": "Cor",
+    "box": "Caixa de fundo",
+    "boxOn": "Caixa",
+    "boxOff": "Sem caixa"
+  },
+  "audio": {
+    "musicVolume": "Volume da música",
+    "musicVolumeGlobal": "Volume da música (global)",
+    "resetGlobal": "Redefinir para o volume global da música",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out",
+    "duration": "Duração",
+    "curve": "Curva",
+    "sourceVolume": "Volume da voz / fonte",
+    "musicVolumeGlobalLabel": "Volume da música de fundo",
+    "normalize": "Loudness",
+    "normalizeOff": "Desligado",
+    "normalizeLoudnorm": "EBU",
+    "normalizeDynaudnorm": "Dinâmico",
+    "ducking": "Baixar a música sob a voz",
+    "effectLabel": "Efeito de voz",
+    "effectNone": "Nenhum",
+    "effect": {
+      "echo": "Eco",
+      "telephone": "Telefone",
+      "muffled": "Abafado"
+    }
+  },
+  "layers": {
+    "label": "Camadas",
+    "base": "Base",
+    "layerN": "Camada {{n}}",
+    "remove": "Remover camada {{n}}",
+    "add": "Adicionar camada",
+    "opacity": "Opacidade",
+    "fill": "Preenchimento",
+    "solid": "Sólido",
+    "gradient": "Gradiente",
+    "direction": "Direção",
+    "vertical": "Vertical",
+    "horizontal": "Horizontal",
+    "diagonal": "Diagonal"
+  },
+  "framing": {
+    "help": "Um contorno discreto do corpo exibido na câmera para ajudar no enquadramento.",
+    "silhouette": "Silhueta",
+    "off": "Desligada",
+    "left": "Esquerda",
+    "center": "Centro",
+    "right": "Direita",
+    "style": "Estilo",
+    "styleBust": "Busto",
+    "styleOutline": "Contorno",
+    "opacity": "Opacidade"
+  },
+  "motion": {
+    "kenburns": "Movimento Ken Burns",
+    "on": "Ligado",
+    "off": "Desligado",
+    "direction": "Direção",
+    "in": "Entrar",
+    "out": "Sair",
+    "left": "Esquerda",
+    "right": "Direita",
+    "up": "Cima",
+    "down": "Baixo",
+    "intensity": "Intensidade",
+    "kind": "Tipo de efeito",
+    "kindKenburns": "Ken Burns",
+    "kindShake": "Tremor de câmera na mão",
+    "kindPulse": "Pulso de zoom",
+    "shakeIntensity": "Intensidade do tremor",
+    "shakeFrequency": "Frequência do tremor",
+    "pulseIntensity": "Intensidade do pulso",
+    "pulseFrequency": "Frequência do pulso"
+  },
+  "style": {
+    "defaultTransition": "Transição padrão",
+    "defaultTransitionHelp": "Usada entre cenas que não definem a própria.",
+    "globalAudio": "Mixagem de áudio",
+    "wholeVideoAnimations": "Animações do vídeo inteiro",
+    "wholeVideoAnimationsHelp": "Sobreposições que cobrem o vídeo inteiro, em todas as cenas.",
+    "watermark": "Marca d'água",
+    "watermarkHelp": "Uma imagem de logo composta em um canto de todas as cenas, definida uma única vez."
+  },
+  "save": "Salvar modelo",
+  "preview": "Pré-visualizar",
+  "previewError": {
+    "title": "Falha na pré-visualização",
+    "description": "Não foi possível renderizar uma pré-visualização deste modelo."
+  },
+  "alerts": {
+    "nameRequired": {
+      "title": "Nome obrigatório",
+      "message": "Dê um nome ao seu modelo."
+    },
+    "addSection": {
+      "title": "Adicione uma seção",
+      "message": "Um modelo precisa de pelo menos uma seção."
+    },
+    "almostThere": "Quase lá",
+    "needName": "Dê um nome ao seu modelo.",
+    "needScene": "Adicione pelo menos uma cena."
+  },
+  "animation": {
+    "label": "Animação",
+    "none": "Nenhuma",
+    "loop": "Loop",
+    "playback": "Reprodução",
+    "forever": "Para sempre",
+    "loopsTab": "Loops",
+    "secondsTab": "Segundos",
+    "loopsLabel": "Número de loops",
+    "secondsLabel": "Duração (s)",
+    "startLabel": "Começar em (s)",
+    "keepLastFrame": "Manter o último quadro",
+    "position": "Posição (px)",
+    "scale": "Escala (px, -1 = auto)",
+    "fit": "Ajuste",
+    "fitStretch": "Esticar",
+    "fitContain": "Conter",
+    "fitCover": "Cobrir",
+    "opacity": "Opacidade",
+    "rotation": "Rotação (°)",
+    "mirror": "Espelhar",
+    "mirrorHorizontal": "Horizontal",
+    "mirrorVertical": "Vertical",
+    "add": "Adicionar um arquivo de animação",
+    "layer": "Arquivo de animação {{number}}",
+    "remove": "Remover arquivo de animação",
+    "effects": {
+      "label": "Combinações de efeitos",
+      "interface-focus": {
+        "name": "Foco na interface",
+        "description": "Enquadre um detalhe com um breve pulso."
+      },
+      "product-spotlight": {
+        "name": "Destaque de produto",
+        "description": "Uma órbita suave e uma única varredura de brilho."
+      },
+      "celebration-burst": {
+        "name": "Explosão de celebração",
+        "description": "Um breve toque de confete e brilhos."
+      },
+      "focus-lock": {
+        "name": "Foco travado",
+        "description": "Uma moldura de colchetes com um anel suave."
+      },
+      "light-pass": {
+        "name": "Passagem de luz",
+        "description": "Uma breve onda de luz e um pequeno brilho."
+      },
+      "frame-reveal": {
+        "name": "Revelação de moldura",
+        "description": "Uma moldura fina com uma única varredura de brilho."
+      }
+    },
+    "library": {
+      "sheen": "Lustro",
+      "glint-orbit": "Brilho em órbita",
+      "edge-glow": "Brilho nas bordas",
+      "leak": "Vazamento de luz",
+      "bloom": "Bloom",
+      "ripple": "Anel de pulso",
+      "ripple-tap": "Toque",
+      "resolve": "Resolver",
+      "glass": "Vidro",
+      "vignette-breathe": "Vinheta pulsante",
+      "confetti": "Confete",
+      "burst": "Explosão",
+      "glint": "Brilhos",
+      "goo": "Goo",
+      "frame": "Moldura",
+      "corners": "Colchetes de canto",
+      "underline": "Sublinhado",
+      "bokeh": "Bokeh",
+      "dust": "Poeira",
+      "grain": "Grão",
+      "shine-sweep": "Varredura de brilho",
+      "sparkle": "Cintilação",
+      "corner-brackets": "Colchetes de canto",
+      "pulse-ring": "Anel de pulso",
+      "tap-pulse": "Pulso de toque",
+      "light-leak": "Vazamento de luz",
+      "white-border": "Borda branca",
+      "glow-border": "Borda luminosa",
+      "rounded-border": "Borda arredondada",
+      "spec-orbit": "Órbita de especificações",
+      "animation-icons": "Ícones de animação"
+    },
+    "groups": {
+      "light": "Luz",
+      "focus": "Foco",
+      "celebrate": "Celebração",
+      "frames": "Molduras",
+      "ambient": "Ambiente",
+      "samples": "Exemplos",
+      "samplesHint": "Sobreposições prontas que ficam iguais em todos os modelos. Prefira um efeito acima: ele é desenhado pelo motor e ajustado a esta cena."
+    },
+    "engine": {
+      "engineLabel": "Efeitos",
+      "engineHelp": "Desenhados pelo LeClap e ajustados a esta cena. Ajuste-os no editor web.",
+      "added": "Efeitos nesta cena",
+      "removeEffect": "Remover {{label}}",
+      "addEffect": "Adicionar {{label}}"
+    },
+    "sampleBadge": "Exemplo"
+  },
+  "overlays": {
+    "kind": "Sobreposições",
+    "animation": "Arquivo de animação",
+    "image": "Imagem"
+  },
+  "watermark": {
+    "source": "Fonte da imagem",
+    "sourceLibrary": "Biblioteca",
+    "sourceUrl": "URL",
+    "none": "Nenhuma",
+    "urlPlaceholder": "https://example.com/logo.png",
+    "position": "Posição",
+    "scale": "Tamanho",
+    "opacity": "Opacidade",
+    "margin": "Margem",
+    "pos": {
+      "top-left": "Superior esquerdo",
+      "top-right": "Superior direito",
+      "bottom-left": "Inferior esquerdo",
+      "bottom-right": "Inferior direito"
+    }
+  }
+}

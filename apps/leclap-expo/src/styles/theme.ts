@@ -71,7 +71,7 @@ export const spacing = {
 };
 
 // Oswald is condensed, so display sizes run tight — but `lineHeight` must clear the font's full
-// ascent+descent (≈1.15–1.18×) or RN clips descenders (g/y/p) and the accented glyphs of fr/de/es/it.
+// ascent+descent (≈1.15–1.18×) or RN clips descenders (g/y/p) and the accented glyphs of fr/de/es/it/pt.
 // These are the smallest line-heights that stay editorial-tight without cropping.
 export const typography = {
   displayHero: {
